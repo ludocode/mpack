@@ -1,0 +1,8 @@
+*.o
+*.swp
+*.gcov
+.directory
+/.sconsign.dblite
+/tags
+/build
+/docs
