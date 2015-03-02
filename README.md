@@ -7,7 +7,7 @@ MPack is a C implementation of an encoder and decoder for the [MessagePack](http
  * Secure against untrusted data
  * Lightweight, suitable for embedded
  * Helpful for debugging
- * Extensively documented
+ * [Extensively documented](http://ludocode.github.io/mpack/)
 
 The core of MPack contains a buffered reader and writer with a custom callback to fill or flush the buffer. Helper functions can be enabled to read values of expected type, to work with files, to allocate strings automatically, to check UTF-8 encoding, and more. The MPack featureset can be configured at compile-time to set which features, components and debug checks are compiled, and what dependencies are available.
 
@@ -67,65 +67,6 @@ In the above example, we encode only to an in-memory buffer. The writer can opti
 If any error occurs, the writer is placed in an error state and can optionally longjmp if a handler is set. The writer will flag an error if too much data is written, if the wrong number of elements are written, if the data could not be flushed, etc.
 
 The MPack writer API is imperative in nature. Since it's easy to incorrectly compose structured data with an imperative API, MPack provides a debug mode which tracks reads and writes of compound types to ensure that the correct number of elements and bytes were read and written. This allows for rapid development of high-performance applications that use MessagePack. In release mode, these checks are eliminated for maximum performance.
-
-## The Expect API
-
-The Expect API is used to imperatively parse data of a fixed (hardcoded) schema. It is useful when parsing very large mpack files or parsing in memory-constrained environments. The below example demonstrates shows reading from a file and handling errors with longjmp.
-
-    // open a file on disk
-    FILE* file = fopen("example.mp");
-    if (file == NULL) {
-        fprintf(stderr, "An error occurred opening the file!\n");
-        return;
-    }
-
-    // initialize the reader using fread() and a stack-allocated buffer
-    mpack_reader_t reader;
-    mpack_reader_init_stack(&reader, mpack_fread, file);
-
-    // catch errors with longjmp
-    if (MPACK_READER_SETJMP(&reader)) {
-        fprintf(stderr, "An error occurred decoding the file!\n");
-        mpack_reader_destroy(&reader);
-        fclose(file);
-        return;
-    }
-
-    // we expect the file to contain the example on the msgpack homepage
-    mpack_expect_map_match(&reader, 2);
-    mpack_expect_cstr_match(&reader, "compact");
-    bool compact = mpack_expect_bool(&reader);
-    mpack_expect_cstr_match(&reader, "schema");
-    int schema = mpack_expect_int(&reader);
-    mpack_done_map(&reader);
-
-    // clean up
-    mpack_reader_destroy(&reader);
-    fclose(file);
-
-    // verify and use the data
-    if (!compact || schema != 0) {
-        fprintf(stderr, "The file data is invalid!\n");
-        return;
-    }
-
-The example expects the map elements to be laid out in a specific order. If you expect map keys to be re-arranged (for example if the data is converted from JSON or encoded from an unordered map), something like this may be more appropriate:
-
-    bool compact = false;
-    int schema = -1;
-
-    for (int i = mpack_expect_map(&reader); i > 0; --i) {
-        char key[20];
-        mpack_expect_cstr(&reader, key, sizeof(key));
-
-        if (strcmp(key, "compact") == 0)
-            compact = mpack_expect_bool(&reader);
-        else if (strcmp(key, "schema") == 0)
-            schema = mpack_expect_int(&reader);
-        else
-            mpack_reader_flag_error(&reader, mpack_error_data);
-    }
-    mpack_done_map(&reader);
 
 ## Why Not Just Use JSON?
 
