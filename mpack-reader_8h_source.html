@@ -24,7 +24,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">MPack
-   &#160;<span id="projectnumber">0.1</span>
+   &#160;<span id="projectnumber">0.2-dev</span>
    </div>
    <div id="projectbrief">A C encoding/decoding library for the MessagePack serialization format.</div>
   </td>
@@ -295,13 +295,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00426"></a><span class="lineno">  426</span>&#160;<span class="preprocessor">#endif</span></div>
 <div class="line"><a name="l00427"></a><span class="lineno">  427</span>&#160;<span class="preprocessor">#endif</span></div>
 <div class="line"><a name="l00428"></a><span class="lineno">  428</span>&#160;</div>
-<div class="ttc" id="group__common_html_ga9d9f282ca4183ab5190e09d04c1f74c4"><div class="ttname"><a href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a></div><div class="ttdeci">mpack_error_t</div><div class="ttdoc">Error states for the MPack reader and writer. </div><div class="ttdef"><b>Definition:</b> mpack-common.h:58</div></div>
+<div class="ttc" id="group__common_html_ga9d9f282ca4183ab5190e09d04c1f74c4"><div class="ttname"><a href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a></div><div class="ttdeci">mpack_error_t</div><div class="ttdoc">Error states for the MPack reader and writer. </div><div class="ttdef"><b>Definition:</b> mpack-common.h:57</div></div>
 <div class="ttc" id="group__reader_html_gac04666405e21eea6e8819182571f0d20"><div class="ttname"><a href="group__reader.html#gac04666405e21eea6e8819182571f0d20">mpack_reader_destroy</a></div><div class="ttdeci">mpack_error_t mpack_reader_destroy(mpack_reader_t *reader)</div><div class="ttdoc">Cleans up the mpack reader, ensuring that all compound elements have been completely read...</div></div>
 <div class="ttc" id="group__reader_html_gaeb91e8d4e2a7b7f6562d8bbb7400275c"><div class="ttname"><a href="group__reader.html#gaeb91e8d4e2a7b7f6562d8bbb7400275c">mpack_read_bytes</a></div><div class="ttdeci">void mpack_read_bytes(mpack_reader_t *reader, char *p, size_t count)</div><div class="ttdoc">Reads bytes from a string, binary blob or extension object. </div></div>
 <div class="ttc" id="group__reader_html_gabae431ae889a09d3f7c10aa5c82ac6c0"><div class="ttname"><a href="group__reader.html#gabae431ae889a09d3f7c10aa5c82ac6c0">mpack_debug_print</a></div><div class="ttdeci">void mpack_debug_print(const char *data, int len)</div></div>
 <div class="ttc" id="group__reader_html_ga6e47849411acaac1c035360119d9c8ad"><div class="ttname"><a href="group__reader.html#ga6e47849411acaac1c035360119d9c8ad">mpack_reader_clearjmp</a></div><div class="ttdeci">static void mpack_reader_clearjmp(mpack_reader_t *reader)</div><div class="ttdoc">Clears a jump target. </div><div class="ttdef"><b>Definition:</b> mpack-reader.h:129</div></div>
 <div class="ttc" id="group__reader_html_gab2c53cadf7a16c73483d5f5f5c129e9b"><div class="ttname"><a href="group__reader.html#gab2c53cadf7a16c73483d5f5f5c129e9b">mpack_reader_init</a></div><div class="ttdeci">static void mpack_reader_init(mpack_reader_t *reader, mpack_fill_t fill, void *context, char *buffer, size_t size, size_t count)</div><div class="ttdoc">Initializes an mpack reader with the given buffer and fill function. </div><div class="ttdef"><b>Definition:</b> mpack-reader.h:141</div></div>
-<div class="ttc" id="group__common_html_structmpack__tag__t"><div class="ttname"><a href="group__common.html#structmpack__tag__t">mpack_tag_t</a></div><div class="ttdoc">An MPack tag is a MessagePack object header. </div><div class="ttdef"><b>Definition:</b> mpack-common.h:106</div></div>
+<div class="ttc" id="group__common_html_structmpack__tag__t"><div class="ttname"><a href="group__common.html#structmpack__tag__t">mpack_tag_t</a></div><div class="ttdoc">An MPack tag is a MessagePack object header. </div><div class="ttdef"><b>Definition:</b> mpack-common.h:105</div></div>
 <div class="ttc" id="group__reader_html_gaa4676c4b0761de4f864fd81c347a15a0"><div class="ttname"><a href="group__reader.html#gaa4676c4b0761de4f864fd81c347a15a0">mpack_done_bin</a></div><div class="ttdeci">void mpack_done_bin(mpack_reader_t *reader)</div><div class="ttdoc">Finishes reading a binary data blob. </div></div>
 <div class="ttc" id="group__reader_html_ga233580c48bded0c6df5d03665a9713d8"><div class="ttname"><a href="group__reader.html#ga233580c48bded0c6df5d03665a9713d8">mpack_fread</a></div><div class="ttdeci">size_t mpack_fread(void *context, char *buffer, size_t count)</div><div class="ttdoc">An implementation of the mpack fill function which wraps the standard stdio fread() function...</div></div>
 <div class="ttc" id="group__reader_html_ga0c7e1dd2be56ce3d596326c4463e7229"><div class="ttname"><a href="group__reader.html#ga0c7e1dd2be56ce3d596326c4463e7229">mpack_skip_bytes</a></div><div class="ttdeci">void mpack_skip_bytes(mpack_reader_t *reader, size_t count)</div><div class="ttdoc">Skips bytes from the underlying stream. </div></div>
@@ -323,7 +323,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Mar 2 2015 08:34:22 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Mar 16 2015 05:08:24 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.9.1
 </small></address>

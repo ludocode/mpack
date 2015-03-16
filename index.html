@@ -24,7 +24,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">MPack
-   &#160;<span id="projectnumber">0.1</span>
+   &#160;<span id="projectnumber">0.2-dev</span>
    </div>
    <div id="projectbrief">A C encoding/decoding library for the MessagePack serialization format.</div>
   </td>
@@ -87,7 +87,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <li>Secure against untrusted data</li>
 <li>Lightweight, suitable for embedded</li>
 <li>Helpful for debugging</li>
-<li>Extensively documented</li>
+<li><a href="http://ludocode.github.io/mpack/">Extensively documented</a></li>
 </ul>
 <p>The core of MPack contains a buffered reader and writer with a custom callback to fill or flush the buffer. Helper functions can be enabled to read values of expected type, to work with files, to allocate strings automatically, to check UTF-8 encoding, and more. The MPack featureset can be configured at compile-time to set which features, components and debug checks are compiled, and what dependencies are available.</p>
 <p>The MPack code is small enough to be embedded directly into your codebase. The easiest way to use it is to download the amalgamation package and insert the source files directly into your project. Copy <code><a class="el" href="mpack_8h.html" title="Includes the full MPack API. ">mpack.h</a></code> and <code>mpack.c</code> into to your codebase, and copy <code>mpack-config.h.sample</code> as <code>mpack-config.h</code>. You can use the defaults or edit it if you'd like to customize the MPack featureset.</p>
@@ -132,59 +132,7 @@ if (mpack_writer_destroy(&amp;writer) != mpack_ok) {
 </pre><p>In the above example, we encode only to an in-memory buffer. The writer can optionally be provided with a flush function (such as a file or socket write function) to call when the buffer is full or when writing is done.</p>
 <p>If any error occurs, the writer is placed in an error state and can optionally longjmp if a handler is set. The writer will flag an error if too much data is written, if the wrong number of elements are written, if the data could not be flushed, etc.</p>
 <p>The MPack writer API is imperative in nature. Since it's easy to incorrectly compose structured data with an imperative API, MPack provides a debug mode which tracks reads and writes of compound types to ensure that the correct number of elements and bytes were read and written. This allows for rapid development of high-performance applications that use MessagePack. In release mode, these checks are eliminated for maximum performance.</p>
-<h2>The Expect API</h2>
-<p>The Expect API is used to imperatively parse data of a fixed (hardcoded) schema. It is useful when parsing very large mpack files or parsing in memory-constrained environments. The below example demonstrates shows reading from a file and handling errors with longjmp. </p><pre class="fragment">// open a file on disk
-FILE* file = fopen("example.mp");
-if (file == NULL) {
-    fprintf(stderr, "An error occurred opening the file!\n");
-    return;
-}
-
-// initialize the reader using fread() and a stack-allocated buffer
-mpack_reader_t reader;
-mpack_reader_init_stack(&amp;reader, mpack_fread, file);
-
-// catch errors with longjmp
-if (MPACK_READER_SETJMP(&amp;reader)) {
-    fprintf(stderr, "An error occurred decoding the file!\n");
-    mpack_reader_destroy(&amp;reader);
-    fclose(file);
-    return;
-}
-
-// we expect the file to contain the example on the msgpack homepage
-mpack_expect_map_match(&amp;reader, 2);
-mpack_expect_cstr_match(&amp;reader, "compact");
-bool compact = mpack_expect_bool(&amp;reader);
-mpack_expect_cstr_match(&amp;reader, "schema");
-int schema = mpack_expect_int(&amp;reader);
-mpack_done_map(&amp;reader);
-
-// clean up
-mpack_reader_destroy(&amp;reader);
-fclose(file);
-
-// verify and use the data
-if (!compact || schema != 0) {
-    fprintf(stderr, "The file data is invalid!\n");
-    return;
-}
-</pre><p>The example expects the map elements to be laid out in a specific order. If you expect map keys to be re-arranged (for example if the data is converted from JSON or encoded from an unordered map), something like this may be more appropriate: </p><pre class="fragment">bool compact = false;
-int schema = -1;
-
-for (int i = mpack_expect_map(&amp;reader); i &gt; 0; --i) {
-    char key[20];
-    mpack_expect_cstr(&amp;reader, key, sizeof(key));
-
-    if (strcmp(key, "compact") == 0)
-        compact = mpack_expect_bool(&amp;reader);
-    else if (strcmp(key, "schema") == 0)
-        schema = mpack_expect_int(&amp;reader);
-    else
-        mpack_reader_flag_error(&amp;reader, mpack_error_data);
-}
-mpack_done_map(&amp;reader);
-</pre><h2>Why Not Just Use JSON?</h2>
+<h2>Why Not Just Use JSON?</h2>
 <p>Conceptually, MessagePack stores data similarly to JSON: they are both composed of simple values such as numbers and strings, stored hierarchically in maps and arrays. So why not just use JSON instead? The main reason is that JSON is designed to be human-readable, so it is not as efficient as a binary serialization format:</p>
 <ul>
 <li>Compound types such as strings, maps and arrays are delimited, so appropriate storage cannot be allocated upfront. The whole object must be parsed to determine its size.</li>
@@ -199,7 +147,7 @@ mpack_done_map(&amp;reader);
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Mar 2 2015 08:34:22 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Mar 16 2015 05:08:24 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.9.1
 </small></address>
