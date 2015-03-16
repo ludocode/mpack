@@ -30,7 +30,7 @@
 #ifndef MPACK_TEST_MALLOC_H
 #define MPACK_TEST_MALLOC_H 1
 
-#include <unistd.h>
+#include <stddef.h>
 
 #ifdef __cplusplus
 extern "C" {

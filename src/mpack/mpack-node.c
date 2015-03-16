@@ -148,12 +148,7 @@ void mpack_tree_init(mpack_tree_t* tree, const char* data, size_t length) {
     mpack_reader_init_buffer(&reader, data, length);
     mpack_tree_read_node(tree, &tree->root, &reader, 0);
 
-    // TODO: what's the best way to handle too much data here? do we raise
-    // an error? continue parsing and add multiple root nodes? allow querying
-    // the remaining data so it can be parsed in a separate tree?
-    // contiguous blobs of msgpack from a stream or something seems like a
-    // use case we'd like to support, so probably the last option...
-
+    tree->size = length - mpack_reader_remaining(&reader, NULL);
     tree->error = mpack_reader_destroy(&reader);
 }
 
@@ -769,6 +764,18 @@ static mpack_node_t* mpack_node_map_at(mpack_node_t* node, size_t index, size_t 
     }
 
     return &node->data.children[index * 2 + offset];
+}
+
+size_t mpack_node_map_count(mpack_node_t* node) {
+    if (node->tree->error != mpack_ok)
+        return 0;
+
+    if (node->tag.type != mpack_type_map) {
+        mpack_node_flag_error(node, mpack_error_type);
+        return 0;
+    }
+
+    return node->tag.v.u;
 }
 
 mpack_node_t* mpack_node_map_key_at(mpack_node_t* node, size_t index) {

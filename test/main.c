@@ -28,6 +28,7 @@
 #include "test-buffer.h"
 #include "test-tag.h"
 #include "test-node.h"
+#include "test-file.h"
 
 int passes;
 int tests;
@@ -51,6 +52,7 @@ int main(void) {
     test_writes();
     test_buffers();
     test_node();
+    test_file();
 
     printf("\n\nUnit testing complete. %i passes out of %i tests.\n\n\n", passes, tests);
     return (passes == tests) ? EXIT_SUCCESS : EXIT_FAILURE;

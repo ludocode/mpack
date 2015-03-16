@@ -54,7 +54,6 @@ extern "C" {
  * ignored and their return values are nil/zero. You should check whether
  * the reader or writer is in an error state before using such values.
  */
-// TODO: go through each of these, grep code for where they are used, and elaborate on each
 typedef enum mpack_error_t {
     mpack_ok = 0,        /**< No error. */
     mpack_error_io = 2,  /**< The reader or writer failed to fill or flush, or some other file or socket error occurred. */

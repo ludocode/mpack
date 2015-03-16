@@ -98,7 +98,6 @@ struct mpack_writer_t {
  * If an error occurs, mpack_error_io will be raised. You can use
  * feof() and ferror() to determine what error occurred.
  */
-// TODO: this is not implemented yet...
 bool mpack_fwrite(void* context, const char* buffer, size_t count);
 #endif
 

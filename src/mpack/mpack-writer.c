@@ -678,5 +678,11 @@ void mpack_write_cstr(mpack_writer_t* writer, const char* str) {
     mpack_write_str(writer, str, len);
 }
 
+#if MPACK_STDIO
+bool mpack_fwrite(void* context, const char* buffer, size_t count) {
+    return fwrite((const void*)buffer, 1, count, (FILE*)context);
+}
+#endif
+
 #endif
 

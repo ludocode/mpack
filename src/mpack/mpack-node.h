@@ -85,6 +85,7 @@ struct mpack_tree_t {
     mpack_node_t root;
     mpack_node_t nil_node; // a nil node to be returned in case of error
     mpack_error_t error;
+    size_t size;
 
     #if MPACK_SETJMP
     bool jump;          /* Whether to longjmp on error */
@@ -118,6 +119,15 @@ static inline mpack_node_t* mpack_tree_root(mpack_tree_t* tree) {
  */
 static inline mpack_error_t mpack_tree_error(mpack_tree_t* tree) {
     return tree->error;
+}
+
+/**
+ * Returns the number of bytes used in the buffer when the tree was
+ * parsed. If there is something in the buffer after the MessagePack
+ * object (such as another object), this can be used to find it.
+ */
+static inline size_t mpack_tree_size(mpack_tree_t* tree) {
+    return tree->size;
 }
 
 /**
@@ -235,15 +245,6 @@ mpack_error_t mpack_file_tree_destroy(mpack_file_tree_t* file_tree);
  */
 static inline mpack_error_t mpack_file_tree_error(mpack_file_tree_t* file_tree) {
     return file_tree->tree.error;
-}
-
-/**
- * Returns the file tree's underlying tree. You must not destroy this tree; it is
- * owned by the file tree.
- * TODO: is there any point in this method? would it be safer to get rid of it?
- */
-static inline mpack_tree_t* mpack_file_tree(mpack_file_tree_t* file_tree) {
-    return &file_tree->tree;
 }
 
 /**
@@ -528,6 +529,12 @@ size_t mpack_node_array_length(mpack_node_t* node);
  * a nil node is returned.
  */
 mpack_node_t* mpack_node_array_at(mpack_node_t* node, size_t index);
+
+/**
+ * Returns the number of key/value pairs in the given map node. Raises
+ * mpack_error_type and returns 0 if the given node is not a map.
+ */
+size_t mpack_node_map_count(mpack_node_t* node);
 
 /**
  * Returns the key node in the given map at the given index.

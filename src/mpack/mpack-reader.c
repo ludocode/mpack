@@ -698,6 +698,12 @@ void mpack_done_ext(mpack_reader_t* reader) {
 }
 #endif
 
+#if MPACK_STDIO
+size_t mpack_fread(void* context, char* buffer, size_t count) {
+    return fread((void*)buffer, 1, count, (FILE*)context);
+}
+#endif
+
 #if MPACK_DEBUG && MPACK_STDIO && MPACK_SETJMP
 static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
     mpack_tag_t val = mpack_read_tag(reader);
