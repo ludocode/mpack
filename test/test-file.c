@@ -12,7 +12,10 @@ static void test_file_write(void) {
     // we use an odd size buffer to ensure flushing to file is working correctly
     char buffer[3];
     mpack_writer_t writer;
-    mpack_writer_init(&writer, mpack_fwrite, file, buffer, sizeof(buffer));
+    mpack_writer_init(&writer, buffer, sizeof(buffer));
+    mpack_writer_set_context(&writer, file);
+    mpack_writer_set_flush(&writer, mpack_fwrite);
+    mpack_writer_set_teardown(&writer, mpack_fclose);
 
     mpack_start_map(&writer, 2);
     mpack_write_cstr(&writer, "compact");
@@ -23,7 +26,6 @@ static void test_file_write(void) {
 
     mpack_error_t error = mpack_writer_destroy(&writer);
     test_assert(error == mpack_ok, "write failed with error %s", mpack_error_to_string(error));
-    fclose(file);
 }
 
 static void test_file_check(void) {
@@ -31,15 +33,13 @@ static void test_file_check(void) {
 
     FILE* file = fopen(test_filename, "rb");
     test_assert(file != NULL, "file open failed");
-
     char buffer[1024];
     size_t count = fread(buffer, 1, sizeof(buffer), file);
+    fclose(file);
 
     test_assert(count == sizeof(test) - 1, "data is incorrect length, read %i expected %i",
             (int)count, (int)(sizeof(test) - 1));
     test_assert(memcmp(buffer, test, count) == 0, "data does not match");
-
-    fclose(file);
 }
 
 static void test_file_read(void) {

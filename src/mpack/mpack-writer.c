@@ -123,6 +123,12 @@ static inline void mpack_track_bytes_written(mpack_writer_t* writer, uint64_t co
     #endif
 }
 
+void mpack_writer_init(mpack_writer_t* writer, char* buffer, size_t size) {
+    memset(writer, 0, sizeof(*writer));
+    writer->buffer = buffer;
+    writer->size = size;
+}
+
 void mpack_writer_flag_error(mpack_writer_t* writer, mpack_error_t error) {
     mpack_log("writer %p setting error %i: %s\n", writer, (int)error, mpack_error_to_string(error));
 
@@ -274,27 +280,25 @@ static void mpack_write_native_double(mpack_writer_t* writer, double value) {
 }
 
 mpack_error_t mpack_writer_destroy(mpack_writer_t* writer) {
-    if (mpack_writer_error(writer) != mpack_ok)
-        return mpack_writer_error(writer);
-
     #if MPACK_TRACKING
-    if (writer->track) {
+    if (writer->error == mpack_ok && writer->track) {
         mpack_assert(0, "writer has an unclosed %s", mpack_type_to_string(writer->track->type));
         mpack_writer_flag_error(writer, mpack_error_bug);
     }
     #endif
 
-    if (writer->used == 0 || !writer->flush)
-        return mpack_ok;
-
     // flush any outstanding data
-    if (!writer->flush(writer->context, writer->buffer, writer->used)) {
-        mpack_writer_flag_error(writer, mpack_error_io);
-        return mpack_writer_error(writer);
+    if (writer->error == mpack_ok && writer->used != 0 && writer->flush != NULL) {
+        if (!writer->flush(writer->context, writer->buffer, writer->used)) {
+            mpack_writer_flag_error(writer, mpack_error_io);
+        }
+        writer->used = 0;
     }
-    writer->used = 0;
 
-    return mpack_ok;
+    if (writer->teardown)
+        writer->teardown(writer->context);
+
+    return writer->error;
 }
 
 void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t value) {

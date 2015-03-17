@@ -313,20 +313,20 @@ static void test_write_basic_structures() {
     mpack_writer_t writer;
 
     // []
-    mpack_writer_init_buffer(&writer, buf, bufsize);
+    mpack_writer_init(&writer, buf, bufsize);
     mpack_start_array(&writer, 0);
     mpack_finish_array(&writer);
     test_destroy_match("\x90");
 
     // [nil]
-    mpack_writer_init_buffer(&writer, buf, bufsize);
+    mpack_writer_init(&writer, buf, bufsize);
     mpack_start_array(&writer, 1);
     mpack_write_nil(&writer);
     mpack_finish_array(&writer);
     test_destroy_match("\x91\xc0");
 
     // range(15)
-    mpack_writer_init_buffer(&writer, buf, bufsize);
+    mpack_writer_init(&writer, buf, bufsize);
     mpack_start_array(&writer, 15);
         for (int i = 0; i < 15; ++i)
             mpack_write_int(&writer, i);
@@ -336,7 +336,7 @@ static void test_write_basic_structures() {
         );
 
     // range(16) (larger than infix)
-    mpack_writer_init_buffer(&writer, buf, bufsize);
+    mpack_writer_init(&writer, buf, bufsize);
     mpack_start_array(&writer, 16);
         for (int i = 0; i < 16; ++i)
             mpack_write_int(&writer, i);
@@ -347,7 +347,7 @@ static void test_write_basic_structures() {
         );
 
     // UINT16_MAX nils
-    mpack_writer_init_buffer(&writer, buf, bufsize);
+    mpack_writer_init(&writer, buf, bufsize);
     mpack_start_array(&writer, UINT16_MAX);
         for (int i = 0; i < UINT16_MAX; ++i)
             mpack_write_nil(&writer);
@@ -360,7 +360,7 @@ static void test_write_basic_structures() {
     }
 
     // UINT16_MAX+1 nils (largest category)
-    mpack_writer_init_buffer(&writer, buf, bufsize);
+    mpack_writer_init(&writer, buf, bufsize);
     mpack_start_array(&writer, UINT16_MAX+1);
         for (int i = 0; i < UINT16_MAX+1; ++i)
             mpack_write_nil(&writer);
@@ -373,13 +373,13 @@ static void test_write_basic_structures() {
     }
 
     // {}
-    mpack_writer_init_buffer(&writer, buf, bufsize);
+    mpack_writer_init(&writer, buf, bufsize);
     mpack_start_map(&writer, 0);
     mpack_finish_map(&writer);
     test_destroy_match("\x80");
 
     // {nil:nil}
-    mpack_writer_init_buffer(&writer, buf, bufsize);
+    mpack_writer_init(&writer, buf, bufsize);
     mpack_start_map(&writer, 1);
         mpack_write_nil(&writer);
         mpack_write_nil(&writer);
@@ -387,7 +387,7 @@ static void test_write_basic_structures() {
     test_destroy_match("\x81\xc0\xc0");
 
     // {0:0,1:1}
-    mpack_writer_init_buffer(&writer, buf, bufsize);
+    mpack_writer_init(&writer, buf, bufsize);
     mpack_start_map(&writer, 2);
         mpack_write_int(&writer, 0);
         mpack_write_int(&writer, 0);
@@ -397,7 +397,7 @@ static void test_write_basic_structures() {
     test_destroy_match("\x82\x00\x00\x01\x01");
 
     // {0:1, 2:3, ..., 28:29}
-    mpack_writer_init_buffer(&writer, buf, bufsize);
+    mpack_writer_init(&writer, buf, bufsize);
     mpack_start_map(&writer, 15);
         for (int i = 0; i < 30; ++i)
             mpack_write_int(&writer, i);
@@ -408,7 +408,7 @@ static void test_write_basic_structures() {
         );
 
     // {0:1, 2:3, ..., 28:29, 30:31} (larger than infix)
-    mpack_writer_init_buffer(&writer, buf, bufsize);
+    mpack_writer_init(&writer, buf, bufsize);
     mpack_start_map(&writer, 16);
         for (int i = 0; i < 32; ++i)
             mpack_write_int(&writer, i);
@@ -420,7 +420,7 @@ static void test_write_basic_structures() {
         );
 
     // UINT16_MAX nil:nils
-    mpack_writer_init_buffer(&writer, buf, bufsize);
+    mpack_writer_init(&writer, buf, bufsize);
     mpack_start_map(&writer, UINT16_MAX);
         for (int i = 0; i < UINT16_MAX*2; ++i)
             mpack_write_nil(&writer);
@@ -433,7 +433,7 @@ static void test_write_basic_structures() {
     }
 
     // UINT16_MAX+1 nil:nils (largest category)
-    mpack_writer_init_buffer(&writer, buf, bufsize);
+    mpack_writer_init(&writer, buf, bufsize);
     mpack_start_map(&writer, UINT16_MAX+1);
         for (int i = 0; i < (UINT16_MAX+1)*2; ++i)
             mpack_write_nil(&writer);
@@ -453,7 +453,7 @@ static void test_write_small_structure_trees() {
     mpack_writer_t writer;
 
     // [[]]
-    mpack_writer_init_buffer(&writer, buf, sizeof(buf));
+    mpack_writer_init(&writer, buf, sizeof(buf));
     mpack_start_array(&writer, 1);
         mpack_start_array(&writer, 0);
         mpack_finish_array(&writer);
@@ -461,7 +461,7 @@ static void test_write_small_structure_trees() {
     test_destroy_match("\x91\x90");
 
     // [[], [0], [1, 2]]
-    mpack_writer_init_buffer(&writer, buf, sizeof(buf));
+    mpack_writer_init(&writer, buf, sizeof(buf));
     mpack_start_array(&writer, 3);
         mpack_start_array(&writer, 0);
         mpack_finish_array(&writer);
@@ -476,7 +476,7 @@ static void test_write_small_structure_trees() {
     test_destroy_match("\x93\x90\x91\x00\x92\x01\x02");
 
     // miscellaneous tree of arrays of various small sizes
-    mpack_writer_init_buffer(&writer, buf, sizeof(buf));
+    mpack_writer_init(&writer, buf, sizeof(buf));
     mpack_start_array(&writer, 5);
 
         mpack_start_array(&writer, 0);
@@ -514,7 +514,7 @@ static void test_write_small_structure_trees() {
 
 
     // miscellaneous tree of maps of various small sizes
-    mpack_writer_init_buffer(&writer, buf, sizeof(buf));
+    mpack_writer_init(&writer, buf, sizeof(buf));
     mpack_start_map(&writer, 5);
 
         mpack_write_int(&writer, 0);
@@ -568,7 +568,7 @@ static void test_write_small_structure_trees() {
 
 
     // miscellaneous mix of maps and arrays of various small sizes
-    mpack_writer_init_buffer(&writer, buf, sizeof(buf));
+    mpack_writer_init(&writer, buf, sizeof(buf));
     mpack_start_map(&writer, 5);
 
         mpack_write_int(&writer, -47);

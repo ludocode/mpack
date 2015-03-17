@@ -51,6 +51,12 @@ typedef struct mpack_writer_track_t mpack_writer_track_t;
  */
 
 /**
+ * The mpack writer's flush function to flush the buffer to the output stream.
+ * It should return false if writing fails.
+ */
+typedef bool (*mpack_flush_t)(void* context, const char* buffer, size_t count);
+
+/**
  * A buffered MessagePack encoder.
  *
  * The encoder wraps an existing buffer and, optionally, a flush function.
@@ -61,16 +67,12 @@ typedef struct mpack_writer_track_t mpack_writer_track_t;
  */
 typedef struct mpack_writer_t mpack_writer_t;
 
-/**
- * The mpack writer's flush function to flush the buffer to the output stream.
- * It should return false if writing fails.
- */
-typedef bool (*mpack_flush_t)(void* context, const char* buffer, size_t count);
-
 struct mpack_writer_t {
-    mpack_flush_t flush;  /* Function to write bytes to the output stream */
+    mpack_flush_t flush;        /* Function to write bytes to the output stream */
+    mpack_teardown_t teardown;  /* Function to teardown the context on destroy */
+    void* context;              /* Context for the writer function */
+
     char* buffer;         /* Byte buffer */
-    void* context;        /* Context for the writer function */
     size_t size;          /* Size of the buffer */
     size_t used;          /* How many bytes have been written into the buffer */
     mpack_error_t error;  /* Error state */
@@ -94,56 +96,33 @@ struct mpack_writer_t {
  * Initializes an mpack writer with the given buffer and flush function. The writer
  * does not assume ownership of the buffer.
  *
- * For an in-memory buffer, the flush function may be NULL. In this case trying to
- * write past the end of the buffer will result in mpack_error_io. Use
- * mpack_writer_buffer_used() to determine the number of bytes written before
- * destroying the buffer.
+ * Trying to write past the end of the buffer will result in mpack_error_io unless
+ * a flush function is set with mpack_writer_set_flush(). To use the data without
+ * flushing, call mpack_writer_buffer_used() to determine the number of bytes
+ * written.
+ *
+ * @param writer The MessagePack writer.
+ * @param buffer The buffer into which to write mpack data.
+ * @param size The size of the buffer.
  */
-static inline void mpack_writer_init(
-        mpack_writer_t* writer, /*!< The MessagePack writer. */
-        mpack_flush_t flush,    /*!< The function to flush data from the buffer. */
-        void* context,          /*!< User data passed to the flush function. */
-        char* buffer,           /*!< The buffer into which to write mpack data. */
-        size_t size             /*!< The size of the buffer. */
-) {
-    memset(writer, 0, sizeof(*writer));
-    writer->flush = flush;
-    writer->context = context;
-    writer->buffer = buffer;
-    writer->size = size;
-}
-
-/**
- * Initializes an mpack writer with an in-memory buffer. The writer does not
- * assume ownership of the buffer.
- */
-static inline void mpack_writer_init_buffer(
-        mpack_writer_t* writer, /*!< The MessagePack writer. */
-        char* buffer,           /*!< The buffer in which to write mpack data. */
-        size_t count            /*!< The number of bytes available in the buffer. */
-) {
-    memset(writer, 0, sizeof(*writer));
-    writer->buffer = buffer;
-    writer->size = count;
-}
+void mpack_writer_init(mpack_writer_t* writer, char* buffer, size_t size);
 
 /**
  * @def mpack_writer_init_stack(writer, flush, context)
  * @hideinitializer
  *
- * Initializes an mpack writer using stack space with the given flush
- * function and context.
+ * Initializes an mpack writer using stack space.
  */
 
-#define mpack_writer_init_stack_line_ex(line, writer, flush, context) \
+#define mpack_writer_init_stack_line_ex(line, writer) \
     char mpack_buf_##line[MPACK_STACK_SIZE]; \
-    mpack_writer_init(writer, flush, context, mpack_buf_##line, sizeof(mpack_buf_##line))
+    mpack_writer_init(writer, mpack_buf_##line, sizeof(mpack_buf_##line))
 
-#define mpack_writer_init_stack_line(line, writer, flush, context) \
-    mpack_writer_init_stack_line_ex(line, writer, flush, context)
+#define mpack_writer_init_stack_line(line, writer) \
+    mpack_writer_init_stack_line_ex(line, writer)
 
-#define mpack_writer_init_stack(writer, flush, context) \
-    mpack_writer_init_stack_line(__LINE__, (writer), (flush), (context))
+#define mpack_writer_init_stack(writer) \
+    mpack_writer_init_stack_line(__LINE__, (writer))
 
 #if MPACK_SETJMP
 
@@ -182,9 +161,47 @@ static inline void mpack_writer_clearjmp(mpack_writer_t* writer) {
 mpack_error_t mpack_writer_destroy(mpack_writer_t* writer);
 
 /**
+ * Sets the custom pointer to pass to the writer callbacks, such as fill
+ * or teardown.
+ *
+ * @param context User data to pass to the fill function.
+ */
+static inline void mpack_writer_set_context(mpack_writer_t* writer, void* context) {
+    writer->context = context;
+}
+
+/**
+ * Sets the flush function to write out the data when the buffer is full.
+ *
+ * If no flush function is used, trying to write past the end of the
+ * buffer will result in mpack_error_io.
+ *
+ * This should normally be used with mpack_writer_set_context() to register
+ * a custom pointer to pass to the flush function.
+ *
+ * @param flush The function to write out data from the buffer.
+ */
+static inline void mpack_writer_set_flush(mpack_writer_t* writer, mpack_flush_t flush) {
+    mpack_assert(writer->size != 0, "cannot use flush function without a writeable buffer!");
+    writer->flush = flush;
+}
+
+/**
+ * Sets the teardown function to call when the writer is destroyed.
+ *
+ * This should normally be used with mpack_writer_set_context() to register
+ * a custom pointer to pass to the teardown function.
+ *
+ * @param teardown The function to call when the writer is destroyed.
+ */
+static inline void mpack_writer_set_teardown(mpack_writer_t* writer, mpack_teardown_t teardown) {
+    writer->teardown = teardown;
+}
+
+/**
  * Returns the number of bytes currently stored in the buffer. This
  * may be less than the total number of bytes written if bytes have
- * been written out to an underlying stream.
+ * been flushed to an underlying stream.
  */
 static inline size_t mpack_writer_buffer_used(mpack_writer_t* writer) {
     return writer->used;

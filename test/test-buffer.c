@@ -237,7 +237,9 @@ static void test_write_buffer(void) {
         size_t size = test_buffer_sizes[i];
         char* buffer = (char*)malloc(size);
         char* pos = output;
-        mpack_writer_init(&writer, test_buffer_flush, &pos, buffer, size);
+        mpack_writer_init(&writer, buffer, size);
+        mpack_writer_set_flush(&writer, test_buffer_flush);
+        mpack_writer_set_context(&writer, &pos);
         test_check_no_assertion();
 
         // read and destroy, ensuring no errors

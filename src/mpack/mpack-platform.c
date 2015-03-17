@@ -47,7 +47,7 @@ void mpack_assert_fail(const char* message) {
 #if MPACK_STDIO
     fprintf(stderr, "%s\n", message);
 #else
-    (void)message;
+    MPACK_UNUSED(message);
 #endif
 
     // crash

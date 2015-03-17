@@ -45,7 +45,7 @@ The MPack Write API encodes structured data of a fixed (hardcoded) schema to Mes
     // encode to memory buffer
     char buffer[256];
     mpack_writer_t writer;
-    mpack_writer_init_buffer(&writer, buffer, sizeof(buffer));
+    mpack_writer_init(&writer, buffer, sizeof(buffer));
 
     // write the example on the msgpack homepage
     mpack_start_map(&writer, 2);

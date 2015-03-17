@@ -35,7 +35,7 @@ extern "C" {
 #define test_writer_init(size) \
     char buf[size]; \
     mpack_writer_t writer; \
-    mpack_writer_init_buffer(&writer, buf, sizeof(buf));
+    mpack_writer_init(&writer, buf, sizeof(buf));
 
 // tears down a writer, ensuring it didn't fail
 #define test_writer_destroy_noerror(writer) \
