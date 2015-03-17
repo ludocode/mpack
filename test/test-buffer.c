@@ -206,7 +206,9 @@ static void test_read_buffer(void) {
         size_t size = test_buffer_sizes[i];
         char* buffer = (char*)malloc(size);
         int pos = 0;
-        mpack_reader_init(&reader, test_buffer_fill, &pos, buffer, size, 0);
+        mpack_reader_init(&reader, buffer, size, 0);
+        mpack_reader_set_fill(&reader, test_buffer_fill);
+        mpack_reader_set_context(&reader, &pos);
         test_check_no_assertion();
 
         // read and destroy, ensuring no errors

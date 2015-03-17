@@ -23,7 +23,8 @@
  * @file
  *
  * Abstracts all platform-specific code from MPack. This contains
- * implementations of standard C functions when libc is not available.
+ * implementations of standard C functions when libc is not available,
+ * as well as wrappers to library functions.
  */
 
 #ifndef MPACK_PLATFORM_H
@@ -60,7 +61,11 @@
 extern "C" {
 #endif
 
+
+
 #define MPACK_UNUSED(var) ((void)(var))
+
+
 
 /* Define mpack_assert() depending on configuration. If stdio is */
 /* available, we can add a format string describing the error. */
@@ -89,9 +94,46 @@ int mpack_memcmp(const void* s1, const void* s2, size_t n);
 size_t mpack_strlen(const char *s);
 #endif
 
+
+
 /* Clean up the debug logging */
 #define mpack_log(...) ((void)0)
 /* #define mpack_log(...) printf(__VA_ARGS__); */
+
+
+
+#if MPACK_STDIO
+/**
+ * An implementation of the mpack fill function which wraps the
+ * standard stdio fread() function. Pass the FILE handle as the context.
+ *
+ * If an error occurs, mpack_error_io will be raised. You can use
+ * feof() and ferror() to determine what error occurred.
+ *
+ * @see mpack_fill_t
+ */
+size_t mpack_fread(void* context, char* buffer, size_t count);
+
+/**
+ * An implementation of the mpack flush function which wraps the
+ * standard stdio fwrite() function. Pass the FILE handle as the context.
+ *
+ * If an error occurs, mpack_error_io will be raised. You can use
+ * feof() and ferror() to determine what error occurred.
+ *
+ * @see mpack_flush_t
+ */
+bool mpack_fwrite(void* context, const char* buffer, size_t count);
+
+/**
+ * An fclose() wrapper that can be used as a teardown function.
+ *
+ * @see mpack_teardown_t
+ */
+void mpack_fclose(void* context);
+#endif
+
+
 
 /**
  * @}

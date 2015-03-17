@@ -114,7 +114,31 @@ void mpack_track_read(mpack_reader_t* reader, bool bytes, uint64_t count) {
 }
 #endif
 
+void mpack_reader_init(mpack_reader_t* reader, char* buffer, size_t size, size_t count) {
+    memset(reader, 0, sizeof(*reader));
+    reader->buffer = buffer;
+    reader->size = size;
+    reader->left = count;
+}
+
+void mpack_reader_init_data(mpack_reader_t* reader, const char* data, size_t count) {
+    memset(reader, 0, sizeof(*reader));
+    reader->left = count;
+
+    // unfortunately we have to cast away the const to store the buffer,
+    // but we won't be modifying it because there's no fill function.
+    // the buffer size is left at 0 to ensure no fill function can be
+    // set or used (see mpack_reader_set_fill().)
+    #ifdef __cplusplus
+    reader->buffer = const_cast<char*>(data);
+    #else
+    reader->buffer = (char*)data;
+    #endif
+}
+
 mpack_error_t mpack_reader_destroy_cancel(mpack_reader_t* reader) {
+    if (reader->teardown)
+        reader->teardown(reader->context);
     return reader->error;
 }
 
@@ -698,12 +722,6 @@ void mpack_done_ext(mpack_reader_t* reader) {
 }
 #endif
 
-#if MPACK_STDIO
-size_t mpack_fread(void* context, char* buffer, size_t count) {
-    return fread((void*)buffer, 1, count, (FILE*)context);
-}
-#endif
-
 #if MPACK_DEBUG && MPACK_STDIO && MPACK_SETJMP
 static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
     mpack_tag_t val = mpack_read_tag(reader);
@@ -800,7 +818,7 @@ static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
 
 void mpack_debug_print(const char* data, int len) {
     mpack_reader_t reader;
-    mpack_reader_init_buffer(&reader, data, len);
+    mpack_reader_init_data(&reader, data, len);
     if (MPACK_READER_SETJMP(&reader)) {
         printf("<mpack parsing error %s>\n", mpack_error_to_string(mpack_reader_error(&reader)));
         return;

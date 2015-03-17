@@ -201,7 +201,10 @@ static inline bool mpack_tag_equal(mpack_tag_t left, mpack_tag_t right) {
     return mpack_tag_cmp(left, right) == 0;
 }
 
-
+/**
+ * A teardown function to be called when an MPack object is destroyed.
+ */
+typedef void (*mpack_teardown_t)(void* context);
 
 /**
  * @}

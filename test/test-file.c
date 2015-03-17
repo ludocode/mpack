@@ -49,7 +49,10 @@ static void test_file_read(void) {
     // we use an odd size buffer to ensure flushing to file is working correctly
     char buffer[3];
     mpack_reader_t reader;
-    mpack_reader_init(&reader, mpack_fread, file, buffer, sizeof(buffer), 0);
+    mpack_reader_init(&reader, buffer, sizeof(buffer), 0);
+    mpack_reader_set_context(&reader, file);
+    mpack_reader_set_fill(&reader, mpack_fread);
+    mpack_reader_set_teardown(&reader, mpack_fclose);
 
     test_assert(2 == mpack_expect_map(&reader));
     mpack_expect_cstr_match(&reader, "compact");
@@ -60,7 +63,6 @@ static void test_file_read(void) {
 
     mpack_error_t error = mpack_reader_destroy(&reader);
     test_assert(error == mpack_ok, "read failed with error %s", mpack_error_to_string(error));
-    fclose(file);
 }
 
 static void test_file_node(void) {

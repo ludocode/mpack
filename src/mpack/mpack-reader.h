@@ -52,6 +52,14 @@ typedef struct mpack_reader_track_t mpack_reader_track_t;
  */
 
 /**
+ * The mpack reader's fill function. It should fill the buffer as
+ * much as possible, returning the number of bytes put into the buffer.
+ *
+ * In case of error, it should return zero.
+ */
+typedef size_t (*mpack_fill_t)(void* context, char* buffer, size_t count);
+
+/**
  * A buffered MessagePack decoder.
  *
  * The decoder wraps an existing buffer and, optionally, a fill function.
@@ -66,26 +74,11 @@ typedef struct mpack_reader_track_t mpack_reader_track_t;
  */
 typedef struct mpack_reader_t mpack_reader_t;
 
-/**
- * The mpack reader's fill function. It should fill the buffer as
- * much as possible, returning the number of bytes put into the buffer.
- */
-typedef size_t (*mpack_fill_t)(void* context, char* buffer, size_t count);
-
-#if MPACK_STDIO
-/**
- * An implementation of the mpack fill function which wraps the
- * standard stdio fread() function. Pass the FILE handle as the context.
- *
- * If an error occurs, mpack_error_io will be raised. You can use
- * feof() and ferror() to determine what error occurred.
- */
-size_t mpack_fread(void* context, char* buffer, size_t count);
-#endif
-
 struct mpack_reader_t {
-    mpack_fill_t fill;  /* Function to read bytes into the buffer */
-    void* context;      /* Context for the reader function */
+    mpack_fill_t fill;          /* Function to read bytes into the buffer */
+    mpack_teardown_t teardown;  /* Function to teardown the context on destroy */
+    void* context;              /* Context for the reader callbacks */
+
     char* buffer;       /* Byte buffer */
     size_t size;        /* Size of the buffer */
     size_t left;        /* How many bytes are left in the buffer */
@@ -132,62 +125,46 @@ static inline void mpack_reader_clearjmp(mpack_reader_t* reader) {
 #endif
 
 /**
- * Initializes an mpack reader with the given buffer and fill function. The reader
- * does not assume ownership of the buffer.
+ * Initializes an mpack reader with the given buffer. The reader does
+ * not assume ownership of the buffer, but the buffer must be writeable
+ * if a fill function will be used to refill it.
  *
- * For an in-memory buffer, the fill function may be NULL. In this case trying to
- * read past the end of the buffer will result in mpack_error_io.
+ * @param reader The MessagePack reader.
+ * @param buffer The buffer with which to read mpack data.
+ * @param size The size of the buffer.
+ * @param count The number of bytes already in the buffer.
  */
-static inline void mpack_reader_init(
-        mpack_reader_t* reader, /*!< The MessagePack reader. */
-        mpack_fill_t fill,      /*!< The function to fetch additional data into the buffer. */
-        void* context,          /*!< User data to pass to the fill function. */
-        char* buffer,           /*!< The buffer with which to read mpack data. */
-        size_t size,            /*!< The size of the buffer. */
-        size_t count            /*!< The number of bytes already in the buffer. */
-) {
-    memset(reader, 0, sizeof(*reader));
-    reader->fill = fill;
-    reader->context = context;
-    reader->buffer = buffer;
-    reader->size = size;
-    reader->left = count;
-}
+void mpack_reader_init(mpack_reader_t* reader, char* buffer, size_t size, size_t count);
 
 /**
- * Initializes an mpack reader with an in-memory buffer. The reader does not
- * assume ownership of the buffer.
+ * Initializes an mpack reader to parse a pre-loaded contiguous chunk of data. The
+ * reader does not assume ownership of the data.
+ *
+ * @param reader The MessagePack reader.
+ * @param data The data to parse.
+ * @param count The number of bytes pointed to by data.
  */
-static inline void mpack_reader_init_buffer(
-        mpack_reader_t* reader, /*!< The MessagePack reader. */
-        const char* buffer,     /*!< The buffer from which to read mpack data. */
-        size_t count            /*!< The number of bytes in the buffer. */
-) {
-    memset(reader, 0, sizeof(*reader));
-    reader->left = count;
-    
-    /* unfortunately we have to cast away the const to store the buffer, */
-    /* but we won't be modifying it because there's no fill function. */
-    reader->buffer = (char*)buffer;
-}
+void mpack_reader_init_data(mpack_reader_t* reader, const char* data, size_t count);
 
 /**
- * @def mpack_reader_init_stack(reader, fill, context)
+ * @def mpack_reader_init_stack(reader)
  * @hideinitializer
  *
- * Initializes an mpack reader using stack space with the given fill
- * function and context.
+ * Initializes an mpack reader using stack space as a buffer. A fill function
+ * should be added to the reader to fill the buffer.
+ *
+ * @see mpack_reader_set_fill
  */
 
-#define mpack_reader_init_stack_line_ex(line, reader, fill, context) \
+#define mpack_reader_init_stack_line_ex(line, reader) \
     char mpack_buf_##line[MPACK_STACK_SIZE]; \
-    mpack_reader_init((reader), (fill), (context), mpack_buf_##line, sizeof(mpack_buf_##line), 0)
+    mpack_reader_init((reader), mpack_buf_##line, sizeof(mpack_buf_##line), 0)
 
-#define mpack_reader_init_stack_line(line, reader, fill, context) \
-    mpack_reader_init_stack_line_ex(line, reader, fill, context)
+#define mpack_reader_init_stack_line(line, reader) \
+    mpack_reader_init_stack_line_ex(line, reader)
 
-#define mpack_reader_init_stack(reader, fill, context) \
-    mpack_reader_init_stack_line(__LINE__, (reader), (fill), (context))
+#define mpack_reader_init_stack(reader) \
+    mpack_reader_init_stack_line(__LINE__, (reader))
 
 /**
  * Cleans up the mpack reader, ensuring that all compound elements
@@ -200,7 +177,6 @@ static inline void mpack_reader_init_buffer(
  * mpack_reader_destroy_cancel() instead.
  *
  * @see mpack_reader_destroy_cancel()
- * TODO change all destroy to destroy
  */
 mpack_error_t mpack_reader_destroy(mpack_reader_t* reader);
 
@@ -211,6 +187,44 @@ mpack_error_t mpack_reader_destroy(mpack_reader_t* reader);
  * of the document.
  */
 mpack_error_t mpack_reader_destroy_cancel(mpack_reader_t* reader);
+
+/**
+ * Sets the custom pointer to pass to the reader callbacks, such as fill
+ * or teardown.
+ *
+ * @param context User data to pass to the fill function.
+ */
+static inline void mpack_reader_set_context(mpack_reader_t* reader, void* context) {
+    reader->context = context;
+}
+
+/**
+ * Sets the fill function to refill the data buffer when it runs out of data.
+ *
+ * If no fill function is used, trying to read past the end of the
+ * buffer will result in mpack_error_io.
+ *
+ * This should normally be used with mpack_reader_set_context() to register
+ * a custom pointer to pass to the fill function.
+ *
+ * @param fill The function to fetch additional data into the buffer.
+ */
+static inline void mpack_reader_set_fill(mpack_reader_t* reader, mpack_fill_t fill) {
+    mpack_assert(reader->size != 0, "cannot use fill function without a writeable buffer!");
+    reader->fill = fill;
+}
+
+/**
+ * Sets the teardown function to call when the reader is destroyed.
+ *
+ * This should normally be used with mpack_reader_set_context() to register
+ * a custom pointer to pass to the teardown function.
+ *
+ * @param teardown The function to call when the reader is destroyed.
+ */
+static inline void mpack_reader_set_teardown(mpack_reader_t* reader, mpack_teardown_t teardown) {
+    reader->teardown = teardown;
+}
 
 /**
  * Places the reader in the given error state, jumping if a jump target is set.

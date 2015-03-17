@@ -25,6 +25,8 @@
 #include <stdarg.h>
 #endif
 
+
+
 #if MPACK_DEBUG && MPACK_STDIO
 void mpack_assert_fail_format(const char* format, ...) {
     char buffer[512];
@@ -36,6 +38,8 @@ void mpack_assert_fail_format(const char* format, ...) {
     mpack_assert_fail(buffer);
 }
 #endif
+
+
 
 #if !defined(MPACK_CUSTOM_ASSERT) || !MPACK_CUSTOM_ASSERT
 void mpack_assert_fail(const char* message) {
@@ -53,6 +57,8 @@ void mpack_assert_fail(const char* message) {
 
 }
 #endif
+
+
 
 #if !MPACK_STDLIB
 
@@ -78,5 +84,21 @@ size_t mpack_strlen(const char *s) {
     return (size_t)(p - s);
 }
 
+#endif
+
+
+
+#if MPACK_STDIO
+size_t mpack_fread(void* context, char* buffer, size_t count) {
+    return fread((void*)buffer, 1, count, (FILE*)context);
+}
+
+bool mpack_fwrite(void* context, const char* buffer, size_t count) {
+    return fwrite((const void*)buffer, 1, count, (FILE*)context);
+}
+
+void mpack_fclose(void* context) {
+    fclose((FILE*)context);
+}
 #endif
 

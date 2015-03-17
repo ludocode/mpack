@@ -44,7 +44,7 @@ extern "C" {
 // runs a simple reader test, ensuring it matches the given data
 #define test_simple_read(data, read_expr) do { \
     mpack_reader_t reader; \
-    mpack_reader_init_buffer(&reader, data, sizeof(data) - 1); \
+    mpack_reader_init_data(&reader, data, sizeof(data) - 1); \
     test_check_no_assertion(); \
     test_assert((read_expr), "simple read test did not pass: " #read_expr); \
     test_reader_destroy_noerror(&reader); \
@@ -62,7 +62,7 @@ extern "C" {
 // runs a simple reader test, ensuring it causes the given error
 #define test_simple_read_error(data, read_expr, error) do { \
     mpack_reader_t reader; \
-    mpack_reader_init_buffer(&reader, data, sizeof(data) - 1); \
+    mpack_reader_init_data(&reader, data, sizeof(data) - 1); \
     test_assert((read_expr), "simple read error test did not pass: " #read_expr); \
     test_reader_destroy_error(&reader, (error)); \
 } while (0)

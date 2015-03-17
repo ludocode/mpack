@@ -90,17 +90,6 @@ struct mpack_writer_t {
  * @{
  */
 
-#if MPACK_STDIO
-/**
- * An implementation of the mpack flush function which wraps the
- * standard stdio fwrite() function. Pass the FILE handle as the context.
- *
- * If an error occurs, mpack_error_io will be raised. You can use
- * feof() and ferror() to determine what error occurred.
- */
-bool mpack_fwrite(void* context, const char* buffer, size_t count);
-#endif
-
 /**
  * Initializes an mpack writer with the given buffer and flush function. The writer
  * does not assume ownership of the buffer.

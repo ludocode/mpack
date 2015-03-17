@@ -145,7 +145,7 @@ void mpack_tree_init(mpack_tree_t* tree, const char* data, size_t length) {
     tree->nil_node.tag.type = mpack_type_nil;
 
     mpack_reader_t reader;
-    mpack_reader_init_buffer(&reader, data, length);
+    mpack_reader_init_data(&reader, data, length);
     mpack_tree_read_node(tree, &tree->root, &reader, 0);
 
     tree->size = length - mpack_reader_remaining(&reader, NULL);
