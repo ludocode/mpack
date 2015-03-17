@@ -86,19 +86,3 @@ size_t mpack_strlen(const char *s) {
 
 #endif
 
-
-
-#if MPACK_STDIO
-size_t mpack_fread(void* context, char* buffer, size_t count) {
-    return fread((void*)buffer, 1, count, (FILE*)context);
-}
-
-bool mpack_fwrite(void* context, const char* buffer, size_t count) {
-    return fwrite((const void*)buffer, 1, count, (FILE*)context);
-}
-
-void mpack_fclose(void* context) {
-    fclose((FILE*)context);
-}
-#endif
-

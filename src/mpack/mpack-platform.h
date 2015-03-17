@@ -103,34 +103,9 @@ size_t mpack_strlen(const char *s);
 
 
 #if MPACK_STDIO
-/**
- * An implementation of the mpack fill function which wraps the
- * standard stdio fread() function. Pass the FILE handle as the context.
- *
- * If an error occurs, mpack_error_io will be raised. You can use
- * feof() and ferror() to determine what error occurred.
- *
- * @see mpack_fill_t
- */
-size_t mpack_fread(void* context, char* buffer, size_t count);
-
-/**
- * An implementation of the mpack flush function which wraps the
- * standard stdio fwrite() function. Pass the FILE handle as the context.
- *
- * If an error occurs, mpack_error_io will be raised. You can use
- * feof() and ferror() to determine what error occurred.
- *
- * @see mpack_flush_t
- */
-bool mpack_fwrite(void* context, const char* buffer, size_t count);
-
-/**
- * An fclose() wrapper that can be used as a teardown function.
- *
- * @see mpack_teardown_t
- */
-void mpack_fclose(void* context);
+#if !defined(MPACK_MALLOC) || !defined(MPACK_FREE)
+#error MPACK_STDIO requires preprocessor definitions for MPACK_MALLOC and MPACK_FREE.
+#endif
 #endif
 
 

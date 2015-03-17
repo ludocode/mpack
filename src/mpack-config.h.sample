@@ -125,6 +125,11 @@
 #define MPACK_STACK_SIZE 4096
 
 /**
+ * Buffer size to use for allocated buffers (such as for a file writer.)
+ */
+#define MPACK_BUFFER_SIZE 4096
+
+/**
  * Starting size of node children array. Nodes with more children than
  * this will use a growable array during parsing for better security.
  */

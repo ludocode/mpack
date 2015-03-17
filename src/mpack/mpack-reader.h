@@ -137,6 +137,12 @@ static inline void mpack_reader_clearjmp(mpack_reader_t* reader) {
 void mpack_reader_init(mpack_reader_t* reader, char* buffer, size_t size, size_t count);
 
 /**
+ * Initializes an mpack reader directly into an error state. Use this if you
+ * are writing a wrapper to mpack_reader_init() which can fail its setup.
+ */
+void mpack_reader_init_error(mpack_reader_t* reader, mpack_error_t error);
+
+/**
  * Initializes an mpack reader to parse a pre-loaded contiguous chunk of data. The
  * reader does not assume ownership of the data.
  *
@@ -145,6 +151,13 @@ void mpack_reader_init(mpack_reader_t* reader, char* buffer, size_t size, size_t
  * @param count The number of bytes pointed to by data.
  */
 void mpack_reader_init_data(mpack_reader_t* reader, const char* data, size_t count);
+
+#if MPACK_STDIO
+/**
+ * Initializes an mpack reader that reads from a file.
+ */
+void mpack_reader_init_file(mpack_reader_t* reader, const char* filename);
+#endif
 
 /**
  * @def mpack_reader_init_stack(reader)

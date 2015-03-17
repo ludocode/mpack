@@ -6,16 +6,10 @@
 static const char* test_filename = "testfile.mp";
 
 static void test_file_write(void) {
-    FILE* file = fopen(test_filename, "wb");
-    test_assert(file != NULL, "file open failed");
-
-    // we use an odd size buffer to ensure flushing to file is working correctly
-    char buffer[3];
     mpack_writer_t writer;
-    mpack_writer_init(&writer, buffer, sizeof(buffer));
-    mpack_writer_set_context(&writer, file);
-    mpack_writer_set_flush(&writer, mpack_fwrite);
-    mpack_writer_set_teardown(&writer, mpack_fclose);
+    mpack_writer_init_file(&writer, test_filename);
+    test_assert(mpack_writer_error(&writer) == mpack_ok, "file open failed with %s",
+            mpack_error_to_string(mpack_writer_error(&writer)));
 
     mpack_start_map(&writer, 2);
     mpack_write_cstr(&writer, "compact");
@@ -25,7 +19,7 @@ static void test_file_write(void) {
     mpack_finish_map(&writer);
 
     mpack_error_t error = mpack_writer_destroy(&writer);
-    test_assert(error == mpack_ok, "write failed with error %s", mpack_error_to_string(error));
+    test_assert(error == mpack_ok, "write failed with %s", mpack_error_to_string(error));
 }
 
 static void test_file_check(void) {
@@ -43,16 +37,10 @@ static void test_file_check(void) {
 }
 
 static void test_file_read(void) {
-    FILE* file = fopen(test_filename, "rb");
-    test_assert(file != NULL, "file open failed");
-
-    // we use an odd size buffer to ensure flushing to file is working correctly
-    char buffer[3];
     mpack_reader_t reader;
-    mpack_reader_init(&reader, buffer, sizeof(buffer), 0);
-    mpack_reader_set_context(&reader, file);
-    mpack_reader_set_fill(&reader, mpack_fread);
-    mpack_reader_set_teardown(&reader, mpack_fclose);
+    mpack_reader_init_file(&reader, test_filename);
+    test_assert(mpack_reader_error(&reader) == mpack_ok, "file open failed with %s",
+            mpack_error_to_string(mpack_reader_error(&reader)));
 
     test_assert(2 == mpack_expect_map(&reader));
     mpack_expect_cstr_match(&reader, "compact");
@@ -62,7 +50,7 @@ static void test_file_read(void) {
     mpack_done_map(&reader);
 
     mpack_error_t error = mpack_reader_destroy(&reader);
-    test_assert(error == mpack_ok, "read failed with error %s", mpack_error_to_string(error));
+    test_assert(error == mpack_ok, "read failed with %s", mpack_error_to_string(error));
 }
 
 static void test_file_node(void) {

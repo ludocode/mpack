@@ -129,6 +129,51 @@ void mpack_writer_init(mpack_writer_t* writer, char* buffer, size_t size) {
     writer->size = size;
 }
 
+void mpack_writer_init_error(mpack_writer_t* writer, mpack_error_t error) {
+    memset(writer, 0, sizeof(*writer));
+    writer->error = error;
+}
+
+#if MPACK_STDIO
+typedef struct mpack_file_writer {
+    FILE* file;
+    char buffer[MPACK_BUFFER_SIZE];
+} mpack_file_writer;
+
+static bool mpack_file_writer_flush(void* context, const char* buffer, size_t count) {
+    mpack_file_writer* file_writer = (mpack_file_writer*)context;
+    size_t written = fwrite((const void*)buffer, 1, count, file_writer->file);
+    return written == count;
+}
+
+static void mpack_file_writer_teardown(void* context) {
+    mpack_file_writer* file_writer = (mpack_file_writer*)context;
+    if (file_writer->file)
+        fclose(file_writer->file);
+    MPACK_FREE(file_writer);
+}
+
+void mpack_writer_init_file(mpack_writer_t* writer, const char* filename) {
+    mpack_file_writer* file_writer = (mpack_file_writer*) MPACK_MALLOC(sizeof(mpack_file_writer));
+    if (file_writer == NULL) {
+        mpack_writer_init_error(writer, mpack_error_memory);
+        return;
+    }
+
+    file_writer->file = fopen(filename, "wb");
+    if (file_writer->file == NULL) {
+        mpack_writer_init_error(writer, mpack_error_io);
+        MPACK_FREE(file_writer);
+        return;
+    }
+
+    mpack_writer_init(writer, file_writer->buffer, sizeof(file_writer->buffer));
+    mpack_writer_set_context(writer, file_writer);
+    mpack_writer_set_flush(writer, mpack_file_writer_flush);
+    mpack_writer_set_teardown(writer, mpack_file_writer_teardown);
+}
+#endif
+
 void mpack_writer_flag_error(mpack_writer_t* writer, mpack_error_t error) {
     mpack_log("writer %p setting error %i: %s\n", writer, (int)error, mpack_error_to_string(error));
 

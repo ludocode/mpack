@@ -108,6 +108,19 @@ struct mpack_writer_t {
 void mpack_writer_init(mpack_writer_t* writer, char* buffer, size_t size);
 
 /**
+ * Initializes an mpack writer directly into an error state. Use this if you
+ * are writing a wrapper to mpack_writer_init() which can fail its setup.
+ */
+void mpack_writer_init_error(mpack_writer_t* writer, mpack_error_t error);
+
+#if MPACK_STDIO
+/**
+ * Initializes an mpack writer that writes to a file.
+ */
+void mpack_writer_init_file(mpack_writer_t* writer, const char* filename);
+#endif
+
+/**
  * @def mpack_writer_init_stack(writer, flush, context)
  * @hideinitializer
  *
