@@ -142,25 +142,25 @@ void mpack_reader_init_data(mpack_reader_t* reader, const char* data, size_t cou
 }
 
 #if MPACK_STDIO
-typedef struct mpack_file_reader {
+typedef struct mpack_file_reader_t {
     FILE* file;
     char buffer[MPACK_BUFFER_SIZE];
-} mpack_file_reader;
+} mpack_file_reader_t;
 
 static size_t mpack_file_reader_fill(void* context, char* buffer, size_t count) {
-    mpack_file_reader* file_reader = (mpack_file_reader*)context;
+    mpack_file_reader_t* file_reader = (mpack_file_reader_t*)context;
     return fread((void*)buffer, 1, count, file_reader->file);
 }
 
 static void mpack_file_reader_teardown(void* context) {
-    mpack_file_reader* file_reader = (mpack_file_reader*)context;
+    mpack_file_reader_t* file_reader = (mpack_file_reader_t*)context;
     if (file_reader->file)
         fclose(file_reader->file);
     MPACK_FREE(file_reader);
 }
 
 void mpack_reader_init_file(mpack_reader_t* reader, const char* filename) {
-    mpack_file_reader* file_reader = (mpack_file_reader*) MPACK_MALLOC(sizeof(mpack_file_reader));
+    mpack_file_reader_t* file_reader = (mpack_file_reader_t*) MPACK_MALLOC(sizeof(mpack_file_reader_t));
     if (file_reader == NULL) {
         mpack_reader_init_error(reader, mpack_error_memory);
         return;

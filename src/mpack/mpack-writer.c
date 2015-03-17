@@ -135,26 +135,26 @@ void mpack_writer_init_error(mpack_writer_t* writer, mpack_error_t error) {
 }
 
 #if MPACK_STDIO
-typedef struct mpack_file_writer {
+typedef struct mpack_file_writer_t {
     FILE* file;
     char buffer[MPACK_BUFFER_SIZE];
-} mpack_file_writer;
+} mpack_file_writer_t;
 
 static bool mpack_file_writer_flush(void* context, const char* buffer, size_t count) {
-    mpack_file_writer* file_writer = (mpack_file_writer*)context;
+    mpack_file_writer_t* file_writer = (mpack_file_writer_t*)context;
     size_t written = fwrite((const void*)buffer, 1, count, file_writer->file);
     return written == count;
 }
 
 static void mpack_file_writer_teardown(void* context) {
-    mpack_file_writer* file_writer = (mpack_file_writer*)context;
+    mpack_file_writer_t* file_writer = (mpack_file_writer_t*)context;
     if (file_writer->file)
         fclose(file_writer->file);
     MPACK_FREE(file_writer);
 }
 
 void mpack_writer_init_file(mpack_writer_t* writer, const char* filename) {
-    mpack_file_writer* file_writer = (mpack_file_writer*) MPACK_MALLOC(sizeof(mpack_file_writer));
+    mpack_file_writer_t* file_writer = (mpack_file_writer_t*) MPACK_MALLOC(sizeof(mpack_file_writer_t));
     if (file_writer == NULL) {
         mpack_writer_init_error(writer, mpack_error_memory);
         return;
