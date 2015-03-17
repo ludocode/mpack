@@ -129,7 +129,7 @@ static inline void mpack_reader_clearjmp(mpack_reader_t* reader) {
  * not assume ownership of the buffer, but the buffer must be writeable
  * if a fill function will be used to refill it.
  *
- * @param reader The MessagePack reader.
+ * @param reader The MPack reader.
  * @param buffer The buffer with which to read mpack data.
  * @param size The size of the buffer.
  * @param count The number of bytes already in the buffer.
@@ -146,7 +146,7 @@ void mpack_reader_init_error(mpack_reader_t* reader, mpack_error_t error);
  * Initializes an mpack reader to parse a pre-loaded contiguous chunk of data. The
  * reader does not assume ownership of the data.
  *
- * @param reader The MessagePack reader.
+ * @param reader The MPack reader.
  * @param data The data to parse.
  * @param count The number of bytes pointed to by data.
  */
@@ -205,6 +205,7 @@ mpack_error_t mpack_reader_destroy_cancel(mpack_reader_t* reader);
  * Sets the custom pointer to pass to the reader callbacks, such as fill
  * or teardown.
  *
+ * @param reader The MPack reader.
  * @param context User data to pass to the reader callbacks.
  */
 static inline void mpack_reader_set_context(mpack_reader_t* reader, void* context) {
@@ -220,6 +221,7 @@ static inline void mpack_reader_set_context(mpack_reader_t* reader, void* contex
  * This should normally be used with mpack_reader_set_context() to register
  * a custom pointer to pass to the fill function.
  *
+ * @param reader The MPack reader.
  * @param fill The function to fetch additional data into the buffer.
  */
 static inline void mpack_reader_set_fill(mpack_reader_t* reader, mpack_fill_t fill) {
@@ -233,6 +235,7 @@ static inline void mpack_reader_set_fill(mpack_reader_t* reader, mpack_fill_t fi
  * This should normally be used with mpack_reader_set_context() to register
  * a custom pointer to pass to the teardown function.
  *
+ * @param reader The MPack reader.
  * @param teardown The function to call when the reader is destroyed.
  */
 static inline void mpack_reader_set_teardown(mpack_reader_t* reader, mpack_teardown_t teardown) {

@@ -166,6 +166,7 @@ mpack_error_t mpack_tree_destroy(mpack_tree_t* tree);
 /**
  * Sets the custom pointer to pass to the tree callbacks, such as teardown.
  *
+ * @param tree The MPack tree.
  * @param context User data to pass to the tree callbacks.
  */
 static inline void mpack_tree_set_context(mpack_tree_t* tree, void* context) {
@@ -178,6 +179,7 @@ static inline void mpack_tree_set_context(mpack_tree_t* tree, void* context) {
  * This should normally be used with mpack_tree_set_context() to register
  * a custom pointer to pass to the teardown function.
  *
+ * @param tree The MPack tree.
  * @param teardown The function to call when the tree is destroyed.
  */
 static inline void mpack_tree_set_teardown(mpack_tree_t* tree, mpack_teardown_t teardown) {

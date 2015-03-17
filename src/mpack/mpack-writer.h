@@ -101,7 +101,7 @@ struct mpack_writer_t {
  * flushing, call mpack_writer_buffer_used() to determine the number of bytes
  * written.
  *
- * @param writer The MessagePack writer.
+ * @param writer The MPack writer.
  * @param buffer The buffer into which to write mpack data.
  * @param size The size of the buffer.
  */
@@ -177,6 +177,7 @@ mpack_error_t mpack_writer_destroy(mpack_writer_t* writer);
  * Sets the custom pointer to pass to the writer callbacks, such as flush
  * or teardown.
  *
+ * @param writer The MPack writer.
  * @param context User data to pass to the writer callbacks.
  */
 static inline void mpack_writer_set_context(mpack_writer_t* writer, void* context) {
@@ -192,6 +193,7 @@ static inline void mpack_writer_set_context(mpack_writer_t* writer, void* contex
  * This should normally be used with mpack_writer_set_context() to register
  * a custom pointer to pass to the flush function.
  *
+ * @param writer The MPack writer.
  * @param flush The function to write out data from the buffer.
  */
 static inline void mpack_writer_set_flush(mpack_writer_t* writer, mpack_flush_t flush) {
@@ -205,6 +207,7 @@ static inline void mpack_writer_set_flush(mpack_writer_t* writer, mpack_flush_t 
  * This should normally be used with mpack_writer_set_context() to register
  * a custom pointer to pass to the teardown function.
  *
+ * @param writer The MPack writer.
  * @param teardown The function to call when the writer is destroyed.
  */
 static inline void mpack_writer_set_teardown(mpack_writer_t* writer, mpack_teardown_t teardown) {
