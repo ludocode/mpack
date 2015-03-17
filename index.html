@@ -24,7 +24,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">MPack
-   &#160;<span id="projectnumber">0.2-dev</span>
+   &#160;<span id="projectnumber">0.2</span>
    </div>
    <div id="projectbrief">A C encoding/decoding library for the MessagePack serialization format.</div>
   </td>
@@ -90,13 +90,13 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <li><a href="http://ludocode.github.io/mpack/">Extensively documented</a></li>
 </ul>
 <p>The core of MPack contains a buffered reader and writer with a custom callback to fill or flush the buffer. Helper functions can be enabled to read values of expected type, to work with files, to allocate strings automatically, to check UTF-8 encoding, and more. The MPack featureset can be configured at compile-time to set which features, components and debug checks are compiled, and what dependencies are available.</p>
-<p>The MPack code is small enough to be embedded directly into your codebase. The easiest way to use it is to download the amalgamation package and insert the source files directly into your project. Copy <code><a class="el" href="mpack_8h.html" title="Includes the full MPack API. ">mpack.h</a></code> and <code>mpack.c</code> into to your codebase, and copy <code>mpack-config.h.sample</code> as <code>mpack-config.h</code>. You can use the defaults or edit it if you'd like to customize the MPack featureset.</p>
+<p>The MPack code is small enough to be embedded directly into your codebase. The easiest way to use it is to download the <a href="https://github.com/ludocode/mpack/releases">amalgamation package</a> and insert the source files directly into your project. Copy <code><a class="el" href="mpack_8h.html" title="Includes the full MPack API. ">mpack.h</a></code> and <code>mpack.c</code> into to your codebase, and copy <code>mpack-config.h.sample</code> as <code>mpack-config.h</code>. You can use the defaults or edit it if you'd like to customize the MPack featureset.</p>
 <p>MPack is written in the portable intersection of C99 and C++. In other words, it's written in C99, but if you are stuck using a certain popular compiler from a certain unpopular vendor that refuses to support C99, you can compile it as C++ instead. (The headers should also be C89-clean, provided compatible definitions of <code>bool</code>, <code>inline</code>, <code>stdint.h</code> and friends are available, and <code>const</code> is defined away.)</p>
-<p><em>NOTE: MPack is beta software under development. There are still some TODOs in the codebase, some security issues to fix, some MessagePack 1.0/1.1 compatibility and interoperability issues to sort out, some test suite portability issues to fix, and there is only around 45% unit test coverage. The API for initializing custom I/O readers and writers is likely to change as well.</em></p>
+<p><em>NOTE: MPack is beta software under development. There are still some TODOs in the codebase, some security issues to fix, some MessagePack 1.0/1.1 compatibility and interoperability issues to sort out, some test suite portability issues to fix, and there is only around 45% unit test coverage.</em></p>
 <h2>The Node Reader API</h2>
-<p>The Node API parses a chunk of MessagePack data into an immutable tree of dynamically-typed nodes. A series of helper functions can be used to extract data of specific types from each node. </p><pre class="fragment">// parse a data buffer into a node tree
+<p>The Node API parses a chunk of MessagePack data into an immutable tree of dynamically-typed nodes. A series of helper functions can be used to extract data of specific types from each node. </p><pre class="fragment">// parse a file into a node tree
 mpack_tree_t tree;
-mpack_tree_init(&amp;tree, buffer, count);
+mpack_tree_init_file(&amp;tree, "homepage-example.mp", 0);
 mpack_node_t* root = mpack_tree_root(&amp;tree);
 
 // extract the example data on the msgpack homepage
@@ -108,12 +108,12 @@ if (mpack_tree_destroy(tree) != mpack_ok) {
     fprintf(stderr, "An error occurred decoding the data!\n");
     return;
 }
-</pre><p>Note that no additional error handling is needed in the above code. If map keys are missing or if nodes are not in the expected types, special "nil" nodes and false/zero values are returned and the tree is placed in an error state. An error check is only needed before using the data. Alternatively, the tree can be configured to longjmp in such cases if a handler is set.</p>
+</pre><p>Note that no additional error handling is needed in the above code. If the file is missing or corrupt, if map keys are missing or if nodes are not in the expected types, special "nil" nodes and false/zero values are returned and the tree is placed in an error state. An error check is only needed before using the data. Alternatively, the tree can be configured to longjmp in such cases if a handler is set.</p>
 <h2>The Static Write API</h2>
 <p>The MPack Write API encodes structured data of a fixed (hardcoded) schema to MessagePack. </p><pre class="fragment">// encode to memory buffer
 char buffer[256];
 mpack_writer_t writer;
-mpack_writer_init_buffer(&amp;writer, buffer, sizeof(buffer));
+mpack_writer_init(&amp;writer, buffer, sizeof(buffer));
 
 // write the example on the msgpack homepage
 mpack_start_map(&amp;writer, 2);
@@ -147,7 +147,7 @@ if (mpack_writer_destroy(&amp;writer) != mpack_ok) {
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Mar 16 2015 05:08:24 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Mar 17 2015 12:42:29 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.9.1
 </small></address>

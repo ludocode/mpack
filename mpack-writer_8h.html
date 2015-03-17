@@ -24,7 +24,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">MPack
-   &#160;<span id="projectnumber">0.2-dev</span>
+   &#160;<span id="projectnumber">0.2</span>
    </div>
    <div id="projectbrief">A C encoding/decoding library for the MessagePack serialization format.</div>
   </td>
@@ -192,33 +192,42 @@ Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
 Core Writer Functions</h2></td></tr>
-<tr class="memitem:ga24f1e62e24699067328f61213408e3ab"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga24f1e62e24699067328f61213408e3ab"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_writer_init_stack_line_ex</b>(line,  writer,  flush,  context)</td></tr>
-<tr class="separator:ga24f1e62e24699067328f61213408e3ab"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga4fc1d2b8774a5d9724b413208f46519c"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga4fc1d2b8774a5d9724b413208f46519c"></a>
-#define&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_writer_init_stack_line</b>(line,  writer,  flush,  context)&#160;&#160;&#160;mpack_writer_init_stack_line_ex(line, writer, flush, context)</td></tr>
-<tr class="separator:ga4fc1d2b8774a5d9724b413208f46519c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaccc589e1228a32bc1585ac65e831b37e"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#gaccc589e1228a32bc1585ac65e831b37e">mpack_writer_init_stack</a>(writer,  flush,  context)</td></tr>
-<tr class="memdesc:gaccc589e1228a32bc1585ac65e831b37e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an mpack writer using stack space with the given flush function and context.  <a href="group__writer.html#gaccc589e1228a32bc1585ac65e831b37e">More...</a><br /></td></tr>
-<tr class="separator:gaccc589e1228a32bc1585ac65e831b37e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gabd0dd45e57fae5e859532c71ef39dd62"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gabd0dd45e57fae5e859532c71ef39dd62"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_writer_init_stack_line_ex</b>(line,  writer)</td></tr>
+<tr class="separator:gabd0dd45e57fae5e859532c71ef39dd62"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacc2736080728c5a822c94fe94944bcb5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gacc2736080728c5a822c94fe94944bcb5"></a>
+#define&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_writer_init_stack_line</b>(line,  writer)&#160;&#160;&#160;mpack_writer_init_stack_line_ex(line, writer)</td></tr>
+<tr class="separator:gacc2736080728c5a822c94fe94944bcb5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf687c771a910e13c0bc66889f214b422"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#gaf687c771a910e13c0bc66889f214b422">mpack_writer_init_stack</a>(writer)</td></tr>
+<tr class="memdesc:gaf687c771a910e13c0bc66889f214b422"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an mpack writer using stack space.  <a href="group__writer.html#gaf687c771a910e13c0bc66889f214b422">More...</a><br /></td></tr>
+<tr class="separator:gaf687c771a910e13c0bc66889f214b422"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gae54d6f37aead7572828756b4263ac4a5"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#gae54d6f37aead7572828756b4263ac4a5">MPACK_WRITER_SETJMP</a>(writer)</td></tr>
 <tr class="memdesc:gae54d6f37aead7572828756b4263ac4a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Registers a jump target in case of error.  <a href="group__writer.html#gae54d6f37aead7572828756b4263ac4a5">More...</a><br /></td></tr>
 <tr class="separator:gae54d6f37aead7572828756b4263ac4a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga112f8f3bbfc03d7c7ddc64722302359f"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#ga112f8f3bbfc03d7c7ddc64722302359f">mpack_fwrite</a> (void *context, const char *buffer, size_t count)</td></tr>
-<tr class="memdesc:ga112f8f3bbfc03d7c7ddc64722302359f"><td class="mdescLeft">&#160;</td><td class="mdescRight">An implementation of the mpack flush function which wraps the standard stdio fwrite() function.  <a href="group__writer.html#ga112f8f3bbfc03d7c7ddc64722302359f">More...</a><br /></td></tr>
-<tr class="separator:ga112f8f3bbfc03d7c7ddc64722302359f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga6b70df41c8c9a6e94d4b6915ed3d7218"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#ga6b70df41c8c9a6e94d4b6915ed3d7218">mpack_writer_init</a> (<a class="el" href="group__writer.html#structmpack__writer__t">mpack_writer_t</a> *writer, <a class="el" href="group__writer.html#gaf2d7399804c883d6873bb3568495e9d0">mpack_flush_t</a> flush, void *context, char *buffer, size_t size)</td></tr>
-<tr class="memdesc:ga6b70df41c8c9a6e94d4b6915ed3d7218"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an mpack writer with the given buffer and flush function.  <a href="group__writer.html#ga6b70df41c8c9a6e94d4b6915ed3d7218">More...</a><br /></td></tr>
-<tr class="separator:ga6b70df41c8c9a6e94d4b6915ed3d7218"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga262ed7d43f03b3cc4728b4f9a07ec17d"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#ga262ed7d43f03b3cc4728b4f9a07ec17d">mpack_writer_init_buffer</a> (<a class="el" href="group__writer.html#structmpack__writer__t">mpack_writer_t</a> *writer, char *buffer, size_t count)</td></tr>
-<tr class="memdesc:ga262ed7d43f03b3cc4728b4f9a07ec17d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an mpack writer with an in-memory buffer.  <a href="group__writer.html#ga262ed7d43f03b3cc4728b4f9a07ec17d">More...</a><br /></td></tr>
-<tr class="separator:ga262ed7d43f03b3cc4728b4f9a07ec17d"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gabf46d5fd103d44d03c412cb7bb52e2d0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#gabf46d5fd103d44d03c412cb7bb52e2d0">mpack_writer_init</a> (<a class="el" href="group__writer.html#structmpack__writer__t">mpack_writer_t</a> *writer, char *buffer, size_t size)</td></tr>
+<tr class="memdesc:gabf46d5fd103d44d03c412cb7bb52e2d0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an mpack writer with the given buffer and flush function.  <a href="group__writer.html#gabf46d5fd103d44d03c412cb7bb52e2d0">More...</a><br /></td></tr>
+<tr class="separator:gabf46d5fd103d44d03c412cb7bb52e2d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab3c8d9ebe78513a17a38af28f387d169"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#gab3c8d9ebe78513a17a38af28f387d169">mpack_writer_init_error</a> (<a class="el" href="group__writer.html#structmpack__writer__t">mpack_writer_t</a> *writer, <a class="el" href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a> error)</td></tr>
+<tr class="memdesc:gab3c8d9ebe78513a17a38af28f387d169"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an mpack writer directly into an error state.  <a href="group__writer.html#gab3c8d9ebe78513a17a38af28f387d169">More...</a><br /></td></tr>
+<tr class="separator:gab3c8d9ebe78513a17a38af28f387d169"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gafb05fb381c28a36b8917a1697e5ab611"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#gafb05fb381c28a36b8917a1697e5ab611">mpack_writer_init_file</a> (<a class="el" href="group__writer.html#structmpack__writer__t">mpack_writer_t</a> *writer, const char *filename)</td></tr>
+<tr class="memdesc:gafb05fb381c28a36b8917a1697e5ab611"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an mpack writer that writes to a file.  <a href="group__writer.html#gafb05fb381c28a36b8917a1697e5ab611">More...</a><br /></td></tr>
+<tr class="separator:gafb05fb381c28a36b8917a1697e5ab611"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga00ae0198388322f19eeda6a40df2a5ff"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#ga00ae0198388322f19eeda6a40df2a5ff">mpack_writer_clearjmp</a> (<a class="el" href="group__writer.html#structmpack__writer__t">mpack_writer_t</a> *writer)</td></tr>
 <tr class="memdesc:ga00ae0198388322f19eeda6a40df2a5ff"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clears a jump target.  <a href="group__writer.html#ga00ae0198388322f19eeda6a40df2a5ff">More...</a><br /></td></tr>
 <tr class="separator:ga00ae0198388322f19eeda6a40df2a5ff"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga1cf5a2d9b687d94f637a36123ef7cec0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#ga1cf5a2d9b687d94f637a36123ef7cec0">mpack_writer_destroy</a> (<a class="el" href="group__writer.html#structmpack__writer__t">mpack_writer_t</a> *writer)</td></tr>
 <tr class="memdesc:ga1cf5a2d9b687d94f637a36123ef7cec0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cleans up the mpack writer, flushing any buffered bytes to the underlying stream, if any.  <a href="group__writer.html#ga1cf5a2d9b687d94f637a36123ef7cec0">More...</a><br /></td></tr>
 <tr class="separator:ga1cf5a2d9b687d94f637a36123ef7cec0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae785a9bb5f5903606b0ce7ef591d0877"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#gae785a9bb5f5903606b0ce7ef591d0877">mpack_writer_set_context</a> (<a class="el" href="group__writer.html#structmpack__writer__t">mpack_writer_t</a> *writer, void *context)</td></tr>
+<tr class="memdesc:gae785a9bb5f5903606b0ce7ef591d0877"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the custom pointer to pass to the writer callbacks, such as flush or teardown.  <a href="group__writer.html#gae785a9bb5f5903606b0ce7ef591d0877">More...</a><br /></td></tr>
+<tr class="separator:gae785a9bb5f5903606b0ce7ef591d0877"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga603fa72ebf84ac80d8fff08bd2ea9602"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#ga603fa72ebf84ac80d8fff08bd2ea9602">mpack_writer_set_flush</a> (<a class="el" href="group__writer.html#structmpack__writer__t">mpack_writer_t</a> *writer, <a class="el" href="group__writer.html#gaf2d7399804c883d6873bb3568495e9d0">mpack_flush_t</a> flush)</td></tr>
+<tr class="memdesc:ga603fa72ebf84ac80d8fff08bd2ea9602"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the flush function to write out the data when the buffer is full.  <a href="group__writer.html#ga603fa72ebf84ac80d8fff08bd2ea9602">More...</a><br /></td></tr>
+<tr class="separator:ga603fa72ebf84ac80d8fff08bd2ea9602"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf9ba2a1aadbcf45c27ac6185ae7fd013"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#gaf9ba2a1aadbcf45c27ac6185ae7fd013">mpack_writer_set_teardown</a> (<a class="el" href="group__writer.html#structmpack__writer__t">mpack_writer_t</a> *writer, <a class="el" href="group__common.html#ga692063be325a917d5cb011dc24a8a491">mpack_teardown_t</a> teardown)</td></tr>
+<tr class="memdesc:gaf9ba2a1aadbcf45c27ac6185ae7fd013"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the teardown function to call when the writer is destroyed.  <a href="group__writer.html#gaf9ba2a1aadbcf45c27ac6185ae7fd013">More...</a><br /></td></tr>
+<tr class="separator:gaf9ba2a1aadbcf45c27ac6185ae7fd013"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga280641f8f0123b39620671326c9c5deb"><td class="memItemLeft" align="right" valign="top">static size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#ga280641f8f0123b39620671326c9c5deb">mpack_writer_buffer_used</a> (<a class="el" href="group__writer.html#structmpack__writer__t">mpack_writer_t</a> *writer)</td></tr>
 <tr class="memdesc:ga280641f8f0123b39620671326c9c5deb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the number of bytes currently stored in the buffer.  <a href="group__writer.html#ga280641f8f0123b39620671326c9c5deb">More...</a><br /></td></tr>
 <tr class="separator:ga280641f8f0123b39620671326c9c5deb"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -237,7 +246,7 @@ Core Writer Functions</h2></td></tr>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Mar 16 2015 05:08:24 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Mar 17 2015 12:42:29 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.9.1
 </small></address>

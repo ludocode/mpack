@@ -24,7 +24,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">MPack
-   &#160;<span id="projectnumber">0.2-dev</span>
+   &#160;<span id="projectnumber">0.2</span>
    </div>
    <div id="projectbrief">A C encoding/decoding library for the MessagePack serialization format.</div>
   </td>
@@ -79,6 +79,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="header">
   <div class="summary">
 <a href="#nested-classes">Data Structures</a> &#124;
+<a href="#typedef-members">Typedefs</a> &#124;
 <a href="#enum-members">Enumerations</a> &#124;
 <a href="#func-members">Functions</a>  </div>
   <div class="headertitle">
@@ -97,6 +98,12 @@ Data Structures</h2></td></tr>
 <tr class="memitem:unionmpack__tag__t_8v"><td class="memItemLeft" align="right" valign="top">union &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__common.html#unionmpack__tag__t_8v">mpack_tag_t.v</a></td></tr>
 <tr class="memdesc:unionmpack__tag__t_8v"><td class="mdescLeft">&#160;</td><td class="mdescRight">The value for non-compound types.  <a href="group__common.html#unionmpack__tag__t_8v">More...</a><br /></td></tr>
 <tr class="separator:unionmpack__tag__t_8v"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
+Typedefs</h2></td></tr>
+<tr class="memitem:ga692063be325a917d5cb011dc24a8a491"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__common.html#ga692063be325a917d5cb011dc24a8a491">mpack_teardown_t</a>) (void *context)</td></tr>
+<tr class="memdesc:ga692063be325a917d5cb011dc24a8a491"><td class="mdescLeft">&#160;</td><td class="mdescRight">A teardown function to be called when an MPack object is destroyed.  <a href="#ga692063be325a917d5cb011dc24a8a491">More...</a><br /></td></tr>
+<tr class="separator:ga692063be325a917d5cb011dc24a8a491"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="enum-members"></a>
 Enumerations</h2></td></tr>
@@ -248,6 +255,21 @@ u</td>
 <td class="fielddoc">
 The value if the type is unsigned int; the element count if the type is array; the number of key/value pairs if the type is map; or the number of bytes if the type is str, bin or ext. </td></tr>
 </table>
+
+</div>
+</div>
+<h2 class="groupheader">Typedef Documentation</h2>
+<a class="anchor" id="ga692063be325a917d5cb011dc24a8a491"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef void(* mpack_teardown_t) (void *context)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>A teardown function to be called when an MPack object is destroyed. </p>
 
 </div>
 </div>
@@ -611,7 +633,7 @@ The value if the type is unsigned int; the element count if the type is array; t
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Mar 16 2015 05:08:24 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Mar 17 2015 12:42:29 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.9.1
 </small></address>

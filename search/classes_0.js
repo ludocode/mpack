@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['mpack_5ffile_5ftree_5ft',['mpack_file_tree_t',['../group__node.html#structmpack__file__tree__t',1,'']]],
   ['mpack_5fnode_5ft',['mpack_node_t',['../group__node.html#structmpack__node__t',1,'']]],
   ['mpack_5fnode_5ft_2edata',['mpack_node_t.data',['../group__node.html#unionmpack__node__t_8data',1,'']]],
   ['mpack_5freader_5ft',['mpack_reader_t',['../group__reader.html#structmpack__reader__t',1,'']]],

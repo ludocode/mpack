@@ -24,7 +24,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">MPack
-   &#160;<span id="projectnumber">0.2-dev</span>
+   &#160;<span id="projectnumber">0.2</span>
    </div>
    <div id="projectbrief">A C encoding/decoding library for the MessagePack serialization format.</div>
   </td>
@@ -89,9 +89,6 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="nested-classes"></a>
 Data Structures</h2></td></tr>
-<tr class="memitem:structmpack__file__tree__t"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#structmpack__file__tree__t">mpack_file_tree_t</a></td></tr>
-<tr class="memdesc:structmpack__file__tree__t"><td class="mdescLeft">&#160;</td><td class="mdescRight">An MPack tree parsed from a file containing a MessagePack object.  <a href="group__node.html#structmpack__file__tree__t">More...</a><br /></td></tr>
-<tr class="separator:structmpack__file__tree__t"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:structmpack__node__t"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#structmpack__node__t">mpack_node_t</a></td></tr>
 <tr class="memdesc:structmpack__node__t"><td class="mdescLeft">&#160;</td><td class="mdescRight">A node in a parsed MPack tree.  <a href="group__node.html#structmpack__node__t">More...</a><br /></td></tr>
 <tr class="separator:structmpack__node__t"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -106,8 +103,14 @@ Tree Functions</h2></td></tr>
 <tr class="memitem:ga57182f50afa56ca6a912620e894ed7c3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#ga57182f50afa56ca6a912620e894ed7c3">mpack_tree_init</a> (<a class="el" href="group__node.html#structmpack__tree__t">mpack_tree_t</a> *tree, const char *data, size_t length)</td></tr>
 <tr class="memdesc:ga57182f50afa56ca6a912620e894ed7c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes a tree by parsing the given data buffer.  <a href="#ga57182f50afa56ca6a912620e894ed7c3">More...</a><br /></td></tr>
 <tr class="separator:ga57182f50afa56ca6a912620e894ed7c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gad8360ae0ff58c0b6fb5c5997297b602c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#gad8360ae0ff58c0b6fb5c5997297b602c">mpack_tree_init_error</a> (<a class="el" href="group__node.html#structmpack__tree__t">mpack_tree_t</a> *tree, <a class="el" href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a> error)</td></tr>
+<tr class="memdesc:gad8360ae0ff58c0b6fb5c5997297b602c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an mpack tree directly into an error state.  <a href="#gad8360ae0ff58c0b6fb5c5997297b602c">More...</a><br /></td></tr>
+<tr class="separator:gad8360ae0ff58c0b6fb5c5997297b602c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2f8327cf4ebc79d9358ee0a1643af66c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#ga2f8327cf4ebc79d9358ee0a1643af66c">mpack_tree_init_file</a> (<a class="el" href="group__node.html#structmpack__tree__t">mpack_tree_t</a> *tree, const char *filename, size_t max_bytes)</td></tr>
+<tr class="memdesc:ga2f8327cf4ebc79d9358ee0a1643af66c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes a tree by reading and parsing the given file.  <a href="#ga2f8327cf4ebc79d9358ee0a1643af66c">More...</a><br /></td></tr>
+<tr class="separator:ga2f8327cf4ebc79d9358ee0a1643af66c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaa555786a0054e2a9207e6a649cc97d6a"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="group__node.html#structmpack__node__t">mpack_node_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#gaa555786a0054e2a9207e6a649cc97d6a">mpack_tree_root</a> (<a class="el" href="group__node.html#structmpack__tree__t">mpack_tree_t</a> *tree)</td></tr>
-<tr class="memdesc:gaa555786a0054e2a9207e6a649cc97d6a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the root node of the tree.  <a href="#gaa555786a0054e2a9207e6a649cc97d6a">More...</a><br /></td></tr>
+<tr class="memdesc:gaa555786a0054e2a9207e6a649cc97d6a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the root node of the tree, if the tree is not in an error state.  <a href="#gaa555786a0054e2a9207e6a649cc97d6a">More...</a><br /></td></tr>
 <tr class="separator:gaa555786a0054e2a9207e6a649cc97d6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga2cafadddc36ff6956dfdcd81b65f3cb1"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#ga2cafadddc36ff6956dfdcd81b65f3cb1">mpack_tree_error</a> (<a class="el" href="group__node.html#structmpack__tree__t">mpack_tree_t</a> *tree)</td></tr>
 <tr class="memdesc:ga2cafadddc36ff6956dfdcd81b65f3cb1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the error state of the tree.  <a href="#ga2cafadddc36ff6956dfdcd81b65f3cb1">More...</a><br /></td></tr>
@@ -118,6 +121,12 @@ Tree Functions</h2></td></tr>
 <tr class="memitem:gabf57acbc8356be8fab13a64f78986fdc"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#gabf57acbc8356be8fab13a64f78986fdc">mpack_tree_destroy</a> (<a class="el" href="group__node.html#structmpack__tree__t">mpack_tree_t</a> *tree)</td></tr>
 <tr class="memdesc:gabf57acbc8356be8fab13a64f78986fdc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Destroys the tree.  <a href="#gabf57acbc8356be8fab13a64f78986fdc">More...</a><br /></td></tr>
 <tr class="separator:gabf57acbc8356be8fab13a64f78986fdc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga3f05552f6b20218fdcc47fdfa83f4118"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#ga3f05552f6b20218fdcc47fdfa83f4118">mpack_tree_set_context</a> (<a class="el" href="group__node.html#structmpack__tree__t">mpack_tree_t</a> *tree, void *context)</td></tr>
+<tr class="memdesc:ga3f05552f6b20218fdcc47fdfa83f4118"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the custom pointer to pass to the tree callbacks, such as teardown.  <a href="#ga3f05552f6b20218fdcc47fdfa83f4118">More...</a><br /></td></tr>
+<tr class="separator:ga3f05552f6b20218fdcc47fdfa83f4118"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga160ddf529aea535c24752a848a1c48de"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#ga160ddf529aea535c24752a848a1c48de">mpack_tree_set_teardown</a> (<a class="el" href="group__node.html#structmpack__tree__t">mpack_tree_t</a> *tree, <a class="el" href="group__common.html#ga692063be325a917d5cb011dc24a8a491">mpack_teardown_t</a> teardown)</td></tr>
+<tr class="memdesc:ga160ddf529aea535c24752a848a1c48de"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the teardown function to call when the tree is destroyed.  <a href="#ga160ddf529aea535c24752a848a1c48de">More...</a><br /></td></tr>
+<tr class="separator:ga160ddf529aea535c24752a848a1c48de"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaba74fc941de75eb0675df944b08eb84f"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#gaba74fc941de75eb0675df944b08eb84f">mpack_tree_clearjmp</a> (<a class="el" href="group__node.html#structmpack__tree__t">mpack_tree_t</a> *tree)</td></tr>
 <tr class="memdesc:gaba74fc941de75eb0675df944b08eb84f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clears a jump target.  <a href="#gaba74fc941de75eb0675df944b08eb84f">More...</a><br /></td></tr>
 <tr class="separator:gaba74fc941de75eb0675df944b08eb84f"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -127,35 +136,18 @@ Tree Functions</h2></td></tr>
 <tr class="memitem:ga9afb8b24c2158eba397dab86d00fe1e4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#ga9afb8b24c2158eba397dab86d00fe1e4">mpack_node_flag_error</a> (<a class="el" href="group__node.html#structmpack__node__t">mpack_node_t</a> *node, <a class="el" href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a> error)</td></tr>
 <tr class="memdesc:ga9afb8b24c2158eba397dab86d00fe1e4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Places the node's tree in the given error state, jumping if a jump target is set.  <a href="#ga9afb8b24c2158eba397dab86d00fe1e4">More...</a><br /></td></tr>
 <tr class="separator:ga9afb8b24c2158eba397dab86d00fe1e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga081cca345df307ef6163dce6e5edca3f"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="group__common.html#structmpack__tag__t">mpack_tag_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#ga081cca345df307ef6163dce6e5edca3f">mpack_node_tag</a> (<a class="el" href="group__node.html#structmpack__node__t">mpack_node_t</a> *node)</td></tr>
-<tr class="memdesc:ga081cca345df307ef6163dce6e5edca3f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the tag contained by the given node.  <a href="#ga081cca345df307ef6163dce6e5edca3f">More...</a><br /></td></tr>
-<tr class="separator:ga081cca345df307ef6163dce6e5edca3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gae72a258011a9d8c292fbcf548fe99441"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#gae72a258011a9d8c292fbcf548fe99441">mpack_node_print</a> (<a class="el" href="group__node.html#structmpack__node__t">mpack_node_t</a> *node)</td></tr>
-<tr class="separator:gae72a258011a9d8c292fbcf548fe99441"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaad86c7b49927ebf1bf854f8ecfc2cba8"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#gaad86c7b49927ebf1bf854f8ecfc2cba8">MPACK_TREE_SETJMP</a>(tree)</td></tr>
 <tr class="memdesc:gaad86c7b49927ebf1bf854f8ecfc2cba8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Registers a jump target in case of error.  <a href="#gaad86c7b49927ebf1bf854f8ecfc2cba8">More...</a><br /></td></tr>
 <tr class="separator:gaad86c7b49927ebf1bf854f8ecfc2cba8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
-STDIO Helpers</h2></td></tr>
-<tr class="memitem:ga0ee593e7478d53ac49c87ff710b943b7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#ga0ee593e7478d53ac49c87ff710b943b7">mpack_file_tree_init</a> (<a class="el" href="group__node.html#structmpack__file__tree__t">mpack_file_tree_t</a> *file_tree, const char *filename, int max_size)</td></tr>
-<tr class="memdesc:ga0ee593e7478d53ac49c87ff710b943b7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes a tree by reading and parsing the given file.  <a href="#ga0ee593e7478d53ac49c87ff710b943b7">More...</a><br /></td></tr>
-<tr class="separator:ga0ee593e7478d53ac49c87ff710b943b7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaf04a120e4776362364b015b98f8d7411"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#gaf04a120e4776362364b015b98f8d7411">mpack_file_tree_destroy</a> (<a class="el" href="group__node.html#structmpack__file__tree__t">mpack_file_tree_t</a> *file_tree)</td></tr>
-<tr class="memdesc:gaf04a120e4776362364b015b98f8d7411"><td class="mdescLeft">&#160;</td><td class="mdescRight">Destroys the file tree.  <a href="#gaf04a120e4776362364b015b98f8d7411">More...</a><br /></td></tr>
-<tr class="separator:gaf04a120e4776362364b015b98f8d7411"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gac088a4a633c15ae1c73ba58d749bda84"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#gac088a4a633c15ae1c73ba58d749bda84">mpack_file_tree_error</a> (<a class="el" href="group__node.html#structmpack__file__tree__t">mpack_file_tree_t</a> *file_tree)</td></tr>
-<tr class="memdesc:gac088a4a633c15ae1c73ba58d749bda84"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the error state of the file tree.  <a href="#gac088a4a633c15ae1c73ba58d749bda84">More...</a><br /></td></tr>
-<tr class="separator:gac088a4a633c15ae1c73ba58d749bda84"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaf0a40e043770ad15ef5558a3ecb6d3a1"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="group__node.html#structmpack__node__t">mpack_node_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#gaf0a40e043770ad15ef5558a3ecb6d3a1">mpack_file_tree_root</a> (<a class="el" href="group__node.html#structmpack__file__tree__t">mpack_file_tree_t</a> *file_tree)</td></tr>
-<tr class="memdesc:gaf0a40e043770ad15ef5558a3ecb6d3a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the root node of the file tree.  <a href="#gaf0a40e043770ad15ef5558a3ecb6d3a1">More...</a><br /></td></tr>
-<tr class="separator:gaf0a40e043770ad15ef5558a3ecb6d3a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaa4565165011348aebec50c5149e1939d"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#gaa4565165011348aebec50c5149e1939d">mpack_file_tree_clearjmp</a> (<a class="el" href="group__node.html#structmpack__file__tree__t">mpack_file_tree_t</a> *file_tree)</td></tr>
-<tr class="memdesc:gaa4565165011348aebec50c5149e1939d"><td class="mdescLeft">&#160;</td><td class="mdescRight">Clears a jump target.  <a href="#gaa4565165011348aebec50c5149e1939d">More...</a><br /></td></tr>
-<tr class="separator:gaa4565165011348aebec50c5149e1939d"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gabea707dc07adf96f7db8b010c2015843"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#gabea707dc07adf96f7db8b010c2015843">MPACK_FILE_TREE_SETJMP</a>(file_tree)</td></tr>
-<tr class="memdesc:gabea707dc07adf96f7db8b010c2015843"><td class="mdescLeft">&#160;</td><td class="mdescRight">Registers a jump target in case of error.  <a href="#gabea707dc07adf96f7db8b010c2015843">More...</a><br /></td></tr>
-<tr class="separator:gabea707dc07adf96f7db8b010c2015843"><td class="memSeparator" colspan="2">&#160;</td></tr>
+Node Core Functions</h2></td></tr>
+<tr class="memitem:ga081cca345df307ef6163dce6e5edca3f"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="group__common.html#structmpack__tag__t">mpack_tag_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#ga081cca345df307ef6163dce6e5edca3f">mpack_node_tag</a> (<a class="el" href="group__node.html#structmpack__node__t">mpack_node_t</a> *node)</td></tr>
+<tr class="memdesc:ga081cca345df307ef6163dce6e5edca3f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the tag contained by the given node.  <a href="#ga081cca345df307ef6163dce6e5edca3f">More...</a><br /></td></tr>
+<tr class="separator:ga081cca345df307ef6163dce6e5edca3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae72a258011a9d8c292fbcf548fe99441"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#gae72a258011a9d8c292fbcf548fe99441">mpack_node_print</a> (<a class="el" href="group__node.html#structmpack__node__t">mpack_node_t</a> *node)</td></tr>
+<tr class="memdesc:gae72a258011a9d8c292fbcf548fe99441"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts a node to JSON and pretty-prints it to stdout.  <a href="#gae72a258011a9d8c292fbcf548fe99441">More...</a><br /></td></tr>
+<tr class="separator:gae72a258011a9d8c292fbcf548fe99441"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
 Node Primitive Value Functions</h2></td></tr>
@@ -289,20 +281,6 @@ Compound Node Functions</h2></td></tr>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>The MPack Node API allows you to parse a chunk of MessagePack data in-place into a dynamically typed data structure. </p>
 <hr/><h2 class="groupheader">Data Structure Documentation</h2>
-<a name="structmpack__file__tree__t" id="structmpack__file__tree__t"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">struct mpack_file_tree_t</td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<div class="textblock"><p>An MPack tree parsed from a file containing a MessagePack object. </p>
-<p>The file tree can be used similar to a normal <a class="el" href="group__node.html#structmpack__tree__t" title="An MPack tree parsed from a blob of MessagePack. ">mpack_tree_t</a>. It will automatically open and load the file, and release the data when destroyed. </p>
-</div>
-</div>
-</div>
 <a name="structmpack__node__t" id="structmpack__node__t"></a>
 <div class="memitem">
 <div class="memproto">
@@ -345,27 +323,6 @@ Compound Node Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Macro Definition Documentation</h2>
-<a class="anchor" id="gabea707dc07adf96f7db8b010c2015843"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">#define MPACK_FILE_TREE_SETJMP</td>
-          <td>(</td>
-          <td class="paramtype">&#160;</td>
-          <td class="paramname">file_tree</td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Registers a jump target in case of error. </p>
-<p>If the file tree is in an error state, 1 is returned when called. Otherwise 0 is returned when called, and when the first error occurs, control flow will jump to the point where <a class="el" href="group__node.html#gabea707dc07adf96f7db8b010c2015843" title="Registers a jump target in case of error. ">MPACK_FILE_TREE_SETJMP()</a> was called, resuming as though it returned 1. This ensures an error handling block runs exactly once in case of error.</p>
-<p>The argument may be evaluated multiple times.</p>
-<dl class="section return"><dt>Returns</dt><dd>0 if the file tree is not in an error state; 1 if and when an error occurs. </dd></dl>
-
-</div>
-</div>
 <a class="anchor" id="gaad86c7b49927ebf1bf854f8ecfc2cba8"></a>
 <div class="memitem">
 <div class="memproto">
@@ -388,147 +345,6 @@ Compound Node Functions</h2></td></tr>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a class="anchor" id="gaa4565165011348aebec50c5149e1939d"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">static void mpack_file_tree_clearjmp </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="group__node.html#structmpack__file__tree__t">mpack_file_tree_t</a> *&#160;</td>
-          <td class="paramname"><em>file_tree</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Clears a jump target. </p>
-<p>Subsequent tree reading errors will not cause a jump. </p>
-
-</div>
-</div>
-<a class="anchor" id="gaf04a120e4776362364b015b98f8d7411"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname"><a class="el" href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a> mpack_file_tree_destroy </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="group__node.html#structmpack__file__tree__t">mpack_file_tree_t</a> *&#160;</td>
-          <td class="paramname"><em>file_tree</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Destroys the file tree. </p>
-
-</div>
-</div>
-<a class="anchor" id="gac088a4a633c15ae1c73ba58d749bda84"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">static <a class="el" href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a> mpack_file_tree_error </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="group__node.html#structmpack__file__tree__t">mpack_file_tree_t</a> *&#160;</td>
-          <td class="paramname"><em>file_tree</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Returns the error state of the file tree. </p>
-
-</div>
-</div>
-<a class="anchor" id="ga0ee593e7478d53ac49c87ff710b943b7"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void mpack_file_tree_init </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="group__node.html#structmpack__file__tree__t">mpack_file_tree_t</a> *&#160;</td>
-          <td class="paramname"><em>file_tree</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">const char *&#160;</td>
-          <td class="paramname"><em>filename</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>max_size</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Initializes a tree by reading and parsing the given file. </p>
-<p>The file tree must be destroyed with <a class="el" href="group__node.html#gaf04a120e4776362364b015b98f8d7411" title="Destroys the file tree. ">mpack_file_tree_destroy()</a>, even if parsing fails.</p>
-<p>The file is opened, loaded fully into memory, and closed before this call returns. It is not accessed again by this file tree.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">file_tree</td><td>The file tree to initialize </td></tr>
-    <tr><td class="paramname">filename</td><td>The filename passed to fopen() to read the file </td></tr>
-    <tr><td class="paramname">max_size</td><td>The maximum size of file to load, or 0 for unlimited size. </td></tr>
-  </table>
-  </dd>
-</dl>
-
-</div>
-</div>
-<a class="anchor" id="gaf0a40e043770ad15ef5558a3ecb6d3a1"></a>
-<div class="memitem">
-<div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
-      <table class="memname">
-        <tr>
-          <td class="memname">static <a class="el" href="group__node.html#structmpack__node__t">mpack_node_t</a>* mpack_file_tree_root </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="group__node.html#structmpack__file__tree__t">mpack_file_tree_t</a> *&#160;</td>
-          <td class="paramname"><em>file_tree</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
-</div><div class="memdoc">
-
-<p>Returns the root node of the file tree. </p>
-
-</div>
-</div>
 <a class="anchor" id="ga8815b5e92240a81bb5b9ff426a5a5667"></a>
 <div class="memitem">
 <div class="memproto">
@@ -1476,7 +1292,9 @@ Compound Node Functions</h2></td></tr>
         </tr>
       </table>
 </div><div class="memdoc">
+
 <p>Converts a node to JSON and pretty-prints it to stdout. </p>
+<p>This function is only available in debugging mode. </p>
 
 </div>
 </div>
@@ -1782,6 +1600,79 @@ Compound Node Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="gad8360ae0ff58c0b6fb5c5997297b602c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void mpack_tree_init_error </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__node.html#structmpack__tree__t">mpack_tree_t</a> *&#160;</td>
+          <td class="paramname"><em>tree</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a>&#160;</td>
+          <td class="paramname"><em>error</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Initializes an mpack tree directly into an error state. </p>
+<p>Use this if you are writing a wrapper to <a class="el" href="group__node.html#ga57182f50afa56ca6a912620e894ed7c3" title="Initializes a tree by parsing the given data buffer. ">mpack_tree_init()</a> which can fail its setup. </p>
+
+</div>
+</div>
+<a class="anchor" id="ga2f8327cf4ebc79d9358ee0a1643af66c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void mpack_tree_init_file </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__node.html#structmpack__tree__t">mpack_tree_t</a> *&#160;</td>
+          <td class="paramname"><em>tree</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>filename</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>max_bytes</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Initializes a tree by reading and parsing the given file. </p>
+<p>The tree must be destroyed with <a class="el" href="group__node.html#gabf57acbc8356be8fab13a64f78986fdc" title="Destroys the tree. ">mpack_tree_destroy()</a>, even if parsing fails.</p>
+<p>The file is opened, loaded fully into memory, and closed before this call returns.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">tree</td><td>The tree to initialize </td></tr>
+    <tr><td class="paramname">filename</td><td>The filename passed to fopen() to read the file </td></tr>
+    <tr><td class="paramname">max_bytes</td><td>The maximum size of file to load, or 0 for unlimited size. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a class="anchor" id="gaa555786a0054e2a9207e6a649cc97d6a"></a>
 <div class="memitem">
 <div class="memproto">
@@ -1804,7 +1695,95 @@ Compound Node Functions</h2></td></tr>
 </table>
 </div><div class="memdoc">
 
-<p>Returns the root node of the tree. </p>
+<p>Returns the root node of the tree, if the tree is not in an error state. </p>
+<p>Returns a nil node otherwise. </p>
+
+</div>
+</div>
+<a class="anchor" id="ga3f05552f6b20218fdcc47fdfa83f4118"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void mpack_tree_set_context </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__node.html#structmpack__tree__t">mpack_tree_t</a> *&#160;</td>
+          <td class="paramname"><em>tree</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">void *&#160;</td>
+          <td class="paramname"><em>context</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Sets the custom pointer to pass to the tree callbacks, such as teardown. </p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">tree</td><td>The MPack tree. </td></tr>
+    <tr><td class="paramname">context</td><td>User data to pass to the tree callbacks. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga160ddf529aea535c24752a848a1c48de"></a>
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">static void mpack_tree_set_teardown </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__node.html#structmpack__tree__t">mpack_tree_t</a> *&#160;</td>
+          <td class="paramname"><em>tree</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__common.html#ga692063be325a917d5cb011dc24a8a491">mpack_teardown_t</a>&#160;</td>
+          <td class="paramname"><em>teardown</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+
+<p>Sets the teardown function to call when the tree is destroyed. </p>
+<p>This should normally be used with <a class="el" href="group__node.html#ga3f05552f6b20218fdcc47fdfa83f4118" title="Sets the custom pointer to pass to the tree callbacks, such as teardown. ">mpack_tree_set_context()</a> to register a custom pointer to pass to the teardown function.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">tree</td><td>The MPack tree. </td></tr>
+    <tr><td class="paramname">teardown</td><td>The function to call when the tree is destroyed. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -1838,7 +1817,7 @@ Compound Node Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Mar 16 2015 05:08:24 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Mar 17 2015 12:42:29 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.9.1
 </small></address>

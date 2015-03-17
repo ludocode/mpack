@@ -24,7 +24,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">MPack
-   &#160;<span id="projectnumber">0.2-dev</span>
+   &#160;<span id="projectnumber">0.2</span>
    </div>
    <div id="projectbrief">A C encoding/decoding library for the MessagePack serialization format.</div>
   </td>
@@ -111,9 +111,9 @@ Data Structures</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
 Macros</h2></td></tr>
-<tr class="memitem:gab6da70b6c43de996d678bd377ab4c845"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#gab6da70b6c43de996d678bd377ab4c845">mpack_reader_init_stack</a>(reader,  fill,  context)</td></tr>
-<tr class="memdesc:gab6da70b6c43de996d678bd377ab4c845"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an mpack reader using stack space with the given fill function and context.  <a href="group__reader.html#gab6da70b6c43de996d678bd377ab4c845">More...</a><br /></td></tr>
-<tr class="separator:gab6da70b6c43de996d678bd377ab4c845"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga3950ce57f3f125755cc1cefd1f54e149"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga3950ce57f3f125755cc1cefd1f54e149">mpack_reader_init_stack</a>(reader)</td></tr>
+<tr class="memdesc:ga3950ce57f3f125755cc1cefd1f54e149"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an mpack reader using stack space as a buffer.  <a href="group__reader.html#ga3950ce57f3f125755cc1cefd1f54e149">More...</a><br /></td></tr>
+<tr class="separator:ga3950ce57f3f125755cc1cefd1f54e149"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaad6e5f81f01257d1295240ec9ae70d2c"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#gaad6e5f81f01257d1295240ec9ae70d2c">MPACK_READER_SETJMP</a>(reader)</td></tr>
 <tr class="memdesc:gaad6e5f81f01257d1295240ec9ae70d2c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Registers a jump target in case of error.  <a href="group__reader.html#gaad6e5f81f01257d1295240ec9ae70d2c">More...</a><br /></td></tr>
 <tr class="separator:gaad6e5f81f01257d1295240ec9ae70d2c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -146,9 +146,6 @@ Functions</h2></td></tr>
 <tr class="memitem:gaaad37015e0c53704d9356de06b493de6"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#gaaad37015e0c53704d9356de06b493de6">mpack_done_str</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader)</td></tr>
 <tr class="memdesc:gaaad37015e0c53704d9356de06b493de6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Finishes reading a string.  <a href="group__reader.html#gaaad37015e0c53704d9356de06b493de6">More...</a><br /></td></tr>
 <tr class="separator:gaaad37015e0c53704d9356de06b493de6"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga233580c48bded0c6df5d03665a9713d8"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga233580c48bded0c6df5d03665a9713d8">mpack_fread</a> (void *context, char *buffer, size_t count)</td></tr>
-<tr class="memdesc:ga233580c48bded0c6df5d03665a9713d8"><td class="mdescLeft">&#160;</td><td class="mdescRight">An implementation of the mpack fill function which wraps the standard stdio fread() function.  <a href="group__reader.html#ga233580c48bded0c6df5d03665a9713d8">More...</a><br /></td></tr>
-<tr class="separator:ga233580c48bded0c6df5d03665a9713d8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaeb91e8d4e2a7b7f6562d8bbb7400275c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#gaeb91e8d4e2a7b7f6562d8bbb7400275c">mpack_read_bytes</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, char *p, size_t count)</td></tr>
 <tr class="memdesc:gaeb91e8d4e2a7b7f6562d8bbb7400275c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads bytes from a string, binary blob or extension object.  <a href="group__reader.html#gaeb91e8d4e2a7b7f6562d8bbb7400275c">More...</a><br /></td></tr>
 <tr class="separator:gaeb91e8d4e2a7b7f6562d8bbb7400275c"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -173,15 +170,30 @@ Functions</h2></td></tr>
 <tr class="memitem:ga5c45c2e0592f16ae671cd509d8d8c512"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga5c45c2e0592f16ae671cd509d8d8c512">mpack_reader_flag_error</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, <a class="el" href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a> error)</td></tr>
 <tr class="memdesc:ga5c45c2e0592f16ae671cd509d8d8c512"><td class="mdescLeft">&#160;</td><td class="mdescRight">Places the reader in the given error state, jumping if a jump target is set.  <a href="group__reader.html#ga5c45c2e0592f16ae671cd509d8d8c512">More...</a><br /></td></tr>
 <tr class="separator:ga5c45c2e0592f16ae671cd509d8d8c512"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gab2c53cadf7a16c73483d5f5f5c129e9b"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#gab2c53cadf7a16c73483d5f5f5c129e9b">mpack_reader_init</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, <a class="el" href="group__reader.html#ga8ac865fd8827b4b768f2dbb387ab9237">mpack_fill_t</a> fill, void *context, char *buffer, size_t size, size_t count)</td></tr>
-<tr class="memdesc:gab2c53cadf7a16c73483d5f5f5c129e9b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an mpack reader with the given buffer and fill function.  <a href="group__reader.html#gab2c53cadf7a16c73483d5f5f5c129e9b">More...</a><br /></td></tr>
-<tr class="separator:gab2c53cadf7a16c73483d5f5f5c129e9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga25c90cbd279a1d16562372379c59d359"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga25c90cbd279a1d16562372379c59d359">mpack_reader_init_buffer</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, const char *buffer, size_t count)</td></tr>
-<tr class="memdesc:ga25c90cbd279a1d16562372379c59d359"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an mpack reader with an in-memory buffer.  <a href="group__reader.html#ga25c90cbd279a1d16562372379c59d359">More...</a><br /></td></tr>
-<tr class="separator:ga25c90cbd279a1d16562372379c59d359"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1d79c00c6c013b879b164c26753b3e83"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga1d79c00c6c013b879b164c26753b3e83">mpack_reader_init</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, char *buffer, size_t size, size_t count)</td></tr>
+<tr class="memdesc:ga1d79c00c6c013b879b164c26753b3e83"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an mpack reader with the given buffer.  <a href="group__reader.html#ga1d79c00c6c013b879b164c26753b3e83">More...</a><br /></td></tr>
+<tr class="separator:ga1d79c00c6c013b879b164c26753b3e83"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga18f41d6786155f265769351ef550e331"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga18f41d6786155f265769351ef550e331">mpack_reader_init_data</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, const char *data, size_t count)</td></tr>
+<tr class="memdesc:ga18f41d6786155f265769351ef550e331"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an mpack reader to parse a pre-loaded contiguous chunk of data.  <a href="group__reader.html#ga18f41d6786155f265769351ef550e331">More...</a><br /></td></tr>
+<tr class="separator:ga18f41d6786155f265769351ef550e331"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga729bf4c0a79516e97a65d2e278f336e0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga729bf4c0a79516e97a65d2e278f336e0">mpack_reader_init_error</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, <a class="el" href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a> error)</td></tr>
+<tr class="memdesc:ga729bf4c0a79516e97a65d2e278f336e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an mpack reader directly into an error state.  <a href="group__reader.html#ga729bf4c0a79516e97a65d2e278f336e0">More...</a><br /></td></tr>
+<tr class="separator:ga729bf4c0a79516e97a65d2e278f336e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga957b5be20debe9f3b81b629478bda0f5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga957b5be20debe9f3b81b629478bda0f5">mpack_reader_init_file</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, const char *filename)</td></tr>
+<tr class="memdesc:ga957b5be20debe9f3b81b629478bda0f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an mpack reader that reads from a file.  <a href="group__reader.html#ga957b5be20debe9f3b81b629478bda0f5">More...</a><br /></td></tr>
+<tr class="separator:ga957b5be20debe9f3b81b629478bda0f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga291a38358bde6992b16edda81f2fcf45"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga291a38358bde6992b16edda81f2fcf45">mpack_reader_remaining</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, const char **data)</td></tr>
 <tr class="memdesc:ga291a38358bde6992b16edda81f2fcf45"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns bytes left in the reader's buffer.  <a href="group__reader.html#ga291a38358bde6992b16edda81f2fcf45">More...</a><br /></td></tr>
 <tr class="separator:ga291a38358bde6992b16edda81f2fcf45"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9c6d8df4e61aa78f6db584973af5d825"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga9c6d8df4e61aa78f6db584973af5d825">mpack_reader_set_context</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, void *context)</td></tr>
+<tr class="memdesc:ga9c6d8df4e61aa78f6db584973af5d825"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the custom pointer to pass to the reader callbacks, such as fill or teardown.  <a href="group__reader.html#ga9c6d8df4e61aa78f6db584973af5d825">More...</a><br /></td></tr>
+<tr class="separator:ga9c6d8df4e61aa78f6db584973af5d825"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga71c3b1465a06935af1c0b5f141b4faed"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga71c3b1465a06935af1c0b5f141b4faed">mpack_reader_set_fill</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, <a class="el" href="group__reader.html#ga8ac865fd8827b4b768f2dbb387ab9237">mpack_fill_t</a> fill)</td></tr>
+<tr class="memdesc:ga71c3b1465a06935af1c0b5f141b4faed"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the fill function to refill the data buffer when it runs out of data.  <a href="group__reader.html#ga71c3b1465a06935af1c0b5f141b4faed">More...</a><br /></td></tr>
+<tr class="separator:ga71c3b1465a06935af1c0b5f141b4faed"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga703a552707e6f42f5d3e13c67bd17c41"><td class="memItemLeft" align="right" valign="top">static void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga703a552707e6f42f5d3e13c67bd17c41">mpack_reader_set_teardown</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, <a class="el" href="group__common.html#ga692063be325a917d5cb011dc24a8a491">mpack_teardown_t</a> teardown)</td></tr>
+<tr class="memdesc:ga703a552707e6f42f5d3e13c67bd17c41"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the teardown function to call when the reader is destroyed.  <a href="group__reader.html#ga703a552707e6f42f5d3e13c67bd17c41">More...</a><br /></td></tr>
+<tr class="separator:ga703a552707e6f42f5d3e13c67bd17c41"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga0c7e1dd2be56ce3d596326c4463e7229"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga0c7e1dd2be56ce3d596326c4463e7229">mpack_skip_bytes</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, size_t count)</td></tr>
 <tr class="memdesc:ga0c7e1dd2be56ce3d596326c4463e7229"><td class="mdescLeft">&#160;</td><td class="mdescRight">Skips bytes from the underlying stream.  <a href="group__reader.html#ga0c7e1dd2be56ce3d596326c4463e7229">More...</a><br /></td></tr>
 <tr class="separator:ga0c7e1dd2be56ce3d596326c4463e7229"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -191,7 +203,7 @@ Functions</h2></td></tr>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Mon Mar 16 2015 05:08:24 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Mar 17 2015 12:42:29 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.9.1
 </small></address>
