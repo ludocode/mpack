@@ -127,9 +127,9 @@ void mpack_tree_init_error(mpack_tree_t* tree, mpack_error_t error);
  *
  * @param tree The tree to initialize
  * @param filename The filename passed to fopen() to read the file
- * @param max_size The maximum size of file to load, or 0 for unlimited size.
+ * @param max_bytes The maximum size of file to load, or 0 for unlimited size.
  */
-void mpack_tree_init_file(mpack_tree_t* tree, const char* filename, size_t max_size);
+void mpack_tree_init_file(mpack_tree_t* tree, const char* filename, size_t max_bytes);
 #endif
 
 /**
@@ -237,6 +237,15 @@ void mpack_tree_flag_error(mpack_tree_t* tree, mpack_error_t error);
 void mpack_node_flag_error(mpack_node_t* node, mpack_error_t error);
 
 /**
+ * @}
+ */
+
+/**
+ * @name Node Core Functions
+ * @{
+ */
+
+/**
  * Returns the tag contained by the given node.
  */
 static inline mpack_tag_t mpack_node_tag(mpack_node_t* node) {
@@ -244,10 +253,13 @@ static inline mpack_tag_t mpack_node_tag(mpack_node_t* node) {
 }
 
 #if MPACK_DEBUG && MPACK_STDIO && MPACK_SETJMP
-/*! Converts a node to JSON and pretty-prints it to stdout. */
+/**
+ * Converts a node to JSON and pretty-prints it to stdout.
+ *
+ * This function is only available in debugging mode.
+ */
 void mpack_node_print(mpack_node_t* node);
 #endif
-
 
 /**
  * @}
