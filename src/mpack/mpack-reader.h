@@ -205,7 +205,7 @@ mpack_error_t mpack_reader_destroy_cancel(mpack_reader_t* reader);
  * Sets the custom pointer to pass to the reader callbacks, such as fill
  * or teardown.
  *
- * @param context User data to pass to the fill function.
+ * @param context User data to pass to the reader callbacks.
  */
 static inline void mpack_reader_set_context(mpack_reader_t* reader, void* context) {
     reader->context = context;

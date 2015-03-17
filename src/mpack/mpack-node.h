@@ -82,14 +82,18 @@ struct mpack_node_t {
 typedef struct mpack_tree_t mpack_tree_t;
 
 struct mpack_tree_t {
+    mpack_teardown_t teardown;
+    void* context;
+
     mpack_node_t root;
-    mpack_node_t nil_node; // a nil node to be returned in case of error
-    mpack_error_t error;
     size_t size;
 
+    mpack_node_t nil_node; // a nil node to be returned in case of error
+    mpack_error_t error;
+
     #if MPACK_SETJMP
-    bool jump;          /* Whether to longjmp on error */
-    jmp_buf jump_env;   /* Where to jump */
+    bool jump;          // whether to longjmp on error
+    jmp_buf jump_env;   // where to jump
     #endif
 };
 
@@ -108,9 +112,33 @@ struct mpack_tree_t {
 void mpack_tree_init(mpack_tree_t* tree, const char* data, size_t length);
 
 /**
- * Returns the root node of the tree.
+ * Initializes an mpack tree directly into an error state. Use this if you
+ * are writing a wrapper to mpack_tree_init() which can fail its setup.
+ */
+void mpack_tree_init_error(mpack_tree_t* tree, mpack_error_t error);
+
+#if MPACK_STDIO
+/**
+ * Initializes a tree by reading and parsing the given file. The tree must be
+ * destroyed with mpack_tree_destroy(), even if parsing fails.
+ *
+ * The file is opened, loaded fully into memory, and closed before this call
+ * returns.
+ *
+ * @param tree The tree to initialize
+ * @param filename The filename passed to fopen() to read the file
+ * @param max_size The maximum size of file to load, or 0 for unlimited size.
+ */
+void mpack_tree_init_file(mpack_tree_t* tree, const char* filename, size_t max_size);
+#endif
+
+/**
+ * Returns the root node of the tree, if the tree is not in an error state.
+ * Returns a nil node otherwise.
  */
 static inline mpack_node_t* mpack_tree_root(mpack_tree_t* tree) {
+    if (tree->error != mpack_ok)
+        return &tree->nil_node;
     return &tree->root;
 }
 
@@ -134,6 +162,27 @@ static inline size_t mpack_tree_size(mpack_tree_t* tree) {
  * Destroys the tree.
  */
 mpack_error_t mpack_tree_destroy(mpack_tree_t* tree);
+
+/**
+ * Sets the custom pointer to pass to the tree callbacks, such as teardown.
+ *
+ * @param context User data to pass to the tree callbacks.
+ */
+static inline void mpack_tree_set_context(mpack_tree_t* tree, void* context) {
+    tree->context = context;
+}
+
+/**
+ * Sets the teardown function to call when the tree is destroyed.
+ *
+ * This should normally be used with mpack_tree_set_context() to register
+ * a custom pointer to pass to the teardown function.
+ *
+ * @param teardown The function to call when the tree is destroyed.
+ */
+static inline void mpack_tree_set_teardown(mpack_tree_t* tree, mpack_teardown_t teardown) {
+    tree->teardown = teardown;
+}
 
 #if MPACK_SETJMP
 
@@ -197,91 +246,6 @@ static inline mpack_tag_t mpack_node_tag(mpack_node_t* node) {
 void mpack_node_print(mpack_node_t* node);
 #endif
 
-
-/**
- * @}
- */
-
-/**
- * @name STDIO Helpers
- * @{
- */
-
-#if MPACK_STDIO
-/**
- * An MPack tree parsed from a file containing a MessagePack object.
- *
- * The file tree can be used similar to a normal mpack_tree_t. It will
- * automatically open and load the file, and release the data when
- * destroyed.
- */
-typedef struct mpack_file_tree_t mpack_file_tree_t;
-
-struct mpack_file_tree_t {
-    mpack_tree_t tree;
-    char* data;
-};
-
-/**
- * Initializes a tree by reading and parsing the given file. The file tree must be
- * destroyed with mpack_file_tree_destroy(), even if parsing fails.
- *
- * The file is opened, loaded fully into memory, and closed before this call
- * returns. It is not accessed again by this file tree.
- *
- * @param file_tree The file tree to initialize
- * @param filename The filename passed to fopen() to read the file
- * @param max_size The maximum size of file to load, or 0 for unlimited size.
- */
-void mpack_file_tree_init(mpack_file_tree_t* file_tree, const char* filename, int max_size);
-
-/**
- * Destroys the file tree.
- */
-mpack_error_t mpack_file_tree_destroy(mpack_file_tree_t* file_tree);
-
-/**
- * Returns the error state of the file tree.
- */
-static inline mpack_error_t mpack_file_tree_error(mpack_file_tree_t* file_tree) {
-    return file_tree->tree.error;
-}
-
-/**
- * Returns the root node of the file tree.
- */
-static inline mpack_node_t* mpack_file_tree_root(mpack_file_tree_t* file_tree) {
-    return &file_tree->tree.root;
-}
-
-#if MPACK_SETJMP
-
-/**
- * @hideinitializer
- *
- * Registers a jump target in case of error.
- *
- * If the file tree is in an error state, 1 is returned when called. Otherwise 0 is
- * returned when called, and when the first error occurs, control flow will jump
- * to the point where MPACK_FILE_TREE_SETJMP() was called, resuming as though it
- * returned 1. This ensures an error handling block runs exactly once in case of
- * error.
- *
- * The argument may be evaluated multiple times.
- *
- * @returns 0 if the file tree is not in an error state; 1 if and when an error occurs.
- */
-#define MPACK_FILE_TREE_SETJMP(file_tree) (((file_tree)->tree.error == mpack_ok) ? \
-    ((file_tree)->tree.jump = true, setjmp((file_tree)->tree.jump_env)) : 1)
-
-/**
- * Clears a jump target. Subsequent tree reading errors will not cause a jump.
- */
-static inline void mpack_file_tree_clearjmp(mpack_file_tree_t* file_tree) {
-    file_tree->tree.jump = false;
-}
-#endif
-#endif
 
 /**
  * @}

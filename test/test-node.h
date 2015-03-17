@@ -39,13 +39,6 @@
     mpack_tree_destroy(tree); \
 } while (0)
 
-#define test_file_tree_destroy_noerror(file_tree) do { \
-    test_assert(mpack_file_tree_error(file_tree) == mpack_ok, \
-            "tree is in error state %i", (int)mpack_file_tree_error(file_tree)); \
-    test_check_no_assertion(); \
-    mpack_file_tree_destroy(file_tree); \
-} while (0)
-
 #define test_simple_tree_read(data, read_expr) do { \
   mpack_tree_t tree; \
   mpack_tree_init(&tree, data, sizeof(data) - 1); \

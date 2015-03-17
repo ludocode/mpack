@@ -45,6 +45,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <inttypes.h>
+#include <limits.h>
 
 #if MPACK_STDLIB
 #include <string.h>

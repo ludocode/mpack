@@ -54,17 +54,17 @@ static void test_file_read(void) {
 }
 
 static void test_file_node(void) {
-    mpack_file_tree_t tree;
-    mpack_file_tree_init(&tree, test_filename, 0);
-    test_assert(mpack_file_tree_error(&tree) == mpack_ok, "file tree parsing failed: %s",
-            mpack_error_to_string(mpack_file_tree_error(&tree)));
+    mpack_tree_t tree;
+    mpack_tree_init_file(&tree, test_filename, 0);
+    test_assert(mpack_tree_error(&tree) == mpack_ok, "file tree parsing failed: %s",
+            mpack_error_to_string(mpack_tree_error(&tree)));
 
-    mpack_node_t* root = mpack_file_tree_root(&tree);
+    mpack_node_t* root = mpack_tree_root(&tree);
     test_assert(mpack_node_map_count(root) == 2, "map contains %i keys", (int)mpack_node_map_count(root));
     test_assert(mpack_node_i8(mpack_node_map_cstr(root, "schema")) == 0, "checking schema failed");
     test_assert(mpack_node_bool(mpack_node_map_cstr(root, "compact")) == true, "checking compact failed");
 
-    mpack_error_t error = mpack_file_tree_destroy(&tree);
+    mpack_error_t error = mpack_tree_destroy(&tree);
     test_assert(error == mpack_ok, "file tree failed with error %s", mpack_error_to_string(error));
 }
 

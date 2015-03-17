@@ -15,15 +15,15 @@ The MPack code is small enough to be embedded directly into your codebase. The e
 
 MPack is written in the portable intersection of C99 and C++. In other words, it's written in C99, but if you are stuck using a certain popular compiler from a certain unpopular vendor that refuses to support C99, you can compile it as C++ instead. (The headers should also be C89-clean, provided compatible definitions of `bool`, `inline`, `stdint.h` and friends are available, and `const` is defined away.)
 
-*NOTE: MPack is beta software under development. There are still some TODOs in the codebase, some security issues to fix, some MessagePack 1.0/1.1 compatibility and interoperability issues to sort out, some test suite portability issues to fix, and there is only around 45% unit test coverage. The API for initializing custom I/O readers and writers is likely to change as well.*
+*NOTE: MPack is beta software under development. There are still some TODOs in the codebase, some security issues to fix, some MessagePack 1.0/1.1 compatibility and interoperability issues to sort out, some test suite portability issues to fix, and there is only around 45% unit test coverage.
 
 ## The Node Reader API
 
 The Node API parses a chunk of MessagePack data into an immutable tree of dynamically-typed nodes. A series of helper functions can be used to extract data of specific types from each node.
 
-    // parse a data buffer into a node tree
+    // parse a file into a node tree
     mpack_tree_t tree;
-    mpack_tree_init(&tree, buffer, count);
+    mpack_tree_init_file(&tree, "homepage-example.mp");
     mpack_node_t* root = mpack_tree_root(&tree);
 
     // extract the example data on the msgpack homepage
@@ -36,7 +36,7 @@ The Node API parses a chunk of MessagePack data into an immutable tree of dynami
         return;
     }
 
-Note that no additional error handling is needed in the above code. If map keys are missing or if nodes are not in the expected types, special "nil" nodes and false/zero values are returned and the tree is placed in an error state. An error check is only needed before using the data. Alternatively, the tree can be configured to longjmp in such cases if a handler is set.
+Note that no additional error handling is needed in the above code. If the file is missing or corrupt, if map keys are missing or if nodes are not in the expected types, special "nil" nodes and false/zero values are returned and the tree is placed in an error state. An error check is only needed before using the data. Alternatively, the tree can be configured to longjmp in such cases if a handler is set.
 
 ## The Static Write API
 

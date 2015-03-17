@@ -174,10 +174,10 @@ static inline void mpack_writer_clearjmp(mpack_writer_t* writer) {
 mpack_error_t mpack_writer_destroy(mpack_writer_t* writer);
 
 /**
- * Sets the custom pointer to pass to the writer callbacks, such as fill
+ * Sets the custom pointer to pass to the writer callbacks, such as flush
  * or teardown.
  *
- * @param context User data to pass to the fill function.
+ * @param context User data to pass to the writer callbacks.
  */
 static inline void mpack_writer_set_context(mpack_writer_t* writer, void* context) {
     writer->context = context;
