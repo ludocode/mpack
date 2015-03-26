@@ -78,30 +78,30 @@ void test_tags() {
     // float comparisons
     test_assert(true == mpack_tag_equal(mpack_tag_float(0), mpack_tag_float(0)));
     test_assert(true == mpack_tag_equal(mpack_tag_float(1), mpack_tag_float(1)));
-    test_assert(true == mpack_tag_equal(mpack_tag_float(INFINITY), mpack_tag_float(INFINITY)));
-    test_assert(true == mpack_tag_equal(mpack_tag_float(-INFINITY), mpack_tag_float(-INFINITY)));
+    test_assert(true == mpack_tag_equal(mpack_tag_float(MPACK_INFINITY), mpack_tag_float(MPACK_INFINITY)));
+    test_assert(true == mpack_tag_equal(mpack_tag_float(-MPACK_INFINITY), mpack_tag_float(-MPACK_INFINITY)));
     test_assert(false == mpack_tag_equal(mpack_tag_float(0), mpack_tag_float(1)));
-    test_assert(false == mpack_tag_equal(mpack_tag_float(1), mpack_tag_float(INFINITY)));
-    test_assert(false == mpack_tag_equal(mpack_tag_float(INFINITY), mpack_tag_float(-INFINITY)));
+    test_assert(false == mpack_tag_equal(mpack_tag_float(1), mpack_tag_float(MPACK_INFINITY)));
+    test_assert(false == mpack_tag_equal(mpack_tag_float(MPACK_INFINITY), mpack_tag_float(-MPACK_INFINITY)));
     test_assert(false == mpack_tag_equal(mpack_tag_float(0), mpack_tag_float(NAN)));
-    test_assert(false == mpack_tag_equal(mpack_tag_float(INFINITY), mpack_tag_float(NAN)));
+    test_assert(false == mpack_tag_equal(mpack_tag_float(MPACK_INFINITY), mpack_tag_float(NAN)));
 
     // double comparisons
     test_assert(true == mpack_tag_equal(mpack_tag_double(0), mpack_tag_double(0)));
     test_assert(true == mpack_tag_equal(mpack_tag_double(1), mpack_tag_double(1)));
-    test_assert(true == mpack_tag_equal(mpack_tag_double(INFINITY), mpack_tag_double(INFINITY)));
-    test_assert(true == mpack_tag_equal(mpack_tag_double(-INFINITY), mpack_tag_double(-INFINITY)));
+    test_assert(true == mpack_tag_equal(mpack_tag_double(MPACK_INFINITY), mpack_tag_double(MPACK_INFINITY)));
+    test_assert(true == mpack_tag_equal(mpack_tag_double(-MPACK_INFINITY), mpack_tag_double(-MPACK_INFINITY)));
     test_assert(false == mpack_tag_equal(mpack_tag_double(0), mpack_tag_double(1)));
-    test_assert(false == mpack_tag_equal(mpack_tag_double(1), mpack_tag_double(INFINITY)));
-    test_assert(false == mpack_tag_equal(mpack_tag_double(INFINITY), mpack_tag_double(-INFINITY)));
+    test_assert(false == mpack_tag_equal(mpack_tag_double(1), mpack_tag_double(MPACK_INFINITY)));
+    test_assert(false == mpack_tag_equal(mpack_tag_double(MPACK_INFINITY), mpack_tag_double(-MPACK_INFINITY)));
     test_assert(false == mpack_tag_equal(mpack_tag_double(0), mpack_tag_double(NAN)));
-    test_assert(false == mpack_tag_equal(mpack_tag_double(INFINITY), mpack_tag_double(NAN)));
+    test_assert(false == mpack_tag_equal(mpack_tag_double(MPACK_INFINITY), mpack_tag_double(NAN)));
 
     // float/double comparisons
     test_assert(false == mpack_tag_equal(mpack_tag_double(0), mpack_tag_float(0)));
     test_assert(false == mpack_tag_equal(mpack_tag_double(1), mpack_tag_float(1)));
-    test_assert(false == mpack_tag_equal(mpack_tag_double(INFINITY), mpack_tag_float(INFINITY)));
-    test_assert(false == mpack_tag_equal(mpack_tag_double(-INFINITY), mpack_tag_float(-INFINITY)));
+    test_assert(false == mpack_tag_equal(mpack_tag_double(MPACK_INFINITY), mpack_tag_float(MPACK_INFINITY)));
+    test_assert(false == mpack_tag_equal(mpack_tag_double(-MPACK_INFINITY), mpack_tag_float(-MPACK_INFINITY)));
 
     // here we're comparing NaNs and we expect true. this is because we compare
     // floats bit-for-bit, not using operator==
