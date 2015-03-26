@@ -25,6 +25,10 @@
 #define _DEFAULT_SOURCE 1
 #define _BSD_SOURCE 1
 
+#ifdef WIN32
+#define _CRT_SECURE_NO_WARNINGS 1
+#endif
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
