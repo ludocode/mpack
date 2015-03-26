@@ -35,6 +35,10 @@
 #define isnanf _isnan
 #endif
 
+#if __APPLE__
+#define isnanf isnan
+#endif
+
 #include "mpack/mpack.h"
 
 #ifdef __cplusplus
