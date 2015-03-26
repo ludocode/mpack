@@ -413,7 +413,6 @@ static inline int8_t  mpack_read_native_i8  (mpack_reader_t* reader) {return (in
 static inline int16_t mpack_read_native_i16 (mpack_reader_t* reader) {return (int16_t)mpack_read_native_u16 (reader);}
 static inline int32_t mpack_read_native_i32 (mpack_reader_t* reader) {return (int32_t)mpack_read_native_u32 (reader);}
 static inline int64_t mpack_read_native_i64 (mpack_reader_t* reader) {return (int64_t)mpack_read_native_u64 (reader);}
-static inline bool    mpack_read_native_bool(mpack_reader_t* reader) {return (bool)   mpack_read_native_u8  (reader);}
 
 float mpack_read_native_float(mpack_reader_t* reader) {
     union {
