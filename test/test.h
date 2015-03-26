@@ -30,6 +30,11 @@
 #include <stdlib.h>
 #include <math.h>
 
+#if WIN32
+#include <float.h>
+#define isnanf _isnan
+#endif
+
 #include "mpack/mpack.h"
 
 #ifdef __cplusplus

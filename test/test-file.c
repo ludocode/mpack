@@ -1,7 +1,9 @@
 
 #include "test-file.h"
 
+#ifndef WIN32
 #include <unistd.h>
+#endif
 
 static const char* test_filename = "testfile.mp";
 

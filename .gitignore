@@ -1,8 +1,22 @@
+
+# build files
 *.o
 *.swp
 *.gcov
-.directory
 /.sconsign.dblite
+
+# folders
 /tags
 /build
 /docs
+
+# visual studio project
+*.suo
+*.opensdf
+*.sdf
+/projects/vs/Debug/
+/projects/vs/Release/
+
+# other junk
+.directory
+
