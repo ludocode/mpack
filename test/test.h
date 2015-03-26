@@ -35,6 +35,10 @@
 #define isnanf _isnan
 #endif
 
+#if __APPLE__
+#define isnanf isnan
+#endif
+
 #ifdef __cplusplus
 #include <limits>
 #define MPACK_INFINITY std::numeric_limits<float>::infinity()
