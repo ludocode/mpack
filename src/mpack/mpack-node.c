@@ -19,8 +19,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#define MPACK_INTERNAL 1
+
 #include "mpack-node.h"
-#include "mpack-internal.h"
 
 #if MPACK_NODE
 

@@ -28,6 +28,10 @@
 #ifndef MPACK_COMMON_H
 #define MPACK_COMMON_H 1
 
+#if MPACK_INTERNAL
+#include "mpack-internal.h"
+#endif
+
 #include "mpack-platform.h"
 
 #ifndef MPACK_STACK_SIZE

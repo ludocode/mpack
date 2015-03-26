@@ -19,7 +19,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "mpack-common.h"
+#define MPACK_INTERNAL 1
+
+#include "mpack-platform.h"
 
 #if MPACK_DEBUG && MPACK_STDIO
 #include <stdarg.h>
