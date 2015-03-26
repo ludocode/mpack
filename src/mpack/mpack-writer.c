@@ -305,7 +305,6 @@ static inline void mpack_write_native_i8  (mpack_writer_t* writer,  int8_t  val)
 static inline void mpack_write_native_i16 (mpack_writer_t* writer,  int16_t val) {mpack_write_native_u16 (writer, (uint16_t)val);}
 static inline void mpack_write_native_i32 (mpack_writer_t* writer,  int32_t val) {mpack_write_native_u32 (writer, (uint32_t)val);}
 static inline void mpack_write_native_i64 (mpack_writer_t* writer,  int64_t val) {mpack_write_native_u64 (writer, (uint64_t)val);}
-static inline void mpack_write_native_bool(mpack_writer_t* writer,  bool    val) {mpack_write_native_u8  (writer, (uint8_t )val);}
 
 
 static void mpack_write_native_float(mpack_writer_t* writer, float value) {
