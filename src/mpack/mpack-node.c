@@ -189,14 +189,17 @@ static bool mpack_file_tree_read(mpack_tree_t* tree, mpack_file_tree_t* file_tre
     int size = ftell(file);
     fseek(file, 0, SEEK_SET);
     if (size == -1) {
+        fclose(file);
         mpack_tree_init_error(tree, mpack_error_io);
         return false;
     }
     if (size == 0) {
+        fclose(file);
         mpack_tree_init_error(tree, mpack_error_invalid);
         return false;
     }
     if (max_size != 0 && size > max_size) {
+        fclose(file);
         mpack_tree_init_error(tree, mpack_error_too_big);
         return false;
     }
@@ -204,6 +207,7 @@ static bool mpack_file_tree_read(mpack_tree_t* tree, mpack_file_tree_t* file_tre
     // allocate data
     file_tree->data = (char*)MPACK_MALLOC(size);
     if (file_tree->data == NULL) {
+        fclose(file);
         mpack_tree_init_error(tree, mpack_error_memory);
         return false;
     }
@@ -213,6 +217,7 @@ static bool mpack_file_tree_read(mpack_tree_t* tree, mpack_file_tree_t* file_tre
     while (total < size) {
         int read = fread(file_tree->data + total, 1, size - total, file);
         if (read <= 0) {
+            fclose(file);
             mpack_tree_init_error(tree, mpack_error_io);
             MPACK_FREE(file_tree->data);
             return false;
@@ -220,6 +225,7 @@ static bool mpack_file_tree_read(mpack_tree_t* tree, mpack_file_tree_t* file_tre
         total += read;
     }
 
+    fclose(file);
     file_tree->size = (size_t)size;
     return true;
 }
