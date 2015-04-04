@@ -9,5 +9,5 @@ prog = env.Program("mpack-test", srcs,
 
 env.Default(env.AlwaysBuild(env.Alias("test",
     [prog],
-    "valgrind --leak-check=full " + Dir('.').path + "/mpack-test")))
+    "valgrind --leak-check=full --errors-for-leak-kinds=all --show-leak-kinds=all --error-exitcode=1 " + Dir('.').path + "/mpack-test")))
 
