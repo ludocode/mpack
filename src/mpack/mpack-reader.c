@@ -242,8 +242,10 @@ static inline size_t mpack_fill(mpack_reader_t* reader, char* p, size_t count) {
 // Reads count bytes into p. Used when there are not enough bytes
 // left in the buffer to satisfy a read.
 static void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count) {
-    if (reader->error != mpack_ok)
+    if (reader->error != mpack_ok) {
+        memset(p, 0, count);
         return;
+    }
 
     mpack_log("big read for %i bytes into %p, %i left in buffer, buffer size %i\n",
             (int)count, p, (int)reader->left, (int)reader->size);
@@ -254,6 +256,7 @@ static void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count)
                 "left in buffer. call mpack_read_native() instead",
                 (int)count, (int)reader->left);
         mpack_reader_flag_error(reader, mpack_error_bug);
+        memset(p, 0, count);
         return;
     }
 
@@ -264,6 +267,7 @@ static void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count)
         // been truncated to zero. for this reason we return the same
         // error as if the data was truncated.
         mpack_reader_flag_error(reader, mpack_error_io);
+        memset(p, 0, count);
         return;
     }
 
@@ -283,6 +287,7 @@ static void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count)
         mpack_log("reading %i bytes in middle\n", (int)middle);
         if (mpack_fill(reader, p, middle) < middle) {
             mpack_reader_flag_error(reader, mpack_error_io);
+            memset(p, 0, count);
             return;
         }
         count -= middle;
@@ -297,6 +302,7 @@ static void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count)
     mpack_log("filled %i bytes into buffer\n", (int)reader->left);
     if (reader->left < count) {
         mpack_reader_flag_error(reader, mpack_error_io);
+        memset(p, 0, count);
         return;
     }
 
