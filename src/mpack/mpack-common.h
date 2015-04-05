@@ -119,9 +119,14 @@ typedef struct mpack_tag_t {
         int64_t  i; /**< The value if the type is signed int. */
 
         /**
-         * The value if the type is unsigned int; the element count if
-         * the type is array; the number of key/value pairs if the type
-         * is map; or the number of bytes if the type is str, bin or ext.
+         * The element count if the type is an array, or the number of
+         * key/value pairs if the type is map.
+         */
+        uint32_t c;
+
+        /**
+         * The value if the type is unsigned int, or the number
+         * of bytes if the type is str, bin or ext.
          */
         uint64_t u;
     } v;

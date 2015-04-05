@@ -368,19 +368,19 @@ void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t value) {
             break;
 
         case mpack_type_array:
-            if (value.v.u > UINT32_MAX) {
-                mpack_assert(0, "array has too many elements for a 32-bit int: %"PRIu64, value.v.u);
+            if (value.v.c > UINT32_MAX) {
+                mpack_assert(0, "array has too many elements for a 32-bit int: %"PRIu64, value.v.c);
                 mpack_writer_flag_error(writer, mpack_error_bug);
             }
-            mpack_start_array(writer, (uint32_t)value.v.u);
+            mpack_start_array(writer, (uint32_t)value.v.c);
             break;
 
         case mpack_type_map:
-            if (value.v.u > UINT32_MAX) {
-                mpack_assert(0, "map has too many elements for a 32-bit int: %"PRIu64, value.v.u);
+            if (value.v.c > UINT32_MAX) {
+                mpack_assert(0, "map has too many elements for a 32-bit int: %"PRIu64, value.v.c);
                 mpack_writer_flag_error(writer, mpack_error_bug);
             }
-            mpack_start_map(writer, (uint32_t)value.v.u);
+            mpack_start_map(writer, (uint32_t)value.v.c);
             break;
 
         default:

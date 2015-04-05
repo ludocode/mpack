@@ -105,12 +105,16 @@ int mpack_tag_cmp(mpack_tag_t left, mpack_tag_t right) {
 
         case mpack_type_str:
         case mpack_type_bin:
-        case mpack_type_array:
-        case mpack_type_map:
         case mpack_type_uint:
             if (left.v.u == right.v.u)
                 return 0;
             return (left.v.u < right.v.u) ? -1 : 1;
+
+        case mpack_type_array:
+        case mpack_type_map:
+            if (left.v.c == right.v.c)
+                return 0;
+            return (left.v.c < right.v.c) ? -1 : 1;
 
         case mpack_type_ext:
             if (left.exttype == right.exttype) {

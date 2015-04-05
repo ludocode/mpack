@@ -470,15 +470,15 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
         // fixmap
         case 0x8:
             var.type = mpack_type_map;
-            var.v.u = type & ~0xf0;
-            mpack_reader_add_track(reader, mpack_type_map, var.v.u);
+            var.v.c = type & ~0xf0;
+            mpack_reader_add_track(reader, mpack_type_map, var.v.c);
             return var;
 
         // fixarray
         case 0x9:
             var.type = mpack_type_array;
-            var.v.u = type & ~0xf0;
-            mpack_reader_add_track(reader, mpack_type_array, var.v.u);
+            var.v.c = type & ~0xf0;
+            mpack_reader_add_track(reader, mpack_type_array, var.v.c);
             return var;
 
         // fixstr
@@ -677,29 +677,29 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
         // array16
         case 0xdc:
             var.type = mpack_type_array;
-            var.v.u = mpack_read_native_u16(reader);
-            mpack_reader_add_track(reader, mpack_type_array, var.v.u);
+            var.v.c = mpack_read_native_u16(reader);
+            mpack_reader_add_track(reader, mpack_type_array, var.v.c);
             return var;
 
         // array32
         case 0xdd:
             var.type = mpack_type_array;
-            var.v.u = mpack_read_native_u32(reader);
-            mpack_reader_add_track(reader, mpack_type_array, var.v.u);
+            var.v.c = mpack_read_native_u32(reader);
+            mpack_reader_add_track(reader, mpack_type_array, var.v.c);
             return var;
 
         // map16
         case 0xde:
             var.type = mpack_type_map;
-            var.v.u = mpack_read_native_u16(reader);
-            mpack_reader_add_track(reader, mpack_type_map, var.v.u);
+            var.v.c = mpack_read_native_u16(reader);
+            mpack_reader_add_track(reader, mpack_type_map, var.v.c);
             return var;
 
         // map32
         case 0xdf:
             var.type = mpack_type_map;
-            var.v.u = mpack_read_native_u32(reader);
-            mpack_reader_add_track(reader, mpack_type_map, var.v.u);
+            var.v.c = mpack_read_native_u32(reader);
+            mpack_reader_add_track(reader, mpack_type_map, var.v.c);
             return var;
 
         // reserved (only 0xc1 should be left)
@@ -730,7 +730,7 @@ void mpack_discard(mpack_reader_t* reader) {
             mpack_done_ext(reader);
             break;
         case mpack_type_array: {
-            for (; var.v.u > 0; --var.v.u) {
+            for (; var.v.c > 0; --var.v.c) {
                 mpack_discard(reader);
                 if (mpack_reader_error(reader))
                     break;
@@ -738,7 +738,7 @@ void mpack_discard(mpack_reader_t* reader) {
             break;
         }
         case mpack_type_map: {
-            for (; var.v.u > 0; --var.v.u) {
+            for (; var.v.c > 0; --var.v.c) {
                 mpack_discard(reader);
                 mpack_discard(reader);
                 if (mpack_reader_error(reader))
@@ -833,11 +833,11 @@ static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
 
         case mpack_type_array:
             printf("[\n");
-            for (size_t i = 0; i < val.v.u; ++i) {
+            for (size_t i = 0; i < val.v.c; ++i) {
                 for (size_t j = 0; j < depth + 1; ++j)
                     printf("    ");
                 mpack_debug_print_element(reader, depth + 1);
-                if (i != val.v.u - 1)
+                if (i != val.v.c - 1)
                     putchar(',');
                 putchar('\n');
             }
@@ -849,13 +849,13 @@ static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
 
         case mpack_type_map:
             printf("{\n");
-            for (size_t i = 0; i < val.v.u; ++i) {
+            for (size_t i = 0; i < val.v.c; ++i) {
                 for (size_t j = 0; j < depth + 1; ++j)
                     printf("    ");
                 mpack_debug_print_element(reader, depth + 1);
                 printf(": ");
                 mpack_debug_print_element(reader, depth + 1);
-                if (i != val.v.u - 1)
+                if (i != val.v.c - 1)
                     putchar(',');
                 putchar('\n');
             }
