@@ -84,7 +84,11 @@ While the space inefficiencies of JSON can be partially mitigated through minifi
 
 ## Running the Unit Tests
 
-The MPack build process does not build MPack into a library; it is used to build and run the unit tests. You do not need to build MPack or the unit testing suite to use MPack. The test suite currently only supports Linux.
+The MPack build process does not build MPack into a library; it is used to build and run the unit tests. You do not need to build MPack or the unit testing suite to use MPack.
 
-The test suite uses SCons and requires Valgrind, and can be run in the repository or in the amalgamation package. SCons will build and run the library and unit testing suite in both debug and release for both 32-bit and 64-bit architectures (if available), so it will take a minute or two to build and run. If you are on 64-bit, you will also need support for running 32-bit binaries with 64-bit Valgrind (`libc6-dbg:i386` on Ubuntu or `valgrind-multilib` on Arch.) Just run `scons` to build and run all tests.
+On Linux, the test suite uses SCons and requires Valgrind, and can be run in the repository or in the amalgamation package. SCons will build and run the library and unit testing suite in both debug and release for both 32-bit and 64-bit architectures (if available), so it will take a minute or two to build and run.
+
+If you are on 64-bit, you will also need support for cross-compiling to 32-bit, and running 32-bit binaries with 64-bit Valgrind. On Ubuntu, you'll need `libc6-dbg:i386`. On Arch you'll need `gcc-multilib` or `lib32-clang`, and `valgrind-multilib`. Just run `scons` to build and run all tests.
+
+On Windows, there is a Visual Studio solution for building and running the test suite.
 

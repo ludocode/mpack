@@ -1,11 +1,13 @@
-import platform
+import platform, os
 
 env = Environment()
+if os.environ.has_key('CC'):
+    env['CC'] = os.environ['CC']
+
 env.Append(CPPFLAGS = [
     "-Wall", "-Wextra", "-Werror",
     "-Isrc", "-Itest",
     "-g",
-    "-fprofile-arcs", "-ftest-coverage"
     ])
 env.Append(LINKFLAGS = [
     "-g",
