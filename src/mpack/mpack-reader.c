@@ -458,7 +458,7 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
         case 0x0: case 0x1: case 0x2: case 0x3:
         case 0x4: case 0x5: case 0x6: case 0x7:
             var.type = mpack_type_uint;
-            var.v.i = type;
+            var.v.u = type;
             return var;
 
         // negative fixnum
