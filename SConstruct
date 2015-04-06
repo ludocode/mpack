@@ -14,7 +14,7 @@ env.Append(LINKFLAGS = [
     "-fprofile-arcs", "-ftest-coverage"
     ])
 
-debugflags = ["-DMPACK_DEBUG=1", "-DMPACK_TRACKING=1", "-O0"]
+debugflags = ["-DDEBUG", "-O0"]
 releaseflags = ["-Os"]
 cflags = ["-std=c99", "-Wc++-compat"]
 cxxflags = ["-xc++", "-std=c++98"]
