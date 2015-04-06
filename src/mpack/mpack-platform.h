@@ -30,6 +30,10 @@
 #ifndef MPACK_PLATFORM_H
 #define MPACK_PLATFORM_H 1
 
+#if defined(WIN32) && MPACK_INTERNAL
+#define _CRT_SECURE_NO_WARNINGS 1
+#endif
+
 #include "mpack-config.h"
 
 #ifndef __STDC_LIMIT_MACROS

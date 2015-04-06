@@ -27,11 +27,9 @@
 #ifndef MPACK_INTERNAL_H
 #define MPACK_INTERNAL_H 1
 
-#ifdef WIN32
-#define _CRT_SECURE_NO_WARNINGS 1
-#endif
-
 #include "mpack-platform.h"
+
+#if MPACK_INTERNAL
 
 #ifdef __cplusplus
 extern "C" {
@@ -89,4 +87,5 @@ uint32_t mpack_utf8_decode(uint32_t* state, uint32_t* codep, uint32_t byte) {
 
 #endif
 
+#endif
 
