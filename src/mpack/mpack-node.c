@@ -175,7 +175,7 @@ static void mpack_file_tree_teardown(void* context) {
     MPACK_FREE(file_tree);
 }
 
-static bool mpack_file_tree_read(mpack_tree_t* tree, mpack_file_tree_t* file_tree, const char* filename, int max_size) {
+static bool mpack_file_tree_read(mpack_tree_t* tree, mpack_file_tree_t* file_tree, const char* filename, size_t max_size) {
 
     // open the file
     FILE* file = fopen(filename, "rb");
@@ -186,9 +186,9 @@ static bool mpack_file_tree_read(mpack_tree_t* tree, mpack_file_tree_t* file_tre
 
     // get the file size
     fseek(file, 0, SEEK_END);
-    int size = ftell(file);
+    long size = ftell(file);
     fseek(file, 0, SEEK_SET);
-    if (size == -1) {
+    if (size < 0) {
         fclose(file);
         mpack_tree_init_error(tree, mpack_error_io);
         return false;
@@ -198,7 +198,10 @@ static bool mpack_file_tree_read(mpack_tree_t* tree, mpack_file_tree_t* file_tre
         mpack_tree_init_error(tree, mpack_error_invalid);
         return false;
     }
-    if (max_size != 0 && size > max_size) {
+
+    // make sure the size is less than max_size
+    // (this mess exists to safely convert between long and size_t regardless of their widths)
+    if (max_size != 0 && (((uint64_t)LONG_MAX > (uint64_t)SIZE_MAX && size > (long)SIZE_MAX) || (size_t)size > max_size)) {
         fclose(file);
         mpack_tree_init_error(tree, mpack_error_too_big);
         return false;
@@ -213,9 +216,9 @@ static bool mpack_file_tree_read(mpack_tree_t* tree, mpack_file_tree_t* file_tre
     }
 
     // read the file
-    int total = 0;
+    long total = 0;
     while (total < size) {
-        int read = fread(file_tree->data + total, 1, size - total, file);
+        size_t read = fread(file_tree->data + total, 1, (size_t)(size - total), file);
         if (read <= 0) {
             fclose(file);
             mpack_tree_init_error(tree, mpack_error_io);
@@ -232,9 +235,9 @@ static bool mpack_file_tree_read(mpack_tree_t* tree, mpack_file_tree_t* file_tre
 
 void mpack_tree_init_file(mpack_tree_t* tree, const char* filename, size_t max_size) {
 
-    // max_size is converted to int because the C STDIO family of file functions use int (e.g. ftell)
-    if (max_size > INT_MAX) {
-        mpack_assert(0, "max_size of %"PRIu64" is invalid, maximum is MAX_INT", (uint64_t)max_size);
+    // the C STDIO family of file functions use long (e.g. ftell)
+    if (max_size > LONG_MAX) {
+        mpack_assert(0, "max_size of %"PRIu64" is invalid, maximum is LONG_MAX", (uint64_t)max_size);
         mpack_tree_init_error(tree, mpack_error_bug);
         return;
     }
@@ -247,7 +250,7 @@ void mpack_tree_init_file(mpack_tree_t* tree, const char* filename, size_t max_s
     }
 
     // read all data
-    if (!mpack_file_tree_read(tree, file_tree, filename, (int)max_size)) {
+    if (!mpack_file_tree_read(tree, file_tree, filename, max_size)) {
         MPACK_FREE(file_tree);
         return;
     }
