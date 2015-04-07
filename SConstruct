@@ -14,6 +14,9 @@ env.Append(LINKFLAGS = [
     "-fprofile-arcs", "-ftest-coverage"
     ])
 
+if ARGUMENTS.get('dev'):
+    env.Append(CPPFLAGS = ["-DMPACK_DEV=1"])
+
 debugflags = ["-DDEBUG", "-O0"]
 releaseflags = ["-Os"]
 cflags = ["-std=c99", "-Wc++-compat"]
