@@ -19,11 +19,6 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-/*
- * mpack-internal.h is included only by the MPack source files. It is not
- * exposed by mpack.h.
- */
-
 #ifndef MPACK_INTERNAL_H
 #define MPACK_INTERNAL_H 1
 
