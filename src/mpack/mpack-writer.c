@@ -359,29 +359,12 @@ void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t value) {
         case mpack_type_int:    mpack_write_int   (writer, value.v.i); break;
         case mpack_type_uint:   mpack_write_uint  (writer, value.v.u); break;
 
-        case mpack_type_str:
-            if (value.v.u > UINT32_MAX) {
-                mpack_assert(0, "str has too many bytes for a 32-bit uint: %"PRIu64, value.v.u);
-                mpack_writer_flag_error(writer, mpack_error_bug);
-            }
-            mpack_start_str(writer, (uint32_t)value.v.u);
-            break;
+        case mpack_type_str: mpack_start_str(writer, value.v.u); break;
+        case mpack_type_bin: mpack_start_bin(writer, value.v.u); break;
+        case mpack_type_ext: mpack_start_ext(writer, value.exttype, value.v.u); break;
 
-        case mpack_type_array:
-            if (value.v.n > UINT32_MAX) {
-                mpack_assert(0, "array has too many elements for a 32-bit int: %"PRIu64, value.v.n);
-                mpack_writer_flag_error(writer, mpack_error_bug);
-            }
-            mpack_start_array(writer, (uint32_t)value.v.n);
-            break;
-
-        case mpack_type_map:
-            if (value.v.n > UINT32_MAX) {
-                mpack_assert(0, "map has too many elements for a 32-bit int: %"PRIu64, value.v.n);
-                mpack_writer_flag_error(writer, mpack_error_bug);
-            }
-            mpack_start_map(writer, (uint32_t)value.v.n);
-            break;
+        case mpack_type_array: mpack_start_array(writer, value.v.n); break;
+        case mpack_type_map:   mpack_start_map(writer, value.v.n);   break;
 
         default:
             mpack_assert(0, "unrecognized type %i", (int)value.type);
