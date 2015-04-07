@@ -188,7 +188,7 @@ static void test_write_buffer_values(mpack_writer_t* writer) {
     test_write_noerror(writer, mpack_write_u64(writer, UINT64_C(13592337739653081091)));
 }
 
-size_t test_buffer_fill(void* context, char* buffer, size_t count) {
+static size_t test_buffer_fill(void* context, char* buffer, size_t count) {
     size_t* pos = (size_t*)context;
     size_t remaining = sizeof(test_buffer) - 1;
     if (remaining - *pos < count)
@@ -221,7 +221,7 @@ static void test_read_buffer(void) {
 
 // this test function doesn't bounds check its output; we just use a large
 // enough output buffer for test purposes.
-bool test_buffer_flush(void* context, const char* buffer, size_t count) {
+static bool test_buffer_flush(void* context, const char* buffer, size_t count) {
     char** pos = (char**)context;
     memcpy(*pos, buffer, count);
     *pos += count;

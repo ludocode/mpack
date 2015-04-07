@@ -28,7 +28,7 @@
 extern "C" {
 #endif
 
-void test_tags();
+void test_tags(void);
 
 #ifdef __cplusplus
 }

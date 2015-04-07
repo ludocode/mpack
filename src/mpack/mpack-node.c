@@ -283,7 +283,7 @@ void mpack_node_flag_error(mpack_node_t* node, mpack_error_t error) {
 }
 
 #if MPACK_DEBUG && MPACK_STDIO && MPACK_SETJMP
-void mpack_node_print_element(mpack_node_t* node, size_t depth) {
+static void mpack_node_print_element(mpack_node_t* node, size_t depth) {
     mpack_tag_t val = node->tag;
     switch (val.type) {
 

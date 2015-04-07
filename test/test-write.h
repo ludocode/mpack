@@ -66,7 +66,7 @@ extern "C" {
     test_destroy_match(expect); \
 } while (0)
 
-void test_writes();
+void test_writes(void);
 
 #ifdef __cplusplus
 }
