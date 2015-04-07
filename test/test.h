@@ -43,6 +43,10 @@
 #define isnanf isnan
 #endif
 
+#if WIN32
+#define unlink _unlink
+#endif
+
 #ifdef __cplusplus
 #include <limits>
 #define MPACK_INFINITY std::numeric_limits<float>::infinity()

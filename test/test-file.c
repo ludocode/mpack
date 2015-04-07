@@ -75,6 +75,6 @@ void test_file(void) {
     test_file_check();
     test_file_read();
     test_file_node();
-    unlink(test_filename);
+    test_assert(unlink(test_filename) == 0, "failed to delete %s", test_filename);
 }
 
