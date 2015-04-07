@@ -709,7 +709,7 @@ void mpack_write_cstr(mpack_writer_t* writer, const char* str) {
     size_t len = strlen(str);
     if (len > UINT32_MAX)
         mpack_writer_flag_error(writer, mpack_error_invalid);
-    mpack_write_str(writer, str, len);
+    mpack_write_str(writer, str, (uint32_t)len);
 }
 
 #endif
