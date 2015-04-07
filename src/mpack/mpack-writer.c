@@ -353,15 +353,16 @@ void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t value) {
     switch (value.type) {
 
         case mpack_type_nil:    mpack_write_nil   (writer);          break;
+
         case mpack_type_bool:   mpack_write_bool  (writer, value.v.b); break;
         case mpack_type_float:  mpack_write_float (writer, value.v.f); break;
         case mpack_type_double: mpack_write_double(writer, value.v.d); break;
         case mpack_type_int:    mpack_write_int   (writer, value.v.i); break;
         case mpack_type_uint:   mpack_write_uint  (writer, value.v.u); break;
 
-        case mpack_type_str: mpack_start_str(writer, value.v.u); break;
-        case mpack_type_bin: mpack_start_bin(writer, value.v.u); break;
-        case mpack_type_ext: mpack_start_ext(writer, value.exttype, value.v.u); break;
+        case mpack_type_str: mpack_start_str(writer, value.v.l); break;
+        case mpack_type_bin: mpack_start_bin(writer, value.v.l); break;
+        case mpack_type_ext: mpack_start_ext(writer, value.exttype, value.v.l); break;
 
         case mpack_type_array: mpack_start_array(writer, value.v.n); break;
         case mpack_type_map:   mpack_start_map(writer, value.v.n);   break;

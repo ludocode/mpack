@@ -128,7 +128,7 @@ static void mpack_tree_read_node(mpack_tree_t* tree, mpack_node_t* node, mpack_r
 
     } else if (type == mpack_type_str || type == mpack_type_bin || type == mpack_type_ext) {
         node->data.bytes = reader->buffer + reader->pos;
-        mpack_skip_bytes(reader, node->tag.v.u);
+        mpack_skip_bytes(reader, node->tag.v.l);
 
         if (type == mpack_type_str)
             mpack_done_str(reader);
@@ -309,18 +309,18 @@ void mpack_node_print_element(mpack_node_t* node, size_t depth) {
             break;
 
         case mpack_type_bin:
-            printf("<binary data>");
+            printf("<binary data of length %u>", val.v.l);
             break;
 
         case mpack_type_ext:
-            printf("<ext data of type %i>", val.exttype);
+            printf("<ext data of type %i and length %u>", val.exttype, val.v.l);
             break;
 
         case mpack_type_str:
             {
                 putchar('"');
                 const char* data = mpack_node_data(node);
-                for (size_t i = 0; i < val.v.u; ++i) {
+                for (size_t i = 0; i < val.v.l; ++i) {
                     char c = data[i];
                     switch (c) {
                         case '\n': printf("\\n"); break;
@@ -616,7 +616,7 @@ size_t mpack_node_data_len(mpack_node_t* node) {
 
     mpack_type_t type = node->tag.type;
     if (type == mpack_type_str || type == mpack_type_bin || type == mpack_type_ext)
-        return (size_t)node->tag.v.u;
+        return (size_t)node->tag.v.l;
 
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
@@ -627,7 +627,7 @@ size_t mpack_node_strlen(mpack_node_t* node) {
         return 0;
 
     if (node->tag.type == mpack_type_str)
-        return (size_t)node->tag.v.u;
+        return (size_t)node->tag.v.l;
 
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
@@ -655,13 +655,13 @@ size_t mpack_node_copy_data(mpack_node_t* node, char* buffer, size_t size) {
         return 0;
     }
 
-    if (node->tag.v.u > size) {
+    if (node->tag.v.l > size) {
         mpack_node_flag_error(node, mpack_error_too_big);
         return 0;
     }
 
-    memcpy(buffer, node->data.bytes, node->tag.v.u);
-    return (size_t)node->tag.v.u;
+    memcpy(buffer, node->data.bytes, node->tag.v.l);
+    return (size_t)node->tag.v.l;
 }
 
 void mpack_node_copy_cstr(mpack_node_t* node, char* buffer, size_t size) {
@@ -681,14 +681,14 @@ void mpack_node_copy_cstr(mpack_node_t* node, char* buffer, size_t size) {
         return;
     }
 
-    if (node->tag.v.u > size - 1) {
+    if (node->tag.v.l > size - 1) {
         buffer[0] = '\0';
         mpack_node_flag_error(node, mpack_error_too_big);
         return;
     }
 
-    memcpy(buffer, node->data.bytes, node->tag.v.u);
-    buffer[node->tag.v.u] = '\0';
+    memcpy(buffer, node->data.bytes, node->tag.v.l);
+    buffer[node->tag.v.l] = '\0';
 }
 
 char* mpack_node_data_alloc(mpack_node_t* node, size_t maxlen) {
@@ -702,18 +702,18 @@ char* mpack_node_data_alloc(mpack_node_t* node, size_t maxlen) {
         return NULL;
     }
 
-    if (node->tag.v.u > maxlen) {
+    if (node->tag.v.l > maxlen) {
         mpack_node_flag_error(node, mpack_error_too_big);
         return NULL;
     }
 
-    char* ret = (char*) MPACK_MALLOC((size_t)node->tag.v.u);
+    char* ret = (char*) MPACK_MALLOC((size_t)node->tag.v.l);
     if (ret == NULL) {
         mpack_node_flag_error(node, mpack_error_memory);
         return NULL;
     }
 
-    memcpy(ret, node->data.bytes, node->tag.v.u);
+    memcpy(ret, node->data.bytes, node->tag.v.l);
     return ret;
 }
 
@@ -733,19 +733,19 @@ char* mpack_node_cstr_alloc(mpack_node_t* node, size_t maxlen) {
         return NULL;
     }
 
-    if (node->tag.v.u > maxlen - 1) {
+    if (node->tag.v.l > maxlen - 1) {
         mpack_node_flag_error(node, mpack_error_too_big);
         return NULL;
     }
 
-    char* ret = (char*) MPACK_MALLOC((size_t)(node->tag.v.u + 1));
+    char* ret = (char*) MPACK_MALLOC((size_t)(node->tag.v.l + 1));
     if (ret == NULL) {
         mpack_node_flag_error(node, mpack_error_memory);
         return NULL;
     }
 
-    memcpy(ret, node->data.bytes, node->tag.v.u);
-    ret[node->tag.v.u] = '\0';
+    memcpy(ret, node->data.bytes, node->tag.v.l);
+    ret[node->tag.v.l] = '\0';
     return ret;
 }
 
@@ -879,7 +879,7 @@ mpack_node_t* mpack_node_map_str(mpack_node_t* node, const char* str, size_t len
         mpack_node_t* key = &node->data.children[i * 2];
         mpack_node_t* value = &node->data.children[i * 2 + 1];
 
-        if (key->tag.type == mpack_type_str && key->tag.v.u == length && memcmp(str, key->data.bytes, length) == 0)
+        if (key->tag.type == mpack_type_str && key->tag.v.l == length && memcmp(str, key->data.bytes, length) == 0)
             return value;
     }
 
@@ -902,7 +902,7 @@ bool mpack_node_map_contains_str(mpack_node_t* node, const char* str, size_t len
 
     for (size_t i = 0; i < node->tag.v.n; ++i) {
         mpack_node_t* key = &node->data.children[i * 2];
-        if (key->tag.type == mpack_type_str && key->tag.v.u == length && memcmp(str, key->data.bytes, length) == 0)
+        if (key->tag.type == mpack_type_str && key->tag.v.l == length && memcmp(str, key->data.bytes, length) == 0)
             return true;
     }
 

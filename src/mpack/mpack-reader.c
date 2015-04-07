@@ -484,8 +484,8 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
         // fixstr
         case 0xa: case 0xb:
             var.type = mpack_type_str;
-            var.v.u = type & ~0xe0;
-            mpack_reader_add_track(reader, mpack_type_str, var.v.u);
+            var.v.l = type & ~0xe0;
+            mpack_reader_add_track(reader, mpack_type_str, var.v.l);
             return var;
 
         // not an infix type
@@ -511,46 +511,46 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
         // bin8
         case 0xc4:
             var.type = mpack_type_bin;
-            var.v.u = mpack_read_native_u8(reader);
-            mpack_reader_add_track(reader, mpack_type_bin, var.v.u);
+            var.v.l = mpack_read_native_u8(reader);
+            mpack_reader_add_track(reader, mpack_type_bin, var.v.l);
             return var;
 
         // bin16
         case 0xc5:
             var.type = mpack_type_bin;
-            var.v.u = mpack_read_native_u16(reader);
-            mpack_reader_add_track(reader, mpack_type_bin, var.v.u);
+            var.v.l = mpack_read_native_u16(reader);
+            mpack_reader_add_track(reader, mpack_type_bin, var.v.l);
             return var;
 
         // bin32
         case 0xc6:
             var.type = mpack_type_bin;
-            var.v.u = mpack_read_native_u32(reader);
-            mpack_reader_add_track(reader, mpack_type_bin, var.v.u);
+            var.v.l = mpack_read_native_u32(reader);
+            mpack_reader_add_track(reader, mpack_type_bin, var.v.l);
             return var;
 
         // ext8
         case 0xc7:
             var.type = mpack_type_ext;
-            var.v.u = mpack_read_native_u8(reader);
+            var.v.l = mpack_read_native_u8(reader);
             var.exttype = mpack_read_native_i8(reader);
-            mpack_reader_add_track(reader, mpack_type_ext, var.v.u);
+            mpack_reader_add_track(reader, mpack_type_ext, var.v.l);
             return var;
 
         // ext16
         case 0xc8:
             var.type = mpack_type_ext;
-            var.v.u = mpack_read_native_u16(reader);
+            var.v.l = mpack_read_native_u16(reader);
             var.exttype = mpack_read_native_i8(reader);
-            mpack_reader_add_track(reader, mpack_type_ext, var.v.u);
+            mpack_reader_add_track(reader, mpack_type_ext, var.v.l);
             return var;
 
         // ext32
         case 0xc9:
             var.type = mpack_type_ext;
-            var.v.u = mpack_read_native_u32(reader);
+            var.v.l = mpack_read_native_u32(reader);
             var.exttype = mpack_read_native_i8(reader);
-            mpack_reader_add_track(reader, mpack_type_ext, var.v.u);
+            mpack_reader_add_track(reader, mpack_type_ext, var.v.l);
             return var;
 
         // float
@@ -616,62 +616,62 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
         // fixext1
         case 0xd4:
             var.type = mpack_type_ext;
-            var.v.u = 1;
+            var.v.l = 1;
             var.exttype = mpack_read_native_i8(reader);
-            mpack_reader_add_track(reader, mpack_type_ext, var.v.u);
+            mpack_reader_add_track(reader, mpack_type_ext, var.v.l);
             return var;
 
         // fixext2
         case 0xd5:
             var.type = mpack_type_ext;
-            var.v.u = 2;
+            var.v.l = 2;
             var.exttype = mpack_read_native_i8(reader);
-            mpack_reader_add_track(reader, mpack_type_ext, var.v.u);
+            mpack_reader_add_track(reader, mpack_type_ext, var.v.l);
             return var;
 
         // fixext4
         case 0xd6:
             var.type = mpack_type_ext;
-            var.v.u = 4;
+            var.v.l = 4;
             var.exttype = mpack_read_native_i8(reader);
-            mpack_reader_add_track(reader, mpack_type_ext, var.v.u);
+            mpack_reader_add_track(reader, mpack_type_ext, var.v.l);
             return var;
 
         // fixext8
         case 0xd7:
             var.type = mpack_type_ext;
-            var.v.u = 8;
+            var.v.l = 8;
             var.exttype = mpack_read_native_i8(reader);
-            mpack_reader_add_track(reader, mpack_type_ext, var.v.u);
+            mpack_reader_add_track(reader, mpack_type_ext, var.v.l);
             return var;
 
         // fixext16
         case 0xd8:
             var.type = mpack_type_ext;
-            var.v.u = 16;
+            var.v.l = 16;
             var.exttype = mpack_read_native_i8(reader);
-            mpack_reader_add_track(reader, mpack_type_ext, var.v.u);
+            mpack_reader_add_track(reader, mpack_type_ext, var.v.l);
             return var;
 
         // str8
         case 0xd9:
             var.type = mpack_type_str;
-            var.v.u = mpack_read_native_u8(reader);
-            mpack_reader_add_track(reader, mpack_type_str, var.v.u);
+            var.v.l = mpack_read_native_u8(reader);
+            mpack_reader_add_track(reader, mpack_type_str, var.v.l);
             return var;
 
         // str16
         case 0xda:
             var.type = mpack_type_str;
-            var.v.u = mpack_read_native_u16(reader);
-            mpack_reader_add_track(reader, mpack_type_str, var.v.u);
+            var.v.l = mpack_read_native_u16(reader);
+            mpack_reader_add_track(reader, mpack_type_str, var.v.l);
             return var;
 
         // str32
         case 0xdb:
             var.type = mpack_type_str;
-            var.v.u = mpack_read_native_u32(reader);
-            mpack_reader_add_track(reader, mpack_type_str, var.v.u);
+            var.v.l = mpack_read_native_u32(reader);
+            mpack_reader_add_track(reader, mpack_type_str, var.v.l);
             return var;
 
         // array16
@@ -718,15 +718,15 @@ void mpack_discard(mpack_reader_t* reader) {
         return;
     switch (var.type) {
         case mpack_type_str:
-            mpack_skip_bytes(reader, var.v.u);
+            mpack_skip_bytes(reader, var.v.l);
             mpack_done_str(reader);
             break;
         case mpack_type_bin:
-            mpack_skip_bytes(reader, var.v.u);
+            mpack_skip_bytes(reader, var.v.l);
             mpack_done_bin(reader);
             break;
         case mpack_type_ext:
-            mpack_skip_bytes(reader, var.v.u);
+            mpack_skip_bytes(reader, var.v.l);
             mpack_done_ext(reader);
             break;
         case mpack_type_array: {
@@ -801,7 +801,7 @@ static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
 
         case mpack_type_bin:
             // skip data
-            for (size_t i = 0; i < val.v.u; ++i)
+            for (size_t i = 0; i < val.v.l; ++i)
                 mpack_read_native_u8(reader);
             printf("<binary data>");
             mpack_done_bin(reader);
@@ -809,7 +809,7 @@ static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
 
         case mpack_type_ext:
             // skip data
-            for (size_t i = 0; i < val.v.u; ++i)
+            for (size_t i = 0; i < val.v.l; ++i)
                 mpack_read_native_u8(reader);
             printf("<ext data of type %i>", val.exttype);
             mpack_done_ext(reader);
@@ -817,7 +817,7 @@ static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
 
         case mpack_type_str:
             putchar('"');
-            for (size_t i = 0; i < val.v.u; ++i) {
+            for (size_t i = 0; i < val.v.l; ++i) {
                 char c;
                 mpack_read_bytes(reader, &c, 1);
                 switch (c) {

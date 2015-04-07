@@ -119,18 +119,12 @@ typedef struct mpack_tag_t {
         float    f; /**< The value if the type is float. */
         double   d; /**< The value if the type is double. */
         int64_t  i; /**< The value if the type is signed int. */
+        uint64_t u; /**< The value if the type is unsigned int. */
+        uint32_t l; /**< The number of bytes if the type is str, bin or ext. */
 
-        /**
-         * The element count if the type is an array, or the number of
-         * key/value pairs if the type is map.
-         */
+        /** The element count if the type is an array, or the number of
+            key/value pairs if the type is map. */
         uint32_t n;
-
-        /**
-         * The value if the type is unsigned int, or the number
-         * of bytes if the type is str, bin or ext.
-         */
-        uint64_t u;
     } v;
 } mpack_tag_t;
 

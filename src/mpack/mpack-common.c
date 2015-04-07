@@ -103,8 +103,6 @@ int mpack_tag_cmp(mpack_tag_t left, mpack_tag_t right) {
                 return 0;
             return (left.v.i < right.v.i) ? -1 : 1;
 
-        case mpack_type_str:
-        case mpack_type_bin:
         case mpack_type_uint:
             if (left.v.u == right.v.u)
                 return 0;
@@ -116,11 +114,17 @@ int mpack_tag_cmp(mpack_tag_t left, mpack_tag_t right) {
                 return 0;
             return (left.v.n < right.v.n) ? -1 : 1;
 
+        case mpack_type_str:
+        case mpack_type_bin:
+            if (left.v.l == right.v.l)
+                return 0;
+            return (left.v.l < right.v.l) ? -1 : 1;
+
         case mpack_type_ext:
             if (left.exttype == right.exttype) {
-                if (left.v.u == right.v.u)
+                if (left.v.l == right.v.l)
                     return 0;
-                return (left.v.u < right.v.u) ? -1 : 1;
+                return (left.v.l < right.v.l) ? -1 : 1;
             }
             return (int)left.exttype - (int)right.exttype;
 

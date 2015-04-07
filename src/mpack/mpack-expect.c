@@ -477,7 +477,7 @@ void* mpack_expect_array_alloc_impl(mpack_reader_t* reader, size_t element_size,
 uint32_t mpack_expect_str(mpack_reader_t* reader) {
     mpack_tag_t var = mpack_read_tag(reader);
     if (var.type == mpack_type_str)
-        return var.v.u;
+        return var.v.l;
     mpack_reader_flag_error(reader, mpack_error_type);
     return 0;
 }
@@ -508,7 +508,7 @@ size_t mpack_expect_str_buf(mpack_reader_t* reader, char* buf, size_t bufsize) {
 uint32_t mpack_expect_bin(mpack_reader_t* reader) {
     mpack_tag_t var = mpack_read_tag(reader);
     if (var.type == mpack_type_bin)
-        return var.v.u;
+        return var.v.l;
     mpack_reader_flag_error(reader, mpack_error_type);
     return 0;
 }
