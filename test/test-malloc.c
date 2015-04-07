@@ -41,7 +41,7 @@ void test_free(void* p) {
     test_assert(p != NULL, "attempting to free NULL");
 
     // TODO: track malloc/free
-    return free(p);
+    free(p);
 }
 
 void test_malloc_fail_after(size_t count) {
