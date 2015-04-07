@@ -3,16 +3,16 @@
 
 HEADERS="\
     mpack-platform.h \
+    mpack-internal.h \
     mpack-common.h \
     mpack-reader.h \
     mpack-writer.h \
     mpack-expect.h \
     mpack-node.h"
 SOURCES="\
-    mpack-internal.h \
     mpack-platform.c \
-    mpack-common.c \
     mpack-internal.c \
+    mpack-common.c \
     mpack-reader.c \
     mpack-writer.c \
     mpack-expect.c \
@@ -20,7 +20,7 @@ SOURCES="\
 
 version=`grep PROJECT_NUMBER Doxyfile|sed 's@.*= *\(.*\) *@\1@'`
 
-rm -r docs
+rm -rf docs
 doxygen Doxyfile || exit $?
 
 # assemble release package
@@ -63,6 +63,7 @@ done
 echo -e "#endif\n" >> $HEADER
 
 # assemble source
+echo -e "#define MPACK_INTERNAL 1\n" >> $SOURCE
 echo -e "#include \"mpack.h\"\n\n" >> $SOURCE
 for f in $SOURCES; do
     echo -e "/* $f */\n" >> $SOURCE
