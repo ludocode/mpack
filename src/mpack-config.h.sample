@@ -94,9 +94,9 @@
  * MPACK_DEBUG. (This is why NDEBUG is not used.)
  */
 #if defined(DEBUG) || defined(_DEBUG)
-#define MPACK_DEBUG 0
-#else
 #define MPACK_DEBUG 1
+#else
+#define MPACK_DEBUG 0
 #endif
 
 /**
