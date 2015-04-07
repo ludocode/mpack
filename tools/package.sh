@@ -72,7 +72,7 @@ for f in $SOURCES; do
 done
 
 # assemble rest of package
-CONTENTS="docs test SConscript SConstruct LICENSE README.md"
+CONTENTS="docs test projects SConscript SConstruct LICENSE README.md"
 cp -ar $CONTENTS build/amalgamation
 cp src/mpack-config.h.sample build/amalgamation/src
 mkdir -p build/amalgamation/tools
