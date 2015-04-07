@@ -124,7 +124,7 @@ typedef struct mpack_tag_t {
          * The element count if the type is an array, or the number of
          * key/value pairs if the type is map.
          */
-        uint32_t c;
+        uint32_t n;
 
         /**
          * The value if the type is unsigned int, or the number

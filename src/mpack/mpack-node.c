@@ -33,11 +33,11 @@
 static void mpack_node_destroy(mpack_node_t* node) {
     mpack_type_t type = node->tag.type;
     if (type == mpack_type_array) {
-        for (size_t i = 0; i < node->tag.v.c; ++i)
+        for (size_t i = 0; i < node->tag.v.n; ++i)
             mpack_node_destroy(&node->data.children[i]);
         MPACK_FREE(node->data.children);
     } else if (type == mpack_type_map) {
-        for (size_t i = 0; i < node->tag.v.c * 2; ++i)
+        for (size_t i = 0; i < node->tag.v.n * 2; ++i)
             mpack_node_destroy(&node->data.children[i]);
         MPACK_FREE(node->data.children);
     }
@@ -77,7 +77,7 @@ static void mpack_tree_read_node(mpack_tree_t* tree, mpack_node_t* node, mpack_r
 
         // TODO: make sure all these overflow checks are correct...
 
-        uint64_t total64 = (type == mpack_type_map) ? node->tag.v.c * 2 : node->tag.v.c;
+        uint64_t total64 = (type == mpack_type_map) ? node->tag.v.n * 2 : node->tag.v.n;
         if (total64 > SIZE_MAX) {
             mpack_tree_flag_error(tree, mpack_error_too_big);
             return;
@@ -335,11 +335,11 @@ void mpack_node_print_element(mpack_node_t* node, size_t depth) {
 
         case mpack_type_array:
             printf("[\n");
-            for (size_t i = 0; i < val.v.c; ++i) {
+            for (size_t i = 0; i < val.v.n; ++i) {
                 for (size_t j = 0; j < depth + 1; ++j)
                     printf("    ");
                 mpack_node_print_element(mpack_node_array_at(node, i), depth + 1);
-                if (i != val.v.c - 1)
+                if (i != val.v.n - 1)
                     putchar(',');
                 putchar('\n');
             }
@@ -350,13 +350,13 @@ void mpack_node_print_element(mpack_node_t* node, size_t depth) {
 
         case mpack_type_map:
             printf("{\n");
-            for (size_t i = 0; i < val.v.c; ++i) {
+            for (size_t i = 0; i < val.v.n; ++i) {
                 for (size_t j = 0; j < depth + 1; ++j)
                     printf("    ");
                 mpack_node_print_element(mpack_node_map_key_at(node, i), depth + 1);
                 printf(": ");
                 mpack_node_print_element(mpack_node_map_value_at(node, i), depth + 1);
-                if (i != val.v.c - 1)
+                if (i != val.v.n - 1)
                     putchar(',');
                 putchar('\n');
             }
@@ -763,7 +763,7 @@ size_t mpack_node_array_length(mpack_node_t* node) {
         return 0;
     }
 
-    return (size_t)node->tag.v.c;
+    return (size_t)node->tag.v.n;
 }
 
 mpack_node_t* mpack_node_array_at(mpack_node_t* node, size_t index) {
@@ -775,7 +775,7 @@ mpack_node_t* mpack_node_array_at(mpack_node_t* node, size_t index) {
         return &node->tree->nil_node;
     }
 
-    if (index >= node->tag.v.c) {
+    if (index >= node->tag.v.n) {
         mpack_node_flag_error(node, mpack_error_data);
         return &node->tree->nil_node;
     }
@@ -792,7 +792,7 @@ static mpack_node_t* mpack_node_map_at(mpack_node_t* node, size_t index, size_t 
         return &node->tree->nil_node;
     }
 
-    if (index >= node->tag.v.c) {
+    if (index >= node->tag.v.n) {
         mpack_node_flag_error(node, mpack_error_data);
         return &node->tree->nil_node;
     }
@@ -809,7 +809,7 @@ size_t mpack_node_map_count(mpack_node_t* node) {
         return 0;
     }
 
-    return node->tag.v.c;
+    return node->tag.v.n;
 }
 
 mpack_node_t* mpack_node_map_key_at(mpack_node_t* node, size_t index) {
@@ -829,7 +829,7 @@ mpack_node_t* mpack_node_map_int(mpack_node_t* node, int64_t num) {
         return &node->tree->nil_node;
     }
 
-    for (size_t i = 0; i < node->tag.v.c; ++i) {
+    for (size_t i = 0; i < node->tag.v.n; ++i) {
         mpack_node_t* key = &node->data.children[i * 2];
         mpack_node_t* value = &node->data.children[i * 2 + 1];
 
@@ -852,7 +852,7 @@ mpack_node_t* mpack_node_map_uint(mpack_node_t* node, uint64_t num) {
         return &node->tree->nil_node;
     }
 
-    for (size_t i = 0; i < node->tag.v.c; ++i) {
+    for (size_t i = 0; i < node->tag.v.n; ++i) {
         mpack_node_t* key = &node->data.children[i * 2];
         mpack_node_t* value = &node->data.children[i * 2 + 1];
 
@@ -875,7 +875,7 @@ mpack_node_t* mpack_node_map_str(mpack_node_t* node, const char* str, size_t len
         return &node->tree->nil_node;
     }
 
-    for (size_t i = 0; i < node->tag.v.c; ++i) {
+    for (size_t i = 0; i < node->tag.v.n; ++i) {
         mpack_node_t* key = &node->data.children[i * 2];
         mpack_node_t* value = &node->data.children[i * 2 + 1];
 
@@ -900,7 +900,7 @@ bool mpack_node_map_contains_str(mpack_node_t* node, const char* str, size_t len
         return false;
     }
 
-    for (size_t i = 0; i < node->tag.v.c; ++i) {
+    for (size_t i = 0; i < node->tag.v.n; ++i) {
         mpack_node_t* key = &node->data.children[i * 2];
         if (key->tag.type == mpack_type_str && key->tag.v.u == length && memcmp(str, key->data.bytes, length) == 0)
             return true;

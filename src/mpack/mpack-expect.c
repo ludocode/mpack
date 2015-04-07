@@ -396,7 +396,7 @@ void mpack_expect_false(mpack_reader_t* reader) {
 uint32_t mpack_expect_map(mpack_reader_t* reader) {
     mpack_tag_t var = mpack_read_tag(reader);
     if (var.type == mpack_type_map)
-        return var.v.c;
+        return var.v.n;
     mpack_reader_flag_error(reader, mpack_error_type);
     return 0;
 }
@@ -413,7 +413,7 @@ bool mpack_expect_map_or_nil(mpack_reader_t* reader, uint32_t* count) {
         return false;
     }
     if (var.type == mpack_type_map) {
-        *count = var.v.c;
+        *count = var.v.n;
         return true;
     }
     mpack_reader_flag_error(reader, mpack_error_type);
@@ -424,7 +424,7 @@ bool mpack_expect_map_or_nil(mpack_reader_t* reader, uint32_t* count) {
 uint32_t mpack_expect_array(mpack_reader_t* reader) {
     mpack_tag_t var = mpack_read_tag(reader);
     if (var.type == mpack_type_array)
-        return var.v.c;
+        return var.v.n;
     mpack_reader_flag_error(reader, mpack_error_type);
     return 0;
 }
