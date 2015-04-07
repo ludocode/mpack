@@ -442,7 +442,7 @@ void mpack_write_i8(mpack_writer_t* writer, int8_t value) {
 
     mpack_track_element_write(writer);
     if (value >= -32) {
-        mpack_write_native_u8(writer, 0xe0 | (int8_t)value); // TODO: remove this (compatibility/1.1 difference?)
+        mpack_write_native_u8(writer, 0xe0 | (uint8_t)value); // TODO: remove this (compatibility/1.1 difference?)
     } else {
         mpack_write_native_u8(writer, 0xd0);
         mpack_write_native_i8(writer, value);
@@ -460,7 +460,7 @@ void mpack_write_i16(mpack_writer_t* writer, int16_t value) {
 
     mpack_track_element_write(writer);
     if (value >= -32) {
-        mpack_write_native_u8(writer, 0xe0 | (int8_t)value); // TODO: remove this (compatibility/1.1 difference?)
+        mpack_write_native_u8(writer, 0xe0 | (uint8_t)value); // TODO: remove this (compatibility/1.1 difference?)
     } else if (value >= INT8_MIN) {
         mpack_write_native_u8(writer, 0xd0);
         mpack_write_native_i8(writer, (int8_t)value);
@@ -481,7 +481,7 @@ void mpack_write_i32(mpack_writer_t* writer, int32_t value) {
 
     mpack_track_element_write(writer);
     if (value >= -32) {
-        mpack_write_native_u8(writer, 0xe0 | (int8_t)value); // TODO: remove this (compatibility/1.1 difference?)
+        mpack_write_native_u8(writer, 0xe0 | (uint8_t)value); // TODO: remove this (compatibility/1.1 difference?)
     } else if (value >= INT8_MIN) {
         mpack_write_native_u8(writer, 0xd0);
         mpack_write_native_i8(writer, (int8_t)value);
@@ -505,7 +505,7 @@ void mpack_write_i64(mpack_writer_t* writer, int64_t value) {
 
     mpack_track_element_write(writer);
     if (value >= -32) {
-        mpack_write_native_u8(writer, 0xe0 | (int8_t)value); // TODO: remove this (compatibility/1.1 difference?)
+        mpack_write_native_u8(writer, 0xe0 | (uint8_t)value); // TODO: remove this (compatibility/1.1 difference?)
     } else if (value >= INT8_MIN) {
         mpack_write_native_u8(writer, 0xd0);
         mpack_write_native_i8(writer, (int8_t)value);
@@ -524,7 +524,7 @@ void mpack_write_i64(mpack_writer_t* writer, int64_t value) {
 
 void mpack_write_bool(mpack_writer_t* writer, bool value) {
     mpack_track_element_write(writer);
-    mpack_write_native_u8(writer, 0xc2 | (value ? 1 : 0));
+    mpack_write_native_u8(writer, (uint8_t)(0xc2 | (value ? 1 : 0)));
 }
 
 void mpack_write_nil(mpack_writer_t* writer) {

@@ -444,7 +444,7 @@ uint32_t mpack_expect_array_range(mpack_reader_t* reader, uint32_t min_count, ui
     }
 
     // read the count
-    uint8_t count = mpack_expect_array(reader);
+    uint32_t count = mpack_expect_array(reader);
     if (mpack_reader_error(reader) != mpack_ok)
         return min_count;
 

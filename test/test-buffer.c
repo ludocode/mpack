@@ -189,7 +189,7 @@ static void test_write_buffer_values(mpack_writer_t* writer) {
 }
 
 size_t test_buffer_fill(void* context, char* buffer, size_t count) {
-    int* pos = (int*)context;
+    size_t* pos = (size_t*)context;
     size_t remaining = sizeof(test_buffer) - 1;
     if (remaining - *pos < count)
         count = remaining - *pos;
@@ -205,7 +205,7 @@ static void test_read_buffer(void) {
         mpack_reader_t reader;
         size_t size = test_buffer_sizes[i];
         char* buffer = (char*)malloc(size);
-        int pos = 0;
+        size_t pos = 0;
         mpack_reader_init(&reader, buffer, size, 0);
         mpack_reader_set_fill(&reader, test_buffer_fill);
         mpack_reader_set_context(&reader, &pos);

@@ -391,29 +391,29 @@ const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count) {
 static uint16_t mpack_read_native_u16(mpack_reader_t* reader) {
     char c[sizeof(uint16_t)];
     mpack_read_native(reader, c, sizeof(c));
-    return (((uint16_t)(uint8_t)c[0]) << 8) +
-           ((uint16_t)(uint8_t)c[1]);
+    return (uint16_t)((((uint16_t)(uint8_t)c[0]) << 8) |
+           ((uint16_t)(uint8_t)c[1]));
 }
 
 static uint32_t mpack_read_native_u32(mpack_reader_t* reader) {
     char c[sizeof(uint32_t)];
     mpack_read_native(reader, c, sizeof(c));
-    return (((uint32_t)(uint8_t)c[0]) << 24) +
-           (((uint32_t)(uint8_t)c[1]) << 16) +
-           (((uint32_t)(uint8_t)c[2]) <<  8) +
+    return (((uint32_t)(uint8_t)c[0]) << 24) |
+           (((uint32_t)(uint8_t)c[1]) << 16) |
+           (((uint32_t)(uint8_t)c[2]) <<  8) |
            ((uint32_t)(uint8_t)c[3]);
 }
 
 static uint64_t mpack_read_native_u64(mpack_reader_t* reader) {
     char c[sizeof(uint64_t)];
     mpack_read_native(reader, c, sizeof(c));
-    return (((uint64_t)(uint8_t)c[0]) << 56) +
-           (((uint64_t)(uint8_t)c[1]) << 48) +
-           (((uint64_t)(uint8_t)c[2]) << 40) +
-           (((uint64_t)(uint8_t)c[3]) << 32) +
-           (((uint64_t)(uint8_t)c[4]) << 24) +
-           (((uint64_t)(uint8_t)c[5]) << 16) +
-           (((uint64_t)(uint8_t)c[6]) <<  8) +
+    return (((uint64_t)(uint8_t)c[0]) << 56) |
+           (((uint64_t)(uint8_t)c[1]) << 48) |
+           (((uint64_t)(uint8_t)c[2]) << 40) |
+           (((uint64_t)(uint8_t)c[3]) << 32) |
+           (((uint64_t)(uint8_t)c[4]) << 24) |
+           (((uint64_t)(uint8_t)c[5]) << 16) |
+           (((uint64_t)(uint8_t)c[6]) <<  8) |
            ((uint64_t)(uint8_t)c[7]);
 }
 
