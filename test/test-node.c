@@ -218,28 +218,26 @@ static void test_node_read_int() {
     test_simple_tree_read("\xd0\xdf", -33 == mpack_node_i32(node));
     test_simple_tree_read("\xd0\xdf", -33 == mpack_node_i64(node));
 
-    test_simple_tree_read("\xd0\x80", -128 == mpack_node_i8(node));
-    test_simple_tree_read("\xd0\x80", -128 == mpack_node_i16(node));
-    test_simple_tree_read("\xd0\x80", -128 == mpack_node_i32(node));
-    test_simple_tree_read("\xd0\x80", -128 == mpack_node_i64(node));
+    test_simple_tree_read("\xd0\x80", INT8_MIN == mpack_node_i8(node));
+    test_simple_tree_read("\xd0\x80", INT8_MIN == mpack_node_i16(node));
+    test_simple_tree_read("\xd0\x80", INT8_MIN == mpack_node_i32(node));
+    test_simple_tree_read("\xd0\x80", INT8_MIN == mpack_node_i64(node));
 
-    test_simple_tree_read("\xd1\xff\x7f", -129 == mpack_node_i16(node));
-    test_simple_tree_read("\xd1\xff\x7f", -129 == mpack_node_i32(node));
-    test_simple_tree_read("\xd1\xff\x7f", -129 == mpack_node_i64(node));
+    test_simple_tree_read("\xd1\xff\x7f", INT8_MIN - 1 == mpack_node_i16(node));
+    test_simple_tree_read("\xd1\xff\x7f", INT8_MIN - 1 == mpack_node_i32(node));
+    test_simple_tree_read("\xd1\xff\x7f", INT8_MIN - 1 == mpack_node_i64(node));
 
-    test_simple_tree_read("\xd1\x80\x00", -32768 == mpack_node_i16(node));
-    test_simple_tree_read("\xd1\x80\x00", -32768 == mpack_node_i32(node));
-    test_simple_tree_read("\xd1\x80\x00", -32768 == mpack_node_i64(node));
+    test_simple_tree_read("\xd1\x80\x00", INT16_MIN == mpack_node_i16(node));
+    test_simple_tree_read("\xd1\x80\x00", INT16_MIN == mpack_node_i32(node));
+    test_simple_tree_read("\xd1\x80\x00", INT16_MIN == mpack_node_i64(node));
 
-    test_simple_tree_read("\xd2\xff\xff\x7f\xff", -32769 == mpack_node_i32(node));
-    test_simple_tree_read("\xd2\xff\xff\x7f\xff", -32769 == mpack_node_i64(node));
+    test_simple_tree_read("\xd2\xff\xff\x7f\xff", INT16_MIN - 1 == mpack_node_i32(node));
+    test_simple_tree_read("\xd2\xff\xff\x7f\xff", INT16_MIN - 1 == mpack_node_i64(node));
 
-    // when using INT32_C() and compiling the test suite as c++, gcc complains:
-    // error: this decimal constant is unsigned only in ISO C90 [-Werror]
-    test_simple_tree_read("\xd2\x80\x00\x00\x00", INT64_C(-2147483648) == mpack_node_i32(node));
-    test_simple_tree_read("\xd2\x80\x00\x00\x00", INT64_C(-2147483648) == mpack_node_i64(node));
+    test_simple_tree_read("\xd2\x80\x00\x00\x00", INT32_MIN == mpack_node_i32(node));
+    test_simple_tree_read("\xd2\x80\x00\x00\x00", INT32_MIN == mpack_node_i64(node));
 
-    test_simple_tree_read("\xd3\xff\xff\xff\xff\x7f\xff\xff\xff", INT64_C(-2147483649) == mpack_node_i64(node));
+    test_simple_tree_read("\xd3\xff\xff\xff\xff\x7f\xff\xff\xff", (int64_t)INT32_MIN - 1 == mpack_node_i64(node));
 
     test_simple_tree_read("\xd3\x80\x00\x00\x00\x00\x00\x00\x00", INT64_MIN == mpack_node_i64(node));
 
@@ -276,15 +274,13 @@ static void test_node_read_ints_dynamic_int() {
 
     // ints
     test_simple_tree_read("\xd0\xdf", mpack_tag_equal(mpack_tag_int(-33), mpack_node_tag(node)));
-    test_simple_tree_read("\xd0\x80", mpack_tag_equal(mpack_tag_int(-128), mpack_node_tag(node)));
-    test_simple_tree_read("\xd1\xff\x7f", mpack_tag_equal(mpack_tag_int(-129), mpack_node_tag(node)));
-    test_simple_tree_read("\xd1\x80\x00", mpack_tag_equal(mpack_tag_int(-32768), mpack_node_tag(node)));
-    test_simple_tree_read("\xd2\xff\xff\x7f\xff", mpack_tag_equal(mpack_tag_int(-32769), mpack_node_tag(node)));
+    test_simple_tree_read("\xd0\x80", mpack_tag_equal(mpack_tag_int(INT8_MIN), mpack_node_tag(node)));
+    test_simple_tree_read("\xd1\xff\x7f", mpack_tag_equal(mpack_tag_int(INT8_MIN - 1), mpack_node_tag(node)));
+    test_simple_tree_read("\xd1\x80\x00", mpack_tag_equal(mpack_tag_int(INT16_MIN), mpack_node_tag(node)));
+    test_simple_tree_read("\xd2\xff\xff\x7f\xff", mpack_tag_equal(mpack_tag_int(INT16_MIN - 1), mpack_node_tag(node)));
 
-    // when using INT32_C() and compiling the test suite as c++, gcc complains:
-    // error: this decimal constant is unsigned only in ISO C90 [-Werror]
-    test_simple_tree_read("\xd2\x80\x00\x00\x00", mpack_tag_equal(mpack_tag_int(UINT64_C(-2147483648)), mpack_node_tag(node)));
-    test_simple_tree_read("\xd3\xff\xff\xff\xff\x7f\xff\xff\xff", mpack_tag_equal(mpack_tag_int(UINT64_C(-2147483649)), mpack_node_tag(node)));
+    test_simple_tree_read("\xd2\x80\x00\x00\x00", mpack_tag_equal(mpack_tag_int(INT32_MIN), mpack_node_tag(node)));
+    test_simple_tree_read("\xd3\xff\xff\xff\xff\x7f\xff\xff\xff", mpack_tag_equal(mpack_tag_int((int64_t)INT32_MIN - 1), mpack_node_tag(node)));
 
     test_simple_tree_read("\xd3\x80\x00\x00\x00\x00\x00\x00\x00", mpack_tag_equal(mpack_tag_int(INT64_MIN), mpack_node_tag(node)));
 
