@@ -494,6 +494,27 @@ void* mpack_expect_array_alloc_impl(mpack_reader_t* reader,
  */
 uint32_t mpack_expect_str(mpack_reader_t* reader);
 
+/**
+ * Reads a string of at most the given size, writing it into the
+ * given buffer and returning its size in bytes.
+ *
+ * Note that this does not add a null-terminator! No null-terminator
+ * is written, even if the string fits. Use mpack_expect_cstr() to
+ * get a null-terminator.
+ */
+size_t mpack_expect_str_buf(mpack_reader_t* reader, char* buf, size_t bufsize);
+
+/**
+ * Reads the start of a string, raising an error if its length is not
+ * exactly the given number of bytes.
+ *
+ * The bytes follow and must be read separately with mpack_read_bytes()
+ * or mpack_read_bytes_inplace(). @ref mpack_done_str() must be called
+ * once all bytes have been read.
+ *
+ * mpack_error_type is raised if the value is not a string or if its
+ * length does not match.
+ */
 void mpack_expect_str_length(mpack_reader_t* reader, uint32_t count);
 
 /**
@@ -556,6 +577,30 @@ void mpack_expect_cstr_match(mpack_reader_t* reader, const char* str);
  * @name Binary Data / Extension Functions
  * @{
  */
+
+/**
+ * Reads the start of a binary blob, returning its size in bytes.
+ *
+ * The bytes follow and must be read separately with mpack_read_bytes()
+ * or mpack_read_bytes_inplace(). @ref mpack_done_bin() must be called
+ * once all bytes have been read.
+ *
+ * mpack_error_type is raised if the value is not a binary blob.
+ */
+uint32_t mpack_expect_bin(mpack_reader_t* reader);
+
+/**
+ * Reads the start of a binary blob, raising an error if its length is not
+ * exactly the given number of bytes.
+ *
+ * The bytes follow and must be read separately with mpack_read_bytes()
+ * or mpack_read_bytes_inplace(). @ref mpack_done_bin() must be called
+ * once all bytes have been read.
+ *
+ * mpack_error_type is raised if the value is not a binary blob or if its
+ * length does not match.
+ */
+void mpack_expect_bin_size(mpack_reader_t* reader, uint32_t count);
 
 /**
  * Reads a binary blob into the given buffer, returning its size in bytes.
