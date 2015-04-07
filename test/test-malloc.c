@@ -24,7 +24,7 @@
 #include "test.h"
 
 static bool test_malloc_fail = false;
-static int test_malloc_left;
+static size_t test_malloc_left;
 
 void* test_malloc(size_t size) {
     if (test_malloc_fail) {
