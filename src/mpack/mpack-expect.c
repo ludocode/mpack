@@ -632,7 +632,9 @@ void mpack_expect_cstr_match(mpack_reader_t* reader, const char* str) {
 
     // expect a str the correct length
     size_t len = mpack_strlen(str);
-    mpack_expect_str_length(reader, len);
+    if (len > UINT32_MAX)
+        mpack_reader_flag_error(reader, mpack_error_invalid);
+    mpack_expect_str_length(reader, (uint32_t)len);
     if (mpack_reader_error(reader))
         return;
 
