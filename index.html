@@ -24,7 +24,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">MPack
-   &#160;<span id="projectnumber">0.2</span>
+   &#160;<span id="projectnumber">0.4-dev</span>
    </div>
    <div id="projectbrief">A C encoding/decoding library for the MessagePack serialization format.</div>
   </td>
@@ -142,12 +142,14 @@ if (mpack_writer_destroy(&amp;writer) != mpack_ok) {
 <p>The above issues greatly increase the complexity of the decoder. Full-featured JSON decoders are quite large, and minimal decoders tend to leave out such features as string unescaping and float parsing, instead leaving these up to the user or platform. This can lead to hard-to-find and/or platform-specific bugs. This also significantly decreases performance, making JSON unattractive for use in applications such as mobile games.</p>
 <p>While the space inefficiencies of JSON can be partially mitigated through minification and compression, the performance inefficiencies cannot. More importantly, if you are minifying and compressing the data, then why use a human-readable format in the first place?</p>
 <h2>Running the Unit Tests</h2>
-<p>The MPack build process does not build MPack into a library; it is used to build and run the unit tests. You do not need to build MPack or the unit testing suite to use MPack. The test suite currently only supports Linux.</p>
-<p>The test suite uses SCons and requires Valgrind, and can be run in the repository or in the amalgamation package. SCons will build and run the library and unit testing suite in both debug and release for both 32-bit and 64-bit architectures (if available), so it will take a minute or two to build and run. If you are on 64-bit, you will also need support for running 32-bit binaries with 64-bit Valgrind (<code>libc6-dbg:i386</code> on Ubuntu or <code>valgrind-multilib</code> on Arch.) Just run <code>scons</code> to build and run all tests. </p>
+<p>The MPack build process does not build MPack into a library; it is used to build and run the unit tests. You do not need to build MPack or the unit testing suite to use MPack.</p>
+<p>On Linux, the test suite uses SCons and requires Valgrind, and can be run in the repository or in the amalgamation package. SCons will build and run the library and unit testing suite in both debug and release for both 32-bit and 64-bit architectures (if available), so it will take a minute or two to build and run.</p>
+<p>If you are on 64-bit, you will also need support for cross-compiling to 32-bit, and running 32-bit binaries with 64-bit Valgrind. On Ubuntu, you'll need <code>libc6-dbg:i386</code>. On Arch you'll need <code>gcc-multilib</code> or <code>lib32-clang</code>, and <code>valgrind-multilib</code>. Just run <code>scons</code> to build and run all tests.</p>
+<p>On Windows, there is a Visual Studio solution for building and running the test suite. </p>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Mar 17 2015 12:42:29 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Apr 8 2015 16:22:38 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.9.1
 </small></address>

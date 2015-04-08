@@ -24,7 +24,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">MPack
-   &#160;<span id="projectnumber">0.2</span>
+   &#160;<span id="projectnumber">0.4-dev</span>
    </div>
    <div id="projectbrief">A C encoding/decoding library for the MessagePack serialization format.</div>
   </td>
@@ -288,7 +288,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="line"><a name="l00479"></a><span class="lineno">  479</span>&#160;<span class="preprocessor">#endif</span></div>
 <div class="line"><a name="l00480"></a><span class="lineno">  480</span>&#160;</div>
 <div class="ttc" id="group__writer_html_gab8fcdb4f4ff97c3197a8bb809b88a167"><div class="ttname"><a href="group__writer.html#gab8fcdb4f4ff97c3197a8bb809b88a167">mpack_write_i64</a></div><div class="ttdeci">void mpack_write_i64(mpack_writer_t *writer, int64_t value)</div></div>
-<div class="ttc" id="group__common_html_ga9d9f282ca4183ab5190e09d04c1f74c4"><div class="ttname"><a href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a></div><div class="ttdeci">mpack_error_t</div><div class="ttdoc">Error states for the MPack reader and writer. </div><div class="ttdef"><b>Definition:</b> mpack-common.h:57</div></div>
+<div class="ttc" id="group__common_html_ga9d9f282ca4183ab5190e09d04c1f74c4"><div class="ttname"><a href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a></div><div class="ttdeci">mpack_error_t</div><div class="ttdoc">Error states for the MPack reader and writer. </div><div class="ttdef"><b>Definition:</b> mpack-common.h:58</div></div>
 <div class="ttc" id="group__writer_html_gaaff7b65b611db3cf5b165b7efed0f0f2"><div class="ttname"><a href="group__writer.html#gaaff7b65b611db3cf5b165b7efed0f0f2">mpack_finish_bin</a></div><div class="ttdeci">void mpack_finish_bin(mpack_writer_t *writer)</div><div class="ttdoc">Finishes writing a binary blob. </div></div>
 <div class="ttc" id="group__writer_html_ga2bc0c6c6416b9d808be718b41681fd25"><div class="ttname"><a href="group__writer.html#ga2bc0c6c6416b9d808be718b41681fd25">mpack_write_double</a></div><div class="ttdeci">void mpack_write_double(mpack_writer_t *writer, double value)</div></div>
 <div class="ttc" id="group__writer_html_gab4f2e1ecba64f6181623278f8f91b72a"><div class="ttname"><a href="group__writer.html#gab4f2e1ecba64f6181623278f8f91b72a">mpack_write_uint</a></div><div class="ttdeci">static void mpack_write_uint(mpack_writer_t *writer, uint64_t value)</div><div class="ttdef"><b>Definition:</b> mpack-writer.h:296</div></div>
@@ -296,7 +296,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="ttc" id="group__writer_html_ga3a437633c12478dc827977dc7cf6eb66"><div class="ttname"><a href="group__writer.html#ga3a437633c12478dc827977dc7cf6eb66">mpack_write_i32</a></div><div class="ttdeci">void mpack_write_i32(mpack_writer_t *writer, int32_t value)</div></div>
 <div class="ttc" id="group__writer_html_gab3c8d9ebe78513a17a38af28f387d169"><div class="ttname"><a href="group__writer.html#gab3c8d9ebe78513a17a38af28f387d169">mpack_writer_init_error</a></div><div class="ttdeci">void mpack_writer_init_error(mpack_writer_t *writer, mpack_error_t error)</div><div class="ttdoc">Initializes an mpack writer directly into an error state. </div></div>
 <div class="ttc" id="group__writer_html_gafb05fb381c28a36b8917a1697e5ab611"><div class="ttname"><a href="group__writer.html#gafb05fb381c28a36b8917a1697e5ab611">mpack_writer_init_file</a></div><div class="ttdeci">void mpack_writer_init_file(mpack_writer_t *writer, const char *filename)</div><div class="ttdoc">Initializes an mpack writer that writes to a file. </div></div>
-<div class="ttc" id="group__common_html_structmpack__tag__t"><div class="ttname"><a href="group__common.html#structmpack__tag__t">mpack_tag_t</a></div><div class="ttdoc">An MPack tag is a MessagePack object header. </div><div class="ttdef"><b>Definition:</b> mpack-common.h:105</div></div>
+<div class="ttc" id="group__common_html_structmpack__tag__t"><div class="ttname"><a href="group__common.html#structmpack__tag__t">mpack_tag_t</a></div><div class="ttdoc">An MPack tag is a MessagePack object header. </div><div class="ttdef"><b>Definition:</b> mpack-common.h:106</div></div>
 <div class="ttc" id="group__writer_html_structmpack__writer__t"><div class="ttname"><a href="group__writer.html#structmpack__writer__t">mpack_writer_t</a></div><div class="ttdoc">A buffered MessagePack encoder. </div><div class="ttdef"><b>Definition:</b> mpack-writer.h:70</div></div>
 <div class="ttc" id="group__writer_html_gaf2d7399804c883d6873bb3568495e9d0"><div class="ttname"><a href="group__writer.html#gaf2d7399804c883d6873bb3568495e9d0">mpack_flush_t</a></div><div class="ttdeci">bool(* mpack_flush_t)(void *context, const char *buffer, size_t count)</div><div class="ttdoc">The mpack writer&#39;s flush function to flush the buffer to the output stream. </div><div class="ttdef"><b>Definition:</b> mpack-writer.h:57</div></div>
 <div class="ttc" id="group__writer_html_gaea8d479af0d05cff5194502362ae82a5"><div class="ttname"><a href="group__writer.html#gaea8d479af0d05cff5194502362ae82a5">mpack_write_nil</a></div><div class="ttdeci">void mpack_write_nil(mpack_writer_t *writer)</div></div>
@@ -309,7 +309,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="ttc" id="group__writer_html_ga1cf5a2d9b687d94f637a36123ef7cec0"><div class="ttname"><a href="group__writer.html#ga1cf5a2d9b687d94f637a36123ef7cec0">mpack_writer_destroy</a></div><div class="ttdeci">mpack_error_t mpack_writer_destroy(mpack_writer_t *writer)</div><div class="ttdoc">Cleans up the mpack writer, flushing any buffered bytes to the underlying stream, if any...</div></div>
 <div class="ttc" id="group__writer_html_ga603fa72ebf84ac80d8fff08bd2ea9602"><div class="ttname"><a href="group__writer.html#ga603fa72ebf84ac80d8fff08bd2ea9602">mpack_writer_set_flush</a></div><div class="ttdeci">static void mpack_writer_set_flush(mpack_writer_t *writer, mpack_flush_t flush)</div><div class="ttdoc">Sets the flush function to write out the data when the buffer is full. </div><div class="ttdef"><b>Definition:</b> mpack-writer.h:199</div></div>
 <div class="ttc" id="group__writer_html_gabdd346fe4eb4e1737807932d19a2909f"><div class="ttname"><a href="group__writer.html#gabdd346fe4eb4e1737807932d19a2909f">mpack_write_str</a></div><div class="ttdeci">void mpack_write_str(mpack_writer_t *writer, const char *str, uint32_t length)</div><div class="ttdoc">Writes a string. </div></div>
-<div class="ttc" id="group__common_html_ga692063be325a917d5cb011dc24a8a491"><div class="ttname"><a href="group__common.html#ga692063be325a917d5cb011dc24a8a491">mpack_teardown_t</a></div><div class="ttdeci">void(* mpack_teardown_t)(void *context)</div><div class="ttdoc">A teardown function to be called when an MPack object is destroyed. </div><div class="ttdef"><b>Definition:</b> mpack-common.h:207</div></div>
+<div class="ttc" id="group__common_html_ga692063be325a917d5cb011dc24a8a491"><div class="ttname"><a href="group__common.html#ga692063be325a917d5cb011dc24a8a491">mpack_teardown_t</a></div><div class="ttdeci">void(* mpack_teardown_t)(void *context)</div><div class="ttdoc">A teardown function to be called when an MPack object is destroyed. </div><div class="ttdef"><b>Definition:</b> mpack-common.h:218</div></div>
 <div class="ttc" id="group__writer_html_ga379b2db0595d0d0493946290dd827262"><div class="ttname"><a href="group__writer.html#ga379b2db0595d0d0493946290dd827262">mpack_write_bin</a></div><div class="ttdeci">void mpack_write_bin(mpack_writer_t *writer, const char *data, uint32_t count)</div><div class="ttdoc">Writes a binary blob. </div></div>
 <div class="ttc" id="group__writer_html_ga17155afc35912817c13802d502f14e80"><div class="ttname"><a href="group__writer.html#ga17155afc35912817c13802d502f14e80">mpack_write_tag</a></div><div class="ttdeci">void mpack_write_tag(mpack_writer_t *writer, mpack_tag_t tag)</div><div class="ttdoc">Writes a MessagePack object header (an MPack Tag.) </div></div>
 <div class="ttc" id="group__writer_html_gab9cd08887689641c3d71cea6f536b6f8"><div class="ttname"><a href="group__writer.html#gab9cd08887689641c3d71cea6f536b6f8">mpack_start_ext</a></div><div class="ttdeci">void mpack_start_ext(mpack_writer_t *writer, int8_t exttype, uint32_t count)</div><div class="ttdoc">Opens an extension type. </div></div>
@@ -337,7 +337,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!-- fragment --></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Mar 17 2015 12:42:29 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Apr 8 2015 16:22:38 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.9.1
 </small></address>

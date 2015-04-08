@@ -24,7 +24,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">MPack
-   &#160;<span id="projectnumber">0.2</span>
+   &#160;<span id="projectnumber">0.4-dev</span>
    </div>
    <div id="projectbrief">A C encoding/decoding library for the MessagePack serialization format.</div>
   </td>
@@ -249,11 +249,23 @@ i</td>
 <td class="fielddoc">
 The value if the type is signed int. </td></tr>
 <tr><td class="fieldtype">
+<a class="anchor" id="a2db95e8e1a9267b7a1188556b2013b33"></a>uint32_t</td>
+<td class="fieldname">
+l</td>
+<td class="fielddoc">
+The number of bytes if the type is str, bin or ext. </td></tr>
+<tr><td class="fieldtype">
+<a class="anchor" id="a7b8b965ad4bca0e41ab51de7b31363a1"></a>uint32_t</td>
+<td class="fieldname">
+n</td>
+<td class="fielddoc">
+The element count if the type is an array, or the number of key/value pairs if the type is map. </td></tr>
+<tr><td class="fieldtype">
 <a class="anchor" id="a7b774effe4a349c6dd82ad4f4f21d34c"></a>uint64_t</td>
 <td class="fieldname">
 u</td>
 <td class="fielddoc">
-The value if the type is unsigned int; the element count if the type is array; the number of key/value pairs if the type is map; or the number of bytes if the type is str, bin or ext. </td></tr>
+The value if the type is unsigned int. </td></tr>
 </table>
 
 </div>
@@ -633,7 +645,7 @@ The value if the type is unsigned int; the element count if the type is array; t
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Mar 17 2015 12:42:29 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Apr 8 2015 16:22:38 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.9.1
 </small></address>

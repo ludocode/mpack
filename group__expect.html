@@ -24,7 +24,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">MPack
-   &#160;<span id="projectnumber">0.2</span>
+   &#160;<span id="projectnumber">0.4-dev</span>
    </div>
    <div id="projectbrief">A C encoding/decoding library for the MessagePack serialization format.</div>
   </td>
@@ -228,8 +228,11 @@ String Functions</h2></td></tr>
 <tr class="memitem:ga6baba88194988c9f423630052d59f7fd"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga6baba88194988c9f423630052d59f7fd">mpack_expect_str</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader)</td></tr>
 <tr class="memdesc:ga6baba88194988c9f423630052d59f7fd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of a string, returning its size in bytes.  <a href="#ga6baba88194988c9f423630052d59f7fd">More...</a><br /></td></tr>
 <tr class="separator:ga6baba88194988c9f423630052d59f7fd"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gac189c3ea2b957e594854fc2c8cae3cbd"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gac189c3ea2b957e594854fc2c8cae3cbd"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_str_length</b> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t count)</td></tr>
+<tr class="memitem:ga658205c994cf8fce528f4c8a3a957a14"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga658205c994cf8fce528f4c8a3a957a14">mpack_expect_str_buf</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, char *buf, size_t bufsize)</td></tr>
+<tr class="memdesc:ga658205c994cf8fce528f4c8a3a957a14"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a string of at most the given size, writing it into the given buffer and returning its size in bytes.  <a href="#ga658205c994cf8fce528f4c8a3a957a14">More...</a><br /></td></tr>
+<tr class="separator:ga658205c994cf8fce528f4c8a3a957a14"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac189c3ea2b957e594854fc2c8cae3cbd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#gac189c3ea2b957e594854fc2c8cae3cbd">mpack_expect_str_length</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t count)</td></tr>
+<tr class="memdesc:gac189c3ea2b957e594854fc2c8cae3cbd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of a string, raising an error if its length is not exactly the given number of bytes.  <a href="#gac189c3ea2b957e594854fc2c8cae3cbd">More...</a><br /></td></tr>
 <tr class="separator:gac189c3ea2b957e594854fc2c8cae3cbd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga0d720d03002423e764c55b9370d89caf"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga0d720d03002423e764c55b9370d89caf">mpack_expect_str_alloc</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, size_t maxsize, size_t *size)</td></tr>
 <tr class="memdesc:ga0d720d03002423e764c55b9370d89caf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a string with the given total maximum size, allocating storage for it.  <a href="#ga0d720d03002423e764c55b9370d89caf">More...</a><br /></td></tr>
@@ -252,6 +255,12 @@ void&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_str_leng
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
 Binary Data / Extension Functions</h2></td></tr>
+<tr class="memitem:gadcf7fc94ae30ed5c3752291a0efd43c5"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#gadcf7fc94ae30ed5c3752291a0efd43c5">mpack_expect_bin</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader)</td></tr>
+<tr class="memdesc:gadcf7fc94ae30ed5c3752291a0efd43c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of a binary blob, returning its size in bytes.  <a href="#gadcf7fc94ae30ed5c3752291a0efd43c5">More...</a><br /></td></tr>
+<tr class="separator:gadcf7fc94ae30ed5c3752291a0efd43c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae83eff20642825f13771a2cdceaa7cbd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#gae83eff20642825f13771a2cdceaa7cbd">mpack_expect_bin_size</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t count)</td></tr>
+<tr class="memdesc:gae83eff20642825f13771a2cdceaa7cbd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of a binary blob, raising an error if its length is not exactly the given number of bytes.  <a href="#gae83eff20642825f13771a2cdceaa7cbd">More...</a><br /></td></tr>
+<tr class="separator:gae83eff20642825f13771a2cdceaa7cbd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga98004c26b9ebc1b80b4bdec5a1d4b093"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga98004c26b9ebc1b80b4bdec5a1d4b093">mpack_expect_bin_buf</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, char *buf, size_t size)</td></tr>
 <tr class="memdesc:ga98004c26b9ebc1b80b4bdec5a1d4b093"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a binary blob into the given buffer, returning its size in bytes.  <a href="#ga98004c26b9ebc1b80b4bdec5a1d4b093">More...</a><br /></td></tr>
 <tr class="separator:ga98004c26b9ebc1b80b4bdec5a1d4b093"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -410,6 +419,26 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
 
 </div>
 </div>
+<a class="anchor" id="gadcf7fc94ae30ed5c3752291a0efd43c5"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t mpack_expect_bin </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
+          <td class="paramname"><em>reader</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads the start of a binary blob, returning its size in bytes. </p>
+<p>The bytes follow and must be read separately with <a class="el" href="group__reader.html#gaeb91e8d4e2a7b7f6562d8bbb7400275c" title="Reads bytes from a string, binary blob or extension object. ">mpack_read_bytes()</a> or <a class="el" href="group__reader.html#ga654d697da6a0eaf25246adf3ed343572" title="Reads bytes from a string, binary blob or extension object in-place in the buffer. ">mpack_read_bytes_inplace()</a>. <a class="el" href="group__reader.html#gaa4676c4b0761de4f864fd81c347a15a0">mpack_done_bin()</a> must be called once all bytes have been read.</p>
+<p>mpack_error_type is raised if the value is not a binary blob. </p>
+
+</div>
+</div>
 <a class="anchor" id="ga513a9ce0e5bf78128d2d174bf1434538"></a>
 <div class="memitem">
 <div class="memproto">
@@ -476,6 +505,36 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
 
 <p>Reads a binary blob into the given buffer, returning its size in bytes. </p>
 <p>For compatibility, this will accept if the underlying type is string or binary (since in MessagePack 1.0, strings and binary data were combined under the "raw" type which became string in 1.1.) </p>
+
+</div>
+</div>
+<a class="anchor" id="gae83eff20642825f13771a2cdceaa7cbd"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void mpack_expect_bin_size </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
+          <td class="paramname"><em>reader</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>count</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads the start of a binary blob, raising an error if its length is not exactly the given number of bytes. </p>
+<p>The bytes follow and must be read separately with <a class="el" href="group__reader.html#gaeb91e8d4e2a7b7f6562d8bbb7400275c" title="Reads bytes from a string, binary blob or extension object. ">mpack_read_bytes()</a> or <a class="el" href="group__reader.html#ga654d697da6a0eaf25246adf3ed343572" title="Reads bytes from a string, binary blob or extension object in-place in the buffer. ">mpack_read_bytes_inplace()</a>. <a class="el" href="group__reader.html#gaa4676c4b0761de4f864fd81c347a15a0">mpack_done_bin()</a> must be called once all bytes have been read.</p>
+<p>mpack_error_type is raised if the value is not a binary blob or if its length does not match. </p>
 
 </div>
 </div>
@@ -1293,6 +1352,71 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
 
 </div>
 </div>
+<a class="anchor" id="ga658205c994cf8fce528f4c8a3a957a14"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t mpack_expect_str_buf </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
+          <td class="paramname"><em>reader</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>buf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>bufsize</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads a string of at most the given size, writing it into the given buffer and returning its size in bytes. </p>
+<p>Note that this does not add a null-terminator! No null-terminator is written, even if the string fits. Use <a class="el" href="group__expect.html#ga94489d03628c1fb1a3d0ac6971600fe8" title="Reads a string into the given buffer, ensures it has no null-bytes, and adds null-terminator at the e...">mpack_expect_cstr()</a> to get a null-terminator. </p>
+
+</div>
+</div>
+<a class="anchor" id="gac189c3ea2b957e594854fc2c8cae3cbd"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void mpack_expect_str_length </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
+          <td class="paramname"><em>reader</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>count</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads the start of a string, raising an error if its length is not exactly the given number of bytes. </p>
+<p>The bytes follow and must be read separately with <a class="el" href="group__reader.html#gaeb91e8d4e2a7b7f6562d8bbb7400275c" title="Reads bytes from a string, binary blob or extension object. ">mpack_read_bytes()</a> or <a class="el" href="group__reader.html#ga654d697da6a0eaf25246adf3ed343572" title="Reads bytes from a string, binary blob or extension object in-place in the buffer. ">mpack_read_bytes_inplace()</a>. <a class="el" href="group__reader.html#gaaad37015e0c53704d9356de06b493de6">mpack_done_str()</a> must be called once all bytes have been read.</p>
+<p>mpack_error_type is raised if the value is not a string or if its length does not match. </p>
+
+</div>
+</div>
 <a class="anchor" id="gaadfca446696881a598cc4f90892ded88"></a>
 <div class="memitem">
 <div class="memproto">
@@ -1637,7 +1761,7 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Tue Mar 17 2015 12:42:29 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Wed Apr 8 2015 16:22:38 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.9.1
 </small></address>
