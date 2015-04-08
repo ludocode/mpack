@@ -1,3 +1,6 @@
 #!/bin/bash
 scons -c
-rm -rf build docs .sconsign.dblite mpack-*.tar.gz *.gcov src/mpack/*.o README.html
+rm -f .sconsign.dblite mpack-*.tar.gz *.gcov src/mpack/*.o README.html
+rm -f projects/vs/*.{suo,sdf,opensdf}
+rm -rf build docs
+rm -rf projects/vs/{Debug,Release}
