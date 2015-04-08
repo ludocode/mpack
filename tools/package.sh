@@ -1,37 +1,19 @@
 #!/bin/bash
 # packages MPack up for amalgamation release
 
-HEADERS="\
-    mpack-platform.h \
-    mpack-internal.h \
-    mpack-common.h \
-    mpack-reader.h \
-    mpack-writer.h \
-    mpack-expect.h \
-    mpack-node.h"
-SOURCES="\
-    mpack-platform.c \
-    mpack-internal.c \
-    mpack-common.c \
-    mpack-reader.c \
-    mpack-writer.c \
-    mpack-expect.c \
-    mpack-node.c"
+FILES="\
+    mpack-platform \
+    mpack-internal \
+    mpack-common \
+    mpack-reader \
+    mpack-writer \
+    mpack-expect \
+    mpack-node"
 
 version=`grep PROJECT_NUMBER Doxyfile|sed 's@.*= *\(.*\) *@\1@'`
 
-rm -rf docs
+"`dirname $0`"/clean.sh
 doxygen Doxyfile || exit $?
-
-# assemble release package
-#name=mpack-$version
-#git archive master --prefix "$name/" > $name.tar || exit $?
-#tar --transform "s@^@$name/@" -rf $name.tar docs || exit $?
-#gzip -f $name.tar || exit $?
-#echo
-#echo Created $name.tar.gz
-
-# build amalgamation
 
 # add top license and comment
 rm -rf build/amalgamation
@@ -55,9 +37,9 @@ cp $HEADER $SOURCE
 # assemble header
 echo -e "#ifndef MPACK_H\n#define MPACK_H 1\n" >> $HEADER
 echo -e "#include \"mpack-config.h\"\n\n" >> $HEADER
-for f in $HEADERS; do
-    echo -e "/* $f */\n" >> $HEADER
-    sed 's@^#include ".*@/* & */@' src/mpack/$f >> $HEADER
+for f in $FILES; do
+    echo -e "/* $f.h */\n" >> $HEADER
+    sed 's@^#include ".*@/* & */@' src/mpack/$f.h >> $HEADER
     echo -e "\n" >> $HEADER
 done
 echo -e "#endif\n" >> $HEADER
@@ -65,18 +47,23 @@ echo -e "#endif\n" >> $HEADER
 # assemble source
 echo -e "#define MPACK_INTERNAL 1\n" >> $SOURCE
 echo -e "#include \"mpack.h\"\n\n" >> $SOURCE
-for f in $SOURCES; do
-    echo -e "/* $f */\n" >> $SOURCE
-    sed 's@^#include ".*@/* & */@' src/mpack/$f >> $SOURCE
+for f in $FILES; do
+    echo -e "/* $f.c */\n" >> $SOURCE
+    sed 's@^#include ".*@/* & */@' src/mpack/$f.c >> $SOURCE
     echo -e "\n" >> $SOURCE
 done
 
-# assemble rest of package
-CONTENTS="docs test projects SConscript SConstruct LICENSE README.md"
+# assemble package contents
+CONTENTS="docs test SConscript SConstruct LICENSE README.md"
 cp -ar $CONTENTS build/amalgamation
+mkdir -p build/amalgamation/projects/{vs,xcode/MPack.xcodeproj}
+cp projects/vs/mpack.{sln,vcxproj,vcxproj.filters} build/amalgamation/projects/vs
+cp projects/xcode/MPack.xcodeproj/project.pbxproj build/amalgamation/projects/xcode/MPack.xcodeproj
 cp src/mpack-config.h.sample build/amalgamation/src
 mkdir -p build/amalgamation/tools
 cp tools/gcov.sh build/amalgamation/tools
+
+# create package
 name=mpack-amalgamation-$version
 tar -C build/amalgamation --transform "s@^@$name/@" -czf $name.tar.gz `ls build/amalgamation` || exit $?
 echo Created $name.tar.gz
