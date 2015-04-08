@@ -17,6 +17,11 @@
 /projects/vs/Debug/
 /projects/vs/Release/
 
+# xcode project
+xcuserdata/
+*.xcworkspace/
+.DS_Store
+
 # other junk
 .directory
 
