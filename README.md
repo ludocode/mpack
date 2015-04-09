@@ -78,6 +78,8 @@ Conceptually, MessagePack stores data similarly to JSON: they are both composed 
 
 - Numbers are particularly inefficient (especially when parsing back floats), making JSON inappropriate as a base format for structured data that contains lots of numbers.
 
+- Binary data is not supported by JSON at all. Small binary blobs such as icons and thumbnails need to be Base64 encoded or passed out-of-band.
+
 The above issues greatly increase the complexity of the decoder. Full-featured JSON decoders are quite large, and minimal decoders tend to leave out such features as string unescaping and float parsing, instead leaving these up to the user or platform. This can lead to hard-to-find and/or platform-specific bugs. This also significantly decreases performance, making JSON unattractive for use in applications such as mobile games.
 
 While the space inefficiencies of JSON can be partially mitigated through minification and compression, the performance inefficiencies cannot. More importantly, if you are minifying and compressing the data, then why use a human-readable format in the first place?
@@ -90,5 +92,5 @@ On Linux, the test suite uses SCons and requires Valgrind, and can be run in the
 
 If you are on 64-bit, you will also need support for cross-compiling to 32-bit, and running 32-bit binaries with 64-bit Valgrind. On Ubuntu, you'll need `libc6-dbg:i386`. On Arch you'll need `gcc-multilib` or `lib32-clang`, and `valgrind-multilib`. Just run `scons` to build and run all tests.
 
-On Windows, there is a Visual Studio solution for building and running the test suite.
+On Windows, there is a Visual Studio solution, and on OS X, there is an Xcode project for building and running the test suite.
 
