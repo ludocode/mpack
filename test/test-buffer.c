@@ -24,7 +24,7 @@
 #include "test-read.h"
 #include "test-write.h"
 
-const char test_buffer[] = 
+static const char test_buffer[] =
 
         "\x02" // 2
         "\x11" // 17
@@ -76,7 +76,7 @@ const char test_buffer[] =
 // a semi-random list of buffer sizes we will test with. each buffer
 // test is run with each of these buffer sizes to test the fill and
 // flush functions.
-const int test_buffer_sizes[] = {
+static const int test_buffer_sizes[] = {
     1, 2, 3, 4, 5, 6, 7, 8, 9,
     11, 13, 16, 17, 19, 23, 29, 32,
     37, 48, 64, 67, 89, 127, 128,
