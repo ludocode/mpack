@@ -28,7 +28,6 @@
 #ifndef MPACK_COMMON_H
 #define MPACK_COMMON_H 1
 
-#include "mpack-platform.h"
 #include "mpack-internal.h"
 
 #ifndef MPACK_STACK_SIZE
@@ -49,11 +48,11 @@ extern "C" {
  */
 
 /**
- * Error states for the MPack reader and writer.
+ * Error states for MPack objects.
  *
- * When a reader or writer is in an error state, all subsequent calls are
- * ignored and their return values are nil/zero. You should check whether
- * the reader or writer is in an error state before using such values.
+ * When a reader, writer, or tree is in an error state, all subsequent calls
+ * are ignored and their return values are nil/zero. You should check whether
+ * the source is in an error state before using such values.
  */
 typedef enum mpack_error_t {
     mpack_ok = 0,        /**< No error. */
