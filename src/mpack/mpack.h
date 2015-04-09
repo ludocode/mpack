@@ -30,22 +30,10 @@
 #define MPACK_H 1
 
 #include "mpack-common.h"
-
-#if MPACK_READER
-#include "mpack-reader.h"
-#endif
-
-#if MPACK_EXPECT
-#include "mpack-expect.h"
-#endif
-
-#if MPACK_WRITER
 #include "mpack-writer.h"
-#endif
-
-#if MPACK_NODE
+#include "mpack-reader.h"
+#include "mpack-expect.h"
 #include "mpack-node.h"
-#endif
 
 #endif
 

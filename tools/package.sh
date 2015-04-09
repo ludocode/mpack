@@ -5,8 +5,8 @@ FILES="\
     mpack-platform \
     mpack-internal \
     mpack-common \
-    mpack-reader \
     mpack-writer \
+    mpack-reader \
     mpack-expect \
     mpack-node"
 
