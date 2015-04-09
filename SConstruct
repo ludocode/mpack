@@ -7,6 +7,7 @@ if os.environ.has_key('CC'):
 env.Append(CPPFLAGS = [
     "-Wall", "-Wextra", "-Werror",
     "-Wconversion", "-Wno-sign-conversion", "-Wno-float-conversion",
+    "-fprofile-arcs", "-ftest-coverage",
     "-Isrc", "-Itest",
     "-g",
     ])
