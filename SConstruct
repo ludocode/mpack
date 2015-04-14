@@ -34,8 +34,8 @@ def AddBuild(variant_dir, cppflags, linkflags):
 AddBuild("build/debug",   debugflags + cflags, [])
 if not ARGUMENTS.get('dev'):
     AddBuild("build/release", releaseflags + cflags, [])
-    AddBuild("build/debug-cxx", debugflags + cxxflags, [])
-    AddBuild("build/release-cxx", releaseflags + cxxflags, [])
+    AddBuild("build/debug-cxx", debugflags + cxxflags, ["-lstdc++"])
+    AddBuild("build/release-cxx", releaseflags + cxxflags, ["-lstdc++"])
     if '64' in platform.architecture()[0]:
         AddBuild("build/debug-32",   debugflags + cflags + ["-m32"], ["-m32"])
         AddBuild("build/release-32", releaseflags + cflags + ["-m32"], ["-m32"])
