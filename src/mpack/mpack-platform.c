@@ -45,18 +45,19 @@ void mpack_assert_fail_format(const char* format, ...) {
 
 #if !defined(MPACK_CUSTOM_ASSERT) || !MPACK_CUSTOM_ASSERT
 void mpack_assert_fail(const char* message) {
-
-#if MPACK_STDIO
-    fprintf(stderr, "%s\n", message);
-#else
     MPACK_UNUSED(message);
-#endif
 
-    // crash
-    *((int*)0) = 1;
+    #if MPACK_STDIO
+    fprintf(stderr, "%s\n", message);
+    #endif
+
+    #if defined(__GCC__) || defined(__CLANG__)
+    __builtin_trap();
+    #elif WIN32
+    __debugbreak();
+    #endif
+
     abort();
-    ((void(*)())0)();
-
 }
 #endif
 
