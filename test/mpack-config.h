@@ -26,8 +26,9 @@
 // test whether assertions are hit
 #define MPACK_CUSTOM_ASSERT 1
 
-#define MPACK_STACK_SIZE 4096
-#define MPACK_BUFFER_SIZE 4096
+// we use small buffer sizes to test flushing and malloc failures
+#define MPACK_STACK_SIZE 7
+#define MPACK_BUFFER_SIZE 7
 #define MPACK_NODE_ARRAY_STARTING_SIZE 32
 #define MPACK_NODE_MAX_DEPTH 2048
 

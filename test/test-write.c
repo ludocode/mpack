@@ -308,25 +308,25 @@ static void test_write_simple_misc() {
 }
 
 static void test_write_basic_structures() {
-    size_t bufsize = 1024*1024;
-    char* buf = (char*)malloc(bufsize);
+    char* buf;
+    size_t size;
     mpack_writer_t writer;
 
     // []
-    mpack_writer_init(&writer, buf, bufsize);
+    mpack_writer_init_growable(&writer, &buf, &size);
     mpack_start_array(&writer, 0);
     mpack_finish_array(&writer);
     test_destroy_match("\x90");
 
     // [nil]
-    mpack_writer_init(&writer, buf, bufsize);
+    mpack_writer_init_growable(&writer, &buf, &size);
     mpack_start_array(&writer, 1);
     mpack_write_nil(&writer);
     mpack_finish_array(&writer);
     test_destroy_match("\x91\xc0");
 
     // range(15)
-    mpack_writer_init(&writer, buf, bufsize);
+    mpack_writer_init_growable(&writer, &buf, &size);
     mpack_start_array(&writer, 15);
         for (int i = 0; i < 15; ++i)
             mpack_write_int(&writer, i);
@@ -336,7 +336,7 @@ static void test_write_basic_structures() {
         );
 
     // range(16) (larger than infix)
-    mpack_writer_init(&writer, buf, bufsize);
+    mpack_writer_init_growable(&writer, &buf, &size);
     mpack_start_array(&writer, 16);
         for (int i = 0; i < 16; ++i)
             mpack_write_int(&writer, i);
@@ -347,39 +347,43 @@ static void test_write_basic_structures() {
         );
 
     // UINT16_MAX nils
-    mpack_writer_init(&writer, buf, bufsize);
+    mpack_writer_init_growable(&writer, &buf, &size);
     mpack_start_array(&writer, UINT16_MAX);
         for (int i = 0; i < UINT16_MAX; ++i)
             mpack_write_nil(&writer);
     mpack_finish_array(&writer);
     {
         const char prefix[] = "\xdc\xff\xff";
-        test_assert(memcmp(prefix, buf, sizeof(prefix)-1) == 0, "array prefix is incorrect");
-        test_assert(mpack_writer_buffer_used(&writer) == UINT16_MAX + sizeof(prefix)-1);
         test_writer_destroy_noerror(&writer);
+        test_assert(memcmp(prefix, buf, sizeof(prefix)-1) == 0, "array prefix is incorrect");
+        test_assert(size == UINT16_MAX + sizeof(prefix)-1);
     }
+    if (buf)
+        MPACK_FREE(buf);
 
     // UINT16_MAX+1 nils (largest category)
-    mpack_writer_init(&writer, buf, bufsize);
+    mpack_writer_init_growable(&writer, &buf, &size);
     mpack_start_array(&writer, UINT16_MAX+1);
         for (int i = 0; i < UINT16_MAX+1; ++i)
             mpack_write_nil(&writer);
     mpack_finish_array(&writer);
     {
         const char prefix[] = "\xdd\x00\x01\x00\x00";
-        test_assert(memcmp(prefix, buf, sizeof(prefix)-1) == 0, "array prefix is incorrect");
-        test_assert(mpack_writer_buffer_used(&writer) == UINT16_MAX+1 + sizeof(prefix)-1);
         test_writer_destroy_noerror(&writer);
+        test_assert(memcmp(prefix, buf, sizeof(prefix)-1) == 0, "array prefix is incorrect");
+        test_assert(size == UINT16_MAX+1 + sizeof(prefix)-1);
     }
+    if (buf)
+        MPACK_FREE(buf);
 
     // {}
-    mpack_writer_init(&writer, buf, bufsize);
+    mpack_writer_init_growable(&writer, &buf, &size);
     mpack_start_map(&writer, 0);
     mpack_finish_map(&writer);
     test_destroy_match("\x80");
 
     // {nil:nil}
-    mpack_writer_init(&writer, buf, bufsize);
+    mpack_writer_init_growable(&writer, &buf, &size);
     mpack_start_map(&writer, 1);
         mpack_write_nil(&writer);
         mpack_write_nil(&writer);
@@ -387,7 +391,7 @@ static void test_write_basic_structures() {
     test_destroy_match("\x81\xc0\xc0");
 
     // {0:0,1:1}
-    mpack_writer_init(&writer, buf, bufsize);
+    mpack_writer_init_growable(&writer, &buf, &size);
     mpack_start_map(&writer, 2);
         mpack_write_int(&writer, 0);
         mpack_write_int(&writer, 0);
@@ -397,7 +401,7 @@ static void test_write_basic_structures() {
     test_destroy_match("\x82\x00\x00\x01\x01");
 
     // {0:1, 2:3, ..., 28:29}
-    mpack_writer_init(&writer, buf, bufsize);
+    mpack_writer_init_growable(&writer, &buf, &size);
     mpack_start_map(&writer, 15);
         for (int i = 0; i < 30; ++i)
             mpack_write_int(&writer, i);
@@ -408,7 +412,7 @@ static void test_write_basic_structures() {
         );
 
     // {0:1, 2:3, ..., 28:29, 30:31} (larger than infix)
-    mpack_writer_init(&writer, buf, bufsize);
+    mpack_writer_init_growable(&writer, &buf, &size);
     mpack_start_map(&writer, 16);
         for (int i = 0; i < 32; ++i)
             mpack_write_int(&writer, i);
@@ -420,40 +424,43 @@ static void test_write_basic_structures() {
         );
 
     // UINT16_MAX nil:nils
-    mpack_writer_init(&writer, buf, bufsize);
+    mpack_writer_init_growable(&writer, &buf, &size);
     mpack_start_map(&writer, UINT16_MAX);
         for (int i = 0; i < UINT16_MAX*2; ++i)
             mpack_write_nil(&writer);
     mpack_finish_map(&writer);
     {
         const char prefix[] = "\xde\xff\xff";
-        test_assert(memcmp(prefix, buf, sizeof(prefix)-1) == 0, "map prefix is incorrect");
-        test_assert(mpack_writer_buffer_used(&writer) == UINT16_MAX*2 + sizeof(prefix)-1);
         test_writer_destroy_noerror(&writer);
+        test_assert(memcmp(prefix, buf, sizeof(prefix)-1) == 0, "map prefix is incorrect");
+        test_assert(size == UINT16_MAX*2 + sizeof(prefix)-1);
     }
+    if (buf)
+        MPACK_FREE(buf);
 
     // UINT16_MAX+1 nil:nils (largest category)
-    mpack_writer_init(&writer, buf, bufsize);
+    mpack_writer_init_growable(&writer, &buf, &size);
     mpack_start_map(&writer, UINT16_MAX+1);
         for (int i = 0; i < (UINT16_MAX+1)*2; ++i)
             mpack_write_nil(&writer);
     mpack_finish_map(&writer);
     {
         const char prefix[] = "\xdf\x00\x01\x00\x00";
-        test_assert(memcmp(prefix, buf, sizeof(prefix)-1) == 0, "map prefix is incorrect");
-        test_assert(mpack_writer_buffer_used(&writer) == (UINT16_MAX+1)*2 + sizeof(prefix)-1);
         test_writer_destroy_noerror(&writer);
+        test_assert(memcmp(prefix, buf, sizeof(prefix)-1) == 0, "map prefix is incorrect");
+        test_assert(size == (UINT16_MAX+1)*2 + sizeof(prefix)-1);
     }
-
-    free(buf);
+    if (buf)
+        MPACK_FREE(buf);
 }
 
 static void test_write_small_structure_trees() {
-    char buf[1024];
+    char* buf;
+    size_t size;
     mpack_writer_t writer;
 
     // [[]]
-    mpack_writer_init(&writer, buf, sizeof(buf));
+    mpack_writer_init_growable(&writer, &buf, &size);
     mpack_start_array(&writer, 1);
         mpack_start_array(&writer, 0);
         mpack_finish_array(&writer);
@@ -461,7 +468,7 @@ static void test_write_small_structure_trees() {
     test_destroy_match("\x91\x90");
 
     // [[], [0], [1, 2]]
-    mpack_writer_init(&writer, buf, sizeof(buf));
+    mpack_writer_init_growable(&writer, &buf, &size);
     mpack_start_array(&writer, 3);
         mpack_start_array(&writer, 0);
         mpack_finish_array(&writer);
@@ -476,7 +483,7 @@ static void test_write_small_structure_trees() {
     test_destroy_match("\x93\x90\x91\x00\x92\x01\x02");
 
     // miscellaneous tree of arrays of various small sizes
-    mpack_writer_init(&writer, buf, sizeof(buf));
+    mpack_writer_init_growable(&writer, &buf, &size);
     mpack_start_array(&writer, 5);
 
         mpack_start_array(&writer, 0);
@@ -514,7 +521,7 @@ static void test_write_small_structure_trees() {
 
 
     // miscellaneous tree of maps of various small sizes
-    mpack_writer_init(&writer, buf, sizeof(buf));
+    mpack_writer_init_growable(&writer, &buf, &size);
     mpack_start_map(&writer, 5);
 
         mpack_write_int(&writer, 0);
@@ -568,7 +575,7 @@ static void test_write_small_structure_trees() {
 
 
     // miscellaneous mix of maps and arrays of various small sizes
-    mpack_writer_init(&writer, buf, sizeof(buf));
+    mpack_writer_init_growable(&writer, &buf, &size);
     mpack_start_map(&writer, 5);
 
         mpack_write_int(&writer, -47);

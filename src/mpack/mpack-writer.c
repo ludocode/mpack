@@ -136,6 +136,83 @@ void mpack_writer_init_error(mpack_writer_t* writer, mpack_error_t error) {
     writer->error = error;
 }
 
+#ifdef MPACK_MALLOC
+typedef struct mpack_growable_writer_t {
+    mpack_writer_t* writer; // this causes the writer to not be movable...
+
+    char* data;
+    size_t size;
+    size_t capacity;
+
+    char** target_data;
+    size_t* target_size;
+
+    char buffer[MPACK_BUFFER_SIZE];
+} mpack_growable_writer_t;
+
+static bool mpack_growable_writer_flush(void* context, const char* buffer, size_t count) {
+    mpack_growable_writer_t* growable_writer = (mpack_growable_writer_t*)context;
+
+    if (growable_writer->size + count > growable_writer->capacity) {
+        size_t new_capacity = growable_writer->size + count;
+        if (new_capacity < growable_writer->capacity * 2)
+            new_capacity = growable_writer->capacity * 2;
+
+        char* new_data = (char*)MPACK_MALLOC(new_capacity);
+        if (new_data == NULL) {
+            mpack_writer_flag_error(growable_writer->writer, mpack_error_memory);
+            return false;
+        }
+
+        if (growable_writer->data) {
+            memcpy(new_data, growable_writer->data, growable_writer->size);
+            MPACK_FREE(growable_writer->data);
+        }
+        growable_writer->data = new_data;
+        growable_writer->capacity = new_capacity;
+    }
+
+    memcpy(growable_writer->data + growable_writer->size, buffer, count);
+    growable_writer->size += count;
+    return true;
+}
+
+static void mpack_growable_writer_teardown(void* context) {
+    mpack_growable_writer_t* growable_writer = (mpack_growable_writer_t*)context;
+
+    if (mpack_writer_error(growable_writer->writer) == mpack_ok) {
+        *growable_writer->target_data = growable_writer->data;
+        *growable_writer->target_size = growable_writer->size;
+
+    } else if (growable_writer->data) {
+        MPACK_FREE(growable_writer->data);
+    }
+
+    MPACK_FREE(growable_writer);
+}
+
+void mpack_writer_init_growable(mpack_writer_t* writer, char** data, size_t* size) {
+    *data = NULL;
+    *size = 0;
+
+    mpack_growable_writer_t* growable_writer = (mpack_growable_writer_t*) MPACK_MALLOC(sizeof(mpack_growable_writer_t));
+    if (growable_writer == NULL) {
+        mpack_writer_init_error(writer, mpack_error_memory);
+        return;
+    }
+    memset(growable_writer, 0, sizeof(*growable_writer));
+
+    growable_writer->writer = writer;
+    growable_writer->target_data = data;
+    growable_writer->target_size = size;
+
+    mpack_writer_init(writer, growable_writer->buffer, sizeof(growable_writer->buffer));
+    mpack_writer_set_context(writer, growable_writer);
+    mpack_writer_set_flush(writer, mpack_growable_writer_flush);
+    mpack_writer_set_teardown(writer, mpack_growable_writer_teardown);
+}
+#endif
+
 #if MPACK_STDIO
 typedef struct mpack_file_writer_t {
     FILE* file;

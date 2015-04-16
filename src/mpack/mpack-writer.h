@@ -93,7 +93,7 @@ struct mpack_writer_t {
  */
 
 /**
- * Initializes an mpack writer with the given buffer and flush function. The writer
+ * Initializes an mpack writer with the given buffer. The writer
  * does not assume ownership of the buffer.
  *
  * Trying to write past the end of the buffer will result in mpack_error_io unless
@@ -106,6 +106,22 @@ struct mpack_writer_t {
  * @param size The size of the buffer.
  */
 void mpack_writer_init(mpack_writer_t* writer, char* buffer, size_t size);
+
+#ifdef MPACK_MALLOC
+/**
+ * Initializes an mpack writer using a growable buffer.
+ *
+ * The data is placed in the given data pointer if and when the writer
+ * is destroyed without error. The data should be freed with MPACK_FREE().
+ *
+ * mpack_error_memory is raised if the buffer fails to grow.
+ *
+ * @param writer The MPack writer.
+ * @param buffer The pointer in which to place the allocated data.
+ * @param size The pointer in which to write the size of the data.
+ */
+void mpack_writer_init_growable(mpack_writer_t* writer, char** data, size_t* size);
+#endif
 
 /**
  * Initializes an mpack writer directly into an error state. Use this if you
