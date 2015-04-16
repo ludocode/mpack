@@ -252,7 +252,7 @@ static inline mpack_tag_t mpack_node_tag(mpack_node_t* node) {
     return node->tag;
 }
 
-#if MPACK_DEBUG && MPACK_STDIO && MPACK_SETJMP
+#if MPACK_DEBUG && MPACK_STDIO && MPACK_SETJMP && !MPACK_NO_PRINT
 /**
  * Converts a node to JSON and pretty-prints it to stdout.
  *

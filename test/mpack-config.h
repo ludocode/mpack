@@ -31,5 +31,8 @@
 #define MPACK_NODE_ARRAY_STARTING_SIZE 32
 #define MPACK_NODE_MAX_DEPTH 2048
 
+// don't include debug print functions in code coverage
+#define MPACK_NO_PRINT 1
+
 #endif
 

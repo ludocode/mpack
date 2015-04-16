@@ -404,7 +404,7 @@ static inline void mpack_done_ext(mpack_reader_t* reader) {MPACK_UNUSED(reader);
  */
 void mpack_discard(mpack_reader_t* reader);
 
-#if MPACK_DEBUG && MPACK_STDIO && MPACK_SETJMP
+#if MPACK_DEBUG && MPACK_STDIO && MPACK_SETJMP && !MPACK_NO_PRINT
 /*! Converts a chunk of messagepack to JSON and pretty-prints it to stdout. */
 void mpack_debug_print(const char* data, int len);
 #endif

@@ -773,7 +773,7 @@ void mpack_done_ext(mpack_reader_t* reader) {
 }
 #endif
 
-#if MPACK_DEBUG && MPACK_STDIO && MPACK_SETJMP
+#if MPACK_DEBUG && MPACK_STDIO && MPACK_SETJMP && !MPACK_NO_PRINT
 static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
     mpack_tag_t val = mpack_read_tag(reader);
     switch (val.type) {
