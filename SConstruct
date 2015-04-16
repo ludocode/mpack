@@ -1,6 +1,7 @@
 import platform, os
 
 env = Environment()
+env['ENV']['TERM'] = os.environ['TERM']
 if os.environ.has_key('CC'):
     env['CC'] = os.environ['CC']
 
