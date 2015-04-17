@@ -28,22 +28,27 @@ include_directories(
 )
 
 # miscellaneous
+set(MPACK_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/mpack")
 set(MPACK_DOC_DIR "${CMAKE_CURRENT_BINARY_DIR}/docs")
 
 # load cmake packages
 find_package(Doxygen)
 if(DOXYGEN_FOUND)
-	# generate doxygen configuration file
+	file(MAKE_DIRECTORY "${MPACK_DOC_DIR}")
 	configure_file (
 		"Doxyfile.in"
-		"${CMAKE_CURRENT_BINARY_DIR}/Doxyfile"
+		"${MPACK_DOC_DIR}/Doxyfile"
 	)
 	add_custom_target(doc ALL
-		${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
-		WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+		${DOXYGEN_EXECUTABLE} ${MPACK_DOC_DIR}/Doxyfile
+		WORKING_DIRECTORY ${CMAKE_DOC_DIR}
 		COMMENT "Generating API documentation with Doxygen" VERBATIM
 	)
 endif(DOXYGEN_FOUND)
+
+# valgrind
+find_program( MEMORYCHECK_COMMAND valgrind )
+set( MEMORYCHECK_COMMAND_OPTIONS "--trace-children=yes --leak-check=full" )
 
 # include source and test folders
 add_subdirectory("src")

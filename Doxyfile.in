@@ -6,8 +6,8 @@ PROJECT_BRIEF = "A C encoding/decoding library for the MessagePack serialization
 # This is the only place where the version number is defined.
 # The packaging script pulls the version number from here.
 PROJECT_NUMBER = @MPACK_MAJOR@.@MPACK_MINOR@-dev
-
 WARN_LOGFILE = @MPACK_DOC_DIR@/warnings.log
+
 INPUT = \
     @CMAKE_SOURCE_DIR@/README.md \
     @MPACK_SRC_DIR@/mpack-platform.h \

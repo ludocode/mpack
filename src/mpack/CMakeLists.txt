@@ -1,5 +1,4 @@
-# set cmake source dir and sourcefiles for library creation
-set(MPACK_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}" CACHE STRING "MPack source folder")
+# set mpack source files for library creation
 set(MPACK_SRC
 	mpack-common.c
 	mpack-expect.c
