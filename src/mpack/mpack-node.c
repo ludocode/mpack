@@ -527,8 +527,7 @@ int64_t mpack_node_i64(mpack_node_t* node) {
         if (node->tag.v.u <= (uint64_t)INT64_MAX)
             return (int64_t)node->tag.v.u;
     } else if (node->tag.type == mpack_type_int) {
-        if (node->tag.v.i >= INT64_MIN && node->tag.v.i <= INT64_MAX)
-            return (int64_t)node->tag.v.i;
+        return node->tag.v.i;
     }
 
     mpack_node_flag_error(node, mpack_error_type);

@@ -128,8 +128,7 @@ int64_t mpack_expect_i64(mpack_reader_t* reader) {
         if (var.v.u <= INT64_MAX)
             return (int64_t)var.v.u;
     } else if (var.type == mpack_type_int) {
-        if (var.v.i >= INT64_MIN && var.v.i <= INT64_MAX)
-            return (int64_t)var.v.i;
+        return var.v.i;
     }
     mpack_reader_flag_error(reader, mpack_error_type);
     return 0;
