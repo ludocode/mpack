@@ -130,7 +130,7 @@ typedef struct mpack_tag_t {
 /** Generates a nil tag. */
 static inline mpack_tag_t mpack_tag_nil(void) {
     mpack_tag_t ret;
-    memset(&ret, 0, sizeof(ret));
+    mpack_memset(&ret, 0, sizeof(ret));
     ret.type = mpack_type_nil;
     return ret;
 }
@@ -138,7 +138,7 @@ static inline mpack_tag_t mpack_tag_nil(void) {
 /** Generates a signed int tag. */
 static inline mpack_tag_t mpack_tag_int(int64_t value) {
     mpack_tag_t ret;
-    memset(&ret, 0, sizeof(ret));
+    mpack_memset(&ret, 0, sizeof(ret));
     ret.type = mpack_type_int;
     ret.v.i = value;
     return ret;
@@ -147,7 +147,7 @@ static inline mpack_tag_t mpack_tag_int(int64_t value) {
 /** Generates an unsigned int tag. */
 static inline mpack_tag_t mpack_tag_uint(uint64_t value) {
     mpack_tag_t ret;
-    memset(&ret, 0, sizeof(ret));
+    mpack_memset(&ret, 0, sizeof(ret));
     ret.type = mpack_type_uint;
     ret.v.u = value;
     return ret;
@@ -156,7 +156,7 @@ static inline mpack_tag_t mpack_tag_uint(uint64_t value) {
 /** Generates a bool tag. */
 static inline mpack_tag_t mpack_tag_bool(bool value) {
     mpack_tag_t ret;
-    memset(&ret, 0, sizeof(ret));
+    mpack_memset(&ret, 0, sizeof(ret));
     ret.type = mpack_type_bool;
     ret.v.b = value;
     return ret;
@@ -165,7 +165,7 @@ static inline mpack_tag_t mpack_tag_bool(bool value) {
 /** Generates a float tag. */
 static inline mpack_tag_t mpack_tag_float(float value) {
     mpack_tag_t ret;
-    memset(&ret, 0, sizeof(ret));
+    mpack_memset(&ret, 0, sizeof(ret));
     ret.type = mpack_type_float;
     ret.v.f = value;
     return ret;
@@ -174,7 +174,7 @@ static inline mpack_tag_t mpack_tag_float(float value) {
 /** Generates a double tag. */
 static inline mpack_tag_t mpack_tag_double(double value) {
     mpack_tag_t ret;
-    memset(&ret, 0, sizeof(ret));
+    mpack_memset(&ret, 0, sizeof(ret));
     ret.type = mpack_type_double;
     ret.v.d = value;
     return ret;

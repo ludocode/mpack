@@ -140,7 +140,7 @@ static void mpack_tree_read_node(mpack_tree_t* tree, mpack_node_t* node, mpack_r
 }
 
 void mpack_tree_init(mpack_tree_t* tree, const char* data, size_t length) {
-    memset(tree, 0, sizeof(*tree));
+    mpack_memset(tree, 0, sizeof(*tree));
 
     tree->nil_node.tree = tree;
     tree->nil_node.tag.type = mpack_type_nil;
@@ -154,7 +154,7 @@ void mpack_tree_init(mpack_tree_t* tree, const char* data, size_t length) {
 }
 
 void mpack_tree_init_error(mpack_tree_t* tree, mpack_error_t error) {
-    memset(tree, 0, sizeof(*tree));
+    mpack_memset(tree, 0, sizeof(*tree));
 
     tree->nil_node.tree = tree;
     tree->nil_node.tag.type = mpack_type_nil;

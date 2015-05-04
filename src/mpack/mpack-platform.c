@@ -68,6 +68,14 @@ void mpack_assert_fail(const char* message) {
 // The below are adapted from the C wikibook:
 //     https://en.wikibooks.org/wiki/C_Programming/Strings
 
+void* mpack_memset(void *s, int c, size_t n) {
+    unsigned char *us = (unsigned char *)s;
+    unsigned char uc = (unsigned char)c;
+    while (n-- != 0)
+        *us++ = uc;
+    return s;
+}
+
 int mpack_memcmp(const void* s1, const void* s2, size_t n) {
      const unsigned char *us1 = (const unsigned char *) s1;
      const unsigned char *us2 = (const unsigned char *) s2;

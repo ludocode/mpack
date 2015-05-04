@@ -126,13 +126,13 @@ static inline void mpack_track_bytes_written(mpack_writer_t* writer, uint64_t co
 }
 
 void mpack_writer_init(mpack_writer_t* writer, char* buffer, size_t size) {
-    memset(writer, 0, sizeof(*writer));
+    mpack_memset(writer, 0, sizeof(*writer));
     writer->buffer = buffer;
     writer->size = size;
 }
 
 void mpack_writer_init_error(mpack_writer_t* writer, mpack_error_t error) {
-    memset(writer, 0, sizeof(*writer));
+    mpack_memset(writer, 0, sizeof(*writer));
     writer->error = error;
 }
 
@@ -200,7 +200,7 @@ void mpack_writer_init_growable(mpack_writer_t* writer, char** data, size_t* siz
         mpack_writer_init_error(writer, mpack_error_memory);
         return;
     }
-    memset(growable_writer, 0, sizeof(*growable_writer));
+    mpack_memset(growable_writer, 0, sizeof(*growable_writer));
 
     growable_writer->writer = writer;
     growable_writer->target_data = data;

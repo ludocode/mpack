@@ -117,19 +117,19 @@ void mpack_track_read(mpack_reader_t* reader, bool bytes, uint64_t count) {
 #endif
 
 void mpack_reader_init(mpack_reader_t* reader, char* buffer, size_t size, size_t count) {
-    memset(reader, 0, sizeof(*reader));
+    mpack_memset(reader, 0, sizeof(*reader));
     reader->buffer = buffer;
     reader->size = size;
     reader->left = count;
 }
 
 void mpack_reader_init_error(mpack_reader_t* reader, mpack_error_t error) {
-    memset(reader, 0, sizeof(*reader));
+    mpack_memset(reader, 0, sizeof(*reader));
     reader->error = error;
 }
 
 void mpack_reader_init_data(mpack_reader_t* reader, const char* data, size_t count) {
-    memset(reader, 0, sizeof(*reader));
+    mpack_memset(reader, 0, sizeof(*reader));
     reader->left = count;
 
     // unfortunately we have to cast away the const to store the buffer,
@@ -243,7 +243,7 @@ static inline size_t mpack_fill(mpack_reader_t* reader, char* p, size_t count) {
 // left in the buffer to satisfy a read.
 static void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count) {
     if (reader->error != mpack_ok) {
-        memset(p, 0, count);
+        mpack_memset(p, 0, count);
         return;
     }
 
@@ -256,7 +256,7 @@ static void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count)
                 "left in buffer. call mpack_read_native() instead",
                 (int)count, (int)reader->left);
         mpack_reader_flag_error(reader, mpack_error_bug);
-        memset(p, 0, count);
+        mpack_memset(p, 0, count);
         return;
     }
 
@@ -267,7 +267,7 @@ static void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count)
         // been truncated to zero. for this reason we return the same
         // error as if the data was truncated.
         mpack_reader_flag_error(reader, mpack_error_io);
-        memset(p, 0, count);
+        mpack_memset(p, 0, count);
         return;
     }
 
@@ -287,7 +287,7 @@ static void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count)
         mpack_log("reading %i bytes in middle\n", (int)middle);
         if (mpack_fill(reader, p, middle) < middle) {
             mpack_reader_flag_error(reader, mpack_error_io);
-            memset(p, 0, count);
+            mpack_memset(p, 0, count);
             return;
         }
         count -= middle;
@@ -302,7 +302,7 @@ static void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count)
     mpack_log("filled %i bytes into buffer\n", (int)reader->left);
     if (reader->left < count) {
         mpack_reader_flag_error(reader, mpack_error_io);
-        memset(p, 0, count);
+        mpack_memset(p, 0, count);
         return;
     }
 
@@ -442,7 +442,7 @@ double mpack_read_native_double(mpack_reader_t* reader) {
 
 mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
     mpack_tag_t var;
-    memset(&var, 0, sizeof(var));
+    mpack_memset(&var, 0, sizeof(var));
     var.type = mpack_type_nil;
 
     // get the type

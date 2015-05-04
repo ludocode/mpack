@@ -46,6 +46,7 @@
 #define __STDC_CONSTANT_MACROS 1
 #endif
 
+#include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <inttypes.h>
@@ -92,9 +93,11 @@ extern "C" {
 
 
 #if MPACK_STDLIB
+#define mpack_memset memset
 #define mpack_memcmp memcmp
 #define mpack_strlen strlen
 #else
+void* mpack_memset(void *s, int c, size_t n);
 int mpack_memcmp(const void* s1, const void* s2, size_t n);
 size_t mpack_strlen(const char *s);
 #endif
