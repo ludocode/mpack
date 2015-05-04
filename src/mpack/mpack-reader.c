@@ -274,7 +274,7 @@ static void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count)
     // flush what's left of the buffer
     if (reader->left > 0) {
         mpack_log("flushing %i bytes remaining in buffer\n", (int)reader->left);
-        memcpy(p, reader->buffer + reader->pos, reader->left);
+        mpack_memcpy(p, reader->buffer + reader->pos, reader->left);
         count -= reader->left;
         p += reader->left;
         reader->pos += reader->left;
@@ -308,7 +308,7 @@ static void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count)
 
     // serve the remainder
     mpack_log("serving %i remaining bytes from %p to %p\n", (int)count, reader->buffer+reader->pos,p);
-    memcpy(p, reader->buffer + reader->pos, count);
+    mpack_memcpy(p, reader->buffer + reader->pos, count);
     reader->pos += count;
     reader->left -= count;
 }
@@ -329,7 +329,7 @@ void mpack_read_native(mpack_reader_t* reader, char* p, size_t count) {
     if (count > reader->left) {
         mpack_read_native_big(reader, p, count);
     } else {
-        memcpy(p, reader->buffer + reader->pos, count);
+        mpack_memcpy(p, reader->buffer + reader->pos, count);
         reader->pos += count;
         reader->left -= count;
     }
@@ -378,7 +378,7 @@ const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count) {
     }
 
     // shift the remaining data back to the start and fill the buffer back up
-    memmove(reader->buffer, reader->buffer + reader->pos, reader->left);
+    mpack_memmove(reader->buffer, reader->buffer + reader->pos, reader->left);
     reader->pos = 0;
     reader->left += mpack_fill(reader, reader->buffer + reader->left, reader->size - reader->left);
     if (reader->left < count) {

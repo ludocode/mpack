@@ -76,6 +76,28 @@ void* mpack_memset(void *s, int c, size_t n) {
     return s;
 }
 
+void* mpack_memcpy(void * restrict s1, const void * restrict s2, size_t n) {
+    char * restrict dst = (char * restrict)s1;
+    const char * restrict src = (const char * restrict)s2;
+    while (n-- != 0)
+        *dst++ = *src++;
+    return s1;
+}
+
+void* mpack_memmove(void *s1, const void *s2, size_t n) {
+    char *p1 = (char *)s1;
+    const char *p2 = (const char *)s2;
+    if (p2 < p1 && p1 < p2 + n) {
+        p2 += n;
+        p1 += n;
+        while (n-- != 0)
+            *--p1 = *--p2;
+    } else
+        while (n-- != 0)
+            *p1++ = *p2++;
+    return s1;
+}
+
 int mpack_memcmp(const void* s1, const void* s2, size_t n) {
      const unsigned char *us1 = (const unsigned char *) s1;
      const unsigned char *us2 = (const unsigned char *) s2;

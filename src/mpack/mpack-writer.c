@@ -165,14 +165,14 @@ static bool mpack_growable_writer_flush(void* context, const char* buffer, size_
         }
 
         if (growable_writer->data) {
-            memcpy(new_data, growable_writer->data, growable_writer->size);
+            mpack_memcpy(new_data, growable_writer->data, growable_writer->size);
             MPACK_FREE(growable_writer->data);
         }
         growable_writer->data = new_data;
         growable_writer->capacity = new_capacity;
     }
 
-    memcpy(growable_writer->data + growable_writer->size, buffer, count);
+    mpack_memcpy(growable_writer->data + growable_writer->size, buffer, count);
     growable_writer->size += count;
     return true;
 }
@@ -289,7 +289,7 @@ static void mpack_write_native_big(mpack_writer_t* writer, const char* p, size_t
     size_t n = writer->size - writer->used;
     if (count < n)
         n = count;
-    memcpy(writer->buffer + writer->used, p, n);
+    mpack_memcpy(writer->buffer + writer->used, p, n);
     writer->used += n;
     p += n;
     count -= n;
@@ -315,7 +315,7 @@ static void mpack_write_native_big(mpack_writer_t* writer, const char* p, size_t
     }
 
     // copy any remaining data into the buffer
-    memcpy(writer->buffer, p, count);
+    mpack_memcpy(writer->buffer, p, count);
     writer->used += count;
 }
 
@@ -334,7 +334,7 @@ static inline void mpack_write_native(mpack_writer_t* writer, const char* p, siz
     if (writer->size - writer->used < count) {
         mpack_write_native_big(writer, p, count);
     } else {
-        memcpy(writer->buffer + writer->used, p, count);
+        mpack_memcpy(writer->buffer + writer->used, p, count);
         writer->used += count;
     }
 }
@@ -783,7 +783,7 @@ void mpack_write_bytes(mpack_writer_t* writer, const char* data, size_t count) {
 }
 
 void mpack_write_cstr(mpack_writer_t* writer, const char* str) {
-    size_t len = strlen(str);
+    size_t len = mpack_strlen(str);
     if (len > UINT32_MAX)
         mpack_writer_flag_error(writer, mpack_error_invalid);
     mpack_write_str(writer, str, (uint32_t)len);

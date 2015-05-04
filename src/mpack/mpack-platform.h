@@ -94,10 +94,14 @@ extern "C" {
 
 #if MPACK_STDLIB
 #define mpack_memset memset
+#define mpack_memcpy memcpy
+#define mpack_memmove memmove
 #define mpack_memcmp memcmp
 #define mpack_strlen strlen
 #else
 void* mpack_memset(void *s, int c, size_t n);
+void* mpack_memcpy(void * restrict s1, const void * restrict s2, size_t n);
+void* mpack_memmove(void *s1, const void *s2, size_t n);
 int mpack_memcmp(const void* s1, const void* s2, size_t n);
 size_t mpack_strlen(const char *s);
 #endif
