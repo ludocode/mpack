@@ -456,6 +456,7 @@ uint32_t mpack_expect_array_range(mpack_reader_t* reader, uint32_t min_count, ui
     return count;
 }
 
+#ifdef MPACK_MALLOC
 void* mpack_expect_array_alloc_impl(mpack_reader_t* reader, size_t element_size, uint32_t max_count, size_t* out_count) {
     size_t count = *out_count = mpack_expect_array(reader);
     if (mpack_reader_error(reader))
@@ -469,6 +470,7 @@ void* mpack_expect_array_alloc_impl(mpack_reader_t* reader, size_t element_size,
         mpack_reader_flag_error(reader, mpack_error_memory);
     return p;
 }
+#endif
 
 
 // String Functions
@@ -589,6 +591,7 @@ void mpack_expect_utf8_cstr(mpack_reader_t* reader, char* buf, size_t bufsize) {
 
 }
 
+#ifdef MPACK_MALLOC
 char* mpack_expect_cstr_alloc(mpack_reader_t* reader, size_t maxsize) {
     if (maxsize < 1) {
         mpack_assert(0, "maxsize is zero; you must have room for at least a null-terminator");
@@ -624,6 +627,7 @@ char* mpack_expect_cstr_alloc(mpack_reader_t* reader, size_t maxsize) {
     mpack_done_str(reader);
     return str;
 }
+#endif
 
 void mpack_expect_cstr_match(mpack_reader_t* reader, const char* str) {
     if (reader->error != mpack_ok)

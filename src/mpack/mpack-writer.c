@@ -266,8 +266,10 @@ void mpack_writer_flag_error(mpack_writer_t* writer, mpack_error_t error) {
 
     if (!writer->error) {
         writer->error = error;
+        #if MPACK_SETJMP
         if (writer->jump)
             longjmp(writer->jump_env, 1);
+        #endif
     }
 }
 

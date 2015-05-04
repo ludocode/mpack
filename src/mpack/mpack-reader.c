@@ -223,8 +223,10 @@ void mpack_reader_flag_error(mpack_reader_t* reader, mpack_error_t error) {
 
     if (!reader->error) {
         reader->error = error;
+        #if MPACK_SETJMP
         if (reader->jump)
             longjmp(reader->jump_env, 1);
+        #endif
     }
 }
 

@@ -550,6 +550,7 @@ void mpack_expect_cstr(mpack_reader_t* reader, char* buf, size_t size);
  */
 void mpack_expect_utf8_cstr(mpack_reader_t* reader, char* buf, size_t size);
 
+#ifdef MPACK_MALLOC
 /**
  * Reads a string, allocates storage for it, ensures it has no null-bytes,
  * and adds null-terminator at the end. You assume ownership of the
@@ -559,6 +560,7 @@ void mpack_expect_utf8_cstr(mpack_reader_t* reader, char* buf, size_t size);
  * Raises mpack_error_invalid if the value is not a string or contains a null byte.
  */
 char* mpack_expect_cstr_alloc(mpack_reader_t* reader, size_t maxsize);
+#endif
 
 /**
  * Reads a string, ensuring it exactly matches the given null-terminated
