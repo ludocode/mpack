@@ -76,9 +76,9 @@ void* mpack_memset(void *s, int c, size_t n) {
     return s;
 }
 
-void* mpack_memcpy(void * restrict s1, const void * restrict s2, size_t n) {
-    char * restrict dst = (char * restrict)s1;
-    const char * restrict src = (const char * restrict)s2;
+void* mpack_memcpy(void *s1, const void *s2, size_t n) {
+    char * __restrict dst = (char *)s1;
+    const char * __restrict src = (const char *)s2;
     while (n-- != 0)
         *dst++ = *src++;
     return s1;
