@@ -110,7 +110,7 @@ static void mpack_tree_read_node(mpack_tree_t* tree, mpack_node_t* node, mpack_r
                     return;
                 }
 
-                memcpy(new_children, children, count * sizeof(mpack_node_t));
+                mpack_memcpy(new_children, children, count * sizeof(mpack_node_t));
                 MPACK_FREE(children);
                 children = new_children;
                 count = new_count;
@@ -273,8 +273,10 @@ void mpack_tree_flag_error(mpack_tree_t* tree, mpack_error_t error) {
 
     if (!tree->error) {
         tree->error = error;
+        #if MPACK_SETJMP
         if (tree->jump)
             longjmp(tree->jump_env, 1);
+        #endif
     }
 }
 
@@ -659,7 +661,7 @@ size_t mpack_node_copy_data(mpack_node_t* node, char* buffer, size_t size) {
         return 0;
     }
 
-    memcpy(buffer, node->data.bytes, node->tag.v.l);
+    mpack_memcpy(buffer, node->data.bytes, node->tag.v.l);
     return (size_t)node->tag.v.l;
 }
 
@@ -686,7 +688,7 @@ void mpack_node_copy_cstr(mpack_node_t* node, char* buffer, size_t size) {
         return;
     }
 
-    memcpy(buffer, node->data.bytes, node->tag.v.l);
+    mpack_memcpy(buffer, node->data.bytes, node->tag.v.l);
     buffer[node->tag.v.l] = '\0';
 }
 
@@ -712,7 +714,7 @@ char* mpack_node_data_alloc(mpack_node_t* node, size_t maxlen) {
         return NULL;
     }
 
-    memcpy(ret, node->data.bytes, node->tag.v.l);
+    mpack_memcpy(ret, node->data.bytes, node->tag.v.l);
     return ret;
 }
 
@@ -743,7 +745,7 @@ char* mpack_node_cstr_alloc(mpack_node_t* node, size_t maxlen) {
         return NULL;
     }
 
-    memcpy(ret, node->data.bytes, node->tag.v.l);
+    mpack_memcpy(ret, node->data.bytes, node->tag.v.l);
     ret[node->tag.v.l] = '\0';
     return ret;
 }
@@ -878,7 +880,7 @@ mpack_node_t* mpack_node_map_str(mpack_node_t* node, const char* str, size_t len
         mpack_node_t* key = &node->data.children[i * 2];
         mpack_node_t* value = &node->data.children[i * 2 + 1];
 
-        if (key->tag.type == mpack_type_str && key->tag.v.l == length && memcmp(str, key->data.bytes, length) == 0)
+        if (key->tag.type == mpack_type_str && key->tag.v.l == length && mpack_memcmp(str, key->data.bytes, length) == 0)
             return value;
     }
 
@@ -901,7 +903,7 @@ bool mpack_node_map_contains_str(mpack_node_t* node, const char* str, size_t len
 
     for (size_t i = 0; i < node->tag.v.n; ++i) {
         mpack_node_t* key = &node->data.children[i * 2];
-        if (key->tag.type == mpack_type_str && key->tag.v.l == length && memcmp(str, key->data.bytes, length) == 0)
+        if (key->tag.type == mpack_type_str && key->tag.v.l == length && mpack_memcmp(str, key->data.bytes, length) == 0)
             return true;
     }
 

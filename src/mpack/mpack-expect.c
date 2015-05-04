@@ -620,7 +620,7 @@ char* mpack_expect_cstr_alloc(mpack_reader_t* reader, size_t maxsize) {
     mpack_read_native_nojump(reader, str, length);
 
     if (mpack_reader_error(reader)) {
-        free(str);
+        MPACK_FREE(str);
         return NULL;
     }
     str[length] = 0;
