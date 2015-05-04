@@ -33,7 +33,7 @@
 #if MPACK_EXPECT
 
 #if !MPACK_READER
-#error MPACK_EXPECT requires MPACK_READER.
+#error "MPACK_EXPECT requires MPACK_READER."
 #endif
 
 #ifdef __cplusplus

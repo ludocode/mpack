@@ -33,11 +33,11 @@
 #if MPACK_NODE
 
 #if !MPACK_READER
-#error MPACK_NODE requires MPACK_READER.
+#error "MPACK_NODE requires MPACK_READER."
 #endif
 
 #if !defined(MPACK_MALLOC) || !defined(MPACK_FREE)
-#error MPACK_NODE requires preprocessor definitions for MPACK_MALLOC and MPACK_FREE.
+#error "MPACK_NODE requires preprocessor definitions for MPACK_MALLOC and MPACK_FREE."
 #endif
 
 #ifdef __cplusplus
