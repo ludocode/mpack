@@ -36,6 +36,7 @@
 extern "C" {
 #endif
 
+#ifdef MPACK_MALLOC
 void* test_malloc(size_t size);
 
 // calls to test_malloc() will fail after count mallocs.
@@ -47,6 +48,7 @@ void test_free(void* p);
 
 // returns the number of mallocs that have not yet been freed.
 size_t test_malloc_count(void);
+#endif
 
 #ifdef __cplusplus
 }

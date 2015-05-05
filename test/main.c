@@ -48,11 +48,20 @@ int main(void) {
     printf("\n\n");
 
     test_tags();
-    test_read();
-    test_writes();
     test_buffers();
+
+    #if MPACK_EXPECT
+    test_read();
+    #endif
+    #if MPACK_WRITER
+    test_writes();
+    #endif
+    #if MPACK_NODE
     test_node();
+    #endif
+    #if MPACK_STDIO
     test_file();
+    #endif
 
     printf("\n\nUnit testing complete. %i passes out of %i tests.\n\n\n", passes, tests);
     return (passes == tests) ? EXIT_SUCCESS : EXIT_FAILURE;

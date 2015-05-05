@@ -21,16 +21,20 @@
 
 #include "test-read.h"
 
+#if MPACK_EXPECT
+
 // tests the example on the messagepack homepage
 static void test_example_read() {
     static const char test[] = "\x82\xA7""compact\xC3\xA6""schema\x00";
     mpack_reader_t reader;
     mpack_reader_init_data(&reader, test, sizeof(test) - 1);
 
+    #if MPACK_SETJMP
     if (MPACK_READER_SETJMP(&reader)) {
         test_assert(0, "jumped! error: %s", mpack_error_to_string(mpack_reader_error(&reader)));
         return;
     }
+    #endif
 
     test_assert(2 == mpack_expect_map(&reader));
     mpack_expect_cstr_match(&reader, "compact");
@@ -428,4 +432,6 @@ void test_read() {
     test_read_bad_type();
     test_read_pre_error();
 }
+
+#endif
 

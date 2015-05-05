@@ -21,6 +21,8 @@
 
 #include "test-node.h"
 
+#if MPACK_NODE
+
 // tests the example on the messagepack homepage
 static void test_example_node() {
     static const char test[] = "\x82\xA7""compact\xC3\xA6""schema\x00";
@@ -28,10 +30,12 @@ static void test_example_node() {
     mpack_tree_init(&tree, test, sizeof(test) - 1);
     //mpack_node_print(mpack_tree_root(&tree));
 
+    #if MPACK_SETJMP
     if (MPACK_TREE_SETJMP(&tree)) {
         test_assert(0, "jumped! error: %s", mpack_error_to_string(mpack_tree_error(&tree)));
         return;
     }
+    #endif
 
     mpack_node_t* map = mpack_tree_root(&tree);
     test_assert(true == mpack_node_bool(mpack_node_map_cstr(map, "compact")));
@@ -626,4 +630,6 @@ void test_node(void) {
     test_node_read_compound_errors();
     test_node_read_data();
 }
+
+#endif
 

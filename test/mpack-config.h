@@ -18,9 +18,9 @@
 #define MPACK_STDIO 1
 #define MPACK_SETJMP 1
 
-#include "test-malloc.h"
 #define MPACK_MALLOC test_malloc
 #define MPACK_FREE test_free
+#include "test-malloc.h"
 
 // the test harness uses a custom assert function since we
 // test whether assertions are hit

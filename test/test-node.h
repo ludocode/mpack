@@ -24,6 +24,12 @@
 
 #include "test.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#if MPACK_NODE
+
 #define test_tree_destroy_noerror(tree) do { \
     test_assert(mpack_tree_error(tree) == mpack_ok, \
             "tree is in error state %i", (int)mpack_tree_error(tree)); \
@@ -56,11 +62,9 @@
   test_tree_destroy_error(&tree, (error)); \
 } while (0)
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 void test_node(void);
+
+#endif
 
 #ifdef __cplusplus
 }

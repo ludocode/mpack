@@ -24,6 +24,7 @@
 #include "test-read.h"
 #include "test-write.h"
 
+#if MPACK_EXPECT || MPACK_WRITER
 static const char test_buffer[] =
 
         "\x02" // 2
@@ -86,7 +87,9 @@ static const int test_buffer_sizes[] = {
     4093, 4096, 4099, 7919, 8192,
     16384, 32768
 };
+#endif
 
+#if MPACK_EXPECT
 static void test_read_buffer_values(mpack_reader_t* reader) {
     test_read_noerror(reader, 2 == mpack_expect_u8(reader));
     test_read_noerror(reader, 17 == mpack_expect_u8(reader));
@@ -137,7 +140,9 @@ static void test_read_buffer_values(mpack_reader_t* reader) {
     test_read_noerror(reader, UINT64_C(11650575206030493713) == mpack_expect_u64(reader));
     test_read_noerror(reader, UINT64_C(13592337739653081091) == mpack_expect_u64(reader));
 }
+#endif
 
+#if MPACK_WRITER
 static void test_write_buffer_values(mpack_writer_t* writer) {
     test_write_noerror(writer, mpack_write_u8(writer, 2));
     test_write_noerror(writer, mpack_write_u8(writer, 17));
@@ -187,7 +192,9 @@ static void test_write_buffer_values(mpack_writer_t* writer) {
     test_write_noerror(writer, mpack_write_u64(writer, UINT64_C(11650575206030493713)));
     test_write_noerror(writer, mpack_write_u64(writer, UINT64_C(13592337739653081091)));
 }
+#endif
 
+#if MPACK_EXPECT
 static size_t test_buffer_fill(void* context, char* buffer, size_t count) {
     size_t* pos = (size_t*)context;
     size_t remaining = sizeof(test_buffer) - 1;
@@ -218,7 +225,9 @@ static void test_read_buffer(void) {
 
     }
 }
+#endif
 
+#if MPACK_WRITER
 // this test function doesn't bounds check its output; we just use a large
 // enough output buffer for test purposes.
 static bool test_buffer_flush(void* context, const char* buffer, size_t count) {
@@ -256,17 +265,14 @@ static void test_write_buffer(void) {
         free(output);
     }
 }
-
-static void test_read_file(void) {
-}
-
-static void test_write_file(void) {
-}
+#endif
 
 void test_buffers(void) {
-    test_write_buffer();
+    #if MPACK_EXPECT
     test_read_buffer();
-    test_write_file();
-    test_read_file();
+    #endif
+    #if MPACK_WRITER
+    test_write_buffer();
+    #endif
 }
 

@@ -19,9 +19,11 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "test-malloc.h"
-
+// We need to include test.h here instead of test-malloc.h because
+// otherwise MPACK_MALLOC will not be defined yet.
 #include "test.h"
+
+#ifdef MPACK_MALLOC
 
 static bool test_malloc_fail = false;
 static size_t test_malloc_left;
@@ -52,4 +54,6 @@ void test_malloc_fail_after(size_t count) {
 void test_malloc_reset(void) {
     test_malloc_fail = false;
 }
+
+#endif
 

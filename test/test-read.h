@@ -24,6 +24,8 @@
 
 #include "test.h"
 
+#if MPACK_EXPECT
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -79,6 +81,8 @@ void test_read(void);
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif
 
 #endif

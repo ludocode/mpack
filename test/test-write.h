@@ -28,6 +28,8 @@
 extern "C" {
 #endif
 
+#if MPACK_WRITER
+
 // these setup and destroy test writers and check them for errors.
 // they are generally macros so that the asserts are on the line of the test.
 
@@ -68,6 +70,8 @@ extern "C" {
 } while (0)
 
 void test_writes(void);
+
+#endif
 
 #ifdef __cplusplus
 }
