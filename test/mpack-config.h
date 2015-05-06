@@ -3,24 +3,19 @@
 #define MPACK_CONFIG_H 1
 
 // This is the configuration for the MPack test harness.
+// Note that most options such as featureset and platform configuration
+// are instead specified by the buildsystem.
 
 #if defined(DEBUG) || defined(_DEBUG)
 #define MPACK_DEBUG 1
+#ifdef MPACK_MALLOC
 #define MPACK_TRACKING 1
 #endif
+#endif
 
-#define MPACK_READER 1
-#define MPACK_WRITER 1
-#define MPACK_EXPECT 1
-#define MPACK_NODE 1
-
-#define MPACK_STDLIB 1
-#define MPACK_STDIO 1
-#define MPACK_SETJMP 1
-
-#define MPACK_MALLOC test_malloc
-#define MPACK_FREE test_free
+#ifdef MPACK_MALLOC
 #include "test-malloc.h"
+#endif
 
 // the test harness uses a custom assert function since we
 // test whether assertions are hit
