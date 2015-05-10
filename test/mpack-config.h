@@ -27,6 +27,7 @@
 #define MPACK_BUFFER_SIZE 7
 #define MPACK_NODE_ARRAY_STARTING_SIZE 32
 #define MPACK_NODE_MAX_DEPTH 2048
+#define MPACK_TRACKING_INITIAL_CAPACITY 1
 
 // don't include debug print functions in code coverage
 #define MPACK_NO_PRINT 1

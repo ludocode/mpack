@@ -156,9 +156,11 @@ int mpack_tag_cmp(mpack_tag_t left, mpack_tag_t right) {
 
 #if MPACK_TRACKING
 
+#ifndef MPACK_TRACKING_INITIAL_CAPACITY
 // seems like a reasonable number. we grow by doubling, and it only
 // needs to be as long as the maximum depth of the message.
 #define MPACK_TRACKING_INITIAL_CAPACITY 8
+#endif
 
 mpack_error_t mpack_track_init(mpack_track_t* track) {
     track->count = 0;
