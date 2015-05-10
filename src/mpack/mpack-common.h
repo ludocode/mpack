@@ -61,7 +61,7 @@ typedef enum mpack_error_t {
     mpack_error_type,    /**< The type or value range did not match what was expected by the caller. */
     mpack_error_too_big, /**< A read or write was bigger than the maximum size allowed for that operation. */
     mpack_error_memory,  /**< An allocation failure occurred. */
-    mpack_error_bug,     /**< The API was used incorrectly. */
+    mpack_error_bug,     /**< The MPack API was used incorrectly. (This will always assert in debug mode.) */
     mpack_error_data,    /**< The contained data is not valid. */
 } mpack_error_t;
 
@@ -219,6 +219,38 @@ typedef void (*mpack_teardown_t)(void* context);
 /**
  * @}
  */
+
+
+
+#if MPACK_TRACKING
+
+/* Tracks the write state of compound elements (maps, arrays, */
+/* strings, binary blobs and extension types) */
+
+typedef struct mpack_track_element_t {
+    mpack_type_t type;
+    uint64_t left; // we need 64-bit because (2 * INT32_MAX) elements can be stored in a map
+} mpack_track_element_t;
+
+typedef struct mpack_track_t {
+    size_t count;
+    size_t capacity;
+    mpack_track_element_t* elements;
+} mpack_track_t;
+
+#if MPACK_INTERNAL
+mpack_error_t mpack_track_init(mpack_track_t* track);
+mpack_error_t mpack_track_destroy(mpack_track_t* track, bool cancel);
+mpack_error_t mpack_track_check_empty(mpack_track_t* track);
+mpack_error_t mpack_track_push(mpack_track_t* track, mpack_type_t type, uint64_t count);
+mpack_error_t mpack_track_pop(mpack_track_t* track, mpack_type_t type);
+mpack_error_t mpack_track_element(mpack_track_t* track, bool read);
+mpack_error_t mpack_track_bytes(mpack_track_t* track, bool read, uint64_t count);
+#endif
+
+#endif
+
+
 
 #ifdef __cplusplus
 }

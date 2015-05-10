@@ -26,109 +26,25 @@
 #if MPACK_WRITER
 
 #if MPACK_TRACKING
-struct mpack_writer_track_t {
-    struct mpack_writer_track_t* next;
-    mpack_type_t type;
-    uint64_t count;
-};
+#define MPACK_WRITER_TRACK(writer, error) mpack_writer_flag_if_error(writer, error)
+#else
+#define MPACK_WRITER_TRACK(writer, error) MPACK_UNUSED(writer)
 #endif
 
-static void mpack_writer_add_track(mpack_writer_t* writer, mpack_type_t type, uint64_t count) {
-    MPACK_UNUSED(writer);
-    MPACK_UNUSED(type);
-    MPACK_UNUSED(count);
-    #if MPACK_TRACKING
-    mpack_writer_track_t* track = (mpack_writer_track_t*) MPACK_MALLOC(sizeof(mpack_writer_track_t));
-    if (!track) {
-        mpack_writer_flag_error(writer, mpack_error_memory);
-        return;
-    }
-    track->next = writer->track;
-    track->type = type;
-    track->count = count;
-    writer->track = track;
-    #endif
+static inline void mpack_writer_flag_if_error(mpack_writer_t* writer, mpack_error_t error) {
+    if (error != mpack_ok)
+        mpack_writer_flag_error(writer, error);
 }
 
-#if MPACK_TRACKING
-static void mpack_finish_track(mpack_writer_t* writer, mpack_type_t type) {
-    if (writer->error != mpack_ok)
-        return;
-
-    if (!writer->track) {
-        mpack_assert(0, "attempting to close a %s but nothing was opened!", mpack_type_to_string(type));
-        mpack_writer_flag_error(writer, mpack_error_bug);
-        return;
-    }
-
-    if (writer->track->type != type) {
-        mpack_assert(0, "attempting to close a %s but the open element is a %s!",
-                mpack_type_to_string(type), mpack_type_to_string(writer->track->type));
-        mpack_writer_flag_error(writer, mpack_error_bug);
-        return;
-    }
-
-    if (writer->track->count != 0) {
-        mpack_assert(0, "attempting to close a %s but there are %"PRIu64" left",
-                mpack_type_to_string(type), writer->track->count);
-        mpack_writer_flag_error(writer, mpack_error_bug);
-        return;
-    }
-
-    mpack_writer_track_t* track = writer->track;
-    writer->track = track->next;
-    MPACK_FREE(track);
-}
-
-static void mpack_track_write(mpack_writer_t* writer, bool bytes, uint64_t count) {
-    if (writer->error != mpack_ok)
-        return;
-
-    if (writer->track) {
-
-        // make sure it's the right type
-        if (bytes) {
-            if (writer->track->type == mpack_type_map || writer->track->type == mpack_type_array) {
-                mpack_assert(0, "bytes cannot be written within an %s", mpack_type_to_string(writer->track->type));
-                mpack_writer_flag_error(writer, mpack_error_bug);
-            }
-        } else {
-            if (writer->track->type != mpack_type_map && writer->track->type != mpack_type_array) {
-                mpack_assert(0, "elements cannot be written within an %s", mpack_type_to_string(writer->track->type));
-                mpack_writer_flag_error(writer, mpack_error_bug);
-            }
-        }
-
-        // make sure we don't overflow
-        if (writer->track->count < count) {
-            mpack_assert(0, "too many elements/bytes written for %s", mpack_type_to_string(writer->track->type));
-            mpack_writer_flag_error(writer, mpack_error_bug);
-        }
-        writer->track->count -= count;
-
-    }
-}
-#endif
-
-static inline void mpack_track_element_write(mpack_writer_t* writer) {
-    MPACK_UNUSED(writer);
-    #if MPACK_TRACKING
-    mpack_track_write(writer, false, 1);
-    #endif
-}
-
-static inline void mpack_track_bytes_written(mpack_writer_t* writer, uint64_t count) {
-    MPACK_UNUSED(writer);
-    MPACK_UNUSED(count);
-    #if MPACK_TRACKING
-    mpack_track_write(writer, true, count);
-    #endif
+static inline void mpack_writer_track_element(mpack_writer_t* writer) {
+    MPACK_WRITER_TRACK(writer, mpack_track_element(&writer->track, true));
 }
 
 void mpack_writer_init(mpack_writer_t* writer, char* buffer, size_t size) {
     mpack_memset(writer, 0, sizeof(*writer));
     writer->buffer = buffer;
     writer->size = size;
+    MPACK_WRITER_TRACK(writer, mpack_track_init(&writer->track));
 }
 
 void mpack_writer_init_error(mpack_writer_t* writer, mpack_error_t error) {
@@ -255,14 +171,6 @@ void mpack_writer_init_file(mpack_writer_t* writer, const char* filename) {
 
 void mpack_writer_flag_error(mpack_writer_t* writer, mpack_error_t error) {
     mpack_log("writer %p setting error %i: %s\n", writer, (int)error, mpack_error_to_string(error));
-
-    #if MPACK_TRACKING
-    while (writer->track) {
-        mpack_writer_track_t* track = writer->track;
-        writer->track = track->next;
-        MPACK_FREE(track);
-    }
-    #endif
 
     if (!writer->error) {
         writer->error = error;
@@ -405,12 +313,7 @@ static void mpack_write_native_double(mpack_writer_t* writer, double value) {
 }
 
 mpack_error_t mpack_writer_destroy(mpack_writer_t* writer) {
-    #if MPACK_TRACKING
-    if (writer->error == mpack_ok && writer->track) {
-        mpack_assert(0, "writer has an unclosed %s", mpack_type_to_string(writer->track->type));
-        mpack_writer_flag_error(writer, mpack_error_bug);
-    }
-    #endif
+    MPACK_WRITER_TRACK(writer, mpack_track_destroy(&writer->track, false));
 
     // flush any outstanding data
     if (writer->error == mpack_ok && writer->used != 0 && writer->flush != NULL) {
@@ -427,7 +330,7 @@ mpack_error_t mpack_writer_destroy(mpack_writer_t* writer) {
 }
 
 void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t value) {
-    mpack_track_element_write(writer);
+    mpack_writer_track_element(writer);
 
     switch (value.type) {
 
@@ -454,7 +357,7 @@ void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t value) {
 }
 
 void mpack_write_u8(mpack_writer_t* writer, uint8_t value) {
-    mpack_track_element_write(writer);
+    mpack_writer_track_element(writer);
     if (value <= 0x7f) {
         mpack_write_native_u8(writer, (uint8_t)value);
     } else {
@@ -464,7 +367,7 @@ void mpack_write_u8(mpack_writer_t* writer, uint8_t value) {
 }
 
 void mpack_write_u16(mpack_writer_t* writer, uint16_t value) {
-    mpack_track_element_write(writer);
+    mpack_writer_track_element(writer);
     if (value <= 0x7f) {
         mpack_write_native_u8(writer, (uint8_t)value);
     } else if (value <= UINT8_MAX) {
@@ -477,7 +380,7 @@ void mpack_write_u16(mpack_writer_t* writer, uint16_t value) {
 }
 
 void mpack_write_u32(mpack_writer_t* writer, uint32_t value) {
-    mpack_track_element_write(writer);
+    mpack_writer_track_element(writer);
     if (value <= 0x7f) {
         mpack_write_native_u8(writer, (uint8_t)value);
     } else if (value <= UINT8_MAX) {
@@ -493,7 +396,7 @@ void mpack_write_u32(mpack_writer_t* writer, uint32_t value) {
 }
 
 void mpack_write_u64(mpack_writer_t* writer, uint64_t value) {
-    mpack_track_element_write(writer);
+    mpack_writer_track_element(writer);
     if (value <= 0x7f) {
         mpack_write_native_u8(writer, (uint8_t)value);
     } else if (value <= UINT8_MAX) {
@@ -519,7 +422,7 @@ void mpack_write_i8(mpack_writer_t* writer, int8_t value) {
         return;
     }
 
-    mpack_track_element_write(writer);
+    mpack_writer_track_element(writer);
     if (value >= -32) {
         mpack_write_native_u8(writer, 0xe0 | (uint8_t)value); // TODO: remove this (compatibility/1.1 difference?)
     } else {
@@ -537,7 +440,7 @@ void mpack_write_i16(mpack_writer_t* writer, int16_t value) {
         return;
     }
 
-    mpack_track_element_write(writer);
+    mpack_writer_track_element(writer);
     if (value >= -32) {
         mpack_write_native_u8(writer, 0xe0 | (uint8_t)value); // TODO: remove this (compatibility/1.1 difference?)
     } else if (value >= INT8_MIN) {
@@ -558,7 +461,7 @@ void mpack_write_i32(mpack_writer_t* writer, int32_t value) {
         return;
     }
 
-    mpack_track_element_write(writer);
+    mpack_writer_track_element(writer);
     if (value >= -32) {
         mpack_write_native_u8(writer, 0xe0 | (uint8_t)value); // TODO: remove this (compatibility/1.1 difference?)
     } else if (value >= INT8_MIN) {
@@ -582,7 +485,7 @@ void mpack_write_i64(mpack_writer_t* writer, int64_t value) {
         return;
     }
 
-    mpack_track_element_write(writer);
+    mpack_writer_track_element(writer);
     if (value >= -32) {
         mpack_write_native_u8(writer, 0xe0 | (uint8_t)value); // TODO: remove this (compatibility/1.1 difference?)
     } else if (value >= INT8_MIN) {
@@ -602,46 +505,46 @@ void mpack_write_i64(mpack_writer_t* writer, int64_t value) {
 }
 
 void mpack_write_bool(mpack_writer_t* writer, bool value) {
-    mpack_track_element_write(writer);
+    mpack_writer_track_element(writer);
     mpack_write_native_u8(writer, (uint8_t)(0xc2 | (value ? 1 : 0)));
 }
 
 void mpack_write_nil(mpack_writer_t* writer) {
-    mpack_track_element_write(writer);
+    mpack_writer_track_element(writer);
     mpack_write_native_u8(writer, 0xc0);
 }
 
 void mpack_write_float(mpack_writer_t* writer, float value) {
-    mpack_track_element_write(writer);
+    mpack_writer_track_element(writer);
     mpack_write_native_u8(writer, 0xca);
     mpack_write_native_float(writer, value);
 }
 
 void mpack_write_double(mpack_writer_t* writer, double value) {
-    mpack_track_element_write(writer);
+    mpack_writer_track_element(writer);
     mpack_write_native_u8(writer, 0xcb);
     mpack_write_native_double(writer, value);
 }
 
 #if MPACK_TRACKING
 void mpack_finish_array(mpack_writer_t* writer) {
-    mpack_finish_track(writer, mpack_type_array);
+    MPACK_WRITER_TRACK(writer, mpack_track_pop(&writer->track, mpack_type_array));
 }
 
 void mpack_finish_map(mpack_writer_t* writer) {
-    mpack_finish_track(writer, mpack_type_map);
+    MPACK_WRITER_TRACK(writer, mpack_track_pop(&writer->track, mpack_type_map));
 }
 
 void mpack_finish_str(mpack_writer_t* writer) {
-    mpack_finish_track(writer, mpack_type_str);
+    MPACK_WRITER_TRACK(writer, mpack_track_pop(&writer->track, mpack_type_str));
 }
 
 void mpack_finish_bin(mpack_writer_t* writer) {
-    mpack_finish_track(writer, mpack_type_bin);
+    MPACK_WRITER_TRACK(writer, mpack_track_pop(&writer->track, mpack_type_bin));
 }
 
 void mpack_finish_ext(mpack_writer_t* writer) {
-    mpack_finish_track(writer, mpack_type_ext);
+    MPACK_WRITER_TRACK(writer, mpack_track_pop(&writer->track, mpack_type_ext));
 }
 #endif
 
@@ -649,7 +552,7 @@ void mpack_start_array(mpack_writer_t* writer, uint32_t count) {
     if (writer->error != mpack_ok)
         return;
 
-    mpack_track_element_write(writer);
+    mpack_writer_track_element(writer);
     if (count <= 15) {
         mpack_write_native_u8(writer, 0x90 | (uint8_t)count);
     } else if (count <= UINT16_MAX) {
@@ -660,14 +563,14 @@ void mpack_start_array(mpack_writer_t* writer, uint32_t count) {
         mpack_write_native_u32(writer, count);
     }
 
-    mpack_writer_add_track(writer, mpack_type_array, count);
+    MPACK_WRITER_TRACK(writer, mpack_track_push(&writer->track, mpack_type_array, count));
 }
 
 void mpack_start_map(mpack_writer_t* writer, uint32_t count) {
     if (writer->error != mpack_ok)
         return;
 
-    mpack_track_element_write(writer);
+    mpack_writer_track_element(writer);
     if (count <= 15) {
         mpack_write_native_u8(writer, 0x80 | (uint8_t)count);
     } else if (count <= UINT16_MAX) {
@@ -678,14 +581,14 @@ void mpack_start_map(mpack_writer_t* writer, uint32_t count) {
         mpack_write_native_u32(writer, count);
     }
 
-    mpack_writer_add_track(writer, mpack_type_map, count * 2);
+    MPACK_WRITER_TRACK(writer, mpack_track_push(&writer->track, mpack_type_map, count));
 }
 
 void mpack_start_str(mpack_writer_t* writer, uint32_t count) {
     if (writer->error != mpack_ok)
         return;
 
-    mpack_track_element_write(writer);
+    mpack_writer_track_element(writer);
     if (count <= 31) {
         mpack_write_native_u8(writer, 0xa0 | (uint8_t)count);
     } else if (count <= UINT8_MAX) {
@@ -700,14 +603,14 @@ void mpack_start_str(mpack_writer_t* writer, uint32_t count) {
         mpack_write_native_u32(writer, count);
     }
 
-    mpack_writer_add_track(writer, mpack_type_str, count);
+    MPACK_WRITER_TRACK(writer, mpack_track_push(&writer->track, mpack_type_str, count));
 }
 
 void mpack_start_bin(mpack_writer_t* writer, uint32_t count) {
     if (writer->error != mpack_ok)
         return;
 
-    mpack_track_element_write(writer);
+    mpack_writer_track_element(writer);
     if (count <= UINT8_MAX) {
         mpack_write_native_u8(writer, 0xc4);
         mpack_write_native_u8(writer, (uint8_t)count);
@@ -719,7 +622,7 @@ void mpack_start_bin(mpack_writer_t* writer, uint32_t count) {
         mpack_write_native_u32(writer, count);
     }
 
-    mpack_writer_add_track(writer, mpack_type_bin, count);
+    MPACK_WRITER_TRACK(writer, mpack_track_push(&writer->track, mpack_type_bin, count));
 }
 
 void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count) {
@@ -728,7 +631,7 @@ void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count) {
 
     // TODO: fail if compatibility mode
 
-    mpack_track_element_write(writer);
+    mpack_writer_track_element(writer);
     if (count == 1) {
         mpack_write_native_u8(writer, 0xd4);
         mpack_write_native_i8(writer, exttype);
@@ -758,7 +661,7 @@ void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count) {
         mpack_write_native_i8(writer, exttype);
     }
 
-    mpack_writer_add_track(writer, mpack_type_ext, count);
+    MPACK_WRITER_TRACK(writer, mpack_track_push(&writer->track, mpack_type_ext, count));
 }
 
 void mpack_write_str(mpack_writer_t* writer, const char* data, uint32_t count) {
@@ -780,7 +683,7 @@ void mpack_write_ext(mpack_writer_t* writer, int8_t exttype, const char* data, u
 }
 
 void mpack_write_bytes(mpack_writer_t* writer, const char* data, size_t count) {
-    mpack_track_bytes_written(writer, count);
+    MPACK_WRITER_TRACK(writer, mpack_track_bytes(&writer->track, false, count));
     mpack_write_native(writer, data, count);
 }
 

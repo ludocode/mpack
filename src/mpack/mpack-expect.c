@@ -361,7 +361,7 @@ void mpack_expect_int_match(mpack_reader_t* reader, int64_t value) {
 // Other Basic Types
 
 void mpack_expect_nil(mpack_reader_t* reader) {
-    mpack_track_element_read(reader);
+    mpack_reader_track_element(reader);
     uint8_t type = mpack_read_native_u8(reader);
     if (reader->error != mpack_ok)
         return;
@@ -370,7 +370,7 @@ void mpack_expect_nil(mpack_reader_t* reader) {
 }
 
 bool mpack_expect_bool(mpack_reader_t* reader) {
-    mpack_track_element_read(reader);
+    mpack_reader_track_element(reader);
     uint8_t type = mpack_read_native_u8(reader);
     if (reader->error != mpack_ok)
         return false;
@@ -616,7 +616,7 @@ char* mpack_expect_cstr_alloc(mpack_reader_t* reader, size_t maxsize) {
     }
 
     // read with jump disabled so we don't leak our buffer
-    mpack_track_bytes_read(reader, length);
+    mpack_reader_track_bytes(reader, length);
     mpack_read_native_nojump(reader, str, length);
 
     if (mpack_reader_error(reader)) {
@@ -643,7 +643,7 @@ void mpack_expect_cstr_match(mpack_reader_t* reader, const char* str) {
 
     // check each byte
     for (size_t i = 0; i < len; ++i) {
-        mpack_track_bytes_read(reader, 1);
+        mpack_reader_track_bytes(reader, 1);
         if (mpack_read_native_u8(reader) != *str++) {
             mpack_reader_flag_error(reader, mpack_error_type);
             return;

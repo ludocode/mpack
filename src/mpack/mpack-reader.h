@@ -37,8 +37,7 @@ extern "C" {
 #endif
 
 #if MPACK_TRACKING
-/* Tracks the read state of compound elements (map, array, string, bin, ext) */
-typedef struct mpack_reader_track_t mpack_reader_track_t;
+struct mpack_track_t;
 #endif
 
 /**
@@ -91,7 +90,7 @@ struct mpack_reader_t {
     #endif
 
     #if MPACK_TRACKING
-    mpack_reader_track_t* track; /* Stack of map/array/str/bin/ext reads */
+    mpack_track_t track; /* Stack of map/array/str/bin/ext reads */
     #endif
 };
 
@@ -343,8 +342,7 @@ const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count);
 /**
  * Finishes reading an array.
  *
- * In release mode, this is a no-op. However if a debug build is used, this
- * will track reads to ensure that the correct number of elements are read.
+ * This will track reads to ensure that the correct number of elements are read.
  */
 void mpack_done_array(mpack_reader_t* reader);
 
@@ -353,10 +351,7 @@ void mpack_done_array(mpack_reader_t* reader);
  *
  * Finishes reading a map.
  *
- * In release mode, this is a no-op. However if a debug build is used, this
- * will track reads to ensure that the correct number of elements are read.
- *
- * You must call mpack_done_map() when done.
+ * This will track reads to ensure that the correct number of elements are read.
  */
 void mpack_done_map(mpack_reader_t* reader);
 
@@ -365,8 +360,7 @@ void mpack_done_map(mpack_reader_t* reader);
  *
  * Finishes reading a string.
  *
- * In release mode, this is a no-op. However if a debug build is used, this
- * will track reads to ensure that the correct number of bytes are read.
+ * This will track reads to ensure that the correct number of bytes are read.
  */
 void mpack_done_str(mpack_reader_t* reader);
 
@@ -375,8 +369,7 @@ void mpack_done_str(mpack_reader_t* reader);
  *
  * Finishes reading a binary data blob.
  *
- * In release mode, this is a no-op. However if a debug build is used, this
- * will track reads to ensure that the correct number of bytes are read.
+ * This will track reads to ensure that the correct number of bytes are read.
  */
 void mpack_done_bin(mpack_reader_t* reader);
 
@@ -385,8 +378,7 @@ void mpack_done_bin(mpack_reader_t* reader);
  *
  * Finishes reading an extended binary data blob.
  *
- * In release mode, this is a no-op. However if a debug build is used, this
- * will track reads to ensure that the correct number of bytes are read.
+ * This will track reads to ensure that the correct number of bytes are read.
  */
 void mpack_done_ext(mpack_reader_t* reader);
 
@@ -413,6 +405,8 @@ void mpack_debug_print(const char* data, int len);
  * @}
  */
 
+
+
 /*
  * the remaining functions are used by the expect API. they are undocumented
  * internal-only functions (comments are around their implementation)
@@ -431,23 +425,20 @@ float mpack_read_native_float(mpack_reader_t* reader);
 double mpack_read_native_double(mpack_reader_t* reader);
 
 #if MPACK_TRACKING
-void mpack_track_read(mpack_reader_t* reader, bool bytes, uint64_t count);
-#endif
-
-static inline void mpack_track_element_read(mpack_reader_t* reader) {
+void mpack_reader_track_element(mpack_reader_t* reader);
+void mpack_reader_track_bytes(mpack_reader_t* reader, uint64_t count);
+#else
+static inline void mpack_reader_track_element(mpack_reader_t* reader) {
     MPACK_UNUSED(reader);
-    #if MPACK_TRACKING
-    mpack_track_read(reader, false, 1);
-    #endif
 }
 
-static inline void mpack_track_bytes_read(mpack_reader_t* reader, uint64_t count) {
+static inline void mpack_reader_track_bytes(mpack_reader_t* reader, uint64_t count) {
     MPACK_UNUSED(reader);
     MPACK_UNUSED(count);
-    #if MPACK_TRACKING
-    mpack_track_read(reader, true, count);
-    #endif
 }
+#endif
+
+
 
 #ifdef __cplusplus
 }

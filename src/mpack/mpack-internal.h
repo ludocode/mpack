@@ -24,13 +24,13 @@
 
 #include "mpack-platform.h"
 
-#if MPACK_INTERNAL
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 
+
+#if MPACK_INTERNAL
 
 /* The below code is from Bjoern Hoehrmann's Flexible and Economical */
 /* UTF-8 decoder, modified to make it static and add the mpack prefix. */
@@ -74,12 +74,12 @@ uint32_t mpack_utf8_decode(uint32_t* state, uint32_t* codep, uint32_t byte) {
   return *state;
 }
 
+#endif
+
 
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif
 
 #endif

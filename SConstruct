@@ -97,8 +97,7 @@ if not ARGUMENTS.get('dev'):
 
     # miscellaneous test builds
     AddBuilds("cxx", allfeatures + allconfigs + cxxflags, ["-lstdc++"])
-    AddBuild("debug-notrack", allfeatures + allconfigs + ["-DMPACK_DEBUG=1", "-O0"] + cflags, [])
-    AddBuild("release-notrack", allfeatures + allconfigs + ["-Os"] + cflags, [])
+    AddBuilds("notrack", ["-DMPACK_NO_TRACKING=1"] + allfeatures + allconfigs + cflags, [])
 
     # 32-bit builds
     if '64' in platform.architecture()[0]:

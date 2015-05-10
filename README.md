@@ -66,8 +66,6 @@ In the above example, we encode only to an in-memory buffer. The writer can opti
 
 If any error occurs, the writer is placed in an error state and can optionally longjmp if a handler is set. The writer will flag an error if too much data is written, if the wrong number of elements are written, if the data could not be flushed, etc.
 
-The MPack writer API is imperative in nature. Since it's easy to incorrectly compose structured data with an imperative API, MPack provides a debug mode which tracks reads and writes of compound types to ensure that the correct number of elements and bytes were read and written. This allows for rapid development of high-performance applications that use MessagePack. In release mode, these checks are eliminated for maximum performance.
-
 ## Why Not Just Use JSON?
 
 Conceptually, MessagePack stores data similarly to JSON: they are both composed of simple values such as numbers and strings, stored hierarchically in maps and arrays. So why not just use JSON instead? The main reason is that JSON is designed to be human-readable, so it is not as efficient as a binary serialization format:

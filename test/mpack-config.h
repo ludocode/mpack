@@ -8,9 +8,10 @@
 
 #if defined(DEBUG) || defined(_DEBUG)
 #define MPACK_DEBUG 1
-#ifdef MPACK_MALLOC
-#define MPACK_TRACKING 1
 #endif
+
+#if defined(MPACK_MALLOC) && !defined(MPACK_NO_TRACKING)
+#define MPACK_TRACKING 1
 #endif
 
 #ifdef MPACK_MALLOC

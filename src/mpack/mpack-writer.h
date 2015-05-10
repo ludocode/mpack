@@ -37,9 +37,7 @@ extern "C" {
 #endif
 
 #if MPACK_TRACKING
-/* Tracks the write state of compound elements (maps, arrays, */
-/* strings, binary blobs and extension types) */
-typedef struct mpack_writer_track_t mpack_writer_track_t;
+struct mpack_track_t;
 #endif
 
 /**
@@ -83,7 +81,7 @@ struct mpack_writer_t {
     #endif
 
     #if MPACK_TRACKING
-    mpack_writer_track_t* track; /* Stack of map/array/str/bin/ext writes */
+    mpack_track_t track; /* Stack of map/array/str/bin/ext writes */
     #endif
 };
 
@@ -249,6 +247,7 @@ static inline size_t mpack_writer_buffer_used(mpack_writer_t* writer) {
  * is performed.
  */
 void mpack_writer_flag_error(mpack_writer_t* writer, mpack_error_t error);
+
 
 /**
  * Queries the error state of the mpack writer.
@@ -422,45 +421,35 @@ void mpack_write_bytes(mpack_writer_t* writer, const char* data, size_t count);
 /**
  * Finishes writing an array.
  *
- * In release mode, this is a no-op. However if a debug build is used and
- * stdio is available, this will track writes to ensure that the correct
- * number of elements are written.
+ * This will track writes to ensure that the correct number of elements are written.
  */
 void mpack_finish_array(mpack_writer_t* writer);
 
 /**
  * Finishes writing a map.
  *
- * In release mode, this is a no-op. However if a debug build is used and
- * stdio is available, this will track writes to ensure that the correct
- * number of elements were written.
+ * This will track writes to ensure that the correct number of elements are written.
  */
 void mpack_finish_map(mpack_writer_t* writer);
 
 /**
  * Finishes writing a string.
  *
- * In release mode, this is a no-op. However if a debug build is used and
- * stdio is available, this will track writes to ensure that the correct
- * number of bytes were written.
+ * This will track writes to ensure that the correct number of bytes are written.
  */
 void mpack_finish_str(mpack_writer_t* writer);
 
 /**
  * Finishes writing a binary blob.
  *
- * In release mode, this is a no-op. However if a debug build is used and
- * stdio is available, this will track writes to ensure that the correct
- * number of bytes were written.
+ * This will track writes to ensure that the correct number of bytes are written.
  */
 void mpack_finish_bin(mpack_writer_t* writer);
 
 /**
  * Finishes writing an extension type.
  *
- * In release mode, this is a no-op. However if a debug build is used and
- * stdio is available, this will track writes to ensure that the correct
- * number of bytes were written.
+ * This will track writes to ensure that the correct number of bytes are written.
  */
 void mpack_finish_ext(mpack_writer_t* writer);
 #else

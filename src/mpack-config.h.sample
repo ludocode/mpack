@@ -111,11 +111,18 @@
 /**
  * \def MPACK_TRACKING
  *
- * Enables compound type size tracking in debug mode.
- * This ensures that the correct number of elements or bytes are written
- * or read.
+ * Enables compound type size tracking. This ensures that the correct number
+ * of elements or bytes are written or read.
+ *
+ * This is enabled by default, and unavailable without malloc(). Note that
+ * without tracking enabled, it is possible to emit invalid MessagePack
+ * without error by writing the wrong number of elements or bytes in a
+ * compound type.
+ *
+ * You should really only disable this if you using MPack to implement
+ * bindings for an existing dynamic structure.
  */
-#if MPACK_DEBUG && defined(MPACK_MALLOC) && defined(MPACK_FREE)
+#if defined(MPACK_MALLOC) && defined(MPACK_FREE)
 #define MPACK_TRACKING 1
 #endif
 
