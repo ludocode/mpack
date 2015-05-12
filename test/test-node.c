@@ -27,7 +27,11 @@
 static void test_example_node() {
     static const char test[] = "\x82\xA7""compact\xC3\xA6""schema\x00";
     mpack_tree_t tree;
-    mpack_tree_init(&tree, test, sizeof(test) - 1);
+
+    // this is a node pool test even if we have malloc. the rest of the
+    // tests use paging unless malloc is unavailable.
+    mpack_node_t nodes[128];
+    mpack_tree_init_nodes(&tree, test, sizeof(test) - 1, nodes, sizeof(nodes) / sizeof(*nodes));
     //mpack_node_print(mpack_tree_root(&tree));
 
     #if MPACK_SETJMP
@@ -432,14 +436,16 @@ static void test_node_read_pre_error() {
     test_simple_tree_read_error("", NULL == mpack_node_data(node), mpack_error_io);
     test_simple_tree_read_error("", 0 == mpack_node_copy_data(node, NULL, 0), mpack_error_io);
     test_simple_tree_read_error("", (mpack_node_copy_cstr(node, NULL, 0), true), mpack_error_io);
+    #ifdef MPACK_MALLOC
     test_simple_tree_read_error("", NULL == mpack_node_data_alloc(node, 0), mpack_error_io);
     test_simple_tree_read_error("", NULL == mpack_node_cstr_alloc(node, 0), mpack_error_io);
+    #endif
 }
 
 static void test_node_read_array() {
     static const char test[] = "\x93\x90\x91\xc3\x92\xc3\xc3";
     mpack_tree_t tree;
-    mpack_tree_init(&tree, test, sizeof(test) - 1);
+    test_tree_init(&tree, test, sizeof(test) - 1);
     mpack_node_t* root = mpack_tree_root(&tree);
 
     test_assert(mpack_type_array == mpack_node_type(root));
@@ -471,7 +477,7 @@ static void test_node_read_map() {
     // test map using maps as keys and values
     static const char test[] = "\x82\x80\x81\x01\x02\x81\x03\x04\xc3";
     mpack_tree_t tree;
-    mpack_tree_init(&tree, test, sizeof(test) - 1);
+    test_tree_init(&tree, test, sizeof(test) - 1);
     mpack_node_t* root = mpack_tree_root(&tree);
 
     test_assert(mpack_type_map == mpack_node_type(root));
@@ -503,7 +509,7 @@ static void test_node_read_map() {
 static void test_node_read_map_search() {
     static const char test[] = "\x85\x00\x01\xd0\x7f\x02\xfe\x03\xa5""alice\x04\xa3""bob\x05";
     mpack_tree_t tree;
-    mpack_tree_init(&tree, test, sizeof(test) - 1);
+    test_tree_init(&tree, test, sizeof(test) - 1);
     mpack_node_t* root = mpack_tree_root(&tree);
 
     test_assert(1 == mpack_node_i32(mpack_node_map_uint(root, 0)));
@@ -552,8 +558,10 @@ static void test_node_read_compound_errors(void) {
     test_simple_tree_read_error("\x00", (mpack_node_copy_cstr(node, data, 1), true), mpack_error_type);
     test_assert(data[0] == 0);
 
+    #ifdef MPACK_MALLOC
     test_simple_tree_read_error("\x00", NULL == mpack_node_data_alloc(node, 10), mpack_error_type);
     test_simple_tree_read_error("\x00", NULL == mpack_node_cstr_alloc(node, 10), mpack_error_type);
+    #endif
 
     data[0] = 'a';
     test_simple_tree_read_error("\xa3""bob", (mpack_node_copy_data(node, data, 2), true), mpack_error_too_big);
@@ -561,14 +569,16 @@ static void test_node_read_compound_errors(void) {
     test_simple_tree_read_error("\xa3""bob", (mpack_node_copy_cstr(node, data, 2), true), mpack_error_too_big);
     test_assert(data[0] == 0);
 
+    #ifdef MPACK_MALLOC
     test_simple_tree_read_error("\xa3""bob", NULL == mpack_node_cstr_alloc(node, 2), mpack_error_too_big);
     test_simple_tree_read_error("\xa3""bob", NULL == mpack_node_data_alloc(node, 2), mpack_error_too_big);
+    #endif
 }
 
 static void test_node_read_data(void) {
     static const char test[] = "\x93\xa5""alice\xc4\x03""bob\xd6\x07""carl";
     mpack_tree_t tree;
-    mpack_tree_init(&tree, test, sizeof(test) - 1);
+    test_tree_init(&tree, test, sizeof(test) - 1);
     mpack_node_t* root = mpack_tree_root(&tree);
 
     mpack_node_t* alice = mpack_node_array_at(root, 0);
@@ -583,17 +593,21 @@ static void test_node_read_data(void) {
     mpack_node_copy_cstr(alice, alice_data, sizeof(alice_data));
     test_assert(0 == strcmp("alice", alice_data));
 
+    #ifdef MPACK_MALLOC
     char* alice_alloc = mpack_node_cstr_alloc(alice, 100);
     test_assert(0 == strcmp("alice", alice_alloc));
     free(alice_alloc);
+    #endif
 
     mpack_node_t* bob = mpack_node_array_at(root, 1);
     test_assert(3 == mpack_node_data_len(bob));
     test_assert(0 == memcmp("bob", mpack_node_data(bob), 3));
 
+    #ifdef MPACK_MALLOC
     char* bob_alloc = mpack_node_data_alloc(bob, 100);
     test_assert(0 == memcmp("bob", bob_alloc, 3));
     free(bob_alloc);
+    #endif
 
     mpack_node_t* carl = mpack_node_array_at(root, 2);
     test_assert(7 == mpack_node_exttype(carl));

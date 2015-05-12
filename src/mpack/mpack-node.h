@@ -36,10 +36,6 @@
 #error "MPACK_NODE requires MPACK_READER."
 #endif
 
-#if !defined(MPACK_MALLOC) || !defined(MPACK_FREE)
-#error "MPACK_NODE requires preprocessor definitions for MPACK_MALLOC and MPACK_FREE."
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -69,7 +65,7 @@ struct mpack_node_t {
     struct mpack_tree_t* tree;
     union {
         const char* bytes;
-        struct mpack_node_t* children;
+        size_t children;
     } data;
 };
 
@@ -85,11 +81,23 @@ struct mpack_tree_t {
     mpack_teardown_t teardown;
     void* context;
 
-    mpack_node_t root;
-    size_t size;
-
     mpack_node_t nil_node; // a nil node to be returned in case of error
     mpack_error_t error;
+    size_t node_count;
+    size_t size;
+
+    // only one of pool or pages are used. if pool is set, it is treated
+    // as a single external unowned page of nodes. otherwise, pages are
+    // allocated as needed.
+
+    mpack_node_t* pool;
+    size_t pool_count;
+
+    #ifdef MPACK_MALLOC
+    mpack_node_t** pages;
+    size_t page_count;
+    size_t page_capacity;
+    #endif
 
     #if MPACK_SETJMP
     bool jump;          // whether to longjmp on error
@@ -102,14 +110,25 @@ struct mpack_tree_t {
  * @{
  */
 
+#ifdef MPACK_MALLOC
 /**
  * Initializes a tree by parsing the given data buffer. The tree must be destroyed
  * with mpack_tree_destroy(), even if parsing fails.
+ *
+ * The tree will allocate pages of nodes as needed, and free them when destroyed.
  *
  * Any string or blob data types reference the original data, so the data
  * pointer must remain valid until after the tree is destroyed.
  */
 void mpack_tree_init(mpack_tree_t* tree, const char* data, size_t length);
+#endif
+
+/**
+ * Initializes a tree by parsing the given data buffer, using the given
+ * node pool to store the results. The tree must be destroyed
+ * with mpack_tree_destroy(), even if parsing fails.
+ */
+void mpack_tree_init_nodes(mpack_tree_t* tree, const char* data, size_t length, mpack_node_t* node_pool, size_t node_pool_count);
 
 /**
  * Initializes an mpack tree directly into an error state. Use this if you
@@ -136,11 +155,7 @@ void mpack_tree_init_file(mpack_tree_t* tree, const char* filename, size_t max_b
  * Returns the root node of the tree, if the tree is not in an error state.
  * Returns a nil node otherwise.
  */
-static inline mpack_node_t* mpack_tree_root(mpack_tree_t* tree) {
-    if (tree->error != mpack_ok)
-        return &tree->nil_node;
-    return &tree->root;
-}
+mpack_node_t* mpack_tree_root(mpack_tree_t* tree);
 
 /**
  * Returns the error state of the tree.
@@ -464,6 +479,7 @@ size_t mpack_node_copy_data(mpack_node_t* node, char* buffer, size_t size);
  */
 void mpack_node_copy_cstr(mpack_node_t* node, char* buffer, size_t size);
 
+#ifdef MPACK_MALLOC
 /**
  * Allocates a new chunk of data using MPACK_MALLOC with the bytes
  * contained by this node. The returned string should be freed with MPACK_FREE.
@@ -484,6 +500,7 @@ char* mpack_node_data_alloc(mpack_node_t* node, size_t maxlen);
  * value should be discarded.
  */
 char* mpack_node_cstr_alloc(mpack_node_t* node, size_t maxlen);
+#endif
 
 /**
  * @}

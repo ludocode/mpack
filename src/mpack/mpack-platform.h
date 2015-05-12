@@ -115,7 +115,13 @@ size_t mpack_strlen(const char *s);
 
 
 /* Make sure we have malloc/free where needed */
-#if !defined(MPACK_MALLOC) || !defined(MPACK_FREE)
+#if defined(MPACK_MALLOC) && !defined(MPACK_FREE)
+    #error "MPACK_MALLOC requires MPACK_FREE."
+#endif
+#if !defined(MPACK_MALLOC) && defined(MPACK_FREE)
+    #error "MPACK_FREE requires MPACK_MALLOC."
+#endif
+#ifndef MPACK_MALLOC
     #if MPACK_STDIO
     #error "MPACK_STDIO requires preprocessor definitions for MPACK_MALLOC and MPACK_FREE."
     #endif

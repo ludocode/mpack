@@ -25,33 +25,62 @@
 
 #if MPACK_NODE
 
+#ifndef MPACK_NODE_PAGE_INITIAL_CAPACITY
+#define MPACK_NODE_PAGE_INITIAL_CAPACITY 8
+#endif
+
+static mpack_node_t* mpack_tree_node_at(mpack_tree_t* tree, size_t index) {
+    mpack_assert(tree->error == mpack_ok, "cannot fetch node from tree in error state %s",
+            mpack_error_to_string(tree->error));
+
+    #ifdef MPACK_MALLOC
+    if (tree->pages) {
+        mpack_assert(index < tree->page_count * MPACK_NODE_PAGE_SIZE,
+                "cannot fetch node at index %i, tree only has %i nodes",
+                (int)index, (int)tree->page_count * MPACK_NODE_PAGE_SIZE);
+        return &tree->pages[index / MPACK_NODE_PAGE_SIZE][index % MPACK_NODE_PAGE_SIZE];
+    }
+    #endif
+
+    mpack_assert(index < tree->node_count, "cannot fetch node at index %i, tree only has %i nodes",
+            (int)index, (int)tree->node_count);
+    return &tree->pool[index];
+}
+
+static inline mpack_node_t* mpack_node_child(mpack_node_t* node, size_t child) {
+    return mpack_tree_node_at(node->tree, node->data.children + child);
+}
 
 /*
  * Tree Functions
  */
 
-static void mpack_node_destroy(mpack_node_t* node) {
-    mpack_type_t type = node->tag.type;
-    if (type == mpack_type_array) {
-        for (size_t i = 0; i < node->tag.v.n; ++i)
-            mpack_node_destroy(&node->data.children[i]);
-        MPACK_FREE(node->data.children);
-    } else if (type == mpack_type_map) {
-        for (size_t i = 0; i < node->tag.v.n * 2; ++i)
-            mpack_node_destroy(&node->data.children[i]);
-        MPACK_FREE(node->data.children);
-    }
+mpack_node_t* mpack_tree_root(mpack_tree_t* tree) {
+    if (tree->error != mpack_ok)
+        return &tree->nil_node;
+    return mpack_tree_node_at(tree, 0);
 }
 
 // note: the tree parsing functions flag errors on the reader, not on the
 // tree. the tree picks up the reader's error state when done.
-static void mpack_tree_read_node(mpack_tree_t* tree, mpack_node_t* node, mpack_reader_t* reader, int depth) {
+static void mpack_tree_read_node(mpack_tree_t* tree, mpack_node_t* node,
+        mpack_reader_t* reader, int depth, size_t* possible_nodes_left) {
+    mpack_memset(&node->tag, 0, sizeof(node->tag));
     node->tree = tree;
 
+    size_t pos = reader->pos;
     node->tag = mpack_read_tag(reader);
     if (mpack_reader_error(reader) != mpack_ok)
         return;
     mpack_type_t type = node->tag.type;
+
+    // read a tag, keeping track of the number of possible nodes left. (one
+    // byte has already been counted for each node.)
+    if (reader->pos - pos - 1 > *possible_nodes_left) {
+        mpack_reader_flag_error(reader, mpack_error_invalid);
+        return;
+    }
+    *possible_nodes_left -= reader->pos - pos - 1;
 
     if (type == mpack_type_array || type == mpack_type_map) {
         if (depth + 1 == MPACK_NODE_MAX_DEPTH) {
@@ -59,67 +88,65 @@ static void mpack_tree_read_node(mpack_tree_t* tree, mpack_node_t* node, mpack_r
             return;
         }
 
-        // If a node declares a large number of children, we allocate its nodes in
-        // a growable array instead of just allocating the declared number right
-        // away. This costs some performance, but we can't trust that the data is
-        // actually valid, so we don't want to be allocating gigs of blank space
-        // for a maliciously crafted chunk of MessagePack. Otherwise, repeating
-        // 0xDE 0xFF 0xFF for example would cause explosive memory growth.
-        //
-        // This limit combined with the depth limit means malicious data shouldn't
-        // be able to force allocation of more than a couple megs before failing.
-        // (This will also safely handle an allocation failure on more memory-limited
-        // platforms provided malloc() can actually fail, but it still seems like
-        // there should be a better way to handle this, so I'm open to suggestions.
-        // Probably we should just do the simplest thing which is to allow setting
-        // a hard limit on the number of nodes, but this shouldn't be the default
-        // API, C programmer's disease and all.)
-
-        // TODO: make sure all these overflow checks are correct...
-
         uint64_t total64 = (type == mpack_type_map) ? node->tag.v.n * 2 : node->tag.v.n;
         if (total64 > SIZE_MAX) {
             mpack_tree_flag_error(tree, mpack_error_too_big);
             return;
         }
         size_t total = (size_t)total64;
-        size_t count = MPACK_NODE_ARRAY_STARTING_SIZE;
-        if (count > total)
-            count = total;
+        node->data.children = tree->node_count;
+        tree->node_count += total;
 
-        mpack_node_t* children = (mpack_node_t*) MPACK_MALLOC(count * sizeof(mpack_node_t));
-        if (children == NULL) {
-            node->tag.type = mpack_type_nil;
-            mpack_reader_flag_error(reader, mpack_error_memory);
+        // each node is at least one byte. count these bytes now to ensure that
+        // malicious nested data is not trying to make us allocate more nodes
+        // than there are bytes in the data.
+        if (total > *possible_nodes_left) {
+            mpack_reader_flag_error(reader, mpack_error_invalid);
             return;
         }
+        *possible_nodes_left -= total;
 
-        for (size_t i = 0; i < total; ++i) {
-            if (i == count) {
-                size_t new_count = count * 2;
-                if (new_count > total || new_count / 2 != count) // overflow check
-                    new_count = total;
+        // make sure we have enough nodes
+        #ifdef MPACK_MALLOC
+        if (tree->pages) {
+            while (tree->node_count > tree->page_count * MPACK_NODE_PAGE_SIZE) {
 
-                mpack_node_t* new_children = (mpack_node_t*) MPACK_MALLOC(new_count * sizeof(mpack_node_t));
-                if (new_children == NULL) {
-                    for (size_t j = 0; j < count; ++j)
-                        mpack_node_destroy(&children[j]);
-                    MPACK_FREE(children);
-                    node->tag.type = mpack_type_nil;
-                    mpack_reader_flag_error(reader, mpack_error_memory);
-                    return;
+                // grow page array if needed
+                if (tree->page_count == tree->page_capacity) {
+                    size_t new_capacity = tree->page_capacity * 2;
+                    mpack_node_t** new_pages = (mpack_node_t**)MPACK_MALLOC(sizeof(mpack_node_t*) * new_capacity);
+                    if (new_pages == NULL) {
+                        mpack_tree_flag_error(tree, mpack_error_memory);
+                        return;
+                    }
+                    mpack_memcpy(new_pages, tree->pages, tree->page_count * sizeof(mpack_node_t*));
+                    MPACK_FREE(tree->pages);
+                    tree->pages = new_pages;
+                    tree->page_capacity = new_capacity;
                 }
 
-                mpack_memcpy(new_children, children, count * sizeof(mpack_node_t));
-                MPACK_FREE(children);
-                children = new_children;
-                count = new_count;
-            }
+                // allocate new page
+                tree->pages[tree->page_count] = (mpack_node_t*)MPACK_MALLOC(sizeof(mpack_node_t) * MPACK_NODE_PAGE_SIZE);
+                if (tree->pages[tree->page_count] == NULL) {
+                    mpack_tree_flag_error(tree, mpack_error_memory);
+                    return;
+                }
+                ++tree->page_count;
 
-            mpack_tree_read_node(tree, &children[i], reader, depth + 1);
+            }
+        } else
+        #endif
+        {
+            if (tree->node_count > tree->pool_count) {
+                tree->node_count = tree->pool_count;
+                mpack_tree_flag_error(tree, mpack_error_too_big);
+                return;
+            }
         }
 
-        node->data.children = children;
+        // read the nodes
+        for (size_t i = 0; i < total; ++i)
+            mpack_tree_read_node(tree, mpack_node_child(node, i), reader, depth + 1, possible_nodes_left);
 
         if (type == mpack_type_array)
             mpack_done_array(reader);
@@ -127,8 +154,16 @@ static void mpack_tree_read_node(mpack_tree_t* tree, mpack_node_t* node, mpack_r
             mpack_done_map(reader);
 
     } else if (type == mpack_type_str || type == mpack_type_bin || type == mpack_type_ext) {
+        size_t total = node->tag.v.l;
+
+        if (total > *possible_nodes_left) {
+            mpack_reader_flag_error(reader, mpack_error_invalid);
+            return;
+        }
+        *possible_nodes_left -= total;
+
         node->data.bytes = reader->buffer + reader->pos;
-        mpack_skip_bytes(reader, node->tag.v.l);
+        mpack_skip_bytes(reader, total);
 
         if (type == mpack_type_str)
             mpack_done_str(reader);
@@ -139,18 +174,57 @@ static void mpack_tree_read_node(mpack_tree_t* tree, mpack_node_t* node, mpack_r
     }
 }
 
-void mpack_tree_init(mpack_tree_t* tree, const char* data, size_t length) {
+void mpack_tree_init_clear(mpack_tree_t* tree) {
     mpack_memset(tree, 0, sizeof(*tree));
-
     tree->nil_node.tree = tree;
     tree->nil_node.tag.type = mpack_type_nil;
+}
+
+void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length) {
+    if (length == 0) {
+        mpack_tree_init_error(tree, mpack_error_io);
+        return;
+    }
 
     mpack_reader_t reader;
     mpack_reader_init_data(&reader, data, length);
-    mpack_tree_read_node(tree, &tree->root, &reader, 0);
+
+    size_t possible_nodes_left = length - 1;
+    tree->node_count = 1;
+    mpack_tree_read_node(tree, mpack_tree_node_at(tree, 0), &reader, 0, &possible_nodes_left);
 
     tree->size = length - mpack_reader_remaining(&reader, NULL);
     tree->error = mpack_reader_destroy(&reader);
+}
+
+#ifdef MPACK_MALLOC
+void mpack_tree_init(mpack_tree_t* tree, const char* data, size_t length) {
+    mpack_tree_init_clear(tree);
+
+    tree->page_count = 0;
+    tree->page_capacity = MPACK_NODE_PAGE_INITIAL_CAPACITY;
+    tree->pages = (mpack_node_t**)MPACK_MALLOC(sizeof(mpack_node_t*) * tree->page_capacity);
+    if (tree->pages == NULL) {
+        tree->error = mpack_error_memory;
+        return;
+    }
+
+    tree->pages[tree->page_count] = (mpack_node_t*)MPACK_MALLOC(sizeof(mpack_node_t) * MPACK_NODE_PAGE_SIZE);
+    if (tree->pages[tree->page_count] == NULL) {
+        tree->error = mpack_error_memory;
+        return;
+    }
+    ++tree->page_count;
+
+    mpack_tree_parse(tree, data, length);
+}
+#endif
+
+void mpack_tree_init_nodes(mpack_tree_t* tree, const char* data, size_t length, mpack_node_t* node_pool, size_t node_pool_count) {
+    mpack_tree_init_clear(tree);
+    tree->pool = node_pool;
+    tree->pool_count = node_pool_count;
+    mpack_tree_parse(tree, data, length);
 }
 
 void mpack_tree_init_error(mpack_tree_t* tree, mpack_error_t error) {
@@ -262,7 +336,14 @@ void mpack_tree_init_file(mpack_tree_t* tree, const char* filename, size_t max_s
 #endif
 
 mpack_error_t mpack_tree_destroy(mpack_tree_t* tree) {
-    mpack_node_destroy(&tree->root);
+    #ifdef MPACK_MALLOC
+    if (tree->pages) {
+        for (size_t i = 0; i < tree->page_count; ++i)
+            MPACK_FREE(tree->pages[i]);
+        MPACK_FREE(tree->pages);
+        tree->pages = NULL;
+    }
+    #endif
     if (tree->teardown)
         tree->teardown(tree->context);
     return tree->error;
@@ -692,6 +773,7 @@ void mpack_node_copy_cstr(mpack_node_t* node, char* buffer, size_t size) {
     buffer[node->tag.v.l] = '\0';
 }
 
+#ifdef MPACK_MALLOC
 char* mpack_node_data_alloc(mpack_node_t* node, size_t maxlen) {
     if (node->tree->error != mpack_ok)
         return NULL;
@@ -749,6 +831,7 @@ char* mpack_node_cstr_alloc(mpack_node_t* node, size_t maxlen) {
     ret[node->tag.v.l] = '\0';
     return ret;
 }
+#endif
 
 
 /*
@@ -781,7 +864,7 @@ mpack_node_t* mpack_node_array_at(mpack_node_t* node, size_t index) {
         return &node->tree->nil_node;
     }
 
-    return &node->data.children[index];
+    return mpack_node_child(node, index);
 }
 
 static mpack_node_t* mpack_node_map_at(mpack_node_t* node, size_t index, size_t offset) {
@@ -798,7 +881,7 @@ static mpack_node_t* mpack_node_map_at(mpack_node_t* node, size_t index, size_t 
         return &node->tree->nil_node;
     }
 
-    return &node->data.children[index * 2 + offset];
+    return mpack_node_child(node, index * 2 + offset);
 }
 
 size_t mpack_node_map_count(mpack_node_t* node) {
@@ -831,8 +914,8 @@ mpack_node_t* mpack_node_map_int(mpack_node_t* node, int64_t num) {
     }
 
     for (size_t i = 0; i < node->tag.v.n; ++i) {
-        mpack_node_t* key = &node->data.children[i * 2];
-        mpack_node_t* value = &node->data.children[i * 2 + 1];
+        mpack_node_t* key = mpack_node_child(node, i * 2);
+        mpack_node_t* value = mpack_node_child(node, i * 2 + 1);
 
         if (key->tag.type == mpack_type_int && key->tag.v.i == num)
             return value;
@@ -854,8 +937,8 @@ mpack_node_t* mpack_node_map_uint(mpack_node_t* node, uint64_t num) {
     }
 
     for (size_t i = 0; i < node->tag.v.n; ++i) {
-        mpack_node_t* key = &node->data.children[i * 2];
-        mpack_node_t* value = &node->data.children[i * 2 + 1];
+        mpack_node_t* key = mpack_node_child(node, i * 2);
+        mpack_node_t* value = mpack_node_child(node, i * 2 + 1);
 
         if (key->tag.type == mpack_type_uint && key->tag.v.u == num)
             return value;
@@ -877,8 +960,8 @@ mpack_node_t* mpack_node_map_str(mpack_node_t* node, const char* str, size_t len
     }
 
     for (size_t i = 0; i < node->tag.v.n; ++i) {
-        mpack_node_t* key = &node->data.children[i * 2];
-        mpack_node_t* value = &node->data.children[i * 2 + 1];
+        mpack_node_t* key = mpack_node_child(node, i * 2);
+        mpack_node_t* value = mpack_node_child(node, i * 2 + 1);
 
         if (key->tag.type == mpack_type_str && key->tag.v.l == length && mpack_memcmp(str, key->data.bytes, length) == 0)
             return value;
@@ -902,7 +985,7 @@ bool mpack_node_map_contains_str(mpack_node_t* node, const char* str, size_t len
     }
 
     for (size_t i = 0; i < node->tag.v.n; ++i) {
-        mpack_node_t* key = &node->data.children[i * 2];
+        mpack_node_t* key = mpack_node_child(node, i * 2);
         if (key->tag.type == mpack_type_str && key->tag.v.l == length && mpack_memcmp(str, key->data.bytes, length) == 0)
             return true;
     }

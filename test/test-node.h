@@ -31,32 +31,42 @@ extern "C" {
 #if MPACK_NODE
 
 #define test_tree_destroy_noerror(tree) do { \
-    test_assert(mpack_tree_error(tree) == mpack_ok, \
-            "tree is in error state %i", (int)mpack_tree_error(tree)); \
+    mpack_error_t error = mpack_tree_destroy(tree); \
+    test_assert(error == mpack_ok, \
+            "tree is in error state %i", (int)error); \
     test_check_no_assertion(); \
-    mpack_tree_destroy(tree); \
 } while (0)
 
 #define test_tree_destroy_error(tree, error) do { \
-    mpack_error_t e = (error); \
-    test_assert(mpack_tree_error(tree) == e, \
-            "tree is in error state %i instead of %i", \
-            (int)mpack_tree_error(tree), (int)e); \
-    mpack_tree_destroy(tree); \
+    mpack_error_t expected = (error); \
+    mpack_error_t actual = mpack_tree_destroy(tree); \
+    test_assert(actual == expected, "tree is in error state %i instead of %i", \
+            (int)actual, (int)expected); \
+    test_check_no_assertion(); \
 } while (0)
 
 #define test_simple_tree_read(data, read_expr) do { \
+  mpack_node_t nodes[128]; \
   mpack_tree_t tree; \
-  mpack_tree_init(&tree, data, sizeof(data) - 1); \
+  mpack_tree_init_nodes(&tree, data, sizeof(data) - 1, nodes, sizeof(nodes) / sizeof(*nodes)); \
   mpack_node_t* node = mpack_tree_root(&tree); \
   test_check_no_assertion(); \
   test_assert((read_expr), "simple tree test did not pass: " #read_expr); \
   test_tree_destroy_noerror(&tree); \
 } while (0)
 
+#ifdef MPACK_MALLOC
+#define test_tree_init mpack_tree_init
+#else
+#define test_tree_init(tree, data, data_size) \
+    mpack_node_t nodes[128]; \
+    mpack_tree_init_nodes((tree), (data), (data_size), nodes, sizeof(nodes) / sizeof(*nodes));
+#endif
+
 #define test_simple_tree_read_error(data, read_expr, error) do { \
+  mpack_node_t nodes[128]; \
   mpack_tree_t tree; \
-  mpack_tree_init(&tree, data, sizeof(data) - 1); \
+  mpack_tree_init_nodes(&tree, data, sizeof(data) - 1, nodes, sizeof(nodes) / sizeof(*nodes)); \
   mpack_node_t* node = mpack_tree_root(&tree); \
   test_assert((read_expr), "simple read error test did not pass: " #read_expr); \
   test_tree_destroy_error(&tree, (error)); \
