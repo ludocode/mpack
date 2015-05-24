@@ -3,11 +3,25 @@
 #define MPACK_CONFIG_H 1
 
 // This is the configuration for the MPack test harness.
-// Note that most options such as featureset and platform configuration
-// are instead specified by the buildsystem.
 
 #if defined(DEBUG) || defined(_DEBUG)
 #define MPACK_DEBUG 1
+#endif
+
+// Most options such as featureset and platform configuration
+// are specified by the SCons buildsystem. For other platforms,
+// we define the usual configuration here.
+#ifndef MPACK_SCONS
+    #define MPACK_READER 1
+    #define MPACK_WRITER 1
+    #define MPACK_EXPECT 1
+    #define MPACK_NODE 1
+
+    #define MPACK_STDLIB 1
+    #define MPACK_STDIO 1
+    #define MPACK_SETJMP 1
+    #define MPACK_MALLOC test_malloc
+    #define MPACK_FREE test_free
 #endif
 
 #if defined(MPACK_MALLOC) && !defined(MPACK_NO_TRACKING)

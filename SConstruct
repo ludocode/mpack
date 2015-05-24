@@ -13,6 +13,7 @@ env.Append(CPPFLAGS = [
     "-Wconversion", "-Wno-sign-conversion", "-Wno-float-conversion",
     "-fprofile-arcs", "-ftest-coverage",
     "-Isrc", "-Itest",
+    "-DMPACK_SCONS=1",
     "-g",
     ])
 env.Append(LINKFLAGS = [
