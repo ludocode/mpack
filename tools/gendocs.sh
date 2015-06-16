@@ -5,6 +5,7 @@
 [[ -z $(git status -uno --porcelain) ]] || { git status -uno --porcelain; echo "Cannot generate docs, tree is not clean!" ; exit 1; }
 sed '/^```C/,/^```$/ s/^[^`]/    &/' -i README.md
 sed '/^```/d' -i README.md
+sed '/travis-ci\.org\/ludocode\/mpack\.svg/d' -i README.md
 doxygen
 RET=$?
 git checkout README.md

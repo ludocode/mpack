@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/ludocode/mpack.svg?branch=master)](https://travis-ci.org/ludocode/mpack)
 
 ## Introduction
 
