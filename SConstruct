@@ -3,10 +3,14 @@ import platform, os
 
 # Common environment setup
 
-env = Environment()
+env = Environment(ENV = os.environ)
 env['ENV']['TERM'] = os.environ['TERM']
 if os.environ.has_key('CC'):
     env['CC'] = os.environ['CC']
+if os.environ.has_key('CXX'):
+    env['CXX'] = os.environ['CXX']
+if os.environ.has_key('PATH'):
+    env['PATH'] = os.environ['PATH']
 
 env.Append(CPPFLAGS = [
     "-Wall", "-Wextra", "-Werror",
