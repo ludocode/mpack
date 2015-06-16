@@ -117,7 +117,7 @@ void mpack_reader_init_file(mpack_reader_t* reader, const char* filename) {
 
 mpack_error_t mpack_reader_destroy_impl(mpack_reader_t* reader, bool cancel) {
     MPACK_UNUSED(cancel);
-    MPACK_READER_TRACK(reader, mpack_track_destroy(&reader->track, true));
+    MPACK_READER_TRACK(reader, mpack_track_destroy(&reader->track, cancel));
     if (reader->teardown)
         reader->teardown(reader->context);
     return reader->error;
