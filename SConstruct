@@ -11,10 +11,12 @@ if os.environ.has_key('CXX'):
     env['CXX'] = os.environ['CXX']
 if os.environ.has_key('PATH'):
     env['PATH'] = os.environ['PATH']
+if os.environ.has_key('TRAVIS'):
+    env['TRAVIS'] = os.environ['TRAVIS']
 
 env.Append(CPPFLAGS = [
     "-Wall", "-Wextra", "-Werror",
-    "-Wconversion", "-Wno-sign-conversion", "-Wno-float-conversion",
+    "-Wconversion", "-Wno-sign-conversion",
     "-fprofile-arcs", "-ftest-coverage",
     "-Isrc", "-Itest",
     "-DMPACK_SCONS=1",
@@ -24,6 +26,9 @@ env.Append(LINKFLAGS = [
     "-g",
     "-fprofile-arcs", "-ftest-coverage"
     ])
+
+if 'CC' not in env or "clang" not in env['CC']:
+    env.Append(CPPFLAGS = ["-Wno-float-conversion"]) # unsupported in clang 3.4
 
 
 # Optional flags used in various builds
@@ -104,7 +109,7 @@ if not ARGUMENTS.get('dev'):
     AddBuilds("cxx", allfeatures + allconfigs + cxxflags, ["-lstdc++"])
     AddBuilds("notrack", ["-DMPACK_NO_TRACKING=1"] + allfeatures + allconfigs + cflags, [])
 
-    # 32-bit builds
-    if '64' in platform.architecture()[0]:
+    # 32-bit builds (note Travis-CI doesn't support multilib)
+    if 'TRAVIS' not in env and '64' in platform.architecture()[0]:
         AddBuilds("32",     allfeatures + allconfigs + cflags + ["-m32"], ["-m32"])
         AddBuilds("cxx-32", allfeatures + allconfigs + cxxflags + ["-m32"], ["-m32", "-lstdc++"])
