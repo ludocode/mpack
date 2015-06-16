@@ -120,6 +120,7 @@ mpack_error_t mpack_reader_destroy_impl(mpack_reader_t* reader, bool cancel) {
     MPACK_READER_TRACK(reader, mpack_track_destroy(&reader->track, cancel));
     if (reader->teardown)
         reader->teardown(reader->context);
+    reader->teardown = NULL;
     return reader->error;
 }
 

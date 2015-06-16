@@ -164,9 +164,13 @@ void mpack_writer_init_file(mpack_writer_t* writer, const char* filename);
  * returned 1. This ensures an error handling block runs exactly once in case of
  * error.
  *
+ * A writer that jumps still needs to be destroyed. You must call
+ * mpack_writer_destroy() in your jump handler after getting the final error state.
+ *
  * The argument may be evaluated multiple times.
  *
  * @returns 0 if the writer is not in an error state; 1 if and when an error occurs.
+ * @see mpack_writer_destroy()
  */
 #define MPACK_WRITER_SETJMP(writer) (((writer)->error == mpack_ok) ? \
     ((writer)->jump = true, setjmp((writer)->jump_env)) : 1)
@@ -184,6 +188,11 @@ static inline void mpack_writer_clearjmp(mpack_writer_t* writer) {
  * Cleans up the mpack writer, flushing any buffered bytes to the
  * underlying stream, if any. Returns the final error state of the
  * writer in case an error occurred flushing.
+ *
+ * Note that if a jump handler is set, a writer may jump during destroy if it
+ * fails to flush any remaining data. In this case the writer will not be fully
+ * destroyed; you can still get the error state, and you must call destroy as
+ * usual in the jump handler.
  */
 mpack_error_t mpack_writer_destroy(mpack_writer_t* writer);
 

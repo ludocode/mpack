@@ -173,6 +173,7 @@ mpack_error_t mpack_track_init(mpack_track_t* track) {
 
 mpack_error_t mpack_track_destroy(mpack_track_t* track, bool cancel) {
     MPACK_FREE(track->elements);
+    track->elements = NULL;
     if (!cancel)
         return mpack_track_check_empty(track);
     return mpack_ok;

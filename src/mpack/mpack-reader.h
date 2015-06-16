@@ -107,9 +107,13 @@ struct mpack_reader_t {
  * returned 1. This ensures an error handling block runs exactly once in case of
  * error.
  *
+ * A reader that jumps still needs to be destroyed. You must call
+ * mpack_reader_destroy() in your jump handler after getting the final error state.
+ *
  * The argument may be evaluated multiple times.
  *
  * @returns 0 if the reader is not in an error state; 1 if and when an error occurs.
+ * @see mpack_reader_destroy()
  */
 #define MPACK_READER_SETJMP(reader) (((reader)->error == mpack_ok) ? \
     ((reader)->jump = true, setjmp((reader)->jump_env)) : 1)

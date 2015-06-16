@@ -346,6 +346,7 @@ mpack_error_t mpack_tree_destroy(mpack_tree_t* tree) {
     #endif
     if (tree->teardown)
         tree->teardown(tree->context);
+    tree->teardown = NULL;
     return tree->error;
 }
 

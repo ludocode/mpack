@@ -325,6 +325,7 @@ mpack_error_t mpack_writer_destroy(mpack_writer_t* writer) {
 
     if (writer->teardown)
         writer->teardown(writer->context);
+    writer->teardown = NULL;
 
     return writer->error;
 }

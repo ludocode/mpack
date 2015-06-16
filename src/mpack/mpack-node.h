@@ -214,9 +214,13 @@ static inline void mpack_tree_set_teardown(mpack_tree_t* tree, mpack_teardown_t 
  * returned 1. This ensures an error handling block runs exactly once in case of
  * error.
  *
+ * A tree that jumps still needs to be destroyed. You must call
+ * mpack_tree_destroy() in your jump handler after getting the final error state.
+ *
  * The argument may be evaluated multiple times.
  *
  * @returns 0 if the tree is not in an error state; 1 if and when an error occurs.
+ * @see mpack_tree_destroy()
  */
 #define MPACK_TREE_SETJMP(tree) (((tree)->error == mpack_ok) ? \
     ((tree)->jump = true, setjmp((tree)->jump_env)) : 1)
