@@ -27,14 +27,14 @@
 
 #if MPACK_TRACKING
 #define MPACK_WRITER_TRACK(writer, error) mpack_writer_flag_if_error(writer, error)
-#else
-#define MPACK_WRITER_TRACK(writer, error) MPACK_UNUSED(writer)
-#endif
 
 static inline void mpack_writer_flag_if_error(mpack_writer_t* writer, mpack_error_t error) {
     if (error != mpack_ok)
         mpack_writer_flag_error(writer, error);
 }
+#else
+#define MPACK_WRITER_TRACK(writer, error) MPACK_UNUSED(writer)
+#endif
 
 static inline void mpack_writer_track_element(mpack_writer_t* writer) {
     MPACK_WRITER_TRACK(writer, mpack_track_element(&writer->track, true));

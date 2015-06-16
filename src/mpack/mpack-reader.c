@@ -27,14 +27,14 @@
 
 #if MPACK_TRACKING
 #define MPACK_READER_TRACK(reader, error) mpack_reader_flag_if_error(reader, error)
-#else
-#define MPACK_READER_TRACK(reader, error) MPACK_UNUSED(reader)
-#endif
 
 static inline void mpack_reader_flag_if_error(mpack_reader_t* reader, mpack_error_t error) {
     if (error != mpack_ok)
         mpack_reader_flag_error(reader, error);
 }
+#else
+#define MPACK_READER_TRACK(reader, error) MPACK_UNUSED(reader)
+#endif
 
 #if MPACK_TRACKING
 void mpack_reader_track_element(mpack_reader_t* reader) {
