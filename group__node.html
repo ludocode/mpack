@@ -103,15 +103,18 @@ Tree Functions</h2></td></tr>
 <tr class="memitem:ga57182f50afa56ca6a912620e894ed7c3"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#ga57182f50afa56ca6a912620e894ed7c3">mpack_tree_init</a> (<a class="el" href="group__node.html#structmpack__tree__t">mpack_tree_t</a> *tree, const char *data, size_t length)</td></tr>
 <tr class="memdesc:ga57182f50afa56ca6a912620e894ed7c3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes a tree by parsing the given data buffer.  <a href="#ga57182f50afa56ca6a912620e894ed7c3">More...</a><br /></td></tr>
 <tr class="separator:ga57182f50afa56ca6a912620e894ed7c3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga05598e52b8426c14082629082079c021"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#ga05598e52b8426c14082629082079c021">mpack_tree_init_nodes</a> (<a class="el" href="group__node.html#structmpack__tree__t">mpack_tree_t</a> *tree, const char *data, size_t length, <a class="el" href="group__node.html#structmpack__node__t">mpack_node_t</a> *node_pool, size_t node_pool_count)</td></tr>
+<tr class="memdesc:ga05598e52b8426c14082629082079c021"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes a tree by parsing the given data buffer, using the given node pool to store the results.  <a href="#ga05598e52b8426c14082629082079c021">More...</a><br /></td></tr>
+<tr class="separator:ga05598e52b8426c14082629082079c021"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gad8360ae0ff58c0b6fb5c5997297b602c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#gad8360ae0ff58c0b6fb5c5997297b602c">mpack_tree_init_error</a> (<a class="el" href="group__node.html#structmpack__tree__t">mpack_tree_t</a> *tree, <a class="el" href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a> error)</td></tr>
 <tr class="memdesc:gad8360ae0ff58c0b6fb5c5997297b602c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an mpack tree directly into an error state.  <a href="#gad8360ae0ff58c0b6fb5c5997297b602c">More...</a><br /></td></tr>
 <tr class="separator:gad8360ae0ff58c0b6fb5c5997297b602c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga2f8327cf4ebc79d9358ee0a1643af66c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#ga2f8327cf4ebc79d9358ee0a1643af66c">mpack_tree_init_file</a> (<a class="el" href="group__node.html#structmpack__tree__t">mpack_tree_t</a> *tree, const char *filename, size_t max_bytes)</td></tr>
 <tr class="memdesc:ga2f8327cf4ebc79d9358ee0a1643af66c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes a tree by reading and parsing the given file.  <a href="#ga2f8327cf4ebc79d9358ee0a1643af66c">More...</a><br /></td></tr>
 <tr class="separator:ga2f8327cf4ebc79d9358ee0a1643af66c"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaa555786a0054e2a9207e6a649cc97d6a"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="group__node.html#structmpack__node__t">mpack_node_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#gaa555786a0054e2a9207e6a649cc97d6a">mpack_tree_root</a> (<a class="el" href="group__node.html#structmpack__tree__t">mpack_tree_t</a> *tree)</td></tr>
-<tr class="memdesc:gaa555786a0054e2a9207e6a649cc97d6a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the root node of the tree, if the tree is not in an error state.  <a href="#gaa555786a0054e2a9207e6a649cc97d6a">More...</a><br /></td></tr>
-<tr class="separator:gaa555786a0054e2a9207e6a649cc97d6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf9e9f4a05c240f292814fcdb42f8af91"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__node.html#structmpack__node__t">mpack_node_t</a> *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#gaf9e9f4a05c240f292814fcdb42f8af91">mpack_tree_root</a> (<a class="el" href="group__node.html#structmpack__tree__t">mpack_tree_t</a> *tree)</td></tr>
+<tr class="memdesc:gaf9e9f4a05c240f292814fcdb42f8af91"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the root node of the tree, if the tree is not in an error state.  <a href="#gaf9e9f4a05c240f292814fcdb42f8af91">More...</a><br /></td></tr>
+<tr class="separator:gaf9e9f4a05c240f292814fcdb42f8af91"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga2cafadddc36ff6956dfdcd81b65f3cb1"><td class="memItemLeft" align="right" valign="top">static <a class="el" href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#ga2cafadddc36ff6956dfdcd81b65f3cb1">mpack_tree_error</a> (<a class="el" href="group__node.html#structmpack__tree__t">mpack_tree_t</a> *tree)</td></tr>
 <tr class="memdesc:ga2cafadddc36ff6956dfdcd81b65f3cb1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the error state of the tree.  <a href="#ga2cafadddc36ff6956dfdcd81b65f3cb1">More...</a><br /></td></tr>
 <tr class="separator:ga2cafadddc36ff6956dfdcd81b65f3cb1"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -339,8 +342,10 @@ Compound Node Functions</h2></td></tr>
 
 <p>Registers a jump target in case of error. </p>
 <p>If the tree is in an error state, 1 is returned when called. Otherwise 0 is returned when called, and when the first error occurs, control flow will jump to the point where <a class="el" href="group__node.html#gaad86c7b49927ebf1bf854f8ecfc2cba8" title="Registers a jump target in case of error. ">MPACK_TREE_SETJMP()</a> was called, resuming as though it returned 1. This ensures an error handling block runs exactly once in case of error.</p>
+<p>A tree that jumps still needs to be destroyed. You must call <a class="el" href="group__node.html#gabf57acbc8356be8fab13a64f78986fdc" title="Destroys the tree. ">mpack_tree_destroy()</a> in your jump handler after getting the final error state.</p>
 <p>The argument may be evaluated multiple times.</p>
 <dl class="section return"><dt>Returns</dt><dd>0 if the tree is not in an error state; 1 if and when an error occurs. </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__node.html#gabf57acbc8356be8fab13a64f78986fdc" title="Destroys the tree. ">mpack_tree_destroy()</a> </dd></dl>
 
 </div>
 </div>
@@ -1596,6 +1601,7 @@ Compound Node Functions</h2></td></tr>
 
 <p>Initializes a tree by parsing the given data buffer. </p>
 <p>The tree must be destroyed with <a class="el" href="group__node.html#gabf57acbc8356be8fab13a64f78986fdc" title="Destroys the tree. ">mpack_tree_destroy()</a>, even if parsing fails.</p>
+<p>The tree will allocate pages of nodes as needed, and free them when destroyed.</p>
 <p>Any string or blob data types reference the original data, so the data pointer must remain valid until after the tree is destroyed. </p>
 
 </div>
@@ -1673,26 +1679,65 @@ Compound Node Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="gaa555786a0054e2a9207e6a649cc97d6a"></a>
+<a class="anchor" id="ga05598e52b8426c14082629082079c021"></a>
 <div class="memitem">
 <div class="memproto">
-<table class="mlabels">
-  <tr>
-  <td class="mlabels-left">
       <table class="memname">
         <tr>
-          <td class="memname">static <a class="el" href="group__node.html#structmpack__node__t">mpack_node_t</a>* mpack_tree_root </td>
+          <td class="memname">void mpack_tree_init_nodes </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__node.html#structmpack__tree__t">mpack_tree_t</a> *&#160;</td>
+          <td class="paramname"><em>tree</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>length</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__node.html#structmpack__node__t">mpack_node_t</a> *&#160;</td>
+          <td class="paramname"><em>node_pool</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>node_pool_count</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Initializes a tree by parsing the given data buffer, using the given node pool to store the results. </p>
+<p>The tree must be destroyed with <a class="el" href="group__node.html#gabf57acbc8356be8fab13a64f78986fdc" title="Destroys the tree. ">mpack_tree_destroy()</a>, even if parsing fails. </p>
+
+</div>
+</div>
+<a class="anchor" id="gaf9e9f4a05c240f292814fcdb42f8af91"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname"><a class="el" href="group__node.html#structmpack__node__t">mpack_node_t</a>* mpack_tree_root </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="group__node.html#structmpack__tree__t">mpack_tree_t</a> *&#160;</td>
           <td class="paramname"><em>tree</em></td><td>)</td>
           <td></td>
         </tr>
       </table>
-  </td>
-  <td class="mlabels-right">
-<span class="mlabels"><span class="mlabel">inline</span><span class="mlabel">static</span></span>  </td>
-  </tr>
-</table>
 </div><div class="memdoc">
 
 <p>Returns the root node of the tree, if the tree is not in an error state. </p>
@@ -1817,7 +1862,7 @@ Compound Node Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Apr 8 2015 16:22:38 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jun 15 2015 23:49:16 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.9.1
 </small></address>

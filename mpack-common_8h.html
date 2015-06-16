@@ -99,8 +99,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 <p>Defines types and functions shared by the MPack reader and writer.  
 <a href="#details">More...</a></p>
-<div class="textblock"><code>#include &quot;<a class="el" href="mpack-platform_8h_source.html">mpack-platform.h</a>&quot;</code><br />
-<code>#include &quot;mpack-internal.h&quot;</code><br />
+<div class="textblock"><code>#include &quot;mpack-internal.h&quot;</code><br />
 </div>
 <p><a href="mpack-common_8h_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
@@ -112,6 +111,10 @@ Data Structures</h2></td></tr>
 <tr class="memitem:unionmpack__tag__t_8v"><td class="memItemLeft" align="right" valign="top">union &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__common.html#unionmpack__tag__t_8v">mpack_tag_t.v</a></td></tr>
 <tr class="memdesc:unionmpack__tag__t_8v"><td class="mdescLeft">&#160;</td><td class="mdescRight">The value for non-compound types.  <a href="group__common.html#unionmpack__tag__t_8v">More...</a><br /></td></tr>
 <tr class="separator:unionmpack__tag__t_8v"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:structmpack__track__element__t"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mpack-common_8h.html#structmpack__track__element__t">mpack_track_element_t</a></td></tr>
+<tr class="separator:structmpack__track__element__t"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:structmpack__track__t"><td class="memItemLeft" align="right" valign="top">struct &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="mpack-common_8h.html#structmpack__track__t">mpack_track_t</a></td></tr>
+<tr class="separator:structmpack__track__t"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
@@ -133,7 +136,7 @@ Enumerations</h2></td></tr>
 <a class="el" href="group__common.html#gga9d9f282ca4183ab5190e09d04c1f74c4ae53cbed8fcc42915d71ae37d121b22e8">mpack_error_data</a>
 <br />
  }</td></tr>
-<tr class="memdesc:ga9d9f282ca4183ab5190e09d04c1f74c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Error states for the MPack reader and writer.  <a href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">More...</a><br /></td></tr>
+<tr class="memdesc:ga9d9f282ca4183ab5190e09d04c1f74c4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Error states for MPack objects.  <a href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">More...</a><br /></td></tr>
 <tr class="separator:ga9d9f282ca4183ab5190e09d04c1f74c4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga22f03cf1240d5a917e1b3e7be8ab327e"><td class="memItemLeft" align="right" valign="top">enum &#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__common.html#ga22f03cf1240d5a917e1b3e7be8ab327e">mpack_type_t</a> { <br />
 &#160;&#160;<a class="el" href="group__common.html#gga22f03cf1240d5a917e1b3e7be8ab327eaade66ddfcf1133c0ac00015ab26bd2b4">mpack_type_nil</a> = 1, 
@@ -189,10 +192,35 @@ Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <div class="textblock"><p>Defines types and functions shared by the MPack reader and writer. </p>
-</div></div><!-- contents -->
+</div><hr/><h2 class="groupheader">Data Structure Documentation</h2>
+<a name="structmpack__track__element__t" id="structmpack__track__element__t"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">struct mpack_track_element_t</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="textblock"></div>
+</div>
+</div>
+<a name="structmpack__track__t" id="structmpack__track__t"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">struct mpack_track_t</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+<div class="textblock"></div>
+</div>
+</div>
+</div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Apr 8 2015 16:22:38 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jun 15 2015 23:49:16 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.9.1
 </small></address>

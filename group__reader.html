@@ -242,8 +242,10 @@ Functions</h2></td></tr>
 
 <p>Registers a jump target in case of error. </p>
 <p>If the reader is in an error state, 1 is returned when called. Otherwise 0 is returned when called, and when the first error occurs, control flow will jump to the point where <a class="el" href="group__reader.html#gaad6e5f81f01257d1295240ec9ae70d2c" title="Registers a jump target in case of error. ">MPACK_READER_SETJMP()</a> was called, resuming as though it returned 1. This ensures an error handling block runs exactly once in case of error.</p>
+<p>A reader that jumps still needs to be destroyed. You must call <a class="el" href="group__reader.html#gac04666405e21eea6e8819182571f0d20" title="Cleans up the mpack reader, ensuring that all compound elements have been completely read...">mpack_reader_destroy()</a> in your jump handler after getting the final error state.</p>
 <p>The argument may be evaluated multiple times.</p>
 <dl class="section return"><dt>Returns</dt><dd>0 if the reader is not in an error state; 1 if and when an error occurs. </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__reader.html#gac04666405e21eea6e8819182571f0d20" title="Cleans up the mpack reader, ensuring that all compound elements have been completely read...">mpack_reader_destroy()</a> </dd></dl>
 
 </div>
 </div>
@@ -326,7 +328,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Finishes reading an array. </p>
-<p>In release mode, this is a no-op. However if a debug build is used, this will track reads to ensure that the correct number of elements are read. </p>
+<p>This will track reads to ensure that the correct number of elements are read. </p>
 
 </div>
 </div>
@@ -345,7 +347,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Finishes reading a binary data blob. </p>
-<p>In release mode, this is a no-op. However if a debug build is used, this will track reads to ensure that the correct number of bytes are read. </p>
+<p>This will track reads to ensure that the correct number of bytes are read. </p>
 
 </div>
 </div>
@@ -364,7 +366,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Finishes reading an extended binary data blob. </p>
-<p>In release mode, this is a no-op. However if a debug build is used, this will track reads to ensure that the correct number of bytes are read. </p>
+<p>This will track reads to ensure that the correct number of bytes are read. </p>
 
 </div>
 </div>
@@ -383,8 +385,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Finishes reading a map. </p>
-<p>In release mode, this is a no-op. However if a debug build is used, this will track reads to ensure that the correct number of elements are read.</p>
-<p>You must call <a class="el" href="group__reader.html#ga86165fc780e7adef09f4b45aee54842a" title="Finishes reading a map. ">mpack_done_map()</a> when done. </p>
+<p>This will track reads to ensure that the correct number of elements are read. </p>
 
 </div>
 </div>
@@ -403,7 +404,7 @@ Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Finishes reading a string. </p>
-<p>In release mode, this is a no-op. However if a debug build is used, this will track reads to ensure that the correct number of bytes are read. </p>
+<p>This will track reads to ensure that the correct number of bytes are read. </p>
 
 </div>
 </div>
@@ -984,7 +985,7 @@ mpack_cancel() </dd></dl>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Apr 8 2015 16:22:38 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jun 15 2015 23:49:16 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.9.1
 </small></address>

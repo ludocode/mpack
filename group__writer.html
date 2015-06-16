@@ -103,8 +103,11 @@ Typedefs</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
 Core Writer Functions</h2></td></tr>
 <tr class="memitem:gabf46d5fd103d44d03c412cb7bb52e2d0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#gabf46d5fd103d44d03c412cb7bb52e2d0">mpack_writer_init</a> (<a class="el" href="group__writer.html#structmpack__writer__t">mpack_writer_t</a> *writer, char *buffer, size_t size)</td></tr>
-<tr class="memdesc:gabf46d5fd103d44d03c412cb7bb52e2d0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an mpack writer with the given buffer and flush function.  <a href="#gabf46d5fd103d44d03c412cb7bb52e2d0">More...</a><br /></td></tr>
+<tr class="memdesc:gabf46d5fd103d44d03c412cb7bb52e2d0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an mpack writer with the given buffer.  <a href="#gabf46d5fd103d44d03c412cb7bb52e2d0">More...</a><br /></td></tr>
 <tr class="separator:gabf46d5fd103d44d03c412cb7bb52e2d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0aa3b265fb5ece9c4cba0f2b1bfbdb53"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#ga0aa3b265fb5ece9c4cba0f2b1bfbdb53">mpack_writer_init_growable</a> (<a class="el" href="group__writer.html#structmpack__writer__t">mpack_writer_t</a> *writer, char **data, size_t *size)</td></tr>
+<tr class="memdesc:ga0aa3b265fb5ece9c4cba0f2b1bfbdb53"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an mpack writer using a growable buffer.  <a href="#ga0aa3b265fb5ece9c4cba0f2b1bfbdb53">More...</a><br /></td></tr>
+<tr class="separator:ga0aa3b265fb5ece9c4cba0f2b1bfbdb53"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gab3c8d9ebe78513a17a38af28f387d169"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#gab3c8d9ebe78513a17a38af28f387d169">mpack_writer_init_error</a> (<a class="el" href="group__writer.html#structmpack__writer__t">mpack_writer_t</a> *writer, <a class="el" href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a> error)</td></tr>
 <tr class="memdesc:gab3c8d9ebe78513a17a38af28f387d169"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an mpack writer directly into an error state.  <a href="#gab3c8d9ebe78513a17a38af28f387d169">More...</a><br /></td></tr>
 <tr class="separator:gab3c8d9ebe78513a17a38af28f387d169"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -280,8 +283,10 @@ Typed Write Functions</h2></td></tr>
 
 <p>Registers a jump target in case of error. </p>
 <p>If the writer is in an error state, 1 is returned when called. Otherwise 0 is returned when called, and when the first error occurs, control flow will jump to the point where <a class="el" href="group__writer.html#gae54d6f37aead7572828756b4263ac4a5" title="Registers a jump target in case of error. ">MPACK_WRITER_SETJMP()</a> was called, resuming as though it returned 1. This ensures an error handling block runs exactly once in case of error.</p>
+<p>A writer that jumps still needs to be destroyed. You must call <a class="el" href="group__writer.html#ga1cf5a2d9b687d94f637a36123ef7cec0" title="Cleans up the mpack writer, flushing any buffered bytes to the underlying stream, if any...">mpack_writer_destroy()</a> in your jump handler after getting the final error state.</p>
 <p>The argument may be evaluated multiple times.</p>
 <dl class="section return"><dt>Returns</dt><dd>0 if the writer is not in an error state; 1 if and when an error occurs. </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__writer.html#ga1cf5a2d9b687d94f637a36123ef7cec0" title="Cleans up the mpack writer, flushing any buffered bytes to the underlying stream, if any...">mpack_writer_destroy()</a> </dd></dl>
 
 </div>
 </div>
@@ -317,7 +322,7 @@ Typed Write Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Finishes writing an array. </p>
-<p>In release mode, this is a no-op. However if a debug build is used and stdio is available, this will track writes to ensure that the correct number of elements are written. </p>
+<p>This will track writes to ensure that the correct number of elements are written. </p>
 
 </div>
 </div>
@@ -336,7 +341,7 @@ Typed Write Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Finishes writing a binary blob. </p>
-<p>In release mode, this is a no-op. However if a debug build is used and stdio is available, this will track writes to ensure that the correct number of bytes were written. </p>
+<p>This will track writes to ensure that the correct number of bytes are written. </p>
 
 </div>
 </div>
@@ -355,7 +360,7 @@ Typed Write Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Finishes writing an extension type. </p>
-<p>In release mode, this is a no-op. However if a debug build is used and stdio is available, this will track writes to ensure that the correct number of bytes were written. </p>
+<p>This will track writes to ensure that the correct number of bytes are written. </p>
 
 </div>
 </div>
@@ -374,7 +379,7 @@ Typed Write Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Finishes writing a map. </p>
-<p>In release mode, this is a no-op. However if a debug build is used and stdio is available, this will track writes to ensure that the correct number of elements were written. </p>
+<p>This will track writes to ensure that the correct number of elements are written. </p>
 
 </div>
 </div>
@@ -393,7 +398,7 @@ Typed Write Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Finishes writing a string. </p>
-<p>In release mode, this is a no-op. However if a debug build is used and stdio is available, this will track writes to ensure that the correct number of bytes were written. </p>
+<p>This will track writes to ensure that the correct number of bytes are written. </p>
 
 </div>
 </div>
@@ -1230,7 +1235,8 @@ Typed Write Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Cleans up the mpack writer, flushing any buffered bytes to the underlying stream, if any. </p>
-<p>Returns the final error state of the writer in case an error occurred flushing. </p>
+<p>Returns the final error state of the writer in case an error occurred flushing.</p>
+<p>Note that if a jump handler is set, a writer may jump during destroy if it fails to flush any remaining data. In this case the writer will not be fully destroyed; you can still get the error state, and you must call destroy as usual in the jump handler. </p>
 
 </div>
 </div>
@@ -1321,7 +1327,7 @@ Typed Write Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Initializes an mpack writer with the given buffer and flush function. </p>
+<p>Initializes an mpack writer with the given buffer. </p>
 <p>The writer does not assume ownership of the buffer.</p>
 <p>Trying to write past the end of the buffer will result in mpack_error_io unless a flush function is set with <a class="el" href="group__writer.html#ga603fa72ebf84ac80d8fff08bd2ea9602" title="Sets the flush function to write out the data when the buffer is full. ">mpack_writer_set_flush()</a>. To use the data without flushing, call <a class="el" href="group__writer.html#ga280641f8f0123b39620671326c9c5deb" title="Returns the number of bytes currently stored in the buffer. ">mpack_writer_buffer_used()</a> to determine the number of bytes written.</p>
 <dl class="params"><dt>Parameters</dt><dd>
@@ -1360,7 +1366,7 @@ Typed Write Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Initializes an mpack writer directly into an error state. </p>
-<p>Use this if you are writing a wrapper to <a class="el" href="group__writer.html#gabf46d5fd103d44d03c412cb7bb52e2d0" title="Initializes an mpack writer with the given buffer and flush function. ">mpack_writer_init()</a> which can fail its setup. </p>
+<p>Use this if you are writing a wrapper to <a class="el" href="group__writer.html#gabf46d5fd103d44d03c412cb7bb52e2d0" title="Initializes an mpack writer with the given buffer. ">mpack_writer_init()</a> which can fail its setup. </p>
 
 </div>
 </div>
@@ -1389,6 +1395,50 @@ Typed Write Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Initializes an mpack writer that writes to a file. </p>
+
+</div>
+</div>
+<a class="anchor" id="ga0aa3b265fb5ece9c4cba0f2b1bfbdb53"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void mpack_writer_init_growable </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__writer.html#structmpack__writer__t">mpack_writer_t</a> *&#160;</td>
+          <td class="paramname"><em>writer</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char **&#160;</td>
+          <td class="paramname"><em>data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t *&#160;</td>
+          <td class="paramname"><em>size</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Initializes an mpack writer using a growable buffer. </p>
+<p>The data is placed in the given data pointer if and when the writer is destroyed without error. The data should be freed with MPACK_FREE().</p>
+<p>mpack_error_memory is raised if the buffer fails to grow.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">writer</td><td>The MPack writer. </td></tr>
+    <tr><td class="paramname">buffer</td><td>The pointer in which to place the allocated data. </td></tr>
+    <tr><td class="paramname">size</td><td>The pointer in which to write the size of the data. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -1527,7 +1577,7 @@ Typed Write Functions</h2></td></tr>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Wed Apr 8 2015 16:22:38 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Mon Jun 15 2015 23:49:16 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.9.1
 </small></address>

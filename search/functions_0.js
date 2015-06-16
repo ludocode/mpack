@@ -142,7 +142,8 @@ var searchData=
   ['mpack_5ftree_5finit',['mpack_tree_init',['../group__node.html#ga57182f50afa56ca6a912620e894ed7c3',1,'mpack-node.h']]],
   ['mpack_5ftree_5finit_5ferror',['mpack_tree_init_error',['../group__node.html#gad8360ae0ff58c0b6fb5c5997297b602c',1,'mpack-node.h']]],
   ['mpack_5ftree_5finit_5ffile',['mpack_tree_init_file',['../group__node.html#ga2f8327cf4ebc79d9358ee0a1643af66c',1,'mpack-node.h']]],
-  ['mpack_5ftree_5froot',['mpack_tree_root',['../group__node.html#gaa555786a0054e2a9207e6a649cc97d6a',1,'mpack-node.h']]],
+  ['mpack_5ftree_5finit_5fnodes',['mpack_tree_init_nodes',['../group__node.html#ga05598e52b8426c14082629082079c021',1,'mpack-node.h']]],
+  ['mpack_5ftree_5froot',['mpack_tree_root',['../group__node.html#gaf9e9f4a05c240f292814fcdb42f8af91',1,'mpack-node.h']]],
   ['mpack_5ftree_5fset_5fcontext',['mpack_tree_set_context',['../group__node.html#ga3f05552f6b20218fdcc47fdfa83f4118',1,'mpack-node.h']]],
   ['mpack_5ftree_5fset_5fteardown',['mpack_tree_set_teardown',['../group__node.html#ga160ddf529aea535c24752a848a1c48de',1,'mpack-node.h']]],
   ['mpack_5ftree_5fsize',['mpack_tree_size',['../group__node.html#ga4e42ac819ba9b5ada878f7b6ee8b76bf',1,'mpack-node.h']]],
@@ -175,6 +176,7 @@ var searchData=
   ['mpack_5fwriter_5finit',['mpack_writer_init',['../group__writer.html#gabf46d5fd103d44d03c412cb7bb52e2d0',1,'mpack-writer.h']]],
   ['mpack_5fwriter_5finit_5ferror',['mpack_writer_init_error',['../group__writer.html#gab3c8d9ebe78513a17a38af28f387d169',1,'mpack-writer.h']]],
   ['mpack_5fwriter_5finit_5ffile',['mpack_writer_init_file',['../group__writer.html#gafb05fb381c28a36b8917a1697e5ab611',1,'mpack-writer.h']]],
+  ['mpack_5fwriter_5finit_5fgrowable',['mpack_writer_init_growable',['../group__writer.html#ga0aa3b265fb5ece9c4cba0f2b1bfbdb53',1,'mpack-writer.h']]],
   ['mpack_5fwriter_5fset_5fcontext',['mpack_writer_set_context',['../group__writer.html#gae785a9bb5f5903606b0ce7ef591d0877',1,'mpack-writer.h']]],
   ['mpack_5fwriter_5fset_5fflush',['mpack_writer_set_flush',['../group__writer.html#ga603fa72ebf84ac80d8fff08bd2ea9602',1,'mpack-writer.h']]],
   ['mpack_5fwriter_5fset_5fteardown',['mpack_writer_set_teardown',['../group__writer.html#gaf9ba2a1aadbcf45c27ac6185ae7fd013',1,'mpack-writer.h']]]
