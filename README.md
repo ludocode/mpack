@@ -21,20 +21,22 @@ MPack is written in the portable intersection of C99 and C++. In other words, it
 
 The Node API parses a chunk of MessagePack data into an immutable tree of dynamically-typed nodes. A series of helper functions can be used to extract data of specific types from each node.
 
-    // parse a file into a node tree
-    mpack_tree_t tree;
-    mpack_tree_init_file(&tree, "homepage-example.mp", 0);
-    mpack_node_t* root = mpack_tree_root(&tree);
+```C
+// parse a file into a node tree
+mpack_tree_t tree;
+mpack_tree_init_file(&tree, "homepage-example.mp", 0);
+mpack_node_t* root = mpack_tree_root(&tree);
 
-    // extract the example data on the msgpack homepage
-    bool compact = mpack_node_bool(mpack_node_map_cstr(root, "compact"));
-    int schema = mpack_node_i32(mpack_node_map_cstr(root, "schema"));
+// extract the example data on the msgpack homepage
+bool compact = mpack_node_bool(mpack_node_map_cstr(root, "compact"));
+int schema = mpack_node_i32(mpack_node_map_cstr(root, "schema"));
 
-    // clean up and check for errors
-    if (mpack_tree_destroy(tree) != mpack_ok) {
-        fprintf(stderr, "An error occurred decoding the data!\n");
-        return;
-    }
+// clean up and check for errors
+if (mpack_tree_destroy(tree) != mpack_ok) {
+    fprintf(stderr, "An error occurred decoding the data!\n");
+    return;
+}
+```
 
 Note that no additional error handling is needed in the above code. If the file is missing or corrupt, if map keys are missing or if nodes are not in the expected types, special "nil" nodes and false/zero values are returned and the tree is placed in an error state. An error check is only needed before using the data. Alternatively, the tree can be configured to longjmp in such cases if a handler is set.
 
@@ -42,25 +44,27 @@ Note that no additional error handling is needed in the above code. If the file 
 
 The MPack Write API encodes structured data of a fixed (hardcoded) schema to MessagePack.
 
-    // encode to memory buffer
-    char buffer[256];
-    mpack_writer_t writer;
-    mpack_writer_init(&writer, buffer, sizeof(buffer));
+```C
+// encode to memory buffer
+char buffer[256];
+mpack_writer_t writer;
+mpack_writer_init(&writer, buffer, sizeof(buffer));
 
-    // write the example on the msgpack homepage
-    mpack_start_map(&writer, 2);
-    mpack_write_cstr(&writer, "compact");
-    mpack_write_bool(&writer, true);
-    mpack_write_cstr(&writer, "schema");
-    mpack_write_uint(&writer, 0);
-    mpack_finish_map(&writer);
+// write the example on the msgpack homepage
+mpack_start_map(&writer, 2);
+mpack_write_cstr(&writer, "compact");
+mpack_write_bool(&writer, true);
+mpack_write_cstr(&writer, "schema");
+mpack_write_uint(&writer, 0);
+mpack_finish_map(&writer);
 
-    // clean up
-    size_t count = mpack_writer_buffer_used(&writer);
-    if (mpack_writer_destroy(&writer) != mpack_ok) {
-        fprintf(stderr, "An error occurred encoding the data!\n");
-        return;
-    }
+// clean up
+size_t count = mpack_writer_buffer_used(&writer);
+if (mpack_writer_destroy(&writer) != mpack_ok) {
+    fprintf(stderr, "An error occurred encoding the data!\n");
+    return;
+}
+```
 
 In the above example, we encode only to an in-memory buffer. The writer can optionally be provided with a flush function (such as a file or socket write function) to call when the buffer is full or when writing is done.
 

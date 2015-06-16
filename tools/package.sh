@@ -1,6 +1,11 @@
 #!/bin/bash
 # packages MPack up for amalgamation release
 
+"`dirname $0`"/clean.sh
+"`dirname $0`"/gendocs.sh || exit $?
+
+VERSION=`grep PROJECT_NUMBER Doxyfile|sed 's@.*= *\(.*\) *@\1@'`
+
 FILES="\
     mpack-platform \
     mpack-internal \
@@ -9,11 +14,6 @@ FILES="\
     mpack-reader \
     mpack-expect \
     mpack-node"
-
-version=`grep PROJECT_NUMBER Doxyfile|sed 's@.*= *\(.*\) *@\1@'`
-
-"`dirname $0`"/clean.sh
-doxygen Doxyfile || exit $?
 
 # add top license and comment
 rm -rf build/amalgamation
@@ -26,7 +26,7 @@ cat - >> $HEADER <<EOF
  */
 
 /*
- * This is the MPack $version amalgamation package.
+ * This is the MPack $VERSION amalgamation package.
  *
  * http://github.com/ludocode/mpack
  */
@@ -64,7 +64,7 @@ mkdir -p build/amalgamation/tools
 cp tools/gcov.sh build/amalgamation/tools
 
 # create package
-name=mpack-amalgamation-$version
-tar -C build/amalgamation --transform "s@^@$name/@" -czf $name.tar.gz `ls build/amalgamation` || exit $?
-echo Created $name.tar.gz
+NAME=mpack-amalgamation-$VERSION
+tar -C build/amalgamation --transform "s@^@$NAME/@" -czf $NAME.tar.gz `ls build/amalgamation` || exit $?
+echo Created $NAME.tar.gz
 
