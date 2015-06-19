@@ -275,6 +275,14 @@ void mpack_reader_flag_error(mpack_reader_t* reader, mpack_error_t error);
 size_t mpack_reader_remaining(mpack_reader_t* reader, const char** data);
 
 /**
+ * Returns the size of the reader's internal buffer. This can be used to
+ * ensure that in-place reads are safe.
+ */
+static inline size_t mpack_reader_buffer_size(mpack_reader_t* reader) {
+    return reader->size;
+}
+
+/**
  * Queries the error state of the MPack reader.
  *
  * If a reader is in an error state, you should discard all data since the

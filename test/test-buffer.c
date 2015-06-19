@@ -24,8 +24,7 @@
 #include "test-read.h"
 #include "test-write.h"
 
-#if MPACK_EXPECT || MPACK_WRITER
-static const char test_buffer[] =
+static const char test_numbers[] =
 
         "\x02" // 2
         "\x11" // 17
@@ -74,6 +73,25 @@ static const char test_buffer[] =
 
         ;
 
+static const char test_strings[] =
+    "\x9F"
+        "\xA0"
+        "\xA1""a"
+        "\xA2""ab"
+        "\xA3""abc"
+        "\xA4""abcd"
+        "\xA5""abcde"
+        "\xA6""abcdef"
+        "\xA7""abcdefg"
+        "\xA8""abcdefgh"
+        "\xA9""abcdefghi"
+        "\xAA""abcdefghij"
+        "\xAB""abcdefghijk"
+        "\xAC""abcdefghijkl"
+        "\xAD""abcdefghijklm"
+        "\xAE""abcdefghijklmn";
+
+
 // a semi-random list of buffer sizes we will test with. each buffer
 // test is run with each of these buffer sizes to test the fill and
 // flush functions.
@@ -87,10 +105,39 @@ static const int test_buffer_sizes[] = {
     4093, 4096, 4099, 7919, 8192,
     16384, 32768
 };
-#endif
+
+typedef struct test_fill_state_t {
+    const char* data;
+    size_t remaining;
+} test_fill_state_t;
+
+static size_t test_buffer_fill(void* context, char* buffer, size_t count) {
+    test_fill_state_t* state = (test_fill_state_t*)context;
+    if (state->remaining < count)
+        count = state->remaining;
+    memcpy(buffer, state->data, count);
+    state->data += count;
+    state->remaining -= count;
+    return count;
+}
+
+typedef struct test_flush_state_t {
+    char* data;
+    size_t remaining;
+} test_flush_state_t;
+
+static bool test_buffer_flush(void* context, const char* buffer, size_t count) {
+    test_flush_state_t* state = (test_flush_state_t*)context;
+    if (state->remaining < count)
+        return false;
+    memcpy(state->data, buffer, count);
+    state->data += count;
+    state->remaining -= count;
+    return true;
+}
 
 #if MPACK_EXPECT
-static void test_read_buffer_values(mpack_reader_t* reader) {
+static void test_expect_buffer_values(mpack_reader_t* reader) {
     test_read_noerror(reader, 2 == mpack_expect_u8(reader));
     test_read_noerror(reader, 17 == mpack_expect_u8(reader));
     test_read_noerror(reader, 29 == mpack_expect_u8(reader));
@@ -129,7 +176,6 @@ static void test_read_buffer_values(mpack_reader_t* reader) {
     test_read_noerror(reader, UINT64_C(2386122103) == mpack_expect_u32(reader));
     test_read_noerror(reader, UINT64_C(2863333399) == mpack_expect_u32(reader));
     test_read_noerror(reader, UINT64_C(3340544681) == mpack_expect_u32(reader));
-
 
     test_read_noerror(reader, UINT64_C(4294967311) == mpack_expect_u64(reader));
     test_read_noerror(reader, UINT64_C(1941762537917555303) == mpack_expect_u64(reader));
@@ -195,31 +241,21 @@ static void test_write_buffer_values(mpack_writer_t* writer) {
 #endif
 
 #if MPACK_EXPECT
-static size_t test_buffer_fill(void* context, char* buffer, size_t count) {
-    size_t* pos = (size_t*)context;
-    size_t remaining = sizeof(test_buffer) - 1;
-    if (remaining - *pos < count)
-        count = remaining - *pos;
-    memcpy(buffer, test_buffer + *pos, count);
-    *pos += count;
-    return count;
-}
-
-static void test_read_buffer(void) {
+static void test_expect_buffer(void) {
     for (size_t i = 0; i < sizeof(test_buffer_sizes) / sizeof(test_buffer_sizes[0]); ++i) {
 
         // initialize the reader with our buffer reader function
         mpack_reader_t reader;
         size_t size = test_buffer_sizes[i];
         char* buffer = (char*)malloc(size);
-        size_t pos = 0;
+        test_fill_state_t state = {test_numbers, sizeof(test_numbers) - 1};
         mpack_reader_init(&reader, buffer, size, 0);
         mpack_reader_set_fill(&reader, test_buffer_fill);
-        mpack_reader_set_context(&reader, &pos);
+        mpack_reader_set_context(&reader, &state);
         test_check_no_assertion();
 
         // read and destroy, ensuring no errors
-        test_read_buffer_values(&reader);
+        test_expect_buffer_values(&reader);
         test_reader_destroy_noerror(&reader);
         free(buffer);
 
@@ -228,27 +264,20 @@ static void test_read_buffer(void) {
 #endif
 
 #if MPACK_WRITER
-// this test function doesn't bounds check its output; we just use a large
-// enough output buffer for test purposes.
-static bool test_buffer_flush(void* context, const char* buffer, size_t count) {
-    char** pos = (char**)context;
-    memcpy(*pos, buffer, count);
-    *pos += count;
-    return true;
-}
-
 static void test_write_buffer(void) {
     for (size_t i = 0; i < sizeof(test_buffer_sizes) / sizeof(test_buffer_sizes[0]); ++i) {
-        char* output = (char*)malloc(0xffff);
+        size_t output_size = 0xffff;
+        char* output = (char*)malloc(output_size);
 
         // initialize the writer with our buffer writer function
         mpack_writer_t writer;
         size_t size = test_buffer_sizes[i];
         char* buffer = (char*)malloc(size);
         char* pos = output;
+        test_flush_state_t state = {output, output_size};
         mpack_writer_init(&writer, buffer, size);
         mpack_writer_set_flush(&writer, test_buffer_flush);
-        mpack_writer_set_context(&writer, &pos);
+        mpack_writer_set_context(&writer, &state);
         test_check_no_assertion();
 
         // read and destroy, ensuring no errors
@@ -257,22 +286,78 @@ static void test_write_buffer(void) {
         free(buffer);
 
         // check output
-        test_assert(pos - output == sizeof(test_buffer) - 1,
+        test_assert(output_size - state.remaining == sizeof(test_numbers) - 1,
                 "output contains %i bytes but %i were expected",
-                (int)(pos - output), (int)sizeof(test_buffer) - 1);
-        test_assert(memcmp(output, test_buffer, sizeof(test_buffer) - 1) == 0,
+                (int)(pos - output), (int)sizeof(test_numbers) - 1);
+        test_assert(memcmp(output, test_numbers, sizeof(test_numbers) - 1) == 0,
                 "output does not match test buffer");
         free(output);
     }
 }
 #endif
 
+#if MPACK_READER
+static void test_inplace_buffer(void) {
+    for (size_t i = 0; i < sizeof(test_buffer_sizes) / sizeof(test_buffer_sizes[0]); ++i) {
+
+        // initialize the reader with our buffer reader function
+        mpack_reader_t reader;
+        size_t size = test_buffer_sizes[i];
+        char* buffer = (char*)malloc(size);
+        test_fill_state_t state = {test_strings, sizeof(test_strings) - 1};
+        mpack_reader_init(&reader, buffer, size, 0);
+        mpack_reader_set_fill(&reader, test_buffer_fill);
+        mpack_reader_set_context(&reader, &state);
+        test_check_no_assertion();
+
+        // read the array
+        mpack_tag_t tag = mpack_read_tag(&reader);
+        test_assert(tag.type == mpack_type_array, "wrong type: %i %s", (int)tag.type, mpack_type_to_string(tag.type));
+        test_assert(tag.v.n == 15, "wrong array count: %i", tag.v.n);
+
+        // check each string, using inplace if it's less than or equal to the
+        // length of the buffer size
+        static const char* ref = "abcdefghijklmn";
+        const char* val;
+        char r[15];
+        for (size_t j = 0; j < 15; ++j) {
+            tag = mpack_read_tag(&reader);
+            test_assert(tag.type == mpack_type_str, "wrong type: %i %s", (int)tag.type, mpack_type_to_string(tag.type));
+            test_assert(tag.v.l == j, "string is the wrong length: %i bytes", (int)tag.v.l);
+            if (tag.v.l <= mpack_reader_buffer_size(&reader)) {
+                val = mpack_read_bytes_inplace(&reader, tag.v.l);
+            } else {
+                mpack_read_bytes(&reader, r, tag.v.l);
+                val = r;
+            }
+            test_assert(memcmp(val, ref, tag.v.l) == 0, "strings do not match!");
+            mpack_done_str(&reader);
+        }
+
+        // destroy, ensuring no errors
+        mpack_done_array(&reader);
+        test_reader_destroy_noerror(&reader);
+        free(buffer);
+
+    }
+}
+#endif
+
 void test_buffers(void) {
+    MPACK_UNUSED(test_numbers);
+    MPACK_UNUSED(test_strings);
+    MPACK_UNUSED(test_buffer_sizes);
+    MPACK_UNUSED(test_buffer_fill);
+    MPACK_UNUSED(test_buffer_flush);
+
     #if MPACK_EXPECT
-    test_read_buffer();
+    test_expect_buffer();
     #endif
     #if MPACK_WRITER
     test_write_buffer();
+    #endif
+    #if MPACK_READER
+    test_inplace_buffer();
     #endif
 }
 

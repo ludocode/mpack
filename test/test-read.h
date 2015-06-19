@@ -24,8 +24,6 @@
 
 #include "test.h"
 
-#if MPACK_EXPECT
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -77,12 +75,12 @@ extern "C" {
             "reader flagged error %i", (int)mpack_reader_error(reader)); \
 } while (0)
 
+#if MPACK_EXPECT
 void test_read(void);
+#endif
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif
 
 #endif

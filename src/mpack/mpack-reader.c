@@ -308,6 +308,8 @@ const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count) {
         mpack_reader_flag_error(reader, mpack_error_io);
         return NULL;
     }
+    reader->pos += count;
+    reader->left -= count;
     return reader->buffer;
 }
 
