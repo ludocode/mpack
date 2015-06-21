@@ -108,6 +108,7 @@ var searchData=
   ['mpack_5fread_5fbytes',['mpack_read_bytes',['../group__reader.html#gaeb91e8d4e2a7b7f6562d8bbb7400275c',1,'mpack-reader.h']]],
   ['mpack_5fread_5fbytes_5finplace',['mpack_read_bytes_inplace',['../group__reader.html#ga654d697da6a0eaf25246adf3ed343572',1,'mpack-reader.h']]],
   ['mpack_5fread_5ftag',['mpack_read_tag',['../group__reader.html#ga70c00ecaf381e9711f6c1d0fa92f0c2f',1,'mpack-reader.h']]],
+  ['mpack_5freader_5fbuffer_5fsize',['mpack_reader_buffer_size',['../group__reader.html#ga0e6986239cdba0bb12e7da7a50078321',1,'mpack-reader.h']]],
   ['mpack_5freader_5fclearjmp',['mpack_reader_clearjmp',['../group__reader.html#ga6e47849411acaac1c035360119d9c8ad',1,'mpack-reader.h']]],
   ['mpack_5freader_5fdestroy',['mpack_reader_destroy',['../group__reader.html#gac04666405e21eea6e8819182571f0d20',1,'mpack-reader.h']]],
   ['mpack_5freader_5fdestroy_5fcancel',['mpack_reader_destroy_cancel',['../group__reader.html#ga46d4a15ef9d4b836e115599b8d0ba97a',1,'mpack-reader.h']]],
