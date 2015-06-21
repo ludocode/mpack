@@ -62,6 +62,7 @@ cp projects/xcode/MPack.xcodeproj/project.pbxproj build/amalgamation/projects/xc
 cp src/mpack-config.h.sample build/amalgamation/src
 mkdir -p build/amalgamation/tools
 cp tools/gcov.sh build/amalgamation/tools
+cp tools/valgrind-suppressions build/amalgamation/tools
 
 # create package
 NAME=mpack-amalgamation-$VERSION
