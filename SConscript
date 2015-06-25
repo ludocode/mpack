@@ -8,14 +8,19 @@ srcs = env.Object(env.Glob('src/mpack/*.c') + env.Glob('test/*.c'),
 prog = env.Program("mpack-test", srcs,
         LINKFLAGS=env['LINKFLAGS'] + LINKFLAGS)
 
-if "TRAVIS" in env or (platform.machine() != "x86_64" and platform.machine() != "i386"):
-    env.Default(env.AlwaysBuild(env.Alias("test",
-        [prog],
-        Dir('.').path + "/mpack-test")))
-else:
-    env.Default(env.AlwaysBuild(env.Alias("test",
-        [prog],
-        "valgrind --leak-check=full --errors-for-leak-kinds=all --show-leak-kinds=all " +
-                "--suppressions=tools/valgrind-suppressions --error-exitcode=1 " +
-                Dir('.').path + "/mpack-test")))
+# only some architectures are supported by valgrind. we don't check for it
+# though because we want to force mpack developers to install and use it if
+# it's available.
 
+if platform.machine() in ["i386", "x86_64"]:
+    valgrind = "valgrind --leak-check=full --error-exitcode=1 "
+    # travis version of valgrind is too old, doesn't support leak kinds
+    if "TRAVIS" not in env:
+        valgrind = valgrind + "--show-leak-kinds=all --errors-for-leak-kinds=all "
+        valgrind = valgrind + "--suppressions=tools/valgrind-suppressions "
+else:
+    valgrind = ""
+
+env.Default(env.AlwaysBuild(env.Alias("test",
+    [prog],
+    valgrind + Dir('.').path + "/mpack-test")))

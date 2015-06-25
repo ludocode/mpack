@@ -1,8 +1,11 @@
 language: c
+
 script: scons
+
 compiler:
   - clang
   - gcc
-os:
-  - linux
-  - osx
+
+install:
+  - sudo apt-get -qq update
+  - sudo apt-get -qq install valgrind
