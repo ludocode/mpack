@@ -101,7 +101,9 @@
 
 /**
  * Set this to 1 to implement a custom mpack_assert_fail() function. This
- * function should take a const char* parameter containing the error message.
+ * function must not return, and must have the following signature:
+ *
+ *     void mpack_assert_fail(const char* message)
  *
  * Asserts are only used when MPACK_DEBUG is enabled, and can be triggered
  * by bugs in mpack or bugs due to incorrect usage of mpack.

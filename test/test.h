@@ -66,8 +66,6 @@ extern "C" {
  * where each actual test case has several asserts.
  */
 
-extern char* assertion;
-
 // enable this to exit at the first error
 #define TEST_EARLY_EXIT 1
 
@@ -79,27 +77,13 @@ extern char* assertion;
         printf("TEST FAILED AT %s:%i --", __FILE__, __LINE__); \
         printf(" " __VA_ARGS__); \
         printf("\n"); \
-        if (assertion) \
-            printf("\nalso hit an assertion: %s\n", assertion); \
         if (TEST_EARLY_EXIT) \
             exit(EXIT_FAILURE); \
     } \
 } while (0)
 
-#define test_check_no_assertion() do { \
-    test_assert(assertion == NULL, \
-            "hit an assertion: %s", assertion); \
-    if (assertion) { \
-        free(assertion); \
-        assertion = NULL; \
-    } \
-} while (0)
-
 extern int tests;
 extern int passes;
-
-// if an assert is hit within mpack, the string is stored here.
-extern char* assertion;
 
 #ifdef __cplusplus
 }

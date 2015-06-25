@@ -37,7 +37,6 @@ extern "C" {
             "reader is in error state %i", (int)mpack_reader_error(reader)); \
     test_assert(mpack_reader_remaining(reader, NULL) == 0, \
             "reader has %i extra bytes", (int)mpack_reader_remaining(reader, NULL)); \
-    test_check_no_assertion(); \
     mpack_reader_destroy(reader); \
 } while (0)
 
@@ -45,7 +44,6 @@ extern "C" {
 #define test_simple_read(data, read_expr) do { \
     mpack_reader_t reader; \
     mpack_reader_init_data(&reader, data, sizeof(data) - 1); \
-    test_check_no_assertion(); \
     test_assert((read_expr), "simple read test did not pass: " #read_expr); \
     test_reader_destroy_noerror(&reader); \
 } while (0)
@@ -70,7 +68,6 @@ extern "C" {
 // performs an operation on a reader, ensuring no error occurs
 #define test_read_noerror(reader, read_expr) do { \
     test_assert((read_expr), "read did not pass: " #read_expr); \
-    test_check_no_assertion(); \
     test_assert(mpack_reader_error(reader) == mpack_ok, \
             "reader flagged error %i", (int)mpack_reader_error(reader)); \
 } while (0)

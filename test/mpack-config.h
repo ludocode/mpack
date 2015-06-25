@@ -32,10 +32,6 @@
 #include "test-malloc.h"
 #endif
 
-// the test harness uses a custom assert function since we
-// test whether assertions are hit
-#define MPACK_CUSTOM_ASSERT 1
-
 // we use small buffer sizes to test flushing, growing, and malloc failures
 #define MPACK_STACK_SIZE 7
 #define MPACK_BUFFER_SIZE 7

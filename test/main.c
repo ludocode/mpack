@@ -33,17 +33,6 @@
 int passes;
 int tests;
 
-char* assertion;
-
-void mpack_assert_fail(const char* message) {
-    if (assertion) {
-        printf("WARNING: multiple assertions hit!\nfirst: %s\nsecond: %s\n", assertion, message);
-        free(assertion);
-    }
-    assertion = (char*)malloc(strlen(message) + 1);
-    strcpy(assertion, message);
-}
-
 int main(void) {
     printf("\n\n");
 

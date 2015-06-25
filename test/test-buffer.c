@@ -252,7 +252,6 @@ static void test_expect_buffer(void) {
         mpack_reader_init(&reader, buffer, size, 0);
         mpack_reader_set_fill(&reader, test_buffer_fill);
         mpack_reader_set_context(&reader, &state);
-        test_check_no_assertion();
 
         // read and destroy, ensuring no errors
         test_expect_buffer_values(&reader);
@@ -278,7 +277,6 @@ static void test_write_buffer(void) {
         mpack_writer_init(&writer, buffer, size);
         mpack_writer_set_flush(&writer, test_buffer_flush);
         mpack_writer_set_context(&writer, &state);
-        test_check_no_assertion();
 
         // read and destroy, ensuring no errors
         test_write_buffer_values(&writer);
@@ -308,7 +306,6 @@ static void test_inplace_buffer(void) {
         mpack_reader_init(&reader, buffer, size, 0);
         mpack_reader_set_fill(&reader, test_buffer_fill);
         mpack_reader_set_context(&reader, &state);
-        test_check_no_assertion();
 
         // read the array
         mpack_tag_t tag = mpack_read_tag(&reader);

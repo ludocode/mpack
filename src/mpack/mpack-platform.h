@@ -68,15 +68,25 @@ extern "C" {
 #endif
 
 
+#if MPACK_STDLIB
+#if defined(__GNUC__) || defined(__clang__)
+#define MPACK_NORETURN __attribute__((noreturn))
+#elif _MSC_VER
+#define MPACK_NORETURN __declspec(noreturn)
+#endif
+#endif
+#ifndef MPACK_NORETURN
+#define MPACK_NORETURN /* nothing */
+#endif
+
 
 #define MPACK_UNUSED(var) ((void)(var))
-
 
 
 /* Define mpack_assert() depending on configuration. If stdio is */
 /* available, we can add a format string describing the error. */
 #if MPACK_DEBUG
-    void mpack_assert_fail(const char* message);
+    void mpack_assert_fail(const char* message) MPACK_NORETURN;
     #if MPACK_STDIO
         void mpack_assert_fail_format(const char* format, ...);
         #define mpack_assert_fail_at(line, file, expr, ...) \
@@ -85,6 +95,7 @@ extern "C" {
         #define mpack_assert_fail_at(line, file, expr, ...) \
                 mpack_assert_fail("mpack assertion failed at " file ":" #line "\n" expr)
     #endif
+
     #define mpack_assert_fail_pos(line, file, expr, ...) mpack_assert_fail_at(line, file, expr, __VA_ARGS__)
     #define mpack_assert(expr, ...) ((expr) ? (void)0 : mpack_assert_fail_pos(__LINE__, __FILE__, #expr, __VA_ARGS__))
 #else

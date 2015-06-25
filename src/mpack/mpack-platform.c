@@ -55,9 +55,9 @@ void mpack_assert_fail(const char* message) {
     __builtin_trap();
     #elif WIN32
     __debugbreak();
-    #endif
-
+    #elif MPACK_STDLIB
     abort();
+    #endif
 }
 #endif
 

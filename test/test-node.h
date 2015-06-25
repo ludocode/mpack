@@ -34,7 +34,6 @@ extern "C" {
     mpack_error_t error = mpack_tree_destroy(tree); \
     test_assert(error == mpack_ok, \
             "tree is in error state %i", (int)error); \
-    test_check_no_assertion(); \
 } while (0)
 
 #define test_tree_destroy_error(tree, error) do { \
@@ -42,7 +41,6 @@ extern "C" {
     mpack_error_t actual = mpack_tree_destroy(tree); \
     test_assert(actual == expected, "tree is in error state %i instead of %i", \
             (int)actual, (int)expected); \
-    test_check_no_assertion(); \
 } while (0)
 
 #define test_simple_tree_read(data, read_expr) do { \
@@ -50,7 +48,6 @@ extern "C" {
   mpack_tree_t tree; \
   mpack_tree_init_nodes(&tree, data, sizeof(data) - 1, nodes, sizeof(nodes) / sizeof(*nodes)); \
   mpack_node_t* node = mpack_tree_root(&tree); \
-  test_check_no_assertion(); \
   test_assert((read_expr), "simple tree test did not pass: " #read_expr); \
   test_tree_destroy_noerror(&tree); \
 } while (0)
