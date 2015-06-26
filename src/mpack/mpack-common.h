@@ -108,11 +108,7 @@ typedef struct mpack_tag_t {
     int8_t exttype; /**< The extension type if the type is @ref mpack_type_ext. */
 
     /** The value for non-compound types. */
-    #if MPACK_DEV
-    struct
-    #else
     union
-    #endif
     {
         bool     b; /**< The value if the type is bool. */
         float    f; /**< The value if the type is float. */

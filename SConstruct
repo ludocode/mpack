@@ -3,38 +3,30 @@ import platform, os
 
 # Common environment setup
 
-env = Environment(ENV = os.environ)
-env['ENV']['TERM'] = os.environ['TERM']
-if os.environ.has_key('CC'):
-    env['CC'] = os.environ['CC']
-if os.environ.has_key('CXX'):
-    env['CXX'] = os.environ['CXX']
-if os.environ.has_key('PATH'):
-    env['PATH'] = os.environ['PATH']
-if os.environ.has_key('TRAVIS'):
-    env['TRAVIS'] = os.environ['TRAVIS']
+env = Environment()
+for x in os.environ.keys():
+    if x in ["CC", "CXX", "PATH", "TRAVIS", "TERM"] or x.startswith("CLANG_") or x.startswith("CCC_"):
+        env[x] = os.environ[x]
+        env["ENV"][x] = os.environ[x]
 
 env.Append(CPPFLAGS = [
     "-Wall", "-Wextra", "-Werror",
     "-Wconversion", "-Wno-sign-conversion",
-    "-fprofile-arcs", "-ftest-coverage",
     "-Isrc", "-Itest",
     "-DMPACK_SCONS=1",
     "-g",
     ])
 env.Append(LINKFLAGS = [
     "-g",
-    "-fprofile-arcs", "-ftest-coverage"
     ])
 
 if 'CC' not in env or "clang" not in env['CC']:
     env.Append(CPPFLAGS = ["-Wno-float-conversion"]) # unsupported in clang 3.4
+    env.Append(CPPFLAGS = ["-fprofile-arcs", "-ftest-coverage"]) # only works properly with gcc
+    env.Append(LINKFLAGS = ["-fprofile-arcs", "-ftest-coverage"])
 
 
 # Optional flags used in various builds
-
-if ARGUMENTS.get('dev'):
-    env.Append(CPPFLAGS = ["-DMPACK_DEV=1"])
 
 allfeatures = [
     "-DMPACK_READER=1",
@@ -81,7 +73,7 @@ AddBuild("debug", allfeatures + allconfigs + debugflags + cflags, [])
 # Otherwise run all builds. Use a parallel build, e.g. "scons -j12" to
 # build this in a reasonable amount of time.
 
-if not ARGUMENTS.get('dev'):
+if ARGUMENTS.get('all'):
     AddBuild("release", allfeatures + allconfigs + releaseflags + cflags, [])
 
     # feature subsets with default configuration

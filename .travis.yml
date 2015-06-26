@@ -1,11 +1,13 @@
 language: c
 
-script: scons
+script: tools/ci.sh
 
 compiler:
   - clang
   - gcc
+  - scan-build
 
-install:
+# travis doesn't currently have scan-build and valgrind by default
+before_install:
   - sudo apt-get -qq update
-  - sudo apt-get -qq install valgrind
+  - sudo apt-get -y install clang valgrind
