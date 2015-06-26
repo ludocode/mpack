@@ -51,13 +51,16 @@ void mpack_assert_fail(const char* message) {
     fprintf(stderr, "%s\n", message);
     #endif
 
-    #if defined(__GCC__) || defined(__CLANG__)
+    #if defined(__GCC__) || defined(__clang__)
     __builtin_trap();
+    __builtin_abort();
     #elif WIN32
     __debugbreak();
     #elif MPACK_STDLIB
     abort();
     #endif
+
+    MPACK_UNREACHABLE;
 }
 #endif
 

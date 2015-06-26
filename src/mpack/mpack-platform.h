@@ -68,27 +68,39 @@ extern "C" {
 #endif
 
 
-#if MPACK_STDLIB
-#if defined(__GNUC__) || defined(__clang__)
-#define MPACK_NORETURN __attribute__((noreturn))
-#elif _MSC_VER
-#define MPACK_NORETURN __declspec(noreturn)
-#endif
-#endif
-#ifndef MPACK_NORETURN
-#define MPACK_NORETURN /* nothing */
-#endif
-
 
 #define MPACK_UNUSED(var) ((void)(var))
 
+#if defined(__GNUC__) || defined(__clang__)
+    #define MPACK_UNREACHABLE __builtin_unreachable()
+    #define MPACK_NORETURN(fn) fn __attribute__((noreturn))
+#elif _MSC_VER
+    #define MPACK_UNREACHABLE __assume(0)
+    #define MPACK_NORETURN(fn) __declspec(noreturn) fn
+#else
+    #define MPACK_UNREACHABLE ((void)0)
+    #define MPACK_NORETURN(fn) fn
+#endif
 
-/* Define mpack_assert() depending on configuration. If stdio is */
-/* available, we can add a format string describing the error. */
+
+
+/*
+ * Define mpack_assert() depending on configuration. If stdio is
+ * available, we can add a format string describing the error, and
+ * on some compilers we can declare it noreturn to improve static
+ * analysis. Note that the format string and arguments are
+ * not evaluated unless the assertion is hit.
+ *
+ * Note that assertion expressions are still evaluated in release mode,
+ * but they are converted to unreachable code declarations instead where
+ * supported to improve optimization. The other arguments to an assert
+ * are never evaluated in release.
+ */
+
 #if MPACK_DEBUG
-    void mpack_assert_fail(const char* message) MPACK_NORETURN;
+    MPACK_NORETURN(void mpack_assert_fail(const char* message));
     #if MPACK_STDIO
-        void mpack_assert_fail_format(const char* format, ...);
+        MPACK_NORETURN(void mpack_assert_fail_format(const char* format, ...));
         #define mpack_assert_fail_at(line, file, expr, ...) \
                 mpack_assert_fail_format("mpack assertion failed at " file ":" #line "\n" expr "\n" __VA_ARGS__)
     #else
@@ -97,10 +109,11 @@ extern "C" {
     #endif
 
     #define mpack_assert_fail_pos(line, file, expr, ...) mpack_assert_fail_at(line, file, expr, __VA_ARGS__)
-    #define mpack_assert(expr, ...) ((expr) ? (void)0 : mpack_assert_fail_pos(__LINE__, __FILE__, #expr, __VA_ARGS__))
+    #define mpack_assert(expr, ...) ((!(expr)) ? mpack_assert_fail_pos(__LINE__, __FILE__, #expr, __VA_ARGS__) : (void)0)
 #else
-    #define mpack_assert(expr, ...) ((void)0)
+    #define mpack_assert(expr, ...) ((!(expr)) ? MPACK_UNREACHABLE, (void)0 : (void)0)
 #endif
+
 
 
 #if MPACK_STDLIB
