@@ -25,7 +25,7 @@
 
 #if MPACK_WRITER
 
-#if MPACK_TRACKING
+#if MPACK_WRITE_TRACKING
 #define MPACK_WRITER_TRACK(writer, error) mpack_writer_flag_if_error(writer, error)
 
 static inline void mpack_writer_flag_if_error(mpack_writer_t* writer, mpack_error_t error) {
@@ -527,7 +527,7 @@ void mpack_write_double(mpack_writer_t* writer, double value) {
     mpack_write_native_double(writer, value);
 }
 
-#if MPACK_TRACKING
+#if MPACK_WRITE_TRACKING
 void mpack_finish_array(mpack_writer_t* writer) {
     MPACK_WRITER_TRACK(writer, mpack_track_pop(&writer->track, mpack_type_array));
 }

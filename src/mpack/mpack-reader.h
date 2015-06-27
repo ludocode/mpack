@@ -36,7 +36,7 @@
 extern "C" {
 #endif
 
-#if MPACK_TRACKING
+#if MPACK_READ_TRACKING
 struct mpack_track_t;
 #endif
 
@@ -89,7 +89,7 @@ struct mpack_reader_t {
     jmp_buf jump_env;   /* Where to jump */
     #endif
 
-    #if MPACK_TRACKING
+    #if MPACK_READ_TRACKING
     mpack_track_t track; /* Stack of map/array/str/bin/ext reads */
     #endif
 };
@@ -364,7 +364,7 @@ void mpack_read_bytes(mpack_reader_t* reader, char* p, size_t count);
  */
 const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count);
 
-#if MPACK_TRACKING
+#if MPACK_READ_TRACKING
 /**
  * Finishes reading an array.
  *
@@ -520,7 +520,7 @@ static inline double mpack_read_native_double(mpack_reader_t* reader) {
     return u.d;
 }
 
-#if MPACK_TRACKING
+#if MPACK_READ_TRACKING
 #define MPACK_READER_TRACK(reader, error) mpack_reader_flag_if_error(reader, error)
 #else
 #define MPACK_READER_TRACK(reader, error) MPACK_UNUSED(reader)

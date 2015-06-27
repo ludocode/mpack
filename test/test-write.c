@@ -625,7 +625,7 @@ static void test_write_small_structure_trees() {
 }
 #endif
 
-#if MPACK_TRACKING
+#if MPACK_WRITE_TRACKING
 static void test_write_tracking_errors() {
     // TODO
 }
@@ -651,7 +651,7 @@ void test_writes() {
     test_write_small_structure_trees();
     #endif
 
-    #if MPACK_TRACKING
+    #if MPACK_WRITE_TRACKING
     test_write_tracking_errors();
     #endif
 }

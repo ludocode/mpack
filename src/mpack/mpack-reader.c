@@ -581,7 +581,7 @@ void mpack_discard(mpack_reader_t* reader) {
     }
 }
 
-#if MPACK_TRACKING
+#if MPACK_READ_TRACKING
 void mpack_done_array(mpack_reader_t* reader) {
     MPACK_READER_TRACK(reader, mpack_track_pop(&reader->track, mpack_type_array));
 }

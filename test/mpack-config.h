@@ -24,8 +24,13 @@
     #define MPACK_FREE test_free
 #endif
 
+// Tracking matches the default config, except the test suite
+// also supports MPACK_NO_TRACKING to disable it.
 #if defined(MPACK_MALLOC) && !defined(MPACK_NO_TRACKING)
-#define MPACK_TRACKING 1
+    #define MPACK_WRITE_TRACKING 1
+    #if MPACK_DEBUG
+        #define MPACK_READ_TRACKING 1
+    #endif
 #endif
 
 #ifdef MPACK_MALLOC

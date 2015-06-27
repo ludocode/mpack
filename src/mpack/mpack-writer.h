@@ -36,7 +36,7 @@
 extern "C" {
 #endif
 
-#if MPACK_TRACKING
+#if MPACK_WRITE_TRACKING
 struct mpack_track_t;
 #endif
 
@@ -80,7 +80,7 @@ struct mpack_writer_t {
     jmp_buf jump_env;   /* Where to jump */
     #endif
 
-    #if MPACK_TRACKING
+    #if MPACK_WRITE_TRACKING
     mpack_track_t track; /* Stack of map/array/str/bin/ext writes */
     #endif
 };
@@ -426,7 +426,7 @@ void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count);
  */
 void mpack_write_bytes(mpack_writer_t* writer, const char* data, size_t count);
 
-#if MPACK_TRACKING
+#if MPACK_WRITE_TRACKING
 /**
  * Finishes writing an array.
  *

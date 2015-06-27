@@ -154,7 +154,7 @@ int mpack_tag_cmp(mpack_tag_t left, mpack_tag_t right) {
 
 
 
-#if MPACK_TRACKING
+#if MPACK_READ_TRACKING || MPACK_WRITE_TRACKING
 
 #ifndef MPACK_TRACKING_INITIAL_CAPACITY
 // seems like a reasonable number. we grow by doubling, and it only

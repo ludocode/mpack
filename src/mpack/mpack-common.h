@@ -218,7 +218,7 @@ typedef void (*mpack_teardown_t)(void* context);
 
 
 
-#if MPACK_TRACKING
+#if MPACK_READ_TRACKING || MPACK_WRITE_TRACKING
 
 /* Tracks the write state of compound elements (maps, arrays, */
 /* strings, binary blobs and extension types) */

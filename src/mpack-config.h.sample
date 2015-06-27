@@ -111,21 +111,36 @@
 #define MPACK_CUSTOM_ASSERT 0
 
 /**
- * \def MPACK_TRACKING
+ * \def MPACK_READ_TRACKING
  *
- * Enables compound type size tracking. This ensures that the correct number
- * of elements or bytes are written or read.
+ * Enables compound type size tracking for readers. This ensures that the
+ * correct number of elements or bytes are read from a compound type.
  *
- * This is enabled by default, and unavailable without malloc(). Note that
- * without tracking enabled, it is possible to emit invalid MessagePack
- * without error by writing the wrong number of elements or bytes in a
- * compound type.
+ * This is enabled by default in debug builds (provided a malloc() is
+ * available.)
+ */
+#if MPACK_DEBUG && defined(MPACK_MALLOC)
+#define MPACK_READ_TRACKING 1
+#endif
+
+/**
+ * \def MPACK_WRITE_TRACKING
  *
- * You should really only disable this if you using MPack to implement
+ * Enables compound type size tracking for writers. This ensures that the
+ * correct number of elements or bytes are written in a compound type.
+ *
+ * Note that without write tracking enabled, it is possible for buggy code
+ * to emit invalid MessagePack without error by writing the wrong number of
+ * elements or bytes in a compound type. For this reason, MPACK_WRITE_TRACKING
+ * is enabled by default on writers even in release builds (provided a malloc()
+ * is available.) This ensures that any data written successfully via MPack
+ * will always parse as valid MessagePack.
+ *
+ * You should really only disable this if you are using MPack to implement
  * bindings for an existing dynamic structure.
  */
-#if defined(MPACK_MALLOC) && defined(MPACK_FREE)
-#define MPACK_TRACKING 1
+#if defined(MPACK_MALLOC)
+#define MPACK_WRITE_TRACKING 1
 #endif
 
 
