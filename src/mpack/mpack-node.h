@@ -46,15 +46,13 @@ extern "C" {
  */
 
 /**
- * A handle to node in a parsed MPack tree.
+ * A handle to node in a parsed MPack tree. Note that mpack_node_t is passed by value.
  *
  * Nodes represent either primitive values or compound types. If a
- * node is a compound type, it contains links to its child nodes, or
+ * node is a compound type, it contains a link to its child nodes, or
  * a pointer to its underlying data.
  *
  * Nodes are immutable.
- *
- * Note that mpack_node_t is passed by value.
  */
 typedef struct mpack_node_t mpack_node_t;
 
@@ -79,6 +77,11 @@ typedef struct mpack_tree_t mpack_tree_t;
  */
 typedef void (*mpack_tree_teardown_t)(mpack_tree_t* tree);
 
+
+
+/* Hide internals from documentation */
+/** @cond */
+
 /*
  * mpack_tree_link_t forms a linked list of node pages. It is allocated
  * separately from the page so that we can store the first link internally
@@ -100,7 +103,7 @@ struct mpack_node_t {
 struct mpack_node_data_t {
     mpack_type_t type;
 
-    int8_t exttype; /* The extension type if the type is mpack_type_ext. */
+    int8_t exttype; /**< \internal The extension type if the type is mpack_type_ext. */
 
     /* The value for non-compound types. */
     union
@@ -164,6 +167,10 @@ static inline mpack_node_data_t* mpack_node_child(mpack_node_t node, size_t chil
 static inline mpack_node_t mpack_tree_nil_node(mpack_tree_t* tree) {
     return mpack_node(tree, &tree->nil_node);
 }
+
+/** @endcond */
+
+
 
 /**
  * @name Tree Functions

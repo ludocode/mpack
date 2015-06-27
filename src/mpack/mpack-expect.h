@@ -472,10 +472,12 @@ void mpack_expect_array_match(mpack_reader_t* reader, uint32_t count);
  * @}
  */
 
+/** @cond */
 #ifdef MPACK_MALLOC
 void* mpack_expect_array_alloc_impl(mpack_reader_t* reader,
         size_t element_size, uint32_t max_count, size_t* count);
 #endif
+/** @endcond */
 
 
 /**

@@ -28,10 +28,6 @@
 
 // Basic Number Functions
 
-// TODO: these can be made more efficient. they don't need to read a full
-// tag; they should just directly read bytes and parse what they are actually
-// looking for.
-
 uint8_t mpack_expect_u8(mpack_reader_t* reader) {
     mpack_tag_t var = mpack_read_tag(reader);
     if (var.type == mpack_type_uint) {

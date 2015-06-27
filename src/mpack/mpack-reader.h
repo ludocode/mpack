@@ -183,12 +183,14 @@ void mpack_reader_init_file(mpack_reader_t* reader, const char* filename);
  * @see mpack_reader_set_fill
  */
 
+/** @cond */
 #define mpack_reader_init_stack_line_ex(line, reader) \
     char mpack_buf_##line[MPACK_STACK_SIZE]; \
     mpack_reader_init((reader), mpack_buf_##line, sizeof(mpack_buf_##line), 0)
 
 #define mpack_reader_init_stack_line(line, reader) \
     mpack_reader_init_stack_line_ex(line, reader)
+/** @endcond */
 
 #define mpack_reader_init_stack(reader) \
     mpack_reader_init_stack_line(__LINE__, (reader))

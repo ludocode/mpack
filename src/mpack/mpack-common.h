@@ -30,9 +30,11 @@
 
 #include "mpack-platform.h"
 
+/** @cond */
 #ifndef MPACK_STACK_SIZE
 #define MPACK_STACK_SIZE 4096
 #endif
+/** @endcond */
 
 
 
@@ -50,6 +52,7 @@
 #define MPACK_VERSION_AT_LEAST(major, minor, patch) \
         (MPACK_VERSION >= (((major) * 10000) + ((minor) * 100) + (patch)))
 
+/** @cond */
 #if (MPACK_VERSION_PATCH > 0)
 #define MPACK_VERSION_STRING_BASE \
         MPACK_STRINGIFY(MPACK_VERSION_MAJOR) "." \
@@ -60,6 +63,7 @@
         MPACK_STRINGIFY(MPACK_VERSION_MAJOR) "." \
         MPACK_STRINGIFY(MPACK_VERSION_MINOR)
 #endif
+/** @endcond */
 
 /**
  * @def MPACK_VERSION_STRING
@@ -268,6 +272,7 @@ static inline bool mpack_tag_equal(mpack_tag_t left, mpack_tag_t right) {
 
 /* Helpers for fetching an arbitrarily sized int from a memory
  * location, regardless of endianness or alignment. */
+/** @cond */
 
 MPACK_ALWAYS_INLINE uint8_t mpack_load_native_u8(const char* p) {
     return (uint8_t)p[0];
@@ -296,12 +301,15 @@ MPACK_ALWAYS_INLINE uint64_t mpack_load_native_u64(const char* p) {
             ((uint64_t)(uint8_t)p[7]);
 }
 
+/** @endcond */
+
 
 
 #if MPACK_READ_TRACKING || MPACK_WRITE_TRACKING
 
 /* Tracks the write state of compound elements (maps, arrays, */
 /* strings, binary blobs and extension types) */
+/** @cond */
 
 typedef struct mpack_track_element_t {
     mpack_type_t type;
@@ -437,8 +445,9 @@ static inline mpack_error_t mpack_track_destroy(mpack_track_t* track, bool cance
     track->elements = NULL;
     return error;
 }
-#endif
 
+#endif
+/** @endcond */
 #endif
 
 

@@ -36,6 +36,9 @@
 
 #include "mpack-config.h"
 
+/* For now, nothing in here should be seen by Doxygen. */
+/** @cond */
+
 #ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS 1
 #endif
@@ -96,6 +99,7 @@ extern "C" {
     #define MPACK_NORETURN(fn) fn
     #define MPACK_ALWAYS_INLINE static inline
 #endif
+
 
 
 
@@ -238,6 +242,8 @@ size_t mpack_strlen(const char *s);
 #ifdef __cplusplus
 }
 #endif
+
+/** @endcond */
 
 #endif
 

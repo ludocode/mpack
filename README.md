@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/ludocode/mpack.svg?branch=master)](https://travis-ci.org/ludocode/mpack)
+[![Build Status](https://travis-ci.org/ludocode/mpack.svg?branch=master)](https://travis-ci.org/ludocode/mpack/branches)
 
 ## Introduction
 
@@ -7,16 +7,16 @@ MPack is a C implementation of an encoder and decoder for the [MessagePack](http
  * Simple and easy to use
  * Secure against untrusted data
  * Lightweight, suitable for embedded
- * Helpful for debugging
  * [Extensively documented](http://ludocode.github.io/mpack/)
+ * Extremely fast
 
 The core of MPack contains a buffered reader and writer with a custom callback to fill or flush the buffer. Helper functions can be enabled to read values of expected type, to work with files, to allocate strings automatically, to check UTF-8 encoding, and more. The MPack featureset can be configured at compile-time to set which features, components and debug checks are compiled, and what dependencies are available.
 
 The MPack code is small enough to be embedded directly into your codebase. The easiest way to use it is to download the [amalgamation package](https://github.com/ludocode/mpack/releases) and insert the source files directly into your project. Copy `mpack.h` and `mpack.c` into to your codebase, and copy `mpack-config.h.sample` as `mpack-config.h`. You can use the defaults or edit it if you'd like to customize the MPack featureset.
 
-MPack is written in the portable intersection of C99 and C++. In other words, it's written in C99, but if you are stuck using a certain popular compiler from a certain unpopular vendor that refuses to support C99, you can compile it as C++ instead. (The headers should also be C89-clean, provided compatible definitions of `bool`, `inline`, `stdint.h` and friends are available, and `const` is defined away.)
+MPack is written in the portable intersection of C99 and C++. In other words, it's written in C99, but if you are stuck using a certain popular compiler from a certain unpopular vendor that refuses to support C99, you can compile it as C++ instead.
 
-*NOTE: MPack is beta software under development. There are still some TODOs in the codebase, some security issues to fix, some MessagePack 1.0/1.1 compatibility and interoperability issues to sort out, some test suite portability issues to fix, and there is only around 45% unit test coverage.*
+*NOTE: MPack is beta software under development. The API occasionally changes, there are still some TODOs in the codebase, some security issues to fix, some MessagePack 1.0/1.1 compatibility and interoperability issues to sort out, some test suite portability issues to fix, and there is only around 65% unit test coverage.*
 
 ## The Node Reader API
 
@@ -41,15 +41,16 @@ if (mpack_tree_destroy(tree) != mpack_ok) {
 
 Note that no additional error handling is needed in the above code. If the file is missing or corrupt, if map keys are missing or if nodes are not in the expected types, special "nil" nodes and false/zero values are returned and the tree is placed in an error state. An error check is only needed before using the data. Alternatively, the tree can be configured to longjmp in such cases if a handler is set.
 
-## The Static Write API
+## The Write API
 
-The MPack Write API encodes structured data of a fixed (hardcoded) schema to MessagePack.
+The MPack Write API encodes structured data to MessagePack.
 
 ```C
 // encode to memory buffer
-char buffer[256];
+char* data;
+size_t size;
 mpack_writer_t writer;
-mpack_writer_init(&writer, buffer, sizeof(buffer));
+mpack_writer_init_growable(&writer, &data, &size);
 
 // write the example on the msgpack homepage
 mpack_start_map(&writer, 2);
@@ -59,17 +60,20 @@ mpack_write_cstr(&writer, "schema");
 mpack_write_uint(&writer, 0);
 mpack_finish_map(&writer);
 
-// clean up
-size_t count = mpack_writer_buffer_used(&writer);
+// finish writing
 if (mpack_writer_destroy(&writer) != mpack_ok) {
     fprintf(stderr, "An error occurred encoding the data!\n");
     return;
 }
+
+// use the data
+do_something_with_data(data, size);
+free(data);
 ```
 
-In the above example, we encode only to an in-memory buffer. The writer can optionally be provided with a flush function (such as a file or socket write function) to call when the buffer is full or when writing is done.
+In the above example, we encode to a growable memory buffer. The writer can instead write to a pre-allocated or stack-allocated buffer, avoiding the need for memory allocation. The writer can also be provided with a flush function (such as a file or socket write function) to call when the buffer is full or when writing is done.
 
-If any error occurs, the writer is placed in an error state and can optionally longjmp if a handler is set. The writer will flag an error if too much data is written, if the wrong number of elements are written, if the data could not be flushed, etc.
+If any error occurs, the writer is placed in an error state and can optionally longjmp if a handler is set. The writer will flag an error if too much data is written, if the wrong number of elements are written, if the data could not be flushed, etc. No additional error handling is needed in the above code; any subsequent writes are ignored when the writer is in an error state, so you don't need to check every write for errors.
 
 Note in particular that in debug mode, the `mpack_finish_map()` call above ensures that two key/value pairs were actually written as claimed, something that other MessagePack C/C++ libraries may not do.
 
