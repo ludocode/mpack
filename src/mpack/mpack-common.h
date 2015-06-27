@@ -236,12 +236,25 @@ typedef struct mpack_track_t {
 
 #if MPACK_INTERNAL
 mpack_error_t mpack_track_init(mpack_track_t* track);
-mpack_error_t mpack_track_destroy(mpack_track_t* track, bool cancel);
-mpack_error_t mpack_track_check_empty(mpack_track_t* track);
 mpack_error_t mpack_track_push(mpack_track_t* track, mpack_type_t type, uint64_t count);
 mpack_error_t mpack_track_pop(mpack_track_t* track, mpack_type_t type);
 mpack_error_t mpack_track_element(mpack_track_t* track, bool read);
 mpack_error_t mpack_track_bytes(mpack_track_t* track, bool read, uint64_t count);
+
+static inline mpack_error_t mpack_track_check_empty(mpack_track_t* track) {
+    if (track->count != 0) {
+        mpack_assert(0, "unclosed %s", mpack_type_to_string(track->elements[0].type));
+        return mpack_error_bug;
+    }
+    return mpack_ok;
+}
+
+static inline mpack_error_t mpack_track_destroy(mpack_track_t* track, bool cancel) {
+    mpack_error_t error = mpack_track_check_empty(track);
+    MPACK_FREE(track->elements);
+    track->elements = NULL;
+    return cancel ? mpack_ok : error;
+}
 #endif
 
 #endif

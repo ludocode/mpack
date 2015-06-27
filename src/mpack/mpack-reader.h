@@ -257,6 +257,20 @@ static inline void mpack_reader_set_teardown(mpack_reader_t* reader, mpack_teard
 void mpack_reader_flag_error(mpack_reader_t* reader, mpack_error_t error);
 
 /**
+ * Places the reader in the given error state if the given error is not mpack_ok.
+ *
+ * This allows you to externally flag errors, for example if you are validating
+ * data as you read it.
+ *
+ * If the error is mpack_ok, or if the reader is already in an error state, this
+ * call is ignored and no jump is performed.
+ */
+static inline void mpack_reader_flag_if_error(mpack_reader_t* reader, mpack_error_t error) {
+    if (error != mpack_ok)
+        mpack_reader_flag_error(reader, error);
+}
+
+/**
  * Returns bytes left in the reader's buffer.
  *
  * If you are done reading MessagePack data but there is other interesting data
@@ -419,12 +433,34 @@ void mpack_debug_print(const char* data, int len);
 
 
 
-/*
- * the remaining functions are used by the expect API. they are undocumented
- * internal-only functions (comments are around their implementation)
- */
+#if MPACK_INTERNAL
 
-void mpack_read_native(mpack_reader_t* reader, char* p, size_t count);
+void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count);
+
+// Reads count bytes into p, deferring to mpack_read_native_big() if more
+// bytes are needed than are available in the buffer.
+static inline void mpack_read_native(mpack_reader_t* reader, char* p, size_t count) {
+    if (count > reader->left) {
+        mpack_read_native_big(reader, p, count);
+    } else {
+        mpack_memcpy(p, reader->buffer + reader->pos, count);
+        reader->pos += count;
+        reader->left -= count;
+    }
+}
+
+// Reads native bytes with jump disabled. This allows mpack reader functions
+// to hold an allocated buffer and read native data into it without leaking it.
+static inline void mpack_read_native_nojump(mpack_reader_t* reader, char* p, size_t count) {
+    #if MPACK_SETJMP
+    bool jump = reader->jump;
+    reader->jump = false;
+    #endif
+    mpack_read_native(reader, p, count);
+    #if MPACK_SETJMP
+    reader->jump = jump;
+    #endif
+}
 
 static inline uint8_t mpack_read_native_u8(mpack_reader_t* reader) {
     char c[sizeof(uint8_t)];
@@ -432,22 +468,73 @@ static inline uint8_t mpack_read_native_u8(mpack_reader_t* reader) {
     return (uint8_t)c[0];
 }
 
-void mpack_read_native_nojump(mpack_reader_t* reader, char* p, size_t count);
-float mpack_read_native_float(mpack_reader_t* reader);
-double mpack_read_native_double(mpack_reader_t* reader);
+static inline uint16_t mpack_read_native_u16(mpack_reader_t* reader) {
+    char c[sizeof(uint16_t)];
+    mpack_read_native(reader, c, sizeof(c));
+    return (uint16_t)((((uint16_t)(uint8_t)c[0]) << 8) |
+           ((uint16_t)(uint8_t)c[1]));
+}
+
+static inline uint32_t mpack_read_native_u32(mpack_reader_t* reader) {
+    char c[sizeof(uint32_t)];
+    mpack_read_native(reader, c, sizeof(c));
+    return (((uint32_t)(uint8_t)c[0]) << 24) |
+           (((uint32_t)(uint8_t)c[1]) << 16) |
+           (((uint32_t)(uint8_t)c[2]) <<  8) |
+           ((uint32_t)(uint8_t)c[3]);
+}
+
+static inline uint64_t mpack_read_native_u64(mpack_reader_t* reader) {
+    char c[sizeof(uint64_t)];
+    mpack_read_native(reader, c, sizeof(c));
+    return (((uint64_t)(uint8_t)c[0]) << 56) |
+           (((uint64_t)(uint8_t)c[1]) << 48) |
+           (((uint64_t)(uint8_t)c[2]) << 40) |
+           (((uint64_t)(uint8_t)c[3]) << 32) |
+           (((uint64_t)(uint8_t)c[4]) << 24) |
+           (((uint64_t)(uint8_t)c[5]) << 16) |
+           (((uint64_t)(uint8_t)c[6]) <<  8) |
+           ((uint64_t)(uint8_t)c[7]);
+}
+
+static inline int8_t  mpack_read_native_i8  (mpack_reader_t* reader) {return (int8_t) mpack_read_native_u8  (reader);}
+static inline int16_t mpack_read_native_i16 (mpack_reader_t* reader) {return (int16_t)mpack_read_native_u16 (reader);}
+static inline int32_t mpack_read_native_i32 (mpack_reader_t* reader) {return (int32_t)mpack_read_native_u32 (reader);}
+static inline int64_t mpack_read_native_i64 (mpack_reader_t* reader) {return (int64_t)mpack_read_native_u64 (reader);}
+
+static inline float mpack_read_native_float(mpack_reader_t* reader) {
+    union {
+        float f;
+        uint32_t i;
+    } u;
+    u.i = mpack_read_native_u32(reader);
+    return u.f;
+}
+
+static inline double mpack_read_native_double(mpack_reader_t* reader) {
+    union {
+        double d;
+        uint64_t i;
+    } u;
+    u.i = mpack_read_native_u64(reader);
+    return u.d;
+}
 
 #if MPACK_TRACKING
-void mpack_reader_track_element(mpack_reader_t* reader);
-void mpack_reader_track_bytes(mpack_reader_t* reader, uint64_t count);
+#define MPACK_READER_TRACK(reader, error) mpack_reader_flag_if_error(reader, error)
 #else
+#define MPACK_READER_TRACK(reader, error) MPACK_UNUSED(reader)
+#endif
+
 static inline void mpack_reader_track_element(mpack_reader_t* reader) {
-    MPACK_UNUSED(reader);
+    MPACK_READER_TRACK(reader, mpack_track_element(&reader->track, true));
 }
 
 static inline void mpack_reader_track_bytes(mpack_reader_t* reader, uint64_t count) {
-    MPACK_UNUSED(reader);
+    MPACK_READER_TRACK(reader, mpack_track_bytes(&reader->track, true, count));
     MPACK_UNUSED(count);
 }
+
 #endif
 
 

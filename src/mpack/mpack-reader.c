@@ -25,27 +25,6 @@
 
 #if MPACK_READER
 
-#if MPACK_TRACKING
-#define MPACK_READER_TRACK(reader, error) mpack_reader_flag_if_error(reader, error)
-
-static inline void mpack_reader_flag_if_error(mpack_reader_t* reader, mpack_error_t error) {
-    if (error != mpack_ok)
-        mpack_reader_flag_error(reader, error);
-}
-#else
-#define MPACK_READER_TRACK(reader, error) MPACK_UNUSED(reader)
-#endif
-
-#if MPACK_TRACKING
-void mpack_reader_track_element(mpack_reader_t* reader) {
-    MPACK_READER_TRACK(reader, mpack_track_element(&reader->track, true));
-}
-
-void mpack_reader_track_bytes(mpack_reader_t* reader, uint64_t count) {
-    MPACK_READER_TRACK(reader, mpack_track_bytes(&reader->track, true, count));
-}
-#endif
-
 void mpack_reader_init(mpack_reader_t* reader, char* buffer, size_t size, size_t count) {
     mpack_memset(reader, 0, sizeof(*reader));
     reader->buffer = buffer;
@@ -164,7 +143,7 @@ static inline size_t mpack_fill(mpack_reader_t* reader, char* p, size_t count) {
 
 // Reads count bytes into p. Used when there are not enough bytes
 // left in the buffer to satisfy a read.
-static void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count) {
+void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count) {
     if (reader->error != mpack_ok) {
         mpack_memset(p, 0, count);
         return;
@@ -248,31 +227,6 @@ void mpack_skip_bytes(mpack_reader_t* reader, size_t count) {
     }
 }
 
-// Reads count bytes into p, deferring to mpack_read_native_big() if more
-// bytes are needed than are available in the buffer.
-void mpack_read_native(mpack_reader_t* reader, char* p, size_t count) {
-    if (count > reader->left) {
-        mpack_read_native_big(reader, p, count);
-    } else {
-        mpack_memcpy(p, reader->buffer + reader->pos, count);
-        reader->pos += count;
-        reader->left -= count;
-    }
-}
-
-// Reads native bytes with jump disabled. This allows mpack reader functions
-// to hold an allocated buffer and read native data into it without leaking it.
-void mpack_read_native_nojump(mpack_reader_t* reader, char* p, size_t count) {
-    #if MPACK_SETJMP
-    bool jump = reader->jump;
-    reader->jump = false;
-    #endif
-    mpack_read_native(reader, p, count);
-    #if MPACK_SETJMP
-    reader->jump = jump;
-    #endif
-}
-
 void mpack_read_bytes(mpack_reader_t* reader, char* p, size_t count) {
     mpack_reader_track_bytes(reader, count);
     mpack_read_native(reader, p, count);
@@ -314,58 +268,6 @@ const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count) {
     reader->pos += count;
     reader->left -= count;
     return reader->buffer;
-}
-
-static uint16_t mpack_read_native_u16(mpack_reader_t* reader) {
-    char c[sizeof(uint16_t)];
-    mpack_read_native(reader, c, sizeof(c));
-    return (uint16_t)((((uint16_t)(uint8_t)c[0]) << 8) |
-           ((uint16_t)(uint8_t)c[1]));
-}
-
-static uint32_t mpack_read_native_u32(mpack_reader_t* reader) {
-    char c[sizeof(uint32_t)];
-    mpack_read_native(reader, c, sizeof(c));
-    return (((uint32_t)(uint8_t)c[0]) << 24) |
-           (((uint32_t)(uint8_t)c[1]) << 16) |
-           (((uint32_t)(uint8_t)c[2]) <<  8) |
-           ((uint32_t)(uint8_t)c[3]);
-}
-
-static uint64_t mpack_read_native_u64(mpack_reader_t* reader) {
-    char c[sizeof(uint64_t)];
-    mpack_read_native(reader, c, sizeof(c));
-    return (((uint64_t)(uint8_t)c[0]) << 56) |
-           (((uint64_t)(uint8_t)c[1]) << 48) |
-           (((uint64_t)(uint8_t)c[2]) << 40) |
-           (((uint64_t)(uint8_t)c[3]) << 32) |
-           (((uint64_t)(uint8_t)c[4]) << 24) |
-           (((uint64_t)(uint8_t)c[5]) << 16) |
-           (((uint64_t)(uint8_t)c[6]) <<  8) |
-           ((uint64_t)(uint8_t)c[7]);
-}
-
-static inline int8_t  mpack_read_native_i8  (mpack_reader_t* reader) {return (int8_t) mpack_read_native_u8  (reader);}
-static inline int16_t mpack_read_native_i16 (mpack_reader_t* reader) {return (int16_t)mpack_read_native_u16 (reader);}
-static inline int32_t mpack_read_native_i32 (mpack_reader_t* reader) {return (int32_t)mpack_read_native_u32 (reader);}
-static inline int64_t mpack_read_native_i64 (mpack_reader_t* reader) {return (int64_t)mpack_read_native_u64 (reader);}
-
-float mpack_read_native_float(mpack_reader_t* reader) {
-    union {
-        float f;
-        uint32_t i;
-    } u;
-    u.i = mpack_read_native_u32(reader);
-    return u.f;
-}
-
-double mpack_read_native_double(mpack_reader_t* reader) {
-    union {
-        double d;
-        uint64_t i;
-    } u;
-    u.i = mpack_read_native_u64(reader);
-    return u.d;
 }
 
 mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {

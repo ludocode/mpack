@@ -35,6 +35,7 @@ cp $HEADER $SOURCE
 
 # assemble header
 echo -e "#ifndef MPACK_H\n#define MPACK_H 1\n" >> $HEADER
+echo -e "#define MPACK_AMALGAMATED 1\n" >> $SOURCE
 echo -e "#include \"mpack-config.h\"\n\n" >> $HEADER
 for f in $FILES; do
     echo -e "/* $f.h */\n" >> $HEADER
@@ -44,6 +45,7 @@ done
 echo -e "#endif\n" >> $HEADER
 
 # assemble source
+echo -e "#define MPACK_AMALGAMATED 1" >> $SOURCE
 echo -e "#define MPACK_INTERNAL 1\n" >> $SOURCE
 echo -e "#include \"mpack.h\"\n\n" >> $SOURCE
 for f in $FILES; do

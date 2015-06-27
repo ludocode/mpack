@@ -171,21 +171,6 @@ mpack_error_t mpack_track_init(mpack_track_t* track) {
     return mpack_ok;
 }
 
-mpack_error_t mpack_track_destroy(mpack_track_t* track, bool cancel) {
-    mpack_error_t error = mpack_track_check_empty(track);
-    MPACK_FREE(track->elements);
-    track->elements = NULL;
-    return cancel ? mpack_ok : error;
-}
-
-mpack_error_t mpack_track_check_empty(mpack_track_t* track) {
-    if (track->count != 0) {
-        mpack_assert(0, "unclosed %s", mpack_type_to_string(track->elements[0].type));
-        return mpack_error_bug;
-    }
-    return mpack_ok;
-}
-
 mpack_error_t mpack_track_push(mpack_track_t* track, mpack_type_t type, uint64_t count) {
     mpack_assert(track->elements, "null track elements!");
 
