@@ -8,7 +8,6 @@ VERSION=`grep PROJECT_NUMBER Doxyfile|sed 's@.*= *\(.*\) *@\1@'`
 
 FILES="\
     mpack-platform \
-    mpack-internal \
     mpack-common \
     mpack-writer \
     mpack-reader \

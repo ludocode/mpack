@@ -77,7 +77,6 @@
   <ItemGroup>
     <ClCompile Include="..\..\src\mpack\mpack-common.c" />
     <ClCompile Include="..\..\src\mpack\mpack-expect.c" />
-    <ClCompile Include="..\..\src\mpack\mpack-internal.c" />
     <ClCompile Include="..\..\src\mpack\mpack-node.c" />
     <ClCompile Include="..\..\src\mpack\mpack-platform.c" />
     <ClCompile Include="..\..\src\mpack\mpack-reader.c" />
@@ -94,7 +93,6 @@
   <ItemGroup>
     <ClInclude Include="..\..\src\mpack\mpack-common.h" />
     <ClInclude Include="..\..\src\mpack\mpack-expect.h" />
-    <ClInclude Include="..\..\src\mpack\mpack-internal.h" />
     <ClInclude Include="..\..\src\mpack\mpack-node.h" />
     <ClInclude Include="..\..\src\mpack\mpack-platform.h" />
     <ClInclude Include="..\..\src\mpack\mpack-reader.h" />

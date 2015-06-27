@@ -9,7 +9,6 @@
 /* Begin PBXBuildFile section */
 		012F29D31AD4524700346AC7 /* mpack-common.c in Sources */ = {isa = PBXBuildFile; fileRef = 012F29B11AD4524700346AC7 /* mpack-common.c */; };
 		012F29D41AD4524700346AC7 /* mpack-expect.c in Sources */ = {isa = PBXBuildFile; fileRef = 012F29B31AD4524700346AC7 /* mpack-expect.c */; };
-		012F29D51AD4524700346AC7 /* mpack-internal.c in Sources */ = {isa = PBXBuildFile; fileRef = 012F29B51AD4524700346AC7 /* mpack-internal.c */; };
 		012F29D61AD4524700346AC7 /* mpack-node.c in Sources */ = {isa = PBXBuildFile; fileRef = 012F29B71AD4524700346AC7 /* mpack-node.c */; };
 		012F29D71AD4524700346AC7 /* mpack-platform.c in Sources */ = {isa = PBXBuildFile; fileRef = 012F29B91AD4524700346AC7 /* mpack-platform.c */; };
 		012F29D81AD4524700346AC7 /* mpack-reader.c in Sources */ = {isa = PBXBuildFile; fileRef = 012F29BB1AD4524700346AC7 /* mpack-reader.c */; };
@@ -42,8 +41,6 @@
 		012F29B21AD4524700346AC7 /* mpack-common.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "mpack-common.h"; sourceTree = "<group>"; };
 		012F29B31AD4524700346AC7 /* mpack-expect.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "mpack-expect.c"; sourceTree = "<group>"; };
 		012F29B41AD4524700346AC7 /* mpack-expect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "mpack-expect.h"; sourceTree = "<group>"; };
-		012F29B51AD4524700346AC7 /* mpack-internal.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "mpack-internal.c"; sourceTree = "<group>"; };
-		012F29B61AD4524700346AC7 /* mpack-internal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "mpack-internal.h"; sourceTree = "<group>"; };
 		012F29B71AD4524700346AC7 /* mpack-node.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "mpack-node.c"; sourceTree = "<group>"; };
 		012F29B81AD4524700346AC7 /* mpack-node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "mpack-node.h"; sourceTree = "<group>"; };
 		012F29B91AD4524700346AC7 /* mpack-platform.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "mpack-platform.c"; sourceTree = "<group>"; };
@@ -118,8 +115,6 @@
 				012F29B21AD4524700346AC7 /* mpack-common.h */,
 				012F29B31AD4524700346AC7 /* mpack-expect.c */,
 				012F29B41AD4524700346AC7 /* mpack-expect.h */,
-				012F29B51AD4524700346AC7 /* mpack-internal.c */,
-				012F29B61AD4524700346AC7 /* mpack-internal.h */,
 				012F29B71AD4524700346AC7 /* mpack-node.c */,
 				012F29B81AD4524700346AC7 /* mpack-node.h */,
 				012F29B91AD4524700346AC7 /* mpack-platform.c */,
@@ -220,7 +215,6 @@
 				012F29E01AD4524700346AC7 /* test-tag.c in Sources */,
 				012F29DF1AD4524700346AC7 /* test-read.c in Sources */,
 				012F29D91AD4524700346AC7 /* mpack-writer.c in Sources */,
-				012F29D51AD4524700346AC7 /* mpack-internal.c in Sources */,
 				012F29D71AD4524700346AC7 /* mpack-platform.c in Sources */,
 				012F29E11AD4524700346AC7 /* test-write.c in Sources */,
 				012F29DC1AD4524700346AC7 /* test-file.c in Sources */,
