@@ -2,7 +2,13 @@
 # packages MPack up for amalgamation release
 
 "`dirname $0`"/clean.sh
-"`dirname $0`"/gendocs.sh || exit $?
+
+# generate docs (on non-ci builds)
+if [[ "$CI" == "" ]]; then
+    "`dirname $0`"/gendocs.sh || exit $?
+else
+    mkdir -p docs
+fi
 
 VERSION=`grep PROJECT_NUMBER Doxyfile|sed 's@.*= *\(.*\) *@\1@'`
 
@@ -67,6 +73,16 @@ cp tools/valgrind-suppressions build/amalgamation/tools
 
 # create package
 NAME=mpack-amalgamation-$VERSION
-tar -C build/amalgamation --transform "s@^@$NAME/@" -czf $NAME.tar.gz `ls build/amalgamation` || exit $?
+tar -C build/amalgamation --transform "s@^@$NAME/@" -czf build/$NAME.UNTESTED.tar.gz `ls build/amalgamation` || exit $?
+
+# build amalgamation package
+if [[ "$CI" == "" ]]; then
+    cd build/amalgamation
+    scons -j4 all=1 || exit $?
+    cd ../..
+fi
+
+# done!
+mv build/$NAME.UNTESTED.tar.gz $NAME.tar.gz
 echo Created $NAME.tar.gz
 

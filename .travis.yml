@@ -7,7 +7,12 @@ compiler:
   - gcc
   - scan-build
 
+env:
+  - AMALGAMATED=1
+  - STANDARD=1
+
 # travis doesn't currently have scan-build and valgrind by default
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get -y install clang valgrind
+  - sudo apt-get -y install valgrind
+  - bash -c 'if [[ "$CC" == "scan-build" ]]; then sudo apt-get -y install clang; fi'
