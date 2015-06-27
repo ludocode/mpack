@@ -202,20 +202,20 @@ mpack_error_t mpack_track_pop(mpack_track_t* track, mpack_type_t type) {
     mpack_assert(track->elements, "null track elements!");
 
     if (track->count == 0) {
-        mpack_assert(0, "attempting to close a %s but nothing was opened!", mpack_type_to_string(type));
+        mpack_break("attempting to close a %s but nothing was opened!", mpack_type_to_string(type));
         return mpack_error_bug;
     }
 
     mpack_track_element_t* element = &track->elements[track->count - 1];
 
     if (element->type != type) {
-        mpack_assert(0, "attempting to close a %s but the open element is a %s!",
+        mpack_break("attempting to close a %s but the open element is a %s!",
                 mpack_type_to_string(type), mpack_type_to_string(element->type));
         return mpack_error_bug;
     }
 
     if (element->left != 0) {
-        mpack_assert(0, "attempting to close a %s but there are %"PRIu64" %s left",
+        mpack_break("attempting to close a %s but there are %"PRIu64" %s left",
                 mpack_type_to_string(type), element->left,
                 (type == mpack_type_map || type == mpack_type_array) ? "elements" : "bytes");
         return mpack_error_bug;
@@ -236,13 +236,13 @@ mpack_error_t mpack_track_element(mpack_track_t* track, bool read) {
     mpack_track_element_t* element = &track->elements[track->count - 1];
 
     if (element->type != mpack_type_map && element->type != mpack_type_array) {
-        mpack_assert(0, "elements cannot be %s within an %s", read ? "read" : "written",
+        mpack_break("elements cannot be %s within an %s", read ? "read" : "written",
                 mpack_type_to_string(element->type));
         return mpack_error_bug;
     }
 
     if (element->left == 0) {
-        mpack_assert(0, "too many elements %s for %s", read ? "read" : "written",
+        mpack_break("too many elements %s for %s", read ? "read" : "written",
                 mpack_type_to_string(element->type));
         return mpack_error_bug;
     }
@@ -256,20 +256,20 @@ mpack_error_t mpack_track_bytes(mpack_track_t* track, bool read, uint64_t count)
     mpack_assert(track->elements, "null track elements!");
 
     if (track->count == 0) {
-        mpack_assert(0, "bytes cannot be %s with no open map or array", read ? "read" : "written");
+        mpack_break("bytes cannot be %s with no open map or array", read ? "read" : "written");
         return mpack_error_bug;
     }
 
     mpack_track_element_t* element = &track->elements[track->count - 1];
 
     if (element->type == mpack_type_map || element->type == mpack_type_array) {
-        mpack_assert(0, "bytes cannot be %s within an %s", read ? "read" : "written",
+        mpack_break("bytes cannot be %s within an %s", read ? "read" : "written",
                 mpack_type_to_string(element->type));
         return mpack_error_bug;
     }
 
     if (element->left < count) {
-        mpack_assert(0, "too many bytes %s for %s", read ? "read" : "written",
+        mpack_break("too many bytes %s for %s", read ? "read" : "written",
                 mpack_type_to_string(element->type));
         return mpack_error_bug;
     }

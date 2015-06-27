@@ -85,16 +85,36 @@ extern "C" {
 
 
 /*
- * Define mpack_assert() depending on configuration. If stdio is
- * available, we can add a format string describing the error, and
- * on some compilers we can declare it noreturn to improve static
- * analysis. Note that the format string and arguments are
- * not evaluated unless the assertion is hit.
+ * Here we define mpack_assert() and mpack_break(). They both work like a normal
+ * assertion function in debug mode, causing a trap or abort. However, on some platforms
+ * you can safely resume execution from mpack_break(), whereas mpack_assert() is
+ * always fatal.
  *
- * Note that assertion expressions are still evaluated in release mode,
- * but they are converted to unreachable code declarations instead where
- * supported to improve optimization. The other arguments to an assert
- * are never evaluated in release.
+ * In release mode, mpack_assert() is converted to an assurance to the compiler
+ * that the expression cannot be false (via e.g. __assume() or __builtin_unreachable())
+ * to improve optimization. There is thus no point in "safely" handling the case
+ * of this being false. Writing mpack_assert(0) rarely makes sense; the compiler will
+ * throw away any code after it. If at any time an mpack_assert() is not true, the
+ * behaviour is undefined. This also means the expression is evaluated even in release.
+ *
+ * mpack_break() on the other hand is compiled to nothing in release. It is
+ * used in situations where we want to highlight a programming error as early as
+ * possible (in the debugger), but we still handle the situation safely if it
+ * happens in release to avoid producing incorrect results (such as in
+ * MPACK_WRITE_TRACKING.) It does not take an expression to test because it
+ * belongs in a safe-handling block after its failing condition has been tested.
+ *
+ * If stdio is available, we can add a format string describing the error, and
+ * on some compilers we can declare it noreturn to get correct results from static
+ * analysis tools. Note that the format string and arguments are not evaluated unless
+ * the assertion is hit.
+ *
+ * Note that any arguments to mpack_assert() beyond the first are only evaluated
+ * if the expression is false (and are of course not evaluated in release.)
+ *
+ * mpack_assert_fail() and mpack_break_hit() are defined separately
+ * because assert is noreturn and break isn't. This distinction is very
+ * important for static analysis tools to give correct results.
  */
 
 #if MPACK_DEBUG
@@ -104,14 +124,27 @@ extern "C" {
         #define mpack_assert_fail_at(line, file, expr, ...) \
                 mpack_assert_fail_format("mpack assertion failed at " file ":" #line "\n" expr "\n" __VA_ARGS__)
     #else
-        #define mpack_assert_fail_at(line, file, expr, ...) \
-                mpack_assert_fail("mpack assertion failed at " file ":" #line "\n" expr)
+        #define mpack_assert_fail_at(line, file, ...) \
+                mpack_assert_fail("mpack assertion failed at " file ":" #line )
     #endif
 
     #define mpack_assert_fail_pos(line, file, expr, ...) mpack_assert_fail_at(line, file, expr, __VA_ARGS__)
     #define mpack_assert(expr, ...) ((!(expr)) ? mpack_assert_fail_pos(__LINE__, __FILE__, #expr, __VA_ARGS__) : (void)0)
+
+    void mpack_break_hit(const char* message);
+    #if MPACK_STDIO
+        void mpack_break_hit_format(const char* format, ...);
+        #define mpack_break_hit_at(line, file, ...) \
+                mpack_break_hit_format("mpack breakpoint hit at " file ":" #line "\n" __VA_ARGS__)
+    #else
+        #define mpack_break_hit_at(line, file, ...) \
+                mpack_break_hit("mpack breakpoint hit at " file ":" #line )
+    #endif
+    #define mpack_break_hit_pos(line, file, ...) mpack_break_hit_at(line, file, __VA_ARGS__)
+    #define mpack_break(...) mpack_break_hit_pos(__LINE__, __FILE__, __VA_ARGS__)
 #else
     #define mpack_assert(expr, ...) ((!(expr)) ? MPACK_UNREACHABLE, (void)0 : (void)0)
+    #define mpack_break(...) ((void)0)
 #endif
 
 

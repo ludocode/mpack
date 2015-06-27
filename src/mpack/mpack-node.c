@@ -310,8 +310,8 @@ void mpack_tree_init_file(mpack_tree_t* tree, const char* filename, size_t max_s
 
     // the C STDIO family of file functions use long (e.g. ftell)
     if (max_size > LONG_MAX) {
-        mpack_assert(0, "max_size of %"PRIu64" is invalid, maximum is LONG_MAX", (uint64_t)max_size);
-        mpack_tree_init_error(tree, mpack_error_bug);
+        mpack_break("max_size of %"PRIu64" is invalid, maximum is LONG_MAX", (uint64_t)max_size);
+        mpack_tree_init_error(tree, mpack_error_too_big);
         return;
     }
 
@@ -750,12 +750,7 @@ void mpack_node_copy_cstr(mpack_node_t* node, char* buffer, size_t size) {
     if (node->tree->error != mpack_ok)
         return;
 
-    // make sure buffer makes sense
-    if (size < 1) {
-        mpack_assert(0, "buffer size is zero; you must have room for at least a null-terminator");
-        mpack_node_flag_error(node, mpack_error_bug);
-        return;
-    }
+    mpack_assert(size >= 1, "buffer size is zero; you must have room for at least a null-terminator");
 
     if (node->tag.type != mpack_type_str) {
         buffer[0] = '\0';
@@ -806,7 +801,7 @@ char* mpack_node_cstr_alloc(mpack_node_t* node, size_t maxlen) {
 
     // make sure maxlen makes sense
     if (maxlen < 1) {
-        mpack_assert(0, "maxlen is zero; you must have room for at least a null-terminator");
+        mpack_break("maxlen is zero; you must have room for at least a null-terminator");
         mpack_node_flag_error(node, mpack_error_bug);
         return NULL;
     }

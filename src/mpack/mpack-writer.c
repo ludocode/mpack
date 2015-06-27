@@ -352,7 +352,6 @@ void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t value) {
 
         default:
             mpack_assert(0, "unrecognized type %i", (int)value.type);
-            mpack_writer_flag_error(writer, mpack_error_bug);
             break;
     }
 }

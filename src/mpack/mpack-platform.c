@@ -39,11 +39,25 @@ void mpack_assert_fail_format(const char* format, ...) {
     buffer[sizeof(buffer) - 1] = 0;
     mpack_assert_fail(buffer);
 }
+
+void mpack_break_hit_format(const char* format, ...) {
+    char buffer[512];
+    va_list args;
+    va_start(args, format);
+    vsnprintf(buffer, sizeof(buffer), format, args);
+    va_end(args);
+    buffer[sizeof(buffer) - 1] = 0;
+    mpack_break_hit(buffer);
+}
 #endif
 
-
-
-#if !defined(MPACK_CUSTOM_ASSERT) || !MPACK_CUSTOM_ASSERT
+#if MPACK_CUSTOM_ASSERT
+void mpack_break_hit(const char* message) {
+    // If we have a custom assert handler, break just wraps it
+    // for simplicity.
+    mpack_assert_fail(message);
+}
+#else
 void mpack_assert_fail(const char* message) {
     MPACK_UNUSED(message);
 
@@ -53,14 +67,37 @@ void mpack_assert_fail(const char* message) {
 
     #if defined(__GCC__) || defined(__clang__)
     __builtin_trap();
-    __builtin_abort();
     #elif WIN32
     __debugbreak();
-    #elif MPACK_STDLIB
+    #endif
+
+    #if MPACK_STDLIB
     abort();
+    #elif defined(__GCC__)
+    __builtin_abort();
     #endif
 
     MPACK_UNREACHABLE;
+}
+
+void mpack_break_hit(const char* message) {
+    MPACK_UNUSED(message);
+
+    #if MPACK_STDIO
+    fprintf(stderr, "%s\n", message);
+    #endif
+
+    #if defined(__GCC__) || defined(__clang__)
+    // __builtin_trap() is not ideal since it's not really possible to continue
+    // execution in a debugger. is __builtin_debugger() a thing on clang? should
+    // we emit e.g. int 3 or equivalent on some platforms?
+    __builtin_trap();
+    #elif WIN32
+    __debugbreak();
+    #elif MPACK_STDLIB
+    // we prefer halting completely to continuing with just a print.
+    abort();
+    #endif
 }
 #endif
 

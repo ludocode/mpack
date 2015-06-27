@@ -186,11 +186,8 @@ double mpack_expect_double_strict(mpack_reader_t* reader) {
 int8_t mpack_expect_i8_range(mpack_reader_t* reader, int8_t min_value, int8_t max_value) {
 
     // make sure the range is sensible
-    if (min_value > max_value) {
-        mpack_assert(0, "min_value %i must be less than or equal to max_value %i", min_value, max_value);
-        mpack_reader_flag_error(reader, mpack_error_bug);
-        return min_value;
-    }
+    mpack_assert(min_value <= max_value, "min_value %i must be less than or equal to max_value %i",
+            min_value, max_value);
 
     // read the value
     int8_t val = mpack_expect_i8(reader);
@@ -206,14 +203,13 @@ int8_t mpack_expect_i8_range(mpack_reader_t* reader, int8_t min_value, int8_t ma
     return val;
 }
 
+// TODO: missing i16_range, i32_range, i64_range?
+
 uint8_t mpack_expect_u8_range(mpack_reader_t* reader, uint8_t min_value, uint8_t max_value) {
 
     // make sure the range is sensible
-    if (min_value > max_value) {
-        mpack_assert(0, "min_value %u must be less than or equal to max_value %u", min_value, max_value);
-        mpack_reader_flag_error(reader, mpack_error_bug);
-        return min_value;
-    }
+    mpack_assert(min_value <= max_value, "min_value %u must be less than or equal to max_value %u",
+            min_value, max_value);
 
     // read the value
     uint8_t val = mpack_expect_u8(reader);
@@ -232,11 +228,8 @@ uint8_t mpack_expect_u8_range(mpack_reader_t* reader, uint8_t min_value, uint8_t
 uint16_t mpack_expect_u16_range(mpack_reader_t* reader, uint16_t min_value, uint16_t max_value) {
 
     // make sure the range is sensible
-    if (min_value > max_value) {
-        mpack_assert(0, "min_value %u must be less than or equal to max_value %u", min_value, max_value);
-        mpack_reader_flag_error(reader, mpack_error_bug);
-        return min_value;
-    }
+    mpack_assert(min_value <= max_value, "min_value %u must be less than or equal to max_value %u",
+            min_value, max_value);
 
     // read the value
     uint16_t val = mpack_expect_u16(reader);
@@ -255,11 +248,8 @@ uint16_t mpack_expect_u16_range(mpack_reader_t* reader, uint16_t min_value, uint
 uint32_t mpack_expect_u32_range(mpack_reader_t* reader, uint32_t min_value, uint32_t max_value) {
 
     // make sure the range is sensible
-    if (min_value > max_value) {
-        mpack_assert(0, "min_value %u must be less than or equal to max_value %u", min_value, max_value);
-        mpack_reader_flag_error(reader, mpack_error_bug);
-        return min_value;
-    }
+    mpack_assert(min_value <= max_value, "min_value %u must be less than or equal to max_value %u",
+            min_value, max_value);
 
     // read the value
     uint32_t val = mpack_expect_u32(reader);
@@ -278,11 +268,9 @@ uint32_t mpack_expect_u32_range(mpack_reader_t* reader, uint32_t min_value, uint
 uint64_t mpack_expect_u64_range(mpack_reader_t* reader, uint64_t min_value, uint64_t max_value) {
 
     // make sure the range is sensible
-    if (min_value > max_value) {
-        mpack_assert(0, "min_value %"PRIu64" must be less than or equal to max_value %"PRIu64, min_value, max_value);
-        mpack_reader_flag_error(reader, mpack_error_bug);
-        return min_value;
-    }
+    mpack_assert(min_value <= max_value,
+            "min_value %"PRIu64" must be less than or equal to max_value %"PRIu64, min_value, max_value);
+
 
     // read the value
     uint64_t val = mpack_expect_u64(reader);
@@ -301,11 +289,8 @@ uint64_t mpack_expect_u64_range(mpack_reader_t* reader, uint64_t min_value, uint
 float mpack_expect_float_range(mpack_reader_t* reader, float min_value, float max_value) {
 
     // make sure the range is sensible
-    if (min_value > max_value) {
-        mpack_assert(0, "min_value %f must be less than or equal to max_value %f", min_value, max_value);
-        mpack_reader_flag_error(reader, mpack_error_bug);
-        return min_value;
-    }
+    mpack_assert(min_value <= max_value, "min_value %f must be less than or equal to max_value %f",
+            min_value, max_value);
 
     // read the value
     float val = mpack_expect_float(reader);
@@ -324,11 +309,8 @@ float mpack_expect_float_range(mpack_reader_t* reader, float min_value, float ma
 double mpack_expect_double_range(mpack_reader_t* reader, double min_value, double max_value) {
 
     // make sure the range is sensible
-    if (min_value > max_value) {
-        mpack_assert(0, "min_value %f must be less than or equal to max_value %f", min_value, max_value);
-        mpack_reader_flag_error(reader, mpack_error_bug);
-        return min_value;
-    }
+    mpack_assert(min_value <= max_value, "min_value %f must be less than or equal to max_value %f",
+            min_value, max_value);
 
     // read the value
     double val = mpack_expect_double(reader);
@@ -436,11 +418,8 @@ void mpack_expect_array_match(mpack_reader_t* reader, uint32_t count) {
 uint32_t mpack_expect_array_range(mpack_reader_t* reader, uint32_t min_count, uint32_t max_count) {
 
     // make sure the range is sensible
-    if (min_count > max_count) {
-        mpack_assert(0, "min_count %u must be less than or equal to max_count %u", min_count, max_count);
-        mpack_reader_flag_error(reader, mpack_error_bug);
-        return min_count;
-    }
+    mpack_assert(min_count <= max_count, "min_count %u must be less than or equal to max_count %u",
+            min_count, max_count);
 
     // read the count
     uint32_t count = mpack_expect_array(reader);
@@ -537,11 +516,7 @@ size_t mpack_expect_bin_buf(mpack_reader_t* reader, char* buf, size_t bufsize) {
 void mpack_expect_cstr(mpack_reader_t* reader, char* buf, size_t bufsize) {
 
     // make sure buffer makes sense
-    if (bufsize < 1) {
-        mpack_assert(0, "buffer size is zero; you must have room for at least a null-terminator");
-        mpack_reader_flag_error(reader, mpack_error_bug);
-        return;
-    }
+    mpack_assert(bufsize >= 1, "buffer size is zero; you must have room for at least a null-terminator");
 
     // expect a str
     size_t rawsize = mpack_expect_str_buf(reader, buf, bufsize - 1);
@@ -564,11 +539,7 @@ void mpack_expect_cstr(mpack_reader_t* reader, char* buf, size_t bufsize) {
 void mpack_expect_utf8_cstr(mpack_reader_t* reader, char* buf, size_t bufsize) {
 
     // make sure buffer makes sense
-    if (bufsize < 1) {
-        mpack_assert(0, "buffer size is zero; you must have room for at least a null-terminator");
-        mpack_reader_flag_error(reader, mpack_error_bug);
-        return;
-    }
+    mpack_assert(bufsize >= 1, "buffer size is zero; you must have room for at least a null-terminator");
 
     // expect a raw
     size_t rawsize = mpack_expect_str_buf(reader, buf, bufsize - 1);
@@ -593,8 +564,10 @@ void mpack_expect_utf8_cstr(mpack_reader_t* reader, char* buf, size_t bufsize) {
 
 #ifdef MPACK_MALLOC
 char* mpack_expect_cstr_alloc(mpack_reader_t* reader, size_t maxsize) {
+
+    // make sure argument makes sense
     if (maxsize < 1) {
-        mpack_assert(0, "maxsize is zero; you must have room for at least a null-terminator");
+        mpack_break("maxsize is zero; you must have room for at least a null-terminator");
         mpack_reader_flag_error(reader, mpack_error_bug);
         return NULL;
     }
