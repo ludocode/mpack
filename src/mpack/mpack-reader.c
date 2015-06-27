@@ -237,6 +237,8 @@ static void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count)
 }
 
 void mpack_skip_bytes(mpack_reader_t* reader, size_t count) {
+    // TODO: This is currently very slow, potentially even slower than just
+    // reading the data. Skip needs to be implemented properly.
     char c[128];
     size_t i = 0;
     while (i < count && mpack_reader_error(reader) == mpack_ok) {
@@ -280,11 +282,6 @@ const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count) {
     if (reader->error != mpack_ok)
         return NULL;
 
-    if (count > reader->size) {
-        mpack_reader_flag_error(reader, mpack_error_too_big);
-        return NULL;
-    }
-
     mpack_reader_track_bytes(reader, count);
 
     // if we have enough bytes already in the buffer, we can return it directly.
@@ -297,6 +294,12 @@ const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count) {
     // we'll need a fill function to get more data
     if (!reader->fill) {
         mpack_reader_flag_error(reader, mpack_error_io);
+        return NULL;
+    }
+
+    // make sure the buffer is big enough to actually fit the data
+    if (count > reader->size) {
+        mpack_reader_flag_error(reader, mpack_error_too_big);
         return NULL;
     }
 

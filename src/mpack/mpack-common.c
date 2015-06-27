@@ -230,8 +230,9 @@ mpack_error_t mpack_track_pop(mpack_track_t* track, mpack_type_t type) {
     }
 
     if (element->left != 0) {
-        mpack_assert(0, "attempting to close a %s but there are %"PRIu64" left",
-                mpack_type_to_string(type), element->left);
+        mpack_assert(0, "attempting to close a %s but there are %"PRIu64" %s left",
+                mpack_type_to_string(type), element->left,
+                (type == mpack_type_map || type == mpack_type_array) ? "elements" : "bytes");
         return mpack_error_bug;
     }
 

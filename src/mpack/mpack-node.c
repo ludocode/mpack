@@ -162,8 +162,7 @@ static void mpack_tree_read_node(mpack_tree_t* tree, mpack_node_t* node,
         }
         *possible_nodes_left -= total;
 
-        node->data.bytes = reader->buffer + reader->pos;
-        mpack_skip_bytes(reader, total);
+        node->data.bytes = mpack_read_bytes_inplace(reader, total);
 
         if (type == mpack_type_str)
             mpack_done_str(reader);
