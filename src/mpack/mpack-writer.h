@@ -330,6 +330,12 @@ void mpack_write_double(mpack_writer_t* writer, double value);
 /*! Writes a boolean. */
 void mpack_write_bool(mpack_writer_t* writer, bool value);
 
+/*! Writes a boolean with value true. */
+void mpack_write_true(mpack_writer_t* writer);
+
+/*! Writes a boolean with value false. */
+void mpack_write_false(mpack_writer_t* writer);
+
 /*! Writes a nil. */
 void mpack_write_nil(mpack_writer_t* writer);
 

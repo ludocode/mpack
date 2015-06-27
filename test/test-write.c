@@ -297,6 +297,8 @@ static void test_write_simple_misc() {
     test_simple_write("\xc0", mpack_write_nil(&writer));
     test_simple_write("\xc2", mpack_write_bool(&writer, false));
     test_simple_write("\xc3", mpack_write_bool(&writer, true));
+    test_simple_write("\xc2", mpack_write_false(&writer));
+    test_simple_write("\xc3", mpack_write_true(&writer));
 
     // we just test a few floats for now. this could certainly be extended to
     // test more values like subnormal floats, infinities, etc.

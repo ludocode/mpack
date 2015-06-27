@@ -509,6 +509,16 @@ void mpack_write_bool(mpack_writer_t* writer, bool value) {
     mpack_write_native_u8(writer, (uint8_t)(0xc2 | (value ? 1 : 0)));
 }
 
+void mpack_write_true(mpack_writer_t* writer) {
+    mpack_writer_track_element(writer);
+    mpack_write_native_u8(writer, (uint8_t)0xc3);
+}
+
+void mpack_write_false(mpack_writer_t* writer) {
+    mpack_writer_track_element(writer);
+    mpack_write_native_u8(writer, (uint8_t)0xc2);
+}
+
 void mpack_write_nil(mpack_writer_t* writer) {
     mpack_writer_track_element(writer);
     mpack_write_native_u8(writer, 0xc0);
