@@ -119,7 +119,7 @@
  * This is enabled by default in debug builds (provided a malloc() is
  * available.)
  */
-#if MPACK_DEBUG && defined(MPACK_MALLOC)
+#if MPACK_DEBUG && MPACK_READER && defined(MPACK_MALLOC)
 #define MPACK_READ_TRACKING 1
 #endif
 
@@ -139,7 +139,7 @@
  * You should really only disable this if you are using MPack to implement
  * bindings for an existing dynamic structure.
  */
-#if defined(MPACK_MALLOC)
+#if MPACK_WRITER && defined(MPACK_MALLOC)
 #define MPACK_WRITE_TRACKING 1
 #endif
 

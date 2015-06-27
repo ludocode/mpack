@@ -143,7 +143,7 @@ static inline size_t mpack_fill(mpack_reader_t* reader, char* p, size_t count) {
 
 // Reads count bytes into p. Used when there are not enough bytes
 // left in the buffer to satisfy a read.
-void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count) {
+MPACK_INTERNAL_STATIC void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count) {
     if (reader->error != mpack_ok) {
         mpack_memset(p, 0, count);
         return;

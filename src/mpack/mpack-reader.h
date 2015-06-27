@@ -435,7 +435,7 @@ void mpack_debug_print(const char* data, int len);
 
 #if MPACK_INTERNAL
 
-void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count);
+MPACK_INTERNAL_STATIC void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count);
 
 // Reads count bytes into p, deferring to mpack_read_native_big() if more
 // bytes are needed than are available in the buffer.

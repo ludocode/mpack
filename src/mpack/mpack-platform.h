@@ -71,6 +71,15 @@ extern "C" {
 
 #define MPACK_UNUSED(var) ((void)(var))
 
+#if MPACK_AMALGAMATED
+#define MPACK_INTERNAL_STATIC static
+#else
+#define MPACK_INTERNAL_STATIC
+#endif
+
+
+
+/* Some compiler-specific keywords and builtins */
 #if defined(__GNUC__) || defined(__clang__)
     #define MPACK_UNREACHABLE __builtin_unreachable()
     #define MPACK_NORETURN(fn) fn __attribute__((noreturn))
@@ -171,12 +180,18 @@ size_t mpack_strlen(const char *s);
 
 
 
-/* Make sure we have malloc/free where needed */
+/* Make sure our configuration makes sense */
 #if defined(MPACK_MALLOC) && !defined(MPACK_FREE)
     #error "MPACK_MALLOC requires MPACK_FREE."
 #endif
 #if !defined(MPACK_MALLOC) && defined(MPACK_FREE)
     #error "MPACK_FREE requires MPACK_MALLOC."
+#endif
+#if MPACK_READ_TRACKING && (!defined(MPACK_READER) || !MPACK_READER)
+    #error "MPACK_READ_TRACKING requires MPACK_READER."
+#endif
+#if MPACK_WRITE_TRACKING && (!defined(MPACK_WRITER) || !MPACK_WRITER)
+    #error "MPACK_WRITE_TRACKING requires MPACK_WRITER."
 #endif
 #ifndef MPACK_MALLOC
     #if MPACK_STDIO

@@ -162,7 +162,7 @@ int mpack_tag_cmp(mpack_tag_t left, mpack_tag_t right) {
 #define MPACK_TRACKING_INITIAL_CAPACITY 8
 #endif
 
-mpack_error_t mpack_track_init(mpack_track_t* track) {
+MPACK_INTERNAL_STATIC mpack_error_t mpack_track_init(mpack_track_t* track) {
     track->count = 0;
     track->capacity = MPACK_TRACKING_INITIAL_CAPACITY;
     track->elements = (mpack_track_element_t*)MPACK_MALLOC(sizeof(mpack_track_element_t) * track->capacity);
@@ -171,7 +171,7 @@ mpack_error_t mpack_track_init(mpack_track_t* track) {
     return mpack_ok;
 }
 
-mpack_error_t mpack_track_push(mpack_track_t* track, mpack_type_t type, uint64_t count) {
+MPACK_INTERNAL_STATIC mpack_error_t mpack_track_push(mpack_track_t* track, mpack_type_t type, uint64_t count) {
     mpack_assert(track->elements, "null track elements!");
 
     // maps have twice the number of elements (key/value pairs)
@@ -198,7 +198,7 @@ mpack_error_t mpack_track_push(mpack_track_t* track, mpack_type_t type, uint64_t
     return mpack_ok;
 }
 
-mpack_error_t mpack_track_pop(mpack_track_t* track, mpack_type_t type) {
+MPACK_INTERNAL_STATIC mpack_error_t mpack_track_pop(mpack_track_t* track, mpack_type_t type) {
     mpack_assert(track->elements, "null track elements!");
 
     if (track->count == 0) {
@@ -225,7 +225,7 @@ mpack_error_t mpack_track_pop(mpack_track_t* track, mpack_type_t type) {
     return mpack_ok;
 }
 
-mpack_error_t mpack_track_element(mpack_track_t* track, bool read) {
+MPACK_INTERNAL_STATIC mpack_error_t mpack_track_element(mpack_track_t* track, bool read) {
     MPACK_UNUSED(read);
     mpack_assert(track->elements, "null track elements!");
 
@@ -251,7 +251,7 @@ mpack_error_t mpack_track_element(mpack_track_t* track, bool read) {
     return mpack_ok;
 }
 
-mpack_error_t mpack_track_bytes(mpack_track_t* track, bool read, uint64_t count) {
+MPACK_INTERNAL_STATIC mpack_error_t mpack_track_bytes(mpack_track_t* track, bool read, uint64_t count) {
     MPACK_UNUSED(read);
     mpack_assert(track->elements, "null track elements!");
 
