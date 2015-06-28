@@ -41,23 +41,20 @@ cp $HEADER $SOURCE
 
 # assemble header
 echo -e "#ifndef MPACK_H\n#define MPACK_H 1\n" >> $HEADER
-echo -e "#define MPACK_AMALGAMATED 1\n" >> $SOURCE
-echo -e "#include \"mpack-config.h\"\n\n" >> $HEADER
+echo -e "#define MPACK_AMALGAMATED 1\n" >> $HEADER
+echo -e "#include \"mpack-config.h\"\n" >> $HEADER
 for f in $FILES; do
-    echo -e "/* $f.h */\n" >> $HEADER
-    sed 's@^#include ".*@/* & */@' src/mpack/$f.h >> $HEADER
-    echo -e "\n" >> $HEADER
+    echo -e "\n/* $f.h */" >> $HEADER
+    sed -e 's@^#include ".*@/* & */@' -e '0,/^ \*\/$/d' src/mpack/$f.h >> $HEADER
 done
 echo -e "#endif\n" >> $HEADER
 
 # assemble source
-echo -e "#define MPACK_AMALGAMATED 1" >> $SOURCE
 echo -e "#define MPACK_INTERNAL 1\n" >> $SOURCE
-echo -e "#include \"mpack.h\"\n\n" >> $SOURCE
+echo -e "#include \"mpack.h\"\n" >> $SOURCE
 for f in $FILES; do
-    echo -e "/* $f.c */\n" >> $SOURCE
-    sed 's@^#include ".*@/* & */@' src/mpack/$f.c >> $SOURCE
-    echo -e "\n" >> $SOURCE
+    echo -e "\n/* $f.c */" >> $SOURCE
+    sed -e 's@^#include ".*@/* & */@' -e '0,/^ \*\/$/d' src/mpack/$f.c >> $SOURCE
 done
 
 # assemble package contents
