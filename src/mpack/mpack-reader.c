@@ -232,18 +232,15 @@ void mpack_read_bytes(mpack_reader_t* reader, char* p, size_t count) {
     mpack_read_native(reader, p, count);
 }
 
-const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count) {
-    if (reader->error != mpack_ok)
-        return NULL;
+// internal inplace reader for when it straddles the end of the buffer
+// this is split out to inline the common case, although this isn't done
+// right now because we can't inline tracking yet
+static const char* mpack_read_bytes_inplace_big(mpack_reader_t* reader, size_t count) {
 
-    mpack_reader_track_bytes(reader, count);
-
-    // if we have enough bytes already in the buffer, we can return it directly.
-    if (reader->left >= count) {
-        reader->pos += count;
-        reader->left -= count;
-        return reader->buffer + reader->pos - count;
-    }
+    // we should only arrive here from inplace straddle; this should already be checked
+    mpack_assert(reader->error == mpack_ok, "already in error state? %s",
+            mpack_error_to_string(mpack_reader_error(reader)));
+    mpack_assert(reader->left < count, "already enough bytes in buffer: %i left, %i count", (int)reader->left, (int)count);
 
     // we'll need a fill function to get more data
     if (!reader->fill) {
@@ -268,6 +265,22 @@ const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count) {
     reader->pos += count;
     reader->left -= count;
     return reader->buffer;
+}
+
+const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count) {
+    if (reader->error != mpack_ok)
+        return NULL;
+
+    mpack_reader_track_bytes(reader, count);
+
+    // if we have enough bytes already in the buffer, we can return it directly.
+    if (reader->left >= count) {
+        reader->pos += count;
+        reader->left -= count;
+        return reader->buffer + reader->pos - count;
+    }
+
+    return mpack_read_bytes_inplace_big(reader, count);
 }
 
 mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {

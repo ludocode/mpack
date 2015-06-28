@@ -299,81 +299,209 @@ static inline mpack_type_t mpack_node_type(mpack_node_t* node) {
 /**
  * Checks if the given node is of nil type, raising mpack_error_type otherwise.
  */
-void mpack_node_nil(mpack_node_t* node);
+static inline void mpack_node_nil(mpack_node_t* node) {
+    if (node->tree->error != mpack_ok)
+        return;
+    if (node->tag.type != mpack_type_nil)
+        mpack_node_flag_error(node, mpack_error_type);
+}
 
 /**
  * Returns the bool value of the node. If this node is not of the correct
  * type, mpack_error_type is raised, and the return value should be discarded.
  */
-bool mpack_node_bool(mpack_node_t* node);
+static inline bool mpack_node_bool(mpack_node_t* node) {
+    if (node->tree->error != mpack_ok)
+        return false;
+
+    if (node->tag.type == mpack_type_bool)
+        return node->tag.v.b;
+
+    mpack_node_flag_error(node, mpack_error_type);
+    return false;
+}
 
 /**
  * Checks if the given node is of bool type with value true, raising
  * mpack_error_type otherwise.
  */
-void mpack_node_true(mpack_node_t* node);
+static inline void mpack_node_true(mpack_node_t* node) {
+    if (mpack_node_bool(node) != true)
+        mpack_node_flag_error(node, mpack_error_type);
+}
 
 /**
  * Checks if the given node is of bool type with value false, raising
  * mpack_error_type otherwise.
  */
-void mpack_node_false(mpack_node_t* node);
+static inline void mpack_node_false(mpack_node_t* node) {
+    if (mpack_node_bool(node) != false)
+        mpack_node_flag_error(node, mpack_error_type);
+}
 
 /**
  * Returns the 8-bit unsigned value of the node. If this node is not
  * of a compatible type, mpack_error_type is raised, and the
  * return value should be discarded.
  */
-uint8_t mpack_node_u8(mpack_node_t* node);
+static inline uint8_t mpack_node_u8(mpack_node_t* node) {
+    if (node->tree->error != mpack_ok)
+        return 0;
+
+    if (node->tag.type == mpack_type_uint) {
+        if (node->tag.v.u <= UINT8_MAX)
+            return (uint8_t)node->tag.v.u;
+    } else if (node->tag.type == mpack_type_int) {
+        if (node->tag.v.i >= 0 && node->tag.v.i <= UINT8_MAX)
+            return (uint8_t)node->tag.v.i;
+    }
+
+    mpack_node_flag_error(node, mpack_error_type);
+    return 0;
+}
 
 /**
  * Returns the 8-bit signed value of the node. If this node is not
  * of a compatible type, mpack_error_type is raised, and the
  * return value should be discarded.
  */
-int8_t mpack_node_i8(mpack_node_t* node);
+static inline int8_t mpack_node_i8(mpack_node_t* node) {
+    if (node->tree->error != mpack_ok)
+        return 0;
+
+    if (node->tag.type == mpack_type_uint) {
+        if (node->tag.v.u <= INT8_MAX)
+            return (int8_t)node->tag.v.u;
+    } else if (node->tag.type == mpack_type_int) {
+        if (node->tag.v.i >= INT8_MIN && node->tag.v.i <= INT8_MAX)
+            return (int8_t)node->tag.v.i;
+    }
+
+    mpack_node_flag_error(node, mpack_error_type);
+    return 0;
+}
 
 /**
  * Returns the 16-bit unsigned value of the node. If this node is not
  * of a compatible type, mpack_error_type is raised, and the
  * return value should be discarded.
  */
-uint16_t mpack_node_u16(mpack_node_t* node);
+static inline uint16_t mpack_node_u16(mpack_node_t* node) {
+    if (node->tree->error != mpack_ok)
+        return 0;
+
+    if (node->tag.type == mpack_type_uint) {
+        if (node->tag.v.u <= UINT16_MAX)
+            return (uint16_t)node->tag.v.u;
+    } else if (node->tag.type == mpack_type_int) {
+        if (node->tag.v.i >= 0 && node->tag.v.i <= UINT16_MAX)
+            return (uint16_t)node->tag.v.i;
+    }
+
+    mpack_node_flag_error(node, mpack_error_type);
+    return 0;
+}
 
 /**
  * Returns the 16-bit signed value of the node. If this node is not
  * of a compatible type, mpack_error_type is raised, and the
  * return value should be discarded.
  */
-int16_t mpack_node_i16(mpack_node_t* node);
+static inline int16_t mpack_node_i16(mpack_node_t* node) {
+    if (node->tree->error != mpack_ok)
+        return 0;
+
+    if (node->tag.type == mpack_type_uint) {
+        if (node->tag.v.u <= INT16_MAX)
+            return (int16_t)node->tag.v.u;
+    } else if (node->tag.type == mpack_type_int) {
+        if (node->tag.v.i >= INT16_MIN && node->tag.v.i <= INT16_MAX)
+            return (int16_t)node->tag.v.i;
+    }
+
+    mpack_node_flag_error(node, mpack_error_type);
+    return 0;
+}
 
 /**
  * Returns the 32-bit unsigned value of the node. If this node is not
  * of a compatible type, mpack_error_type is raised, and the
  * return value should be discarded.
  */
-uint32_t mpack_node_u32(mpack_node_t* node);
+static inline uint32_t mpack_node_u32(mpack_node_t* node) {
+    if (node->tree->error != mpack_ok)
+        return 0;
+
+    if (node->tag.type == mpack_type_uint) {
+        if (node->tag.v.u <= UINT32_MAX)
+            return (uint32_t)node->tag.v.u;
+    } else if (node->tag.type == mpack_type_int) {
+        if (node->tag.v.i >= 0 && node->tag.v.i <= UINT32_MAX)
+            return (uint32_t)node->tag.v.i;
+    }
+
+    mpack_node_flag_error(node, mpack_error_type);
+    return 0;
+}
 
 /**
  * Returns the 32-bit signed value of the node. If this node is not
  * of a compatible type, mpack_error_type is raised, and the
  * return value should be discarded.
  */
-int32_t mpack_node_i32(mpack_node_t* node);
+static inline int32_t mpack_node_i32(mpack_node_t* node) {
+    if (node->tree->error != mpack_ok)
+        return 0;
+
+    if (node->tag.type == mpack_type_uint) {
+        if (node->tag.v.u <= INT32_MAX)
+            return (int32_t)node->tag.v.u;
+    } else if (node->tag.type == mpack_type_int) {
+        if (node->tag.v.i >= INT32_MIN && node->tag.v.i <= INT32_MAX)
+            return (int32_t)node->tag.v.i;
+    }
+
+    mpack_node_flag_error(node, mpack_error_type);
+    return 0;
+}
 
 /**
  * Returns the 64-bit unsigned value of the node. If this node is not
  * of a compatible type, mpack_error_type is raised, and the
  * return value should be discarded.
  */
-uint64_t mpack_node_u64(mpack_node_t* node);
+static inline uint64_t mpack_node_u64(mpack_node_t* node) {
+    if (node->tree->error != mpack_ok)
+        return 0;
+
+    if (node->tag.type == mpack_type_uint)
+        return node->tag.v.u;
+    else if (node->tag.type == mpack_type_int)
+        return (uint64_t)node->tag.v.i;
+
+    mpack_node_flag_error(node, mpack_error_type);
+    return 0;
+}
 
 /**
  * Returns the 64-bit signed value of the node. If this node is not
  * of a compatible type, mpack_error_type is raised, and the
  * return value should be discarded.
  */
-int64_t mpack_node_i64(mpack_node_t* node);
+static inline int64_t mpack_node_i64(mpack_node_t* node) {
+    if (node->tree->error != mpack_ok)
+        return 0;
+
+    if (node->tag.type == mpack_type_uint) {
+        if (node->tag.v.u <= (uint64_t)INT64_MAX)
+            return (int64_t)node->tag.v.u;
+    } else if (node->tag.type == mpack_type_int) {
+        return node->tag.v.i;
+    }
+
+    mpack_node_flag_error(node, mpack_error_type);
+    return 0;
+}
 
 /**
  * Returns the float value of the node. The underlying value can be an
@@ -384,7 +512,22 @@ int64_t mpack_node_i64(mpack_node_t* node);
  *
  * @throws mpack_error_type if the underlying value is not a float, double or integer.
  */
-float mpack_node_float(mpack_node_t* node);
+static inline float mpack_node_float(mpack_node_t* node) {
+    if (node->tree->error != mpack_ok)
+        return 0.0f;
+
+    if (node->tag.type == mpack_type_uint)
+        return (float)node->tag.v.u;
+    else if (node->tag.type == mpack_type_int)
+        return (float)node->tag.v.i;
+    else if (node->tag.type == mpack_type_float)
+        return node->tag.v.f;
+    else if (node->tag.type == mpack_type_double)
+        return (float)node->tag.v.d;
+
+    mpack_node_flag_error(node, mpack_error_type);
+    return 0.0f;
+}
 
 /**
  * Returns the double value of the node. The underlying value can be an
@@ -395,7 +538,22 @@ float mpack_node_float(mpack_node_t* node);
  *
  * @throws mpack_error_type if the underlying value is not a float, double or integer.
  */
-double mpack_node_double(mpack_node_t* node);
+static inline double mpack_node_double(mpack_node_t* node) {
+    if (node->tree->error != mpack_ok)
+        return 0.0;
+
+    if (node->tag.type == mpack_type_uint)
+        return (double)node->tag.v.u;
+    else if (node->tag.type == mpack_type_int)
+        return (double)node->tag.v.i;
+    else if (node->tag.type == mpack_type_float)
+        return (double)node->tag.v.f;
+    else if (node->tag.type == mpack_type_double)
+        return node->tag.v.d;
+
+    mpack_node_flag_error(node, mpack_error_type);
+    return 0.0;
+}
 
 /**
  * Returns the float value of the node. The underlying value must be a float,
@@ -403,7 +561,16 @@ double mpack_node_double(mpack_node_t* node);
  *
  * @throws mpack_error_type if the underlying value is not a float.
  */
-float mpack_node_float_strict(mpack_node_t* node);
+static inline float mpack_node_float_strict(mpack_node_t* node) {
+    if (node->tree->error != mpack_ok)
+        return 0.0f;
+
+    if (node->tag.type == mpack_type_float)
+        return node->tag.v.f;
+
+    mpack_node_flag_error(node, mpack_error_type);
+    return 0.0f;
+}
 
 /**
  * Returns the double value of the node. The underlying value must be a float
@@ -411,7 +578,18 @@ float mpack_node_float_strict(mpack_node_t* node);
  *
  * @throws mpack_error_type if the underlying value is not a float or double.
  */
-double mpack_node_double_strict(mpack_node_t* node);
+static inline double mpack_node_double_strict(mpack_node_t* node) {
+    if (node->tree->error != mpack_ok)
+        return 0.0;
+
+    if (node->tag.type == mpack_type_float)
+        return (double)node->tag.v.f;
+    else if (node->tag.type == mpack_type_double)
+        return node->tag.v.d;
+
+    mpack_node_flag_error(node, mpack_error_type);
+    return 0.0;
+}
 
 /**
  * @}
@@ -425,18 +603,46 @@ double mpack_node_double_strict(mpack_node_t* node);
 /**
  * Returns the extension type of the given ext node.
  */
-int8_t mpack_node_exttype(mpack_node_t* node);
+static inline int8_t mpack_node_exttype(mpack_node_t* node) {
+    if (node->tree->error != mpack_ok)
+        return 0;
+
+    if (node->tag.type == mpack_type_ext)
+        return node->tag.exttype;
+
+    mpack_node_flag_error(node, mpack_error_type);
+    return 0;
+}
 
 /**
  * Returns the length of the given str, bin or ext node.
  */
-size_t mpack_node_data_len(mpack_node_t* node);
+static inline size_t mpack_node_data_len(mpack_node_t* node) {
+    if (node->tree->error != mpack_ok)
+        return 0;
+
+    mpack_type_t type = node->tag.type;
+    if (type == mpack_type_str || type == mpack_type_bin || type == mpack_type_ext)
+        return (size_t)node->tag.v.l;
+
+    mpack_node_flag_error(node, mpack_error_type);
+    return 0;
+}
 
 /**
  * Returns the length in bytes of the given string node. This does not
  * include any null-terminator.
  */
-size_t mpack_node_strlen(mpack_node_t* node);
+static inline size_t mpack_node_strlen(mpack_node_t* node) {
+    if (node->tree->error != mpack_ok)
+        return 0;
+
+    if (node->tag.type == mpack_type_str)
+        return (size_t)node->tag.v.l;
+
+    mpack_node_flag_error(node, mpack_error_type);
+    return 0;
+}
 
 /**
  * Returns a pointer to the data contained by this node.
@@ -449,7 +655,17 @@ size_t mpack_node_strlen(mpack_node_t* node);
  * If this node is not of a str, bin or map, mpack_error_type is raised, and
  * NULL is returned.
  */
-const char* mpack_node_data(mpack_node_t* node);
+static inline const char* mpack_node_data(mpack_node_t* node) {
+    if (node->tree->error != mpack_ok)
+        return NULL;
+
+    mpack_type_t type = node->tag.type;
+    if (type == mpack_type_str || type == mpack_type_bin || type == mpack_type_ext)
+        return node->data.bytes;
+
+    mpack_node_flag_error(node, mpack_error_type);
+    return NULL;
+}
 
 /**
  * Copies the bytes contained by this node into the given buffer, returning the
@@ -515,11 +731,26 @@ char* mpack_node_cstr_alloc(mpack_node_t* node, size_t maxlen);
  * @{
  */
 
+// internal implementation of map key lookup functions to support optional flag
+mpack_node_t* mpack_node_map_str_impl(mpack_node_t* node, const char* str, size_t length, bool optional);
+mpack_node_t* mpack_node_map_int_impl(mpack_node_t* node, int64_t num, bool optional);
+mpack_node_t* mpack_node_map_uint_impl(mpack_node_t* node, uint64_t num, bool optional);
+
 /**
  * Returns the length of the given array node. Raises mpack_error_type
  * and returns 0 if the given node is not an array.
  */
-size_t mpack_node_array_length(mpack_node_t* node);
+static inline size_t mpack_node_array_length(mpack_node_t* node) {
+    if (node->tree->error != mpack_ok)
+        return 0;
+
+    if (node->tag.type != mpack_type_array) {
+        mpack_node_flag_error(node, mpack_error_type);
+        return 0;
+    }
+
+    return (size_t)node->tag.v.n;
+}
 
 /**
  * Returns the node in the given array at the given index. If the node
@@ -533,7 +764,17 @@ mpack_node_t* mpack_node_array_at(mpack_node_t* node, size_t index);
  * Returns the number of key/value pairs in the given map node. Raises
  * mpack_error_type and returns 0 if the given node is not a map.
  */
-size_t mpack_node_map_count(mpack_node_t* node);
+static inline size_t mpack_node_map_count(mpack_node_t* node) {
+    if (node->tree->error != mpack_ok)
+        return 0;
+
+    if (node->tag.type != mpack_type_map) {
+        mpack_node_flag_error(node, mpack_error_type);
+        return 0;
+    }
+
+    return node->tag.v.n;
+}
 
 /**
  * Returns the key node in the given map at the given index.
@@ -561,7 +802,9 @@ mpack_node_t* mpack_node_map_value_at(mpack_node_t* node, size_t index);
  * returned. If the given key does not exist in the map, mpack_error_data
  * is raised and a nil node is returned.
  */
-mpack_node_t* mpack_node_map_int(mpack_node_t* node, int64_t num);
+static inline mpack_node_t* mpack_node_map_int(mpack_node_t* node, int64_t num) {
+    return mpack_node_map_int_impl(node, num, false);
+}
 
 /**
  * Returns the value node in the given map for the given integer key, or NULL
@@ -569,7 +812,9 @@ mpack_node_t* mpack_node_map_int(mpack_node_t* node, int64_t num);
  *
  * @throws mpack_error_type if the node is not a map
  */
-mpack_node_t* mpack_node_map_int_option(mpack_node_t* node, int64_t num);
+static inline mpack_node_t* mpack_node_map_int_optional(mpack_node_t* node, int64_t num) {
+    return mpack_node_map_int_impl(node, num, true);
+}
 
 /**
  * Returns the value node in the given map for the given unsigned integer key. If
@@ -577,7 +822,9 @@ mpack_node_t* mpack_node_map_int_option(mpack_node_t* node, int64_t num);
  * returned. If the given key does not exist in the map, mpack_error_data
  * is raised and a nil node is returned.
  */
-mpack_node_t* mpack_node_map_uint(mpack_node_t* node, uint64_t num);
+static inline mpack_node_t* mpack_node_map_uint(mpack_node_t* node, uint64_t num) {
+    return mpack_node_map_uint_impl(node, num, false);
+}
 
 /**
  * Returns the value node in the given map for the given unsigned integer
@@ -585,7 +832,9 @@ mpack_node_t* mpack_node_map_uint(mpack_node_t* node, uint64_t num);
  *
  * @throws mpack_error_type if the node is not a map
  */
-mpack_node_t* mpack_node_map_uint_option(mpack_node_t* node, uint64_t num);
+static inline mpack_node_t* mpack_node_map_uint_optional(mpack_node_t* node, uint64_t num) {
+    return mpack_node_map_uint_impl(node, num, true);
+}
 
 /**
  * Returns the value node in the given map for the given string key. If the given
@@ -593,7 +842,9 @@ mpack_node_t* mpack_node_map_uint_option(mpack_node_t* node, uint64_t num);
  * returned. If the given key does not exist in the map, mpack_error_data
  * is raised and a nil node is returned.
  */
-mpack_node_t* mpack_node_map_str(mpack_node_t* node, const char* str, size_t length);
+static inline mpack_node_t* mpack_node_map_str(mpack_node_t* node, const char* str, size_t length) {
+    return mpack_node_map_str_impl(node, str, length, false);
+}
 
 /**
  * Returns the value node in the given map for the given string key, or NULL
@@ -601,7 +852,9 @@ mpack_node_t* mpack_node_map_str(mpack_node_t* node, const char* str, size_t len
  *
  * @throws mpack_error_type if the node is not a map
  */
-mpack_node_t* mpack_node_map_str_option(mpack_node_t* node, const char* str, size_t length);
+static inline mpack_node_t* mpack_node_map_str_optional(mpack_node_t* node, const char* str, size_t length) {
+    return mpack_node_map_str_impl(node, str, length, true);
+}
 
 /**
  * Returns the value node in the given map for the given null-terminated string key.
@@ -609,7 +862,9 @@ mpack_node_t* mpack_node_map_str_option(mpack_node_t* node, const char* str, siz
  * returned. If the given key does not exist in the map, mpack_error_data
  * is raised and a nil node is returned.
  */
-mpack_node_t* mpack_node_map_cstr(mpack_node_t* node, const char* cstr);
+static inline mpack_node_t* mpack_node_map_cstr(mpack_node_t* node, const char* cstr) {
+    return mpack_node_map_str(node, cstr, mpack_strlen(cstr));
+}
 
 /**
  * Returns the value node in the given map for the given null-terminated
@@ -617,7 +872,9 @@ mpack_node_t* mpack_node_map_cstr(mpack_node_t* node, const char* cstr);
  *
  * @throws mpack_error_type if the node is not a map
  */
-mpack_node_t* mpack_node_map_cstr_option(mpack_node_t* node, const char* cstr);
+static inline mpack_node_t* mpack_node_map_cstr_optional(mpack_node_t* node, const char* cstr) {
+    return mpack_node_map_str_optional(node, cstr, mpack_strlen(cstr));
+}
 
 /**
  * Returns true if the given node map contains a value for the given string key.
@@ -631,7 +888,9 @@ bool mpack_node_map_contains_str(mpack_node_t* node, const char* str, size_t len
  * null-terminated string key. If the given node is not a map, mpack_error_type
  * is raised and null is returned.
  */
-bool mpack_node_map_contains_cstr(mpack_node_t* node, const char* cstr);
+static inline bool mpack_node_map_contains_cstr(mpack_node_t* node, const char* cstr) {
+    return mpack_node_map_contains_str(node, cstr, mpack_strlen(cstr));
+}
 
 /**
  * @}

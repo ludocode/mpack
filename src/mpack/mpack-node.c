@@ -461,271 +461,9 @@ void mpack_node_print(mpack_node_t* node) {
 
 
 
-/**
- * Node Primitive Value Functions
- */
-
-void mpack_node_nil(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
-        return;
-    if (node->tag.type != mpack_type_nil)
-      mpack_node_flag_error(node, mpack_error_type);
-}
-
-bool mpack_node_bool(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
-        return false;
-
-    if (node->tag.type == mpack_type_bool)
-        return node->tag.v.b;
-
-    mpack_node_flag_error(node, mpack_error_type);
-    return false;
-}
-
-void mpack_node_true(mpack_node_t* node) {
-    if (mpack_node_bool(node) != true)
-        mpack_node_flag_error(node, mpack_error_type);
-}
-
-void mpack_node_false(mpack_node_t* node) {
-    if (mpack_node_bool(node) != false)
-        mpack_node_flag_error(node, mpack_error_type);
-}
-
-uint8_t mpack_node_u8(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
-        return 0;
-
-    if (node->tag.type == mpack_type_uint) {
-        if (node->tag.v.u <= UINT8_MAX)
-            return (uint8_t)node->tag.v.u;
-    } else if (node->tag.type == mpack_type_int) {
-        if (node->tag.v.i >= 0 && node->tag.v.i <= UINT8_MAX)
-            return (uint8_t)node->tag.v.i;
-    }
-
-    mpack_node_flag_error(node, mpack_error_type);
-    return 0;
-}
-
-uint16_t mpack_node_u16(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
-        return 0;
-
-    if (node->tag.type == mpack_type_uint) {
-        if (node->tag.v.u <= UINT16_MAX)
-            return (uint16_t)node->tag.v.u;
-    } else if (node->tag.type == mpack_type_int) {
-        if (node->tag.v.i >= 0 && node->tag.v.i <= UINT16_MAX)
-            return (uint16_t)node->tag.v.i;
-    }
-
-    mpack_node_flag_error(node, mpack_error_type);
-    return 0;
-}
-
-uint32_t mpack_node_u32(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
-        return 0;
-
-    if (node->tag.type == mpack_type_uint) {
-        if (node->tag.v.u <= UINT32_MAX)
-            return (uint32_t)node->tag.v.u;
-    } else if (node->tag.type == mpack_type_int) {
-        if (node->tag.v.i >= 0 && node->tag.v.i <= UINT32_MAX)
-            return (uint32_t)node->tag.v.i;
-    }
-
-    mpack_node_flag_error(node, mpack_error_type);
-    return 0;
-}
-
-uint64_t mpack_node_u64(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
-        return 0;
-
-    if (node->tag.type == mpack_type_uint)
-        return node->tag.v.u;
-    else if (node->tag.type == mpack_type_int)
-        return (uint64_t)node->tag.v.i;
-
-    mpack_node_flag_error(node, mpack_error_type);
-    return 0;
-}
-
-int8_t mpack_node_i8(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
-        return 0;
-
-    if (node->tag.type == mpack_type_uint) {
-        if (node->tag.v.u <= INT8_MAX)
-            return (int8_t)node->tag.v.u;
-    } else if (node->tag.type == mpack_type_int) {
-        if (node->tag.v.i >= INT8_MIN && node->tag.v.i <= INT8_MAX)
-            return (int8_t)node->tag.v.i;
-    }
-
-    mpack_node_flag_error(node, mpack_error_type);
-    return 0;
-}
-
-int16_t mpack_node_i16(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
-        return 0;
-
-    if (node->tag.type == mpack_type_uint) {
-        if (node->tag.v.u <= INT16_MAX)
-            return (int16_t)node->tag.v.u;
-    } else if (node->tag.type == mpack_type_int) {
-        if (node->tag.v.i >= INT16_MIN && node->tag.v.i <= INT16_MAX)
-            return (int16_t)node->tag.v.i;
-    }
-
-    mpack_node_flag_error(node, mpack_error_type);
-    return 0;
-}
-
-int32_t mpack_node_i32(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
-        return 0;
-
-    if (node->tag.type == mpack_type_uint) {
-        if (node->tag.v.u <= INT32_MAX)
-            return (int32_t)node->tag.v.u;
-    } else if (node->tag.type == mpack_type_int) {
-        if (node->tag.v.i >= INT32_MIN && node->tag.v.i <= INT32_MAX)
-            return (int32_t)node->tag.v.i;
-    }
-
-    mpack_node_flag_error(node, mpack_error_type);
-    return 0;
-}
-
-int64_t mpack_node_i64(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
-        return 0;
-
-    if (node->tag.type == mpack_type_uint) {
-        if (node->tag.v.u <= (uint64_t)INT64_MAX)
-            return (int64_t)node->tag.v.u;
-    } else if (node->tag.type == mpack_type_int) {
-        return node->tag.v.i;
-    }
-
-    mpack_node_flag_error(node, mpack_error_type);
-    return 0;
-}
-
-float mpack_node_float(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
-        return 0.0f;
-
-    if (node->tag.type == mpack_type_uint)
-        return (float)node->tag.v.u;
-    else if (node->tag.type == mpack_type_int)
-        return (float)node->tag.v.i;
-    else if (node->tag.type == mpack_type_float)
-        return node->tag.v.f;
-    else if (node->tag.type == mpack_type_double)
-        return (float)node->tag.v.d;
-
-    mpack_node_flag_error(node, mpack_error_type);
-    return 0.0f;
-}
-
-double mpack_node_double(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
-        return 0.0;
-
-    if (node->tag.type == mpack_type_uint)
-        return (double)node->tag.v.u;
-    else if (node->tag.type == mpack_type_int)
-        return (double)node->tag.v.i;
-    else if (node->tag.type == mpack_type_float)
-        return (double)node->tag.v.f;
-    else if (node->tag.type == mpack_type_double)
-        return node->tag.v.d;
-
-    mpack_node_flag_error(node, mpack_error_type);
-    return 0.0;
-}
-
-float mpack_node_float_strict(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
-        return 0.0f;
-
-    if (node->tag.type == mpack_type_float)
-        return node->tag.v.f;
-
-    mpack_node_flag_error(node, mpack_error_type);
-    return 0.0f;
-}
-
-double mpack_node_double_strict(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
-        return 0.0;
-
-    if (node->tag.type == mpack_type_float)
-        return (double)node->tag.v.f;
-    else if (node->tag.type == mpack_type_double)
-        return node->tag.v.d;
-
-    mpack_node_flag_error(node, mpack_error_type);
-    return 0.0;
-}
-
-
-
 /*
  * Node Data Functions
  */
-
-int8_t mpack_node_exttype(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
-        return 0;
-
-    if (node->tag.type == mpack_type_ext)
-        return node->tag.exttype;
-
-    mpack_node_flag_error(node, mpack_error_type);
-    return 0;
-}
-
-size_t mpack_node_data_len(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
-        return 0;
-
-    mpack_type_t type = node->tag.type;
-    if (type == mpack_type_str || type == mpack_type_bin || type == mpack_type_ext)
-        return (size_t)node->tag.v.l;
-
-    mpack_node_flag_error(node, mpack_error_type);
-    return 0;
-}
-
-size_t mpack_node_strlen(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
-        return 0;
-
-    if (node->tag.type == mpack_type_str)
-        return (size_t)node->tag.v.l;
-
-    mpack_node_flag_error(node, mpack_error_type);
-    return 0;
-}
-
-const char* mpack_node_data(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
-        return NULL;
-
-    mpack_type_t type = node->tag.type;
-    if (type == mpack_type_str || type == mpack_type_bin || type == mpack_type_ext)
-        return node->data.bytes;
-
-    mpack_node_flag_error(node, mpack_error_type);
-    return NULL;
-}
 
 size_t mpack_node_copy_data(mpack_node_t* node, char* buffer, size_t size) {
     if (node->tree->error != mpack_ok)
@@ -833,18 +571,6 @@ char* mpack_node_cstr_alloc(mpack_node_t* node, size_t maxlen) {
  * Compound Node Functions
  */
 
-size_t mpack_node_array_length(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
-        return 0;
-
-    if (node->tag.type != mpack_type_array) {
-        mpack_node_flag_error(node, mpack_error_type);
-        return 0;
-    }
-
-    return (size_t)node->tag.v.n;
-}
-
 mpack_node_t* mpack_node_array_at(mpack_node_t* node, size_t index) {
     if (node->tree->error != mpack_ok)
         return &node->tree->nil_node;
@@ -879,18 +605,6 @@ static mpack_node_t* mpack_node_map_at(mpack_node_t* node, size_t index, size_t 
     return mpack_node_child(node, index * 2 + offset);
 }
 
-size_t mpack_node_map_count(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
-        return 0;
-
-    if (node->tag.type != mpack_type_map) {
-        mpack_node_flag_error(node, mpack_error_type);
-        return 0;
-    }
-
-    return node->tag.v.n;
-}
-
 mpack_node_t* mpack_node_map_key_at(mpack_node_t* node, size_t index) {
     return mpack_node_map_at(node, index, 0);
 }
@@ -899,7 +613,7 @@ mpack_node_t* mpack_node_map_value_at(mpack_node_t* node, size_t index) {
     return mpack_node_map_at(node, index, 1);
 }
 
-mpack_node_t* mpack_node_map_int(mpack_node_t* node, int64_t num) {
+mpack_node_t* mpack_node_map_int_impl(mpack_node_t* node, int64_t num, bool optional) {
     if (node->tree->error != mpack_ok)
         return &node->tree->nil_node;
 
@@ -918,11 +632,12 @@ mpack_node_t* mpack_node_map_int(mpack_node_t* node, int64_t num) {
             return value;
     }
 
-    mpack_node_flag_error(node, mpack_error_data);
+    if (!optional)
+        mpack_node_flag_error(node, mpack_error_data);
     return &node->tree->nil_node;
 }
 
-mpack_node_t* mpack_node_map_uint(mpack_node_t* node, uint64_t num) {
+mpack_node_t* mpack_node_map_uint_impl(mpack_node_t* node, uint64_t num, bool optional) {
     if (node->tree->error != mpack_ok)
         return &node->tree->nil_node;
 
@@ -941,11 +656,12 @@ mpack_node_t* mpack_node_map_uint(mpack_node_t* node, uint64_t num) {
             return value;
     }
 
-    mpack_node_flag_error(node, mpack_error_data);
+    if (!optional)
+        mpack_node_flag_error(node, mpack_error_data);
     return &node->tree->nil_node;
 }
 
-mpack_node_t* mpack_node_map_str(mpack_node_t* node, const char* str, size_t length) {
+mpack_node_t* mpack_node_map_str_impl(mpack_node_t* node, const char* str, size_t length, bool optional) {
     if (node->tree->error != mpack_ok)
         return &node->tree->nil_node;
 
@@ -962,12 +678,9 @@ mpack_node_t* mpack_node_map_str(mpack_node_t* node, const char* str, size_t len
             return value;
     }
 
-    mpack_node_flag_error(node, mpack_error_data);
+    if (!optional)
+        mpack_node_flag_error(node, mpack_error_data);
     return &node->tree->nil_node;
-}
-
-mpack_node_t* mpack_node_map_cstr(mpack_node_t* node, const char* cstr) {
-    return mpack_node_map_str(node, cstr, mpack_strlen(cstr));
 }
 
 bool mpack_node_map_contains_str(mpack_node_t* node, const char* str, size_t length) {
@@ -986,10 +699,6 @@ bool mpack_node_map_contains_str(mpack_node_t* node, const char* str, size_t len
     }
 
     return false;
-}
-
-bool mpack_node_map_contains_cstr(mpack_node_t* node, const char* cstr) {
-    return mpack_node_map_contains_str(node, cstr, mpack_strlen(cstr));
 }
 
 
