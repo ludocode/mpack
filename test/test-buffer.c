@@ -321,7 +321,7 @@ static void test_inplace_buffer(void) {
             tag = mpack_read_tag(&reader);
             test_assert(tag.type == mpack_type_str, "wrong type: %i %s", (int)tag.type, mpack_type_to_string(tag.type));
             test_assert(tag.v.l == j, "string is the wrong length: %i bytes", (int)tag.v.l);
-            if (tag.v.l <= mpack_reader_buffer_size(&reader)) {
+            if (tag.v.l <= reader.size) {
                 val = mpack_read_bytes_inplace(&reader, tag.v.l);
             } else {
                 mpack_read_bytes(&reader, r, tag.v.l);

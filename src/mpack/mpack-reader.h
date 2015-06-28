@@ -79,7 +79,7 @@ struct mpack_reader_t {
     void* context;              /* Context for the reader callbacks */
 
     char* buffer;       /* Byte buffer */
-    size_t size;        /* Size of the buffer */
+    size_t size;        /* Size of the buffer, or zero if it's const */
     size_t left;        /* How many bytes are left in the buffer */
     size_t pos;         /* Position within the buffer */
     mpack_error_t error;  /* Error state */
@@ -289,14 +289,6 @@ static inline void mpack_reader_flag_if_error(mpack_reader_t* reader, mpack_erro
 size_t mpack_reader_remaining(mpack_reader_t* reader, const char** data);
 
 /**
- * Returns the size of the reader's internal buffer. This can be used to
- * ensure that in-place reads are safe.
- */
-static inline size_t mpack_reader_buffer_size(mpack_reader_t* reader) {
-    return reader->size;
-}
-
-/**
  * Queries the error state of the MPack reader.
  *
  * If a reader is in an error state, you should discard all data since the
@@ -357,12 +349,34 @@ void mpack_read_bytes(mpack_reader_t* reader, char* p, size_t count);
  *
  * The reader will move data around in the buffer if needed to ensure that
  * the pointer can always be returned, so it is unlikely to be faster unless
- * count is very small compared to the buffer size.
+ * count is very small compared to the buffer size. If you need to check
+ * whether a small size is reasonable (for example you intend to handle small and
+ * large sizes differently), you can call mpack_should_read_bytes_inplace().
  *
  * As with all read functions, the return value is undefined if the reader
  * is in an error state.
+ *
+ * @see mpack_should_read_bytes_inplace()
  */
 const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count);
+
+/**
+ * Returns true if it's a good idea to read the given number of bytes
+ * in-place.
+ *
+ * If the read will be larger than some small fraction of the buffer size,
+ * this will return false to avoid shuffling too much data back and forth
+ * in the buffer.
+ *
+ * Use this if you're expecting arbitrary size data, and you want to read
+ * in-place where possible but will fall back to a normal read if the data
+ * is too large.
+ *
+ * @see mpack_read_bytes_inplace()
+ */
+static inline bool mpack_should_read_bytes_inplace(mpack_reader_t* reader, size_t count) {
+    return (reader->size == 0 || count > reader->size / 8);
+}
 
 #if MPACK_READ_TRACKING
 /**
