@@ -105,6 +105,30 @@ struct mpack_tree_t {
     #endif
 };
 
+// internal node child lookups
+
+static inline mpack_node_t* mpack_tree_node_at(mpack_tree_t* tree, size_t index) {
+    mpack_assert(tree->error == mpack_ok, "cannot fetch node from tree in error state %s",
+            mpack_error_to_string(tree->error));
+
+    #ifdef MPACK_MALLOC
+    if (tree->pages) {
+        mpack_assert(index < tree->page_count * MPACK_NODE_PAGE_SIZE,
+                "cannot fetch node at index %i, tree only has %i nodes",
+                (int)index, (int)tree->page_count * MPACK_NODE_PAGE_SIZE);
+        return &tree->pages[index / MPACK_NODE_PAGE_SIZE][index % MPACK_NODE_PAGE_SIZE];
+    }
+    #endif
+
+    mpack_assert(index < tree->node_count, "cannot fetch node at index %i, tree only has %i nodes",
+            (int)index, (int)tree->node_count);
+    return &tree->pool[index];
+}
+
+static inline mpack_node_t* mpack_node_child(mpack_node_t* node, size_t child) {
+    return mpack_tree_node_at(node->tree, node->data.children + child);
+}
+
 /**
  * @name Tree Functions
  * @{
@@ -758,7 +782,22 @@ static inline size_t mpack_node_array_length(mpack_node_t* node) {
  * If the given index is out of bounds, mpack_error_data is raised and
  * a nil node is returned.
  */
-mpack_node_t* mpack_node_array_at(mpack_node_t* node, size_t index);
+static inline mpack_node_t* mpack_node_array_at(mpack_node_t* node, size_t index) {
+    if (node->tree->error != mpack_ok)
+        return &node->tree->nil_node;
+
+    if (node->tag.type != mpack_type_array) {
+        mpack_node_flag_error(node, mpack_error_type);
+        return &node->tree->nil_node;
+    }
+
+    if (index >= node->tag.v.n) {
+        mpack_node_flag_error(node, mpack_error_data);
+        return &node->tree->nil_node;
+    }
+
+    return mpack_node_child(node, index);
+}
 
 /**
  * Returns the number of key/value pairs in the given map node. Raises
@@ -776,6 +815,24 @@ static inline size_t mpack_node_map_count(mpack_node_t* node) {
     return node->tag.v.n;
 }
 
+// internal node map lookup
+static inline mpack_node_t* mpack_node_map_at(mpack_node_t* node, size_t index, size_t offset) {
+    if (node->tree->error != mpack_ok)
+        return &node->tree->nil_node;
+
+    if (node->tag.type != mpack_type_map) {
+        mpack_node_flag_error(node, mpack_error_type);
+        return &node->tree->nil_node;
+    }
+
+    if (index >= node->tag.v.n) {
+        mpack_node_flag_error(node, mpack_error_data);
+        return &node->tree->nil_node;
+    }
+
+    return mpack_node_child(node, index * 2 + offset);
+}
+
 /**
  * Returns the key node in the given map at the given index.
  *
@@ -784,7 +841,9 @@ static inline size_t mpack_node_map_count(mpack_node_t* node) {
  * @throws mpack_error_type if the node is not a map
  * @throws mpack_error_data if the given index is out of bounds
  */
-mpack_node_t* mpack_node_map_key_at(mpack_node_t* node, size_t index);
+static inline mpack_node_t* mpack_node_map_key_at(mpack_node_t* node, size_t index) {
+    return mpack_node_map_at(node, index, 0);
+}
 
 /**
  * Returns the value node in the given map at the given index.
@@ -794,7 +853,9 @@ mpack_node_t* mpack_node_map_key_at(mpack_node_t* node, size_t index);
  * @throws mpack_error_type if the node is not a map
  * @throws mpack_error_data if the given index is out of bounds
  */
-mpack_node_t* mpack_node_map_value_at(mpack_node_t* node, size_t index);
+static inline mpack_node_t* mpack_node_map_value_at(mpack_node_t* node, size_t index) {
+    return mpack_node_map_at(node, index, 1);
+}
 
 /**
  * Returns the value node in the given map for the given integer key. If the given
