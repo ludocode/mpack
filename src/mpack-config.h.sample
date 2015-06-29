@@ -157,19 +157,25 @@
 /**
  * Buffer size to use for allocated buffers (such as for a file writer.)
  */
-#define MPACK_BUFFER_SIZE 4096
+#define MPACK_BUFFER_SIZE 65536
 
 /**
- * Number of nodes in each node page. This should be a power of two.
+ * Number of nodes in each allocated node page. This should be a power of two.
+ *
+ * (As of this writing, nodes are 24 bytes when compiled for a 32-bit
+ * architecture and 32 bytes when compiled for a 64-bit architecture.)
  */
-#define MPACK_NODE_PAGE_SIZE 128
+#define MPACK_NODE_PAGE_SIZE 2048
 
 /**
  * The nesting limit for array/map nodes to prevent stack overflows and
- * out-of-memory situations from malicious data. I can't imagine real-world
- * data nesting more than this, but if yours does, please tell me about it!
+ * out-of-memory situations from malicious data.
+ *
+ * This is used to pre-allocate space for read/write tracking and for stack
+ * space during Node tree parsing, so it should stay relatively small. If
+ * you have a need for removing the depth limit, let me know.
  */
-#define MPACK_NODE_MAX_DEPTH 2048
+#define MPACK_NODE_MAX_DEPTH 128
 
 
 #endif
