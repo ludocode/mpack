@@ -449,7 +449,7 @@ void mpack_debug_print(const char* data, int len);
 
 #if MPACK_INTERNAL
 
-MPACK_INTERNAL_STATIC void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count);
+void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count);
 
 // Reads count bytes into p, deferring to mpack_read_native_big() if more
 // bytes are needed than are available in the buffer.
@@ -476,47 +476,91 @@ static inline void mpack_read_native_nojump(mpack_reader_t* reader, char* p, siz
     #endif
 }
 
-static inline uint8_t mpack_read_native_u8(mpack_reader_t* reader) {
+MPACK_ALWAYS_INLINE uint8_t mpack_native_u8_at(char* p) {
+    return (uint8_t)p[0];
+}
+
+MPACK_ALWAYS_INLINE uint16_t mpack_native_u16_at(char* p) {
+    return (uint16_t)((((uint16_t)(uint8_t)p[0]) << 8) |
+           ((uint16_t)(uint8_t)p[1]));
+}
+
+MPACK_ALWAYS_INLINE uint32_t mpack_native_u32_at(char* p) {
+    return (((uint32_t)(uint8_t)p[0]) << 24) |
+           (((uint32_t)(uint8_t)p[1]) << 16) |
+           (((uint32_t)(uint8_t)p[2]) <<  8) |
+            ((uint32_t)(uint8_t)p[3]);
+}
+
+MPACK_ALWAYS_INLINE uint64_t mpack_native_u64_at(char* p) {
+    return (((uint64_t)(uint8_t)p[0]) << 56) |
+           (((uint64_t)(uint8_t)p[1]) << 48) |
+           (((uint64_t)(uint8_t)p[2]) << 40) |
+           (((uint64_t)(uint8_t)p[3]) << 32) |
+           (((uint64_t)(uint8_t)p[4]) << 24) |
+           (((uint64_t)(uint8_t)p[5]) << 16) |
+           (((uint64_t)(uint8_t)p[6]) <<  8) |
+            ((uint64_t)(uint8_t)p[7]);
+}
+
+MPACK_ALWAYS_INLINE uint8_t mpack_read_native_u8(mpack_reader_t* reader) {
+    if (reader->left >= sizeof(uint8_t)) {
+        uint8_t ret = mpack_native_u8_at(reader->buffer + reader->pos);
+        reader->pos += sizeof(uint8_t);
+        reader->left -= sizeof(uint8_t);
+        return ret;
+    }
+
     char c[sizeof(uint8_t)];
-    mpack_read_native(reader, c, sizeof(c));
-    return (uint8_t)c[0];
+    mpack_read_native_big(reader, c, sizeof(c));
+    return mpack_native_u8_at(c);
 }
 
-static inline uint16_t mpack_read_native_u16(mpack_reader_t* reader) {
+MPACK_ALWAYS_INLINE uint16_t mpack_read_native_u16(mpack_reader_t* reader) {
+    if (reader->left >= sizeof(uint16_t)) {
+        uint16_t ret = mpack_native_u16_at(reader->buffer + reader->pos);
+        reader->pos += sizeof(uint16_t);
+        reader->left -= sizeof(uint16_t);
+        return ret;
+    }
+
     char c[sizeof(uint16_t)];
-    mpack_read_native(reader, c, sizeof(c));
-    return (uint16_t)((((uint16_t)(uint8_t)c[0]) << 8) |
-           ((uint16_t)(uint8_t)c[1]));
+    mpack_read_native_big(reader, c, sizeof(c));
+    return mpack_native_u16_at(c);
 }
 
-static inline uint32_t mpack_read_native_u32(mpack_reader_t* reader) {
+MPACK_ALWAYS_INLINE uint32_t mpack_read_native_u32(mpack_reader_t* reader) {
+    if (reader->left >= sizeof(uint32_t)) {
+        uint32_t ret = mpack_native_u32_at(reader->buffer + reader->pos);
+        reader->pos += sizeof(uint32_t);
+        reader->left -= sizeof(uint32_t);
+        return ret;
+    }
+
     char c[sizeof(uint32_t)];
-    mpack_read_native(reader, c, sizeof(c));
-    return (((uint32_t)(uint8_t)c[0]) << 24) |
-           (((uint32_t)(uint8_t)c[1]) << 16) |
-           (((uint32_t)(uint8_t)c[2]) <<  8) |
-           ((uint32_t)(uint8_t)c[3]);
+    mpack_read_native_big(reader, c, sizeof(c));
+    return mpack_native_u32_at(c);
 }
 
-static inline uint64_t mpack_read_native_u64(mpack_reader_t* reader) {
+MPACK_ALWAYS_INLINE uint64_t mpack_read_native_u64(mpack_reader_t* reader) {
+    if (reader->left >= sizeof(uint64_t)) {
+        uint64_t ret = mpack_native_u64_at(reader->buffer + reader->pos);
+        reader->pos += sizeof(uint64_t);
+        reader->left -= sizeof(uint64_t);
+        return ret;
+    }
+
     char c[sizeof(uint64_t)];
-    mpack_read_native(reader, c, sizeof(c));
-    return (((uint64_t)(uint8_t)c[0]) << 56) |
-           (((uint64_t)(uint8_t)c[1]) << 48) |
-           (((uint64_t)(uint8_t)c[2]) << 40) |
-           (((uint64_t)(uint8_t)c[3]) << 32) |
-           (((uint64_t)(uint8_t)c[4]) << 24) |
-           (((uint64_t)(uint8_t)c[5]) << 16) |
-           (((uint64_t)(uint8_t)c[6]) <<  8) |
-           ((uint64_t)(uint8_t)c[7]);
+    mpack_read_native_big(reader, c, sizeof(c));
+    return mpack_native_u64_at(c);
 }
 
-static inline int8_t  mpack_read_native_i8  (mpack_reader_t* reader) {return (int8_t) mpack_read_native_u8  (reader);}
-static inline int16_t mpack_read_native_i16 (mpack_reader_t* reader) {return (int16_t)mpack_read_native_u16 (reader);}
-static inline int32_t mpack_read_native_i32 (mpack_reader_t* reader) {return (int32_t)mpack_read_native_u32 (reader);}
-static inline int64_t mpack_read_native_i64 (mpack_reader_t* reader) {return (int64_t)mpack_read_native_u64 (reader);}
+MPACK_ALWAYS_INLINE int8_t  mpack_read_native_i8  (mpack_reader_t* reader) {return (int8_t) mpack_read_native_u8  (reader);}
+MPACK_ALWAYS_INLINE int16_t mpack_read_native_i16 (mpack_reader_t* reader) {return (int16_t)mpack_read_native_u16 (reader);}
+MPACK_ALWAYS_INLINE int32_t mpack_read_native_i32 (mpack_reader_t* reader) {return (int32_t)mpack_read_native_u32 (reader);}
+MPACK_ALWAYS_INLINE int64_t mpack_read_native_i64 (mpack_reader_t* reader) {return (int64_t)mpack_read_native_u64 (reader);}
 
-static inline float mpack_read_native_float(mpack_reader_t* reader) {
+MPACK_ALWAYS_INLINE float mpack_read_native_float(mpack_reader_t* reader) {
     union {
         float f;
         uint32_t i;
@@ -525,7 +569,7 @@ static inline float mpack_read_native_float(mpack_reader_t* reader) {
     return u.f;
 }
 
-static inline double mpack_read_native_double(mpack_reader_t* reader) {
+MPACK_ALWAYS_INLINE double mpack_read_native_double(mpack_reader_t* reader) {
     union {
         double d;
         uint64_t i;
