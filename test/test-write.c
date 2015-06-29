@@ -26,6 +26,7 @@
 
 // writes ints using the auto int()/uint() functions
 static void test_write_simple_auto_int() {
+    char buf[4096];
 
     // positive fixnums
     test_simple_write("\x00", mpack_write_uint(&writer, 0));
@@ -87,6 +88,7 @@ static void test_write_simple_auto_int() {
 
 // writes ints using the sized iXX()/uXX() functions
 static void test_write_simple_size_int() {
+    char buf[4096];
 
     // positive fixnums
     test_simple_write("\x00", mpack_write_u8(&writer, 0));
@@ -233,6 +235,7 @@ static void test_write_simple_size_int() {
 
 // writes ints using the dynamic tag writer function
 static void test_write_simple_tag_int() {
+    char buf[4096];
 
     // positive fixnums
     test_simple_write("\x00", mpack_write_tag(&writer, mpack_tag_uint(0)));
@@ -293,6 +296,7 @@ static void test_write_simple_tag_int() {
 }
 
 static void test_write_simple_misc() {
+    char buf[4096];
 
     test_simple_write("\xc0", mpack_write_nil(&writer));
     test_simple_write("\xc2", mpack_write_bool(&writer, false));

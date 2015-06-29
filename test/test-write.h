@@ -62,7 +62,6 @@ extern "C" {
 
 // runs a simple writer test, ensuring it matches the given data
 #define test_simple_write(expect, write_op) do { \
-    char buf[4096]; \
     mpack_writer_t writer; \
     mpack_writer_init(&writer, buf, sizeof(buf)); \
     (write_op); \

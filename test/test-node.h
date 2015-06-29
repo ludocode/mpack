@@ -44,7 +44,6 @@ extern "C" {
 } while (0)
 
 #define test_simple_tree_read(data, read_expr) do { \
-  mpack_node_t nodes[128]; \
   mpack_tree_t tree; \
   mpack_tree_init_nodes(&tree, data, sizeof(data) - 1, nodes, sizeof(nodes) / sizeof(*nodes)); \
   mpack_node_t* node = mpack_tree_root(&tree); \
@@ -61,7 +60,6 @@ extern "C" {
 #endif
 
 #define test_simple_tree_read_error(data, read_expr, error) do { \
-  mpack_node_t nodes[128]; \
   mpack_tree_t tree; \
   mpack_tree_init_nodes(&tree, data, sizeof(data) - 1, nodes, sizeof(nodes) / sizeof(*nodes)); \
   mpack_node_t* node = mpack_tree_root(&tree); \
