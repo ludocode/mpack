@@ -85,8 +85,9 @@ struct mpack_reader_t {
     mpack_error_t error;  /* Error state */
 
     #if MPACK_SETJMP
-    bool jump;          /* Whether to longjmp on error */
-    jmp_buf jump_env;   /* Where to jump */
+    /* Optional jump target in case of error (pointer because it's
+     * very large and may be unused) */
+    jmp_buf* jump_env;
     #endif
 
     #if MPACK_READ_TRACKING
@@ -101,11 +102,10 @@ struct mpack_reader_t {
  *
  * Registers a jump target in case of error.
  *
- * If the reader is in an error state, 1 is returned when called. Otherwise 0 is
- * returned when called, and when the first error occurs, control flow will jump
- * to the point where MPACK_READER_SETJMP() was called, resuming as though it
- * returned 1. This ensures an error handling block runs exactly once in case of
- * error.
+ * If the reader is in an error state, 1 is returned when this is called. Otherwise
+ * 0 is returned when this is called, and when the first error occurs, control flow
+ * will jump to the point where this was called, resuming as though it returned 1.
+ * This ensures an error handling block runs exactly once in case of error.
  *
  * A reader that jumps still needs to be destroyed. You must call
  * mpack_reader_destroy() in your jump handler after getting the final error state.
@@ -115,15 +115,21 @@ struct mpack_reader_t {
  * @returns 0 if the reader is not in an error state; 1 if and when an error occurs.
  * @see mpack_reader_destroy()
  */
-#define MPACK_READER_SETJMP(reader) (((reader)->error == mpack_ok) ? \
-    ((reader)->jump = true, setjmp((reader)->jump_env)) : 1)
+#define MPACK_READER_SETJMP(reader)                                        \
+    (mpack_assert((reader)->jump_env == NULL, "already have a jump set!"), \
+    ((reader)->error != mpack_ok) ? 1 :                                    \
+        !((reader)->jump_env = (jmp_buf*)MPACK_MALLOC(sizeof(jmp_buf))) ?  \
+            ((reader)->error = mpack_error_memory, 1) :                    \
+            (setjmp(*(reader)->jump_env)))
 
 /**
  * Clears a jump target. Subsequent read errors will not cause the reader to
  * jump.
  */
 static inline void mpack_reader_clearjmp(mpack_reader_t* reader) {
-    reader->jump = false;
+    if (reader->jump_env)
+        MPACK_FREE(reader->jump_env);
+    reader->jump_env = NULL;
 }
 #endif
 
@@ -467,12 +473,12 @@ static inline void mpack_read_native(mpack_reader_t* reader, char* p, size_t cou
 // to hold an allocated buffer and read native data into it without leaking it.
 static inline void mpack_read_native_nojump(mpack_reader_t* reader, char* p, size_t count) {
     #if MPACK_SETJMP
-    bool jump = reader->jump;
-    reader->jump = false;
+    jmp_buf* jump_env = reader->jump_env;
+    reader->jump_env = NULL;
     #endif
     mpack_read_native(reader, p, count);
     #if MPACK_SETJMP
-    reader->jump = jump;
+    reader->jump_env = jump_env;
     #endif
 }
 

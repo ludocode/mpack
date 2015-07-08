@@ -175,8 +175,8 @@ void mpack_writer_flag_error(mpack_writer_t* writer, mpack_error_t error) {
     if (!writer->error) {
         writer->error = error;
         #if MPACK_SETJMP
-        if (writer->jump)
-            longjmp(writer->jump_env, 1);
+        if (writer->jump_env)
+            longjmp(*writer->jump_env, 1);
         #endif
     }
 }
@@ -326,6 +326,12 @@ mpack_error_t mpack_writer_destroy(mpack_writer_t* writer) {
     if (writer->teardown)
         writer->teardown(writer->context);
     writer->teardown = NULL;
+
+    #if MPACK_SETJMP
+    if (writer->jump_env)
+        MPACK_FREE(writer->jump_env);
+    writer->jump_env = NULL;
+    #endif
 
     return writer->error;
 }

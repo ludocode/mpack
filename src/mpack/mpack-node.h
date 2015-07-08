@@ -81,14 +81,14 @@ struct mpack_tree_t {
     mpack_teardown_t teardown;
     void* context;
 
-    mpack_node_t nil_node; // a nil node to be returned in case of error
+    mpack_node_t nil_node; /* a nil node to be returned in case of error */
     mpack_error_t error;
     size_t node_count;
     size_t size;
 
-    // only one of pool or pages are used. if pool is set, it is treated
-    // as a single external unowned page of nodes. otherwise, pages are
-    // allocated as needed.
+    /* only one of pool or pages are used. if pool is set, it is treated
+     * as a single external unowned page of nodes. otherwise, pages are
+     * allocated as needed. */
 
     mpack_node_t* pool;
     size_t pool_count;
@@ -100,8 +100,9 @@ struct mpack_tree_t {
     #endif
 
     #if MPACK_SETJMP
-    bool jump;          // whether to longjmp on error
-    jmp_buf jump_env;   // where to jump
+    /* Optional jump target in case of error (pointer because it's
+     * very large and may be unused) */
+    jmp_buf* jump_env;
     #endif
 };
 
@@ -232,11 +233,10 @@ static inline void mpack_tree_set_teardown(mpack_tree_t* tree, mpack_teardown_t 
  *
  * Registers a jump target in case of error.
  *
- * If the tree is in an error state, 1 is returned when called. Otherwise 0 is
- * returned when called, and when the first error occurs, control flow will jump
- * to the point where MPACK_TREE_SETJMP() was called, resuming as though it
- * returned 1. This ensures an error handling block runs exactly once in case of
- * error.
+ * If the tree is in an error state, 1 is returned when this is called. Otherwise
+ * 0 is returned when this is called, and when the first error occurs, control flow
+ * will jump to the point where this was called, resuming as though it returned 1.
+ * This ensures an error handling block runs exactly once in case of error.
  *
  * A tree that jumps still needs to be destroyed. You must call
  * mpack_tree_destroy() in your jump handler after getting the final error state.
@@ -246,14 +246,20 @@ static inline void mpack_tree_set_teardown(mpack_tree_t* tree, mpack_teardown_t 
  * @returns 0 if the tree is not in an error state; 1 if and when an error occurs.
  * @see mpack_tree_destroy()
  */
-#define MPACK_TREE_SETJMP(tree) (((tree)->error == mpack_ok) ? \
-    ((tree)->jump = true, setjmp((tree)->jump_env)) : 1)
+#define MPACK_TREE_SETJMP(tree)                                          \
+    (mpack_assert((tree)->jump_env == NULL, "already have a jump set!"), \
+    ((tree)->error != mpack_ok) ? 1 :                                    \
+        !((tree)->jump_env = (jmp_buf*)MPACK_MALLOC(sizeof(jmp_buf))) ?  \
+            ((tree)->error = mpack_error_memory, 1) :                    \
+            (setjmp(*(tree)->jump_env)))
 
 /**
  * Clears a jump target. Subsequent tree reading errors will not cause a jump.
  */
 static inline void mpack_tree_clearjmp(mpack_tree_t* tree) {
-    tree->jump = false;
+    if (tree->jump_env)
+        MPACK_FREE(tree->jump_env);
+    tree->jump_env = NULL;
 }
 #endif
 

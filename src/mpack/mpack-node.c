@@ -361,9 +361,17 @@ mpack_error_t mpack_tree_destroy(mpack_tree_t* tree) {
         tree->pages = NULL;
     }
     #endif
+
     if (tree->teardown)
         tree->teardown(tree->context);
     tree->teardown = NULL;
+
+    #if MPACK_SETJMP
+    if (tree->jump_env)
+        MPACK_FREE(tree->jump_env);
+    tree->jump_env = NULL;
+    #endif
+
     return tree->error;
 }
 
@@ -373,8 +381,8 @@ void mpack_tree_flag_error(mpack_tree_t* tree, mpack_error_t error) {
     if (!tree->error) {
         tree->error = error;
         #if MPACK_SETJMP
-        if (tree->jump)
-            longjmp(tree->jump_env, 1);
+        if (tree->jump_env)
+            longjmp(*tree->jump_env, 1);
         #endif
     }
 }

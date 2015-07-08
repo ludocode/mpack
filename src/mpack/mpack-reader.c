@@ -97,9 +97,17 @@ void mpack_reader_init_file(mpack_reader_t* reader, const char* filename) {
 mpack_error_t mpack_reader_destroy_impl(mpack_reader_t* reader, bool cancel) {
     MPACK_UNUSED(cancel);
     MPACK_READER_TRACK(reader, mpack_track_destroy(&reader->track, cancel));
+
     if (reader->teardown)
         reader->teardown(reader->context);
     reader->teardown = NULL;
+
+    #if MPACK_SETJMP
+    if (reader->jump_env)
+        MPACK_FREE(reader->jump_env);
+    reader->jump_env = NULL;
+    #endif
+
     return reader->error;
 }
 
@@ -124,8 +132,8 @@ void mpack_reader_flag_error(mpack_reader_t* reader, mpack_error_t error) {
     if (!reader->error) {
         reader->error = error;
         #if MPACK_SETJMP
-        if (reader->jump)
-            longjmp(reader->jump_env, 1);
+        if (reader->jump_env)
+            longjmp(*reader->jump_env, 1);
         #endif
     }
 }

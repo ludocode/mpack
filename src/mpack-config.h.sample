@@ -43,13 +43,6 @@
 #define MPACK_STDIO 1
 
 /**
- * Enables the setjmp()/longjmp() error handling option. Note that
- * you don't have to use it; this just enables the option. It can be
- * disabled to avoid the dependency on setjmp.h .
- */
-#define MPACK_SETJMP 1
-
-/**
  * \def MPACK_MALLOC
  *
  * Defines the memory allocation function used by mpack. This is used by
@@ -74,6 +67,16 @@
  */
 #if defined(MPACK_STDLIB) && !defined(MPACK_FREE)
 #define MPACK_FREE free
+#endif
+
+/**
+ * Enables the setjmp()/longjmp() error handling option. MPACK_MALLOC is required.
+ *
+ * Note that you don't have to use it; this just enables the option. It can be
+ * disabled to avoid the dependency on setjmp.h .
+ */
+#if defined(MPACK_MALLOC)
+#define MPACK_SETJMP 1
 #endif
 
 

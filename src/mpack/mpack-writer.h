@@ -76,8 +76,9 @@ struct mpack_writer_t {
     mpack_error_t error;  /* Error state */
 
     #if MPACK_SETJMP
-    bool jump;          /* Whether to longjmp on error */
-    jmp_buf jump_env;   /* Where to jump */
+    /* Optional jump target in case of error (pointer because it's
+     * very large and may be unused) */
+    jmp_buf* jump_env;
     #endif
 
     #if MPACK_WRITE_TRACKING
@@ -158,11 +159,10 @@ void mpack_writer_init_file(mpack_writer_t* writer, const char* filename);
  *
  * Registers a jump target in case of error.
  *
- * If the writer is in an error state, 1 is returned when called. Otherwise 0 is
- * returned when called, and when the first error occurs, control flow will jump
- * to the point where MPACK_WRITER_SETJMP() was called, resuming as though it
- * returned 1. This ensures an error handling block runs exactly once in case of
- * error.
+ * If the writer is in an error state, 1 is returned when this is called. Otherwise
+ * 0 is returned when this is called, and when the first error occurs, control flow
+ * will jump to the point where this was called, resuming as though it returned 1.
+ * This ensures an error handling block runs exactly once in case of error.
  *
  * A writer that jumps still needs to be destroyed. You must call
  * mpack_writer_destroy() in your jump handler after getting the final error state.
@@ -172,15 +172,21 @@ void mpack_writer_init_file(mpack_writer_t* writer, const char* filename);
  * @returns 0 if the writer is not in an error state; 1 if and when an error occurs.
  * @see mpack_writer_destroy()
  */
-#define MPACK_WRITER_SETJMP(writer) (((writer)->error == mpack_ok) ? \
-    ((writer)->jump = true, setjmp((writer)->jump_env)) : 1)
+#define MPACK_WRITER_SETJMP(writer)                                        \
+    (mpack_assert((writer)->jump_env == NULL, "already have a jump set!"), \
+	((writer)->error != mpack_ok) ? 1 :                                    \
+		!((writer)->jump_env = (jmp_buf*)MPACK_MALLOC(sizeof(jmp_buf))) ?  \
+			((writer)->error = mpack_error_memory, 1) :                    \
+			(setjmp(*(writer)->jump_env)))
 
 /**
  * Clears a jump target. Subsequent write errors will not cause the writer to
  * jump.
  */
 static inline void mpack_writer_clearjmp(mpack_writer_t* writer) {
-    writer->jump = false;
+    if (writer->jump_env)
+        MPACK_FREE(writer->jump_env);
+    writer->jump_env = NULL;
 }
 #endif
 
