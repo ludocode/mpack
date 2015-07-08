@@ -323,6 +323,8 @@ void mpack_node_print(mpack_node_t* node);
  * Returns the type of the node.
  */
 static inline mpack_type_t mpack_node_type(mpack_node_t* node) {
+    if (node->tree->error != mpack_ok)
+        return mpack_type_nil;
     return node->tag.type;
 }
 
@@ -504,10 +506,12 @@ static inline uint64_t mpack_node_u64(mpack_node_t* node) {
     if (node->tree->error != mpack_ok)
         return 0;
 
-    if (node->tag.type == mpack_type_uint)
+    if (node->tag.type == mpack_type_uint) {
         return node->tag.v.u;
-    else if (node->tag.type == mpack_type_int)
-        return (uint64_t)node->tag.v.i;
+    } else if (node->tag.type == mpack_type_int) {
+        if (node->tag.v.i >= 0)
+            return (uint64_t)node->tag.v.i;
+    }
 
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
