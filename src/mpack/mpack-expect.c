@@ -462,11 +462,6 @@ uint32_t mpack_expect_str(mpack_reader_t* reader) {
     return 0;
 }
 
-void mpack_expect_str_length(mpack_reader_t* reader, uint32_t count) {
-    if (mpack_expect_str(reader) != count)
-        mpack_reader_flag_error(reader, mpack_error_type);
-}
-
 size_t mpack_expect_str_buf(mpack_reader_t* reader, char* buf, size_t bufsize) {
     size_t strsize = mpack_expect_str(reader);
     if (mpack_reader_error(reader))
@@ -491,11 +486,6 @@ uint32_t mpack_expect_bin(mpack_reader_t* reader) {
         return var.v.l;
     mpack_reader_flag_error(reader, mpack_error_type);
     return 0;
-}
-
-void mpack_expect_bin_size(mpack_reader_t* reader, uint32_t count) {
-    if (mpack_expect_str(reader) != count)
-        mpack_reader_flag_error(reader, mpack_error_type);
 }
 
 size_t mpack_expect_bin_buf(mpack_reader_t* reader, char* buf, size_t bufsize) {

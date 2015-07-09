@@ -506,7 +506,7 @@ size_t mpack_expect_str_buf(mpack_reader_t* reader, char* buf, size_t bufsize);
 
 /**
  * Reads the start of a string, raising an error if its length is not
- * exactly the given number of bytes.
+ * at most the given number of bytes (not including any null-terminator.)
  *
  * The bytes follow and must be read separately with mpack_read_bytes()
  * or mpack_read_bytes_inplace(). @ref mpack_done_str() must be called
@@ -515,7 +515,27 @@ size_t mpack_expect_str_buf(mpack_reader_t* reader, char* buf, size_t bufsize);
  * mpack_error_type is raised if the value is not a string or if its
  * length does not match.
  */
-void mpack_expect_str_length(mpack_reader_t* reader, uint32_t count);
+static inline void mpack_expect_str_max(mpack_reader_t* reader, uint32_t maxsize) {
+    if (mpack_expect_str(reader) > maxsize)
+        mpack_reader_flag_error(reader, mpack_error_type);
+}
+
+/**
+ * Reads the start of a string, raising an error if its length is not
+ * exactly the given number of bytes (not including any null-terminator.)
+ *
+ * The bytes follow and must be read separately with mpack_read_bytes()
+ * or mpack_read_bytes_inplace(). @ref mpack_done_str() must be called
+ * once all bytes have been read.
+ *
+ * mpack_error_type is raised if the value is not a string or if its
+ * length does not match.
+ */
+static inline void mpack_expect_str_length(mpack_reader_t* reader, uint32_t count) {
+    if (mpack_expect_str(reader) != count)
+        mpack_reader_flag_error(reader, mpack_error_type);
+}
+
 
 /**
  * Reads a string with the given total maximum size, allocating storage for it.
@@ -593,6 +613,22 @@ uint32_t mpack_expect_bin(mpack_reader_t* reader);
 
 /**
  * Reads the start of a binary blob, raising an error if its length is not
+ * at most the given number of bytes.
+ *
+ * The bytes follow and must be read separately with mpack_read_bytes()
+ * or mpack_read_bytes_inplace(). @ref mpack_done_bin() must be called
+ * once all bytes have been read.
+ *
+ * mpack_error_type is raised if the value is not a binary blob or if its
+ * length does not match.
+ */
+static inline void mpack_expect_bin_max(mpack_reader_t* reader, uint32_t maxsize) {
+    if (mpack_expect_str(reader) > maxsize)
+        mpack_reader_flag_error(reader, mpack_error_type);
+}
+
+/**
+ * Reads the start of a binary blob, raising an error if its length is not
  * exactly the given number of bytes.
  *
  * The bytes follow and must be read separately with mpack_read_bytes()
@@ -602,7 +638,10 @@ uint32_t mpack_expect_bin(mpack_reader_t* reader);
  * mpack_error_type is raised if the value is not a binary blob or if its
  * length does not match.
  */
-void mpack_expect_bin_size(mpack_reader_t* reader, uint32_t count);
+static inline void mpack_expect_bin_size(mpack_reader_t* reader, uint32_t count) {
+    if (mpack_expect_str(reader) != count)
+        mpack_reader_flag_error(reader, mpack_error_type);
+}
 
 /**
  * Reads a binary blob into the given buffer, returning its size in bytes.
