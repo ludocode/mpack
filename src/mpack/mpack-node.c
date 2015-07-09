@@ -39,9 +39,6 @@ mpack_node_t* mpack_tree_root(mpack_tree_t* tree) {
     return mpack_tree_node_at(tree, 0);
 }
 
-static void mpack_tree_read_node(mpack_tree_t* tree, mpack_node_t* node,
-        mpack_reader_t* reader, int depth, size_t* possible_nodes_left);
-
 #ifdef MPACK_MALLOC
 static bool mpack_tree_grow(mpack_tree_t* tree) {
 
@@ -71,21 +68,20 @@ static bool mpack_tree_grow(mpack_tree_t* tree) {
 }
 #endif
 
-static void mpack_tree_read_node_children(mpack_tree_t* tree, mpack_node_t* node,
-        mpack_reader_t* reader, int depth, size_t* possible_nodes_left) {
-    if (depth + 1 == MPACK_NODE_MAX_DEPTH) {
+void mpack_tree_init_clear(mpack_tree_t* tree) {
+    mpack_memset(tree, 0, sizeof(*tree));
+    tree->nil_node.tree = tree;
+    tree->nil_node.tag.type = mpack_type_nil;
+}
+
+MPACK_ALWAYS_INLINE bool mpack_tree_prepare_compound_type(mpack_reader_t* reader, mpack_tree_t* tree,
+        mpack_node_t* node, size_t level, size_t total, size_t* possible_nodes_left)
+{
+    if (level + 1 == MPACK_NODE_MAX_DEPTH) {
         mpack_reader_flag_error(reader, mpack_error_too_big);
-        return;
+        return false;
     }
 
-    bool map = (node->tag.type == mpack_type_map);
-
-    uint64_t total64 = map ? node->tag.v.n * 2 : node->tag.v.n;
-    if (total64 > SIZE_MAX) {
-        mpack_tree_flag_error(tree, mpack_error_too_big);
-        return;
-    }
-    size_t total = (size_t)total64;
     node->data.children = tree->node_count;
     tree->node_count += total;
 
@@ -94,7 +90,7 @@ static void mpack_tree_read_node_children(mpack_tree_t* tree, mpack_node_t* node
     // than there are bytes in the data.
     if (total > *possible_nodes_left) {
         mpack_reader_flag_error(reader, mpack_error_invalid);
-        return;
+        return false;
     }
     *possible_nodes_left -= total;
 
@@ -103,7 +99,7 @@ static void mpack_tree_read_node_children(mpack_tree_t* tree, mpack_node_t* node
     if (tree->pages) {
         while (tree->node_count > tree->page_count * MPACK_NODE_PAGE_SIZE) {
             if (!mpack_tree_grow(tree))
-                return;
+                return false;
         }
     } else
     #endif
@@ -111,90 +107,11 @@ static void mpack_tree_read_node_children(mpack_tree_t* tree, mpack_node_t* node
         if (tree->node_count > tree->pool_count) {
             tree->node_count = tree->pool_count;
             mpack_tree_flag_error(tree, mpack_error_too_big);
-            return;
+            return false;
         }
     }
 
-    // read the nodes
-    for (size_t i = 0; i < total; ++i)
-        mpack_tree_read_node(tree, mpack_node_child(node, i), reader,
-                depth + 1, possible_nodes_left);
-
-    if (map)
-        mpack_done_map(reader);
-    else
-        mpack_done_array(reader);
-}
-
-static void mpack_node_read_data(mpack_node_t* node, mpack_reader_t* reader, size_t* possible_nodes_left) {
-    size_t total = node->tag.v.l;
-
-    if (total > *possible_nodes_left) {
-        mpack_reader_flag_error(reader, mpack_error_invalid);
-        return;
-    }
-    *possible_nodes_left -= total;
-
-    node->data.bytes = mpack_read_bytes_inplace(reader, total);
-
-    switch (node->tag.type) {
-        case mpack_type_str:
-            mpack_done_str(reader);
-            break;
-        case mpack_type_bin:
-            mpack_done_bin(reader);
-            break;
-        case mpack_type_ext:
-            mpack_done_ext(reader);
-            break;
-        default:
-            mpack_assert(0, "unreachable");
-            break;
-    }
-}
-
-// note: the tree parsing functions flag errors on the reader, not on the
-// tree. the tree picks up the reader's error state when done.
-static void mpack_tree_read_node(mpack_tree_t* tree, mpack_node_t* node,
-        mpack_reader_t* reader, int depth, size_t* possible_nodes_left) {
-    mpack_memset(&node->tag, 0, sizeof(node->tag));
-    node->tree = tree;
-
-    size_t pos = reader->pos;
-    node->tag = mpack_read_tag(reader);
-    if (mpack_reader_error(reader) != mpack_ok)
-        return;
-    mpack_type_t type = node->tag.type;
-
-    // read a tag, keeping track of the number of possible nodes left. (one
-    // byte has already been counted for each node.)
-    if (reader->pos - pos - 1 > *possible_nodes_left) {
-        mpack_reader_flag_error(reader, mpack_error_invalid);
-        return;
-    }
-    *possible_nodes_left -= reader->pos - pos - 1;
-
-    switch (type) {
-        case mpack_type_array:
-        case mpack_type_map:
-            mpack_tree_read_node_children(tree, node, reader, depth, possible_nodes_left);
-            break;
-
-        case mpack_type_str:
-        case mpack_type_bin:
-        case mpack_type_ext:
-            mpack_node_read_data(node, reader, possible_nodes_left);
-            break;
-
-        default:
-            break;
-    }
-}
-
-void mpack_tree_init_clear(mpack_tree_t* tree) {
-    mpack_memset(tree, 0, sizeof(*tree));
-    tree->nil_node.tree = tree;
-    tree->nil_node.tag.type = mpack_type_nil;
+    return true;
 }
 
 void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length) {
@@ -206,9 +123,117 @@ void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length) {
     mpack_reader_t reader;
     mpack_reader_init_data(&reader, data, length);
 
+    // the stack holds the amount of children left to read in
+    // each level of the tree
+    struct {
+        size_t child;
+        size_t left;
+        #if MPACK_READ_TRACKING
+        bool map;
+        #endif
+    } stack[MPACK_NODE_MAX_DEPTH];
+    mpack_memset(stack, 0, sizeof(stack));
+
+    // count the first node now
     size_t possible_nodes_left = length - 1;
     tree->node_count = 1;
-    mpack_tree_read_node(tree, mpack_tree_node_at(tree, 0), &reader, 0, &possible_nodes_left);
+    size_t level = 0;
+    stack[0].child = 0;
+    stack[0].left = 1;
+
+    do {
+        mpack_node_t* node = mpack_tree_node_at(tree, stack[level].child);
+        --stack[level].left;
+        ++stack[level].child;
+        node->tree = tree;
+
+        // read a tag, keeping track of the number of possible nodes left. (one
+        // byte has already been counted for this node.)
+        size_t pos = reader.pos;
+        node->tag = mpack_read_tag(&reader);
+        if (reader.pos - pos - 1 > possible_nodes_left) {
+            mpack_reader_flag_error(&reader, mpack_error_invalid);
+            break;
+        }
+        possible_nodes_left -= reader.pos - pos - 1;
+        mpack_log("read node tag %s\n", mpack_type_to_string(mpack_node_type(node)));
+
+        // handle compound types
+        switch (mpack_node_type(node)) {
+
+            // array
+            case mpack_type_array: {
+                size_t total = node->tag.v.n;
+                if (!mpack_tree_prepare_compound_type(&reader, tree, node, level, total, &possible_nodes_left))
+                    return;
+                ++level;
+                stack[level].child = node->data.children;
+                stack[level].left = total;
+                #if MPACK_READ_TRACKING
+                stack[level].map = false;
+                #endif
+            } break;
+
+            // map
+            case mpack_type_map: {
+                if ((uint64_t)node->tag.v.n * 2 > (uint64_t)SIZE_MAX) {
+                    mpack_reader_flag_error(&reader, mpack_error_too_big);
+                    return;
+                }
+                size_t total = node->tag.v.n * 2;
+                if (!mpack_tree_prepare_compound_type(&reader, tree, node, level, total, &possible_nodes_left))
+                    return;
+                ++level;
+                stack[level].child = node->data.children;
+                stack[level].left = total;
+                #if MPACK_READ_TRACKING
+                stack[level].map = true;
+                #endif
+            } break;
+
+            // str/bin/ext data
+            case mpack_type_str:
+            case mpack_type_bin:
+            case mpack_type_ext: {
+                size_t total = node->tag.v.l;
+
+                if (total > possible_nodes_left) {
+                    mpack_reader_flag_error(&reader, mpack_error_invalid);
+                    return;
+                }
+                possible_nodes_left -= total;
+
+                node->data.bytes = mpack_read_bytes_inplace(&reader, total);
+
+                #if MPACK_READ_TRACKING
+                switch (node->tag.type) {
+                    case mpack_type_str:
+                        mpack_done_str(&reader);
+                        break;
+                    case mpack_type_bin:
+                        mpack_done_bin(&reader);
+                        break;
+                    case mpack_type_ext:
+                        mpack_done_ext(&reader);
+                        break;
+                    default:
+                        mpack_assert(0, "unreachable");
+                        break;
+                }
+                #endif
+            } break;
+
+            default:
+                break;
+        }
+
+        while (level != 0 && stack[level].left == 0) {
+            #if MPACK_READ_TRACKING
+            stack[level].map ? mpack_done_map(&reader) : mpack_done_array(&reader);
+            #endif
+            --level;
+        }
+    } while (level != 0 && mpack_reader_error(&reader) == mpack_ok);
 
     tree->size = length - mpack_reader_remaining(&reader, NULL);
     tree->error = mpack_reader_destroy(&reader);
