@@ -31,7 +31,7 @@ static void test_example_node() {
     // this is a node pool test even if we have malloc. the rest of the
     // non-simple tests use paging unless malloc is unavailable.
     mpack_node_t nodes[128];
-    mpack_tree_init_nodes(&tree, test, sizeof(test) - 1, nodes, sizeof(nodes) / sizeof(*nodes));
+    mpack_tree_init_pool(&tree, test, sizeof(test) - 1, nodes, sizeof(nodes) / sizeof(*nodes));
     //mpack_node_print(mpack_tree_root(&tree));
 
     #if MPACK_SETJMP

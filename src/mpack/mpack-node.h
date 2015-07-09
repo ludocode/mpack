@@ -153,7 +153,7 @@ void mpack_tree_init(mpack_tree_t* tree, const char* data, size_t length);
  * node pool to store the results. The tree must be destroyed
  * with mpack_tree_destroy(), even if parsing fails.
  */
-void mpack_tree_init_nodes(mpack_tree_t* tree, const char* data, size_t length, mpack_node_t* node_pool, size_t node_pool_count);
+void mpack_tree_init_pool(mpack_tree_t* tree, const char* data, size_t length, mpack_node_t* node_pool, size_t node_pool_count);
 
 /**
  * Initializes an mpack tree directly into an error state. Use this if you

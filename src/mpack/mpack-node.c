@@ -262,7 +262,7 @@ void mpack_tree_init(mpack_tree_t* tree, const char* data, size_t length) {
 }
 #endif
 
-void mpack_tree_init_nodes(mpack_tree_t* tree, const char* data, size_t length, mpack_node_t* node_pool, size_t node_pool_count) {
+void mpack_tree_init_pool(mpack_tree_t* tree, const char* data, size_t length, mpack_node_t* node_pool, size_t node_pool_count) {
     mpack_tree_init_clear(tree);
     tree->pool = node_pool;
     tree->pool_count = node_pool_count;

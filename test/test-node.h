@@ -45,7 +45,7 @@ extern "C" {
 
 #define test_simple_tree_read(data, read_expr) do { \
   mpack_tree_t tree; \
-  mpack_tree_init_nodes(&tree, data, sizeof(data) - 1, nodes, sizeof(nodes) / sizeof(*nodes)); \
+  mpack_tree_init_pool(&tree, data, sizeof(data) - 1, nodes, sizeof(nodes) / sizeof(*nodes)); \
   mpack_node_t* node = mpack_tree_root(&tree); \
   test_assert((read_expr), "simple tree test did not pass: " #read_expr); \
   test_tree_destroy_noerror(&tree); \
@@ -56,12 +56,12 @@ extern "C" {
 #else
 #define test_tree_init(tree, data, data_size) \
     mpack_node_t nodes[128]; \
-    mpack_tree_init_nodes((tree), (data), (data_size), nodes, sizeof(nodes) / sizeof(*nodes));
+    mpack_tree_init_pool((tree), (data), (data_size), nodes, sizeof(nodes) / sizeof(*nodes));
 #endif
 
 #define test_simple_tree_read_error(data, read_expr, error) do { \
   mpack_tree_t tree; \
-  mpack_tree_init_nodes(&tree, data, sizeof(data) - 1, nodes, sizeof(nodes) / sizeof(*nodes)); \
+  mpack_tree_init_pool(&tree, data, sizeof(data) - 1, nodes, sizeof(nodes) / sizeof(*nodes)); \
   mpack_node_t* node = mpack_tree_root(&tree); \
   test_assert((read_expr), "simple read error test did not pass: " #read_expr); \
   test_tree_destroy_error(&tree, (error)); \
