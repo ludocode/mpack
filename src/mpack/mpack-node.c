@@ -34,7 +34,7 @@
  */
 
 mpack_node_t* mpack_tree_root(mpack_tree_t* tree) {
-    if (tree->error != mpack_ok)
+    if (mpack_tree_error(tree) != mpack_ok)
         return &tree->nil_node;
     return mpack_tree_node_at(tree, 0);
 }
@@ -403,7 +403,7 @@ mpack_error_t mpack_tree_destroy(mpack_tree_t* tree) {
 void mpack_tree_flag_error(mpack_tree_t* tree, mpack_error_t error) {
     mpack_log("tree %p setting error %i: %s\n", tree, (int)error, mpack_error_to_string(error));
 
-    if (!tree->error) {
+    if (tree->error == mpack_ok) {
         tree->error = error;
         #if MPACK_SETJMP
         if (tree->jump_env)
@@ -517,7 +517,7 @@ void mpack_node_print(mpack_node_t* node) {
  */
 
 size_t mpack_node_copy_data(mpack_node_t* node, char* buffer, size_t size) {
-    if (node->tree->error != mpack_ok)
+    if (mpack_node_error(node) != mpack_ok)
         return 0;
 
     mpack_type_t type = node->tag.type;
@@ -536,7 +536,7 @@ size_t mpack_node_copy_data(mpack_node_t* node, char* buffer, size_t size) {
 }
 
 void mpack_node_copy_cstr(mpack_node_t* node, char* buffer, size_t size) {
-    if (node->tree->error != mpack_ok)
+    if (mpack_node_error(node) != mpack_ok)
         return;
 
     mpack_assert(size >= 1, "buffer size is zero; you must have room for at least a null-terminator");
@@ -559,7 +559,7 @@ void mpack_node_copy_cstr(mpack_node_t* node, char* buffer, size_t size) {
 
 #ifdef MPACK_MALLOC
 char* mpack_node_data_alloc(mpack_node_t* node, size_t maxlen) {
-    if (node->tree->error != mpack_ok)
+    if (mpack_node_error(node) != mpack_ok)
         return NULL;
 
     // make sure this is a valid data type
@@ -585,7 +585,7 @@ char* mpack_node_data_alloc(mpack_node_t* node, size_t maxlen) {
 }
 
 char* mpack_node_cstr_alloc(mpack_node_t* node, size_t maxlen) {
-    if (node->tree->error != mpack_ok)
+    if (mpack_node_error(node) != mpack_ok)
         return NULL;
 
     // make sure maxlen makes sense
@@ -623,7 +623,7 @@ char* mpack_node_cstr_alloc(mpack_node_t* node, size_t maxlen) {
  */
 
 mpack_node_t* mpack_node_map_int_impl(mpack_node_t* node, int64_t num, bool optional) {
-    if (node->tree->error != mpack_ok)
+    if (mpack_node_error(node) != mpack_ok)
         return &node->tree->nil_node;
 
     if (node->tag.type != mpack_type_map) {
@@ -647,7 +647,7 @@ mpack_node_t* mpack_node_map_int_impl(mpack_node_t* node, int64_t num, bool opti
 }
 
 mpack_node_t* mpack_node_map_uint_impl(mpack_node_t* node, uint64_t num, bool optional) {
-    if (node->tree->error != mpack_ok)
+    if (mpack_node_error(node) != mpack_ok)
         return &node->tree->nil_node;
 
     if (node->tag.type != mpack_type_map) {
@@ -671,7 +671,7 @@ mpack_node_t* mpack_node_map_uint_impl(mpack_node_t* node, uint64_t num, bool op
 }
 
 mpack_node_t* mpack_node_map_str_impl(mpack_node_t* node, const char* str, size_t length, bool optional) {
-    if (node->tree->error != mpack_ok)
+    if (mpack_node_error(node) != mpack_ok)
         return &node->tree->nil_node;
 
     if (node->tag.type != mpack_type_map) {
@@ -693,7 +693,7 @@ mpack_node_t* mpack_node_map_str_impl(mpack_node_t* node, const char* str, size_
 }
 
 bool mpack_node_map_contains_str(mpack_node_t* node, const char* str, size_t length) {
-    if (node->tree->error != mpack_ok)
+    if (mpack_node_error(node) != mpack_ok)
         return false;
 
     if (node->tag.type != mpack_type_map) {

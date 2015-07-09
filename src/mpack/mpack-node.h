@@ -295,6 +295,13 @@ void mpack_node_flag_error(mpack_node_t* node, mpack_error_t error);
  */
 
 /**
+ * Returns the error state of the node's tree.
+ */
+static inline mpack_error_t mpack_node_error(mpack_node_t* node) {
+    return mpack_tree_error(node->tree);
+}
+
+/**
  * Returns the tag contained by the given node.
  */
 static inline mpack_tag_t mpack_node_tag(mpack_node_t* node) {
@@ -323,7 +330,7 @@ void mpack_node_print(mpack_node_t* node);
  * Returns the type of the node.
  */
 static inline mpack_type_t mpack_node_type(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
+    if (mpack_node_error(node) != mpack_ok)
         return mpack_type_nil;
     return node->tag.type;
 }
@@ -332,7 +339,7 @@ static inline mpack_type_t mpack_node_type(mpack_node_t* node) {
  * Checks if the given node is of nil type, raising mpack_error_type otherwise.
  */
 static inline void mpack_node_nil(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
+    if (mpack_node_error(node) != mpack_ok)
         return;
     if (node->tag.type != mpack_type_nil)
         mpack_node_flag_error(node, mpack_error_type);
@@ -343,7 +350,7 @@ static inline void mpack_node_nil(mpack_node_t* node) {
  * type, mpack_error_type is raised, and the return value should be discarded.
  */
 static inline bool mpack_node_bool(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
+    if (mpack_node_error(node) != mpack_ok)
         return false;
 
     if (node->tag.type == mpack_type_bool)
@@ -377,7 +384,7 @@ static inline void mpack_node_false(mpack_node_t* node) {
  * return value should be discarded.
  */
 static inline uint8_t mpack_node_u8(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
+    if (mpack_node_error(node) != mpack_ok)
         return 0;
 
     if (node->tag.type == mpack_type_uint) {
@@ -398,7 +405,7 @@ static inline uint8_t mpack_node_u8(mpack_node_t* node) {
  * return value should be discarded.
  */
 static inline int8_t mpack_node_i8(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
+    if (mpack_node_error(node) != mpack_ok)
         return 0;
 
     if (node->tag.type == mpack_type_uint) {
@@ -419,7 +426,7 @@ static inline int8_t mpack_node_i8(mpack_node_t* node) {
  * return value should be discarded.
  */
 static inline uint16_t mpack_node_u16(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
+    if (mpack_node_error(node) != mpack_ok)
         return 0;
 
     if (node->tag.type == mpack_type_uint) {
@@ -440,7 +447,7 @@ static inline uint16_t mpack_node_u16(mpack_node_t* node) {
  * return value should be discarded.
  */
 static inline int16_t mpack_node_i16(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
+    if (mpack_node_error(node) != mpack_ok)
         return 0;
 
     if (node->tag.type == mpack_type_uint) {
@@ -461,7 +468,7 @@ static inline int16_t mpack_node_i16(mpack_node_t* node) {
  * return value should be discarded.
  */
 static inline uint32_t mpack_node_u32(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
+    if (mpack_node_error(node) != mpack_ok)
         return 0;
 
     if (node->tag.type == mpack_type_uint) {
@@ -482,7 +489,7 @@ static inline uint32_t mpack_node_u32(mpack_node_t* node) {
  * return value should be discarded.
  */
 static inline int32_t mpack_node_i32(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
+    if (mpack_node_error(node) != mpack_ok)
         return 0;
 
     if (node->tag.type == mpack_type_uint) {
@@ -503,7 +510,7 @@ static inline int32_t mpack_node_i32(mpack_node_t* node) {
  * return value should be discarded.
  */
 static inline uint64_t mpack_node_u64(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
+    if (mpack_node_error(node) != mpack_ok)
         return 0;
 
     if (node->tag.type == mpack_type_uint) {
@@ -523,7 +530,7 @@ static inline uint64_t mpack_node_u64(mpack_node_t* node) {
  * return value should be discarded.
  */
 static inline int64_t mpack_node_i64(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
+    if (mpack_node_error(node) != mpack_ok)
         return 0;
 
     if (node->tag.type == mpack_type_uint) {
@@ -547,7 +554,7 @@ static inline int64_t mpack_node_i64(mpack_node_t* node) {
  * @throws mpack_error_type if the underlying value is not a float, double or integer.
  */
 static inline float mpack_node_float(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
+    if (mpack_node_error(node) != mpack_ok)
         return 0.0f;
 
     if (node->tag.type == mpack_type_uint)
@@ -573,7 +580,7 @@ static inline float mpack_node_float(mpack_node_t* node) {
  * @throws mpack_error_type if the underlying value is not a float, double or integer.
  */
 static inline double mpack_node_double(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
+    if (mpack_node_error(node) != mpack_ok)
         return 0.0;
 
     if (node->tag.type == mpack_type_uint)
@@ -596,7 +603,7 @@ static inline double mpack_node_double(mpack_node_t* node) {
  * @throws mpack_error_type if the underlying value is not a float.
  */
 static inline float mpack_node_float_strict(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
+    if (mpack_node_error(node) != mpack_ok)
         return 0.0f;
 
     if (node->tag.type == mpack_type_float)
@@ -613,7 +620,7 @@ static inline float mpack_node_float_strict(mpack_node_t* node) {
  * @throws mpack_error_type if the underlying value is not a float or double.
  */
 static inline double mpack_node_double_strict(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
+    if (mpack_node_error(node) != mpack_ok)
         return 0.0;
 
     if (node->tag.type == mpack_type_float)
@@ -638,7 +645,7 @@ static inline double mpack_node_double_strict(mpack_node_t* node) {
  * Returns the extension type of the given ext node.
  */
 static inline int8_t mpack_node_exttype(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
+    if (mpack_node_error(node) != mpack_ok)
         return 0;
 
     if (node->tag.type == mpack_type_ext)
@@ -652,7 +659,7 @@ static inline int8_t mpack_node_exttype(mpack_node_t* node) {
  * Returns the length of the given str, bin or ext node.
  */
 static inline size_t mpack_node_data_len(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
+    if (mpack_node_error(node) != mpack_ok)
         return 0;
 
     mpack_type_t type = node->tag.type;
@@ -668,7 +675,7 @@ static inline size_t mpack_node_data_len(mpack_node_t* node) {
  * include any null-terminator.
  */
 static inline size_t mpack_node_strlen(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
+    if (mpack_node_error(node) != mpack_ok)
         return 0;
 
     if (node->tag.type == mpack_type_str)
@@ -690,7 +697,7 @@ static inline size_t mpack_node_strlen(mpack_node_t* node) {
  * NULL is returned.
  */
 static inline const char* mpack_node_data(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
+    if (mpack_node_error(node) != mpack_ok)
         return NULL;
 
     mpack_type_t type = node->tag.type;
@@ -775,7 +782,7 @@ mpack_node_t* mpack_node_map_uint_impl(mpack_node_t* node, uint64_t num, bool op
  * and returns 0 if the given node is not an array.
  */
 static inline size_t mpack_node_array_length(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
+    if (mpack_node_error(node) != mpack_ok)
         return 0;
 
     if (node->tag.type != mpack_type_array) {
@@ -793,7 +800,7 @@ static inline size_t mpack_node_array_length(mpack_node_t* node) {
  * a nil node is returned.
  */
 static inline mpack_node_t* mpack_node_array_at(mpack_node_t* node, size_t index) {
-    if (node->tree->error != mpack_ok)
+    if (mpack_node_error(node) != mpack_ok)
         return &node->tree->nil_node;
 
     if (node->tag.type != mpack_type_array) {
@@ -814,7 +821,7 @@ static inline mpack_node_t* mpack_node_array_at(mpack_node_t* node, size_t index
  * mpack_error_type and returns 0 if the given node is not a map.
  */
 static inline size_t mpack_node_map_count(mpack_node_t* node) {
-    if (node->tree->error != mpack_ok)
+    if (mpack_node_error(node) != mpack_ok)
         return 0;
 
     if (node->tag.type != mpack_type_map) {
@@ -827,7 +834,7 @@ static inline size_t mpack_node_map_count(mpack_node_t* node) {
 
 // internal node map lookup
 static inline mpack_node_t* mpack_node_map_at(mpack_node_t* node, size_t index, size_t offset) {
-    if (node->tree->error != mpack_ok)
+    if (mpack_node_error(node) != mpack_ok)
         return &node->tree->nil_node;
 
     if (node->tag.type != mpack_type_map) {

@@ -129,7 +129,7 @@ size_t mpack_reader_remaining(mpack_reader_t* reader, const char** data) {
 void mpack_reader_flag_error(mpack_reader_t* reader, mpack_error_t error) {
     mpack_log("reader %p setting error %i: %s\n", reader, (int)error, mpack_error_to_string(error));
 
-    if (!reader->error) {
+    if (reader->error == mpack_ok) {
         reader->error = error;
         #if MPACK_SETJMP
         if (reader->jump_env)
@@ -152,7 +152,7 @@ static inline size_t mpack_fill(mpack_reader_t* reader, char* p, size_t count) {
 // Reads count bytes into p. Used when there are not enough bytes
 // left in the buffer to satisfy a read.
 void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count) {
-    if (reader->error != mpack_ok) {
+    if (mpack_reader_error(reader) != mpack_ok) {
         mpack_memset(p, 0, count);
         return;
     }
@@ -246,7 +246,7 @@ void mpack_read_bytes(mpack_reader_t* reader, char* p, size_t count) {
 static const char* mpack_read_bytes_inplace_big(mpack_reader_t* reader, size_t count) {
 
     // we should only arrive here from inplace straddle; this should already be checked
-    mpack_assert(reader->error == mpack_ok, "already in error state? %s",
+    mpack_assert(mpack_reader_error(reader) == mpack_ok, "already in error state? %s",
             mpack_error_to_string(mpack_reader_error(reader)));
     mpack_assert(reader->left < count, "already enough bytes in buffer: %i left, %i count", (int)reader->left, (int)count);
 
@@ -276,7 +276,7 @@ static const char* mpack_read_bytes_inplace_big(mpack_reader_t* reader, size_t c
 }
 
 const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count) {
-    if (reader->error != mpack_ok)
+    if (mpack_reader_error(reader) != mpack_ok)
         return NULL;
 
     mpack_reader_track_bytes(reader, count);

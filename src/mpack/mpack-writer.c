@@ -172,7 +172,7 @@ void mpack_writer_init_file(mpack_writer_t* writer, const char* filename) {
 void mpack_writer_flag_error(mpack_writer_t* writer, mpack_error_t error) {
     mpack_log("writer %p setting error %i: %s\n", writer, (int)error, mpack_error_to_string(error));
 
-    if (!writer->error) {
+    if (writer->error == mpack_ok) {
         writer->error = error;
         #if MPACK_SETJMP
         if (writer->jump_env)
@@ -182,7 +182,7 @@ void mpack_writer_flag_error(mpack_writer_t* writer, mpack_error_t error) {
 }
 
 static void mpack_write_native_big(mpack_writer_t* writer, const char* p, size_t count) {
-    if (writer->error)
+    if (mpack_writer_error(writer) != mpack_ok)
         return;
     mpack_log("big write for %i bytes from %p, %i space left in buffer\n",
             (int)count, p, (int)(writer->size - writer->used));
@@ -230,7 +230,7 @@ static void mpack_write_native_big(mpack_writer_t* writer, const char* p, size_t
 }
 
 static inline void mpack_write_native(mpack_writer_t* writer, const char* p, size_t count) {
-    if (writer->error != mpack_ok)
+    if (mpack_writer_error(writer) != mpack_ok)
         return;
 
     #if 0
@@ -316,7 +316,7 @@ mpack_error_t mpack_writer_destroy(mpack_writer_t* writer) {
     MPACK_WRITER_TRACK(writer, mpack_track_destroy(&writer->track, false));
 
     // flush any outstanding data
-    if (writer->error == mpack_ok && writer->used != 0 && writer->flush != NULL) {
+    if (mpack_writer_error(writer) == mpack_ok && writer->used != 0 && writer->flush != NULL) {
         if (!writer->flush(writer->context, writer->buffer, writer->used)) {
             mpack_writer_flag_error(writer, mpack_error_io);
         }
@@ -565,7 +565,7 @@ void mpack_finish_ext(mpack_writer_t* writer) {
 #endif
 
 void mpack_start_array(mpack_writer_t* writer, uint32_t count) {
-    if (writer->error != mpack_ok)
+    if (mpack_writer_error(writer) != mpack_ok)
         return;
 
     mpack_writer_track_element(writer);
@@ -583,7 +583,7 @@ void mpack_start_array(mpack_writer_t* writer, uint32_t count) {
 }
 
 void mpack_start_map(mpack_writer_t* writer, uint32_t count) {
-    if (writer->error != mpack_ok)
+    if (mpack_writer_error(writer) != mpack_ok)
         return;
 
     mpack_writer_track_element(writer);
@@ -601,7 +601,7 @@ void mpack_start_map(mpack_writer_t* writer, uint32_t count) {
 }
 
 void mpack_start_str(mpack_writer_t* writer, uint32_t count) {
-    if (writer->error != mpack_ok)
+    if (mpack_writer_error(writer) != mpack_ok)
         return;
 
     mpack_writer_track_element(writer);
@@ -623,7 +623,7 @@ void mpack_start_str(mpack_writer_t* writer, uint32_t count) {
 }
 
 void mpack_start_bin(mpack_writer_t* writer, uint32_t count) {
-    if (writer->error != mpack_ok)
+    if (mpack_writer_error(writer) != mpack_ok)
         return;
 
     mpack_writer_track_element(writer);
@@ -642,7 +642,7 @@ void mpack_start_bin(mpack_writer_t* writer, uint32_t count) {
 }
 
 void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count) {
-    if (writer->error != mpack_ok)
+    if (mpack_writer_error(writer) != mpack_ok)
         return;
 
     // TODO: fail if compatibility mode
