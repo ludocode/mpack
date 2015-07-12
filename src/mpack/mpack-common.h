@@ -34,6 +34,59 @@
 #define MPACK_STACK_SIZE 4096
 #endif
 
+
+
+/* Version information */
+
+#define MPACK_VERSION_MAJOR 0  /**< The major version number of MPack. */
+#define MPACK_VERSION_MINOR 5  /**< The minor version number of MPack. */
+#define MPACK_VERSION_PATCH 0  /**< The patch version number of MPack. */
+
+/** A number containing the version number of MPack for comparison purposes. */
+#define MPACK_VERSION ((MPACK_VERSION_MAJOR * 10000) + \
+        (MPACK_VERSION_MINOR * 100) + MPACK_VERSION_PATCH)
+
+/** A macro to test for a minimum version of MPack. */
+#define MPACK_VERSION_AT_LEAST(major, minor, patch) \
+        (MPACK_VERSION >= (((major) * 10000) + ((minor) * 100) + (patch)))
+
+#if (MPACK_VERSION_PATCH > 0)
+#define MPACK_VERSION_STRING_BASE \
+        MPACK_STRINGIFY(MPACK_VERSION_MAJOR) "." \
+        MPACK_STRINGIFY(MPACK_VERSION_MINOR) "." \
+        MPACK_STRINGIFY(MPACK_VERSION_PATCH)
+#else
+#define MPACK_VERSION_STRING_BASE \
+        MPACK_STRINGIFY(MPACK_VERSION_MAJOR) "." \
+        MPACK_STRINGIFY(MPACK_VERSION_MINOR)
+#endif
+
+/**
+ * @def MPACK_VERSION_STRING
+ * @hideinitializer
+ *
+ * A string containing the MPack version.
+ */
+#if MPACK_AMALGAMATED
+#define MPACK_VERSION_STRING MPACK_VERSION_STRING_BASE
+#else
+#define MPACK_VERSION_STRING MPACK_VERSION_STRING_BASE "dev"
+#endif
+
+/**
+ * @def MPACK_LIBRARY_STRING
+ * @hideinitializer
+ *
+ * A string describing MPack, containing the library name, version and debug mode.
+ */
+#if MPACK_DEBUG
+#define MPACK_LIBRARY_STRING "MPack " MPACK_VERSION_STRING "-debug"
+#else
+#define MPACK_LIBRARY_STRING "MPack " MPACK_VERSION_STRING
+#endif
+
+
+
 #ifdef __cplusplus
 extern "C" {
 #endif

@@ -77,6 +77,9 @@ extern "C" {
 #define MPACK_INTERNAL_STATIC
 #endif
 
+#define MPACK_STRINGIFY_IMPL(arg) #arg
+#define MPACK_STRINGIFY(arg) MPACK_STRINGIFY_IMPL(arg)
+
 
 
 /* Some compiler-specific keywords and builtins */

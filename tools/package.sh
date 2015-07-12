@@ -5,12 +5,10 @@
 
 # generate docs (on non-ci builds)
 if [[ "$CI" == "" ]]; then
-    "`dirname $0`"/gendocs.sh || exit $?
+    . "`dirname $0`"/gendocs.sh || exit $?
 else
     mkdir -p docs
 fi
-
-VERSION=`grep PROJECT_NUMBER Doxyfile|sed 's@.*= *\(.*\) *@\1@'`
 
 FILES="\
     mpack-platform \
