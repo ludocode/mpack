@@ -37,7 +37,6 @@ int main(void) {
     printf("\n\n");
 
     test_tags();
-    test_buffers();
 
     #if MPACK_EXPECT
     test_read();
@@ -51,6 +50,8 @@ int main(void) {
     #if MPACK_STDIO
     test_file();
     #endif
+
+    test_buffers();
 
     printf("\n\nUnit testing complete. %i passes out of %i tests.\n\n\n", passes, tests);
     return (passes == tests) ? EXIT_SUCCESS : EXIT_FAILURE;

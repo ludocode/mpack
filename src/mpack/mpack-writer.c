@@ -232,15 +232,6 @@ static void mpack_write_native_big(mpack_writer_t* writer, const char* p, size_t
 static inline void mpack_write_native(mpack_writer_t* writer, const char* p, size_t count) {
     if (mpack_writer_error(writer) != mpack_ok)
         return;
-
-    #if 0
-    // useful for debugging unit tests
-    mpack_log("writing:");
-    for (size_t i = 0; i < count; ++i)
-        mpack_log(" %02x", (uint8_t)p[i]);
-    mpack_log("\n");
-    #endif
-
     if (writer->size - writer->used < count) {
         mpack_write_native_big(writer, p, count);
     } else {
@@ -249,43 +240,79 @@ static inline void mpack_write_native(mpack_writer_t* writer, const char* p, siz
     }
 }
 
+MPACK_ALWAYS_INLINE void mpack_store_native_u8_at(char* p, uint8_t val) {
+    uint8_t* u = (uint8_t*)p;
+    u[0] = val;
+}
+
+MPACK_ALWAYS_INLINE void mpack_store_native_u16_at(char* p, uint16_t val) {
+    uint8_t* u = (uint8_t*)p;
+    u[0] = (uint8_t)((val >> 8) & 0xFF);
+    u[1] = (uint8_t)( val       & 0xFF);
+}
+
+MPACK_ALWAYS_INLINE void mpack_store_native_u32_at(char* p, uint32_t val) {
+    uint8_t* u = (uint8_t*)p;
+    u[0] = (uint8_t)((val >> 24) & 0xFF);
+    u[1] = (uint8_t)((val >> 16) & 0xFF);
+    u[2] = (uint8_t)((val >>  8) & 0xFF);
+    u[3] = (uint8_t)( val        & 0xFF);
+}
+
+MPACK_ALWAYS_INLINE void mpack_store_native_u64_at(char* p, uint64_t val) {
+    uint8_t* u = (uint8_t*)p;
+    u[0] = (uint8_t)((val >> 56) & 0xFF);
+    u[1] = (uint8_t)((val >> 48) & 0xFF);
+    u[2] = (uint8_t)((val >> 40) & 0xFF);
+    u[3] = (uint8_t)((val >> 32) & 0xFF);
+    u[4] = (uint8_t)((val >> 24) & 0xFF);
+    u[5] = (uint8_t)((val >> 16) & 0xFF);
+    u[6] = (uint8_t)((val >>  8) & 0xFF);
+    u[7] = (uint8_t)( val        & 0xFF);
+}
+
 static void mpack_write_native_u8(mpack_writer_t* writer, uint8_t val) {
-    char c[] = {
-        (char)val
-    };
-    mpack_write_native(writer, c, sizeof(c));
+    if (writer->size - writer->used >= sizeof(val)) {
+        mpack_store_native_u8_at(writer->buffer + writer->used, val);
+        writer->used += sizeof(val);
+    } else {
+        char c[sizeof(val)];
+        mpack_store_native_u8_at(c, val);
+        mpack_write_native_big(writer, c, sizeof(c));
+    }
 }
 
 static void mpack_write_native_u16(mpack_writer_t* writer, uint16_t val) {
-    char c[] = {
-        (char)(uint8_t)((val >> 8) & 0xFF),
-        (char)(uint8_t)( val       & 0xFF)
-    };
-    mpack_write_native(writer, c, sizeof(c));
+    if (writer->size - writer->used >= sizeof(val)) {
+        mpack_store_native_u16_at(writer->buffer + writer->used, val);
+        writer->used += sizeof(val);
+    } else {
+        char c[sizeof(val)];
+        mpack_store_native_u16_at(c, val);
+        mpack_write_native_big(writer, c, sizeof(c));
+    }
 }
 
 static void mpack_write_native_u32(mpack_writer_t* writer, uint32_t val) {
-    char c[] = {
-        (char)(uint8_t)((val >> 24) & 0xFF),
-        (char)(uint8_t)((val >> 16) & 0xFF),
-        (char)(uint8_t)((val >>  8) & 0xFF),
-        (char)(uint8_t)( val        & 0xFF)
-    };
-    mpack_write_native(writer, c, sizeof(c));
+    if (writer->size - writer->used >= sizeof(val)) {
+        mpack_store_native_u32_at(writer->buffer + writer->used, val);
+        writer->used += sizeof(val);
+    } else {
+        char c[sizeof(val)];
+        mpack_store_native_u32_at(c, val);
+        mpack_write_native_big(writer, c, sizeof(c));
+    }
 }
 
 static void mpack_write_native_u64(mpack_writer_t* writer, uint64_t val) {
-    char c[] = {
-        (char)(uint8_t)((val >> 56) & 0xFF),
-        (char)(uint8_t)((val >> 48) & 0xFF),
-        (char)(uint8_t)((val >> 40) & 0xFF),
-        (char)(uint8_t)((val >> 32) & 0xFF),
-        (char)(uint8_t)((val >> 24) & 0xFF),
-        (char)(uint8_t)((val >> 16) & 0xFF),
-        (char)(uint8_t)((val >>  8) & 0xFF),
-        (char)(uint8_t)( val        & 0xFF)
-    };
-    mpack_write_native(writer, c, sizeof(c));
+    if (writer->size - writer->used >= sizeof(val)) {
+        mpack_store_native_u64_at(writer->buffer + writer->used, val);
+        writer->used += sizeof(val);
+    } else {
+        char c[sizeof(val)];
+        mpack_store_native_u64_at(c, val);
+        mpack_write_native_big(writer, c, sizeof(c));
+    }
 }
 
 static inline void mpack_write_native_i8  (mpack_writer_t* writer,  int8_t  val) {mpack_write_native_u8  (writer, (uint8_t )val);}
