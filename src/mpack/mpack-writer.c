@@ -118,8 +118,28 @@ static void mpack_growable_writer_teardown(mpack_writer_t* writer) {
     mpack_growable_writer_t* growable_writer = (mpack_growable_writer_t*)writer->context;
 
     if (mpack_writer_error(writer) == mpack_ok) {
-        // TODO: realloc this to fit in case the buffer is much
-        // larger than the final data size
+
+        // shrink the buffer to an appropriate size if the data is
+        // much smaller than the buffer
+        if (writer->used < writer->size / 2) {
+            #ifdef MPACK_REALLOC
+            char* buffer = (char*)MPACK_REALLOC(writer->buffer, writer->used);
+            #else
+            char* buffer = (char*)MPACK_MALLOC(writer->used);
+            #endif
+            if (!buffer) {
+                MPACK_FREE(writer->buffer);
+                mpack_writer_flag_error(writer, mpack_error_memory);
+                return;
+            }
+            #ifndef MPACK_REALLOC
+            memcpy(buffer, writer->buffer, writer->used);
+            MPACK_FREE(writer->buffer);
+            #endif
+            writer->buffer = buffer;
+            writer->size = writer->used;
+        }
+
         *growable_writer->target_data = writer->buffer;
         *growable_writer->target_size = writer->used;
         writer->buffer = NULL;
