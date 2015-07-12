@@ -303,10 +303,10 @@ static inline mpack_error_t mpack_track_check_empty(mpack_track_t* track) {
 }
 
 static inline mpack_error_t mpack_track_destroy(mpack_track_t* track, bool cancel) {
-    mpack_error_t error = mpack_track_check_empty(track);
+    mpack_error_t error = cancel ? mpack_ok : mpack_track_check_empty(track);
     MPACK_FREE(track->elements);
     track->elements = NULL;
-    return cancel ? mpack_ok : error;
+    return error;
 }
 #endif
 
