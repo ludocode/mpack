@@ -45,13 +45,21 @@ static bool mpack_tree_grow(mpack_tree_t* tree) {
     // grow page array if needed
     if (tree->page_count == tree->page_capacity) {
         size_t new_capacity = tree->page_capacity * 2;
+
+        #ifdef MPACK_REALLOC
+        mpack_node_t** new_pages = (mpack_node_t**)MPACK_REALLOC(tree->pages, sizeof(mpack_node_t*) * new_capacity);
+        #else
         mpack_node_t** new_pages = (mpack_node_t**)MPACK_MALLOC(sizeof(mpack_node_t*) * new_capacity);
+        #endif
         if (new_pages == NULL) {
             mpack_tree_flag_error(tree, mpack_error_memory);
             return false;
         }
+        #ifndef MPACK_REALLOC
         mpack_memcpy(new_pages, tree->pages, tree->page_count * sizeof(mpack_node_t*));
         MPACK_FREE(tree->pages);
+        #endif
+
         tree->pages = new_pages;
         tree->page_capacity = new_capacity;
     }

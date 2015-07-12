@@ -85,13 +85,21 @@ static void mpack_growable_writer_flush(mpack_writer_t* writer, const char* data
 
     if (new_size > writer->size) {
         mpack_log("flush growing from %i to %i\n", (int)writer->size, (int)new_size);
+
+        #ifdef MPACK_REALLOC
+        char* new_buffer = (char*)MPACK_REALLOC(writer->buffer, new_size);
+        #else
         char* new_buffer = (char*)MPACK_MALLOC(new_size);
+        #endif
         if (new_buffer == NULL) {
             mpack_writer_flag_error(writer, mpack_error_memory);
             return;
         }
+        #ifndef MPACK_REALLOC
         mpack_memcpy(new_buffer, writer->buffer, count);
         MPACK_FREE(writer->buffer);
+        #endif
+
         writer->buffer = new_buffer;
         writer->size = new_size;
     }

@@ -176,12 +176,21 @@ MPACK_INTERNAL_STATIC mpack_error_t mpack_track_grow(mpack_track_t* track) {
     mpack_assert(track->count == track->capacity, "incorrect growing?");
 
     size_t new_capacity = track->capacity * 2;
+
+    #ifdef MPACK_REALLOC
+    mpack_track_element_t* new_elements = (mpack_track_element_t*)
+            MPACK_REALLOC(track->elements, sizeof(mpack_track_element_t) * new_capacity);
+    #else
     mpack_track_element_t* new_elements = (mpack_track_element_t*)
             MPACK_MALLOC(sizeof(mpack_track_element_t) * new_capacity);
+    #endif
     if (new_elements == NULL)
         return mpack_error_memory;
+    #ifndef MPACK_REALLOC
     mpack_memcpy(new_elements, track->elements, sizeof(mpack_track_element_t) * track->count);
     MPACK_FREE(track->elements);
+    #endif
+
     track->elements = new_elements;
     track->capacity = new_capacity;
     return mpack_ok;

@@ -100,6 +100,7 @@ if ARGUMENTS.get('all'):
     # miscellaneous test builds
     AddBuilds("cxx", allfeatures + allconfigs + cxxflags, ["-lstdc++"])
     AddBuilds("notrack", ["-DMPACK_NO_TRACKING=1"] + allfeatures + allconfigs + cflags, [])
+    AddBuilds("realloc", allfeatures + allconfigs + debugflags + cflags + ["-DMPACK_REALLOC=test_realloc"], [])
 
     # 32-bit builds (note Travis-CI doesn't support multilib)
     if 'TRAVIS' not in env and '64' in platform.architecture()[0]:

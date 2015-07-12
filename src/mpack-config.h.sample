@@ -52,8 +52,19 @@
  *
  * A memory allocator is required for the Node API.
  */
+/**
+ * \def MPACK_REALLOC
+ *
+ * Defines the realloc function used by mpack. It is used by growable buffers
+ * to resize more quickly.
+ *
+ * This is optional, even when MPACK_MALLOC is used. If MPACK_MALLOC is
+ * set and MPACK_REALLOC is not, MPACK_MALLOC is used with a simple copy
+ * to grow buffers.
+ */
 #if defined(MPACK_STDLIB) && !defined(MPACK_MALLOC)
 #define MPACK_MALLOC malloc
+#define MPACK_REALLOC realloc
 #endif
 
 /**

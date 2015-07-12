@@ -39,6 +39,8 @@ extern "C" {
 #ifdef MPACK_MALLOC
 void* test_malloc(size_t size);
 
+void* test_realloc(void* p, size_t size);
+
 // calls to test_malloc() will fail after count mallocs.
 void test_malloc_fail_after(size_t count);
 

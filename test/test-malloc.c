@@ -37,9 +37,18 @@ void* test_malloc(size_t size) {
     return malloc(size);
 }
 
+void* test_realloc(void* p, size_t size) {
+    if (test_malloc_fail) {
+        if (test_malloc_left == 0)
+            return NULL;
+        --test_malloc_left;
+    }
+    return realloc(p, size);
+}
+
 void test_free(void* p) {
-    // while free() is supposed to allow NULL, we don't trust that all
-    // malloc implementations safely handle this, so we don't free NULL.
+    // while free() is supposed to allow NULL, not all custom allocators
+    // may handle this, so we don't free NULL.
     test_assert(p != NULL, "attempting to free NULL");
 
     // TODO: track malloc/free
