@@ -21,7 +21,7 @@
 
 #include "test-buffer.h"
 
-#include "test-read.h"
+#include "test-expect.h"
 #include "test-write.h"
 
 static const char test_numbers[] =

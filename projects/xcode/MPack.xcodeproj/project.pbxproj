@@ -18,7 +18,7 @@
 		012F29DC1AD4524700346AC7 /* test-file.c in Sources */ = {isa = PBXBuildFile; fileRef = 012F29C61AD4524700346AC7 /* test-file.c */; };
 		012F29DD1AD4524700346AC7 /* test-malloc.c in Sources */ = {isa = PBXBuildFile; fileRef = 012F29C81AD4524700346AC7 /* test-malloc.c */; };
 		012F29DE1AD4524700346AC7 /* test-node.c in Sources */ = {isa = PBXBuildFile; fileRef = 012F29CA1AD4524700346AC7 /* test-node.c */; };
-		012F29DF1AD4524700346AC7 /* test-read.c in Sources */ = {isa = PBXBuildFile; fileRef = 012F29CC1AD4524700346AC7 /* test-read.c */; };
+		012F29DF1AD4524700346AC7 /* test-expect.c in Sources */ = {isa = PBXBuildFile; fileRef = 012F29CC1AD4524700346AC7 /* test-expect.c */; };
 		012F29E01AD4524700346AC7 /* test-tag.c in Sources */ = {isa = PBXBuildFile; fileRef = 012F29CE1AD4524700346AC7 /* test-tag.c */; };
 		012F29E11AD4524700346AC7 /* test-write.c in Sources */ = {isa = PBXBuildFile; fileRef = 012F29D01AD4524700346AC7 /* test-write.c */; };
 /* End PBXBuildFile section */
@@ -61,8 +61,8 @@
 		012F29C91AD4524700346AC7 /* test-malloc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "test-malloc.h"; sourceTree = "<group>"; };
 		012F29CA1AD4524700346AC7 /* test-node.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "test-node.c"; sourceTree = "<group>"; };
 		012F29CB1AD4524700346AC7 /* test-node.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "test-node.h"; sourceTree = "<group>"; };
-		012F29CC1AD4524700346AC7 /* test-read.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "test-read.c"; sourceTree = "<group>"; };
-		012F29CD1AD4524700346AC7 /* test-read.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "test-read.h"; sourceTree = "<group>"; };
+		012F29CC1AD4524700346AC7 /* test-expect.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "test-expect.c"; sourceTree = "<group>"; };
+		012F29CD1AD4524700346AC7 /* test-expect.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "test-expect.h"; sourceTree = "<group>"; };
 		012F29CE1AD4524700346AC7 /* test-tag.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "test-tag.c"; sourceTree = "<group>"; };
 		012F29CF1AD4524700346AC7 /* test-tag.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "test-tag.h"; sourceTree = "<group>"; };
 		012F29D01AD4524700346AC7 /* test-write.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "test-write.c"; sourceTree = "<group>"; };
@@ -141,8 +141,8 @@
 				012F29C91AD4524700346AC7 /* test-malloc.h */,
 				012F29CA1AD4524700346AC7 /* test-node.c */,
 				012F29CB1AD4524700346AC7 /* test-node.h */,
-				012F29CC1AD4524700346AC7 /* test-read.c */,
-				012F29CD1AD4524700346AC7 /* test-read.h */,
+				012F29CC1AD4524700346AC7 /* test-expect.c */,
+				012F29CD1AD4524700346AC7 /* test-expect.h */,
 				012F29CE1AD4524700346AC7 /* test-tag.c */,
 				012F29CF1AD4524700346AC7 /* test-tag.h */,
 				012F29D01AD4524700346AC7 /* test-write.c */,
@@ -213,7 +213,7 @@
 				012F29DD1AD4524700346AC7 /* test-malloc.c in Sources */,
 				012F29DE1AD4524700346AC7 /* test-node.c in Sources */,
 				012F29E01AD4524700346AC7 /* test-tag.c in Sources */,
-				012F29DF1AD4524700346AC7 /* test-read.c in Sources */,
+				012F29DF1AD4524700346AC7 /* test-expect.c in Sources */,
 				012F29D91AD4524700346AC7 /* mpack-writer.c in Sources */,
 				012F29D71AD4524700346AC7 /* mpack-platform.c in Sources */,
 				012F29E11AD4524700346AC7 /* test-write.c in Sources */,

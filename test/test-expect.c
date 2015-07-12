@@ -19,12 +19,12 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "test-read.h"
+#include "test-expect.h"
 
 #if MPACK_EXPECT
 
 // tests the example on the messagepack homepage
-static void test_example_read() {
+static void test_expect_example_read() {
     static const char test[] = "\x82\xA7""compact\xC3\xA6""schema\x00";
     mpack_reader_t reader;
     mpack_reader_init_data(&reader, test, sizeof(test) - 1);
@@ -52,7 +52,7 @@ static void test_example_read() {
    ]
    */
 
-static void test_read_uint_fixnum() {
+static void test_expect_uint_fixnum() {
 
     // positive fixnums with u8
     test_simple_read("\x00", 0 == mpack_expect_u8(&reader));
@@ -88,7 +88,7 @@ static void test_read_uint_fixnum() {
 
 }
 
-static void test_read_uint_signed_fixnum() {
+static void test_expect_uint_signed_fixnum() {
 
     // positive fixnums with i8
     test_simple_read("\x00", 0 == mpack_expect_i8(&reader));
@@ -124,7 +124,7 @@ static void test_read_uint_signed_fixnum() {
 
 }
 
-static void test_read_negative_fixnum() {
+static void test_expect_negative_fixnum() {
 
     // negative fixnums with i8
     test_simple_read("\xff", -1 == mpack_expect_i8(&reader));
@@ -152,7 +152,7 @@ static void test_read_negative_fixnum() {
 
 }
 
-static void test_read_uint() {
+static void test_expect_uint() {
 
     // positive signed into u8
     test_simple_read("\xd0\x7f", 0x7f == mpack_expect_u8(&reader));
@@ -197,7 +197,7 @@ static void test_read_uint() {
 
 }
 
-static void test_read_uint_signed() {
+static void test_expect_uint_signed() {
 
     test_simple_read("\xcc\x80", 0x80 == mpack_expect_i16(&reader));
     test_simple_read("\xcc\x80", 0x80 == mpack_expect_i32(&reader));
@@ -223,7 +223,7 @@ static void test_read_uint_signed() {
 
 }
 
-static void test_read_int() {
+static void test_expect_int() {
 
     test_simple_read("\xd0\xdf", -33 == mpack_expect_i8(&reader));
     test_simple_read("\xd0\xdf", -33 == mpack_expect_i16(&reader));
@@ -255,7 +255,7 @@ static void test_read_int() {
 
 }
 
-static void test_read_ints_dynamic_int() {
+static void test_expect_ints_dynamic_int() {
 
     // we don't bother to test with different signed/unsigned value
     // functions; they are tested for equality in test-value.c
@@ -298,7 +298,7 @@ static void test_read_ints_dynamic_int() {
 
 }
 
-static void test_read_int_bounds() {
+static void test_expect_int_bounds() {
 
     test_simple_read_error("\xd1\xff\x7f", 0 == mpack_expect_i8(&reader), mpack_error_type); 
     test_simple_read_error("\xd1\x80\x00", 0 == mpack_expect_i8(&reader), mpack_error_type);
@@ -319,7 +319,7 @@ static void test_read_int_bounds() {
 
 }
 
-static void test_read_uint_bounds() {
+static void test_expect_uint_bounds() {
 
     test_simple_read_error("\xcd\x01\x00", 0 == mpack_expect_u8(&reader), mpack_error_type);
     test_simple_read_error("\xcd\xff\xff", 0 == mpack_expect_u8(&reader), mpack_error_type);
@@ -336,13 +336,13 @@ static void test_read_uint_bounds() {
 
 }
 
-static void test_read_misc() {
+static void test_expect_misc() {
     test_simple_read("\xc0", (mpack_expect_nil(&reader), true));
     test_simple_read("\xc2", false == mpack_expect_bool(&reader));
     test_simple_read("\xc3", true == mpack_expect_bool(&reader));
 }
 
-static void test_read_floats() {
+static void test_expect_floats() {
     // these are some very simple floats that don't really test IEEE 742 conformance;
     // this section could use some improvement
 
@@ -376,7 +376,7 @@ static void test_read_floats() {
     test_simple_read_error("\xd0\x00", 0.0 == mpack_expect_double_strict(&reader), mpack_error_type);
 }
 
-static void test_read_bad_type() {
+static void test_expect_bad_type() {
     // test that all reader functions correctly handle badly typed data
     test_simple_read_error("\xc2", (mpack_expect_nil(&reader), true), mpack_error_type);
     test_simple_read_error("\xc0", false == mpack_expect_bool(&reader), mpack_error_type);
@@ -394,7 +394,7 @@ static void test_read_bad_type() {
     test_simple_read_error("\xc0", 0.0 == mpack_expect_double_strict(&reader), mpack_error_type);
 }
 
-static void test_read_pre_error() {
+static void test_expect_pre_error() {
     // test that all reader functions correctly handle pre-existing errors
     test_simple_read_error("", (mpack_expect_nil(&reader), true), mpack_error_io);
     test_simple_read_error("", false == mpack_expect_bool(&reader), mpack_error_io);
@@ -412,25 +412,25 @@ static void test_read_pre_error() {
     test_simple_read_error("", 0.0 == mpack_expect_double_strict(&reader), mpack_error_io);
 }
 
-void test_read() {
-    test_example_read();
+void test_expect() {
+    test_expect_example_read();
 
     // int/uint
-    test_read_uint_fixnum();
-    test_read_uint_signed_fixnum();
-    test_read_negative_fixnum();
-    test_read_uint();
-    test_read_uint_signed();
-    test_read_int();
-    test_read_uint_bounds();
-    test_read_int_bounds();
-    test_read_ints_dynamic_int();
+    test_expect_uint_fixnum();
+    test_expect_uint_signed_fixnum();
+    test_expect_negative_fixnum();
+    test_expect_uint();
+    test_expect_uint_signed();
+    test_expect_int();
+    test_expect_uint_bounds();
+    test_expect_int_bounds();
+    test_expect_ints_dynamic_int();
 
     // other
-    test_read_misc();
-    test_read_floats();
-    test_read_bad_type();
-    test_read_pre_error();
+    test_expect_misc();
+    test_expect_floats();
+    test_expect_bad_type();
+    test_expect_pre_error();
 }
 
 #endif

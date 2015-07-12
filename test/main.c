@@ -23,7 +23,7 @@
 
 #include <string.h>
 
-#include "test-read.h"
+#include "test-expect.h"
 #include "test-write.h"
 #include "test-buffer.h"
 #include "test-tag.h"
@@ -39,7 +39,7 @@ int main(void) {
     test_tags();
 
     #if MPACK_EXPECT
-    test_read();
+    test_expect();
     #endif
     #if MPACK_WRITER
     test_writes();

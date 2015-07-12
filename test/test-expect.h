@@ -73,7 +73,7 @@ extern "C" {
 } while (0)
 
 #if MPACK_EXPECT
-void test_read(void);
+void test_expect(void);
 #endif
 
 #ifdef __cplusplus
