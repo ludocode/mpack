@@ -51,14 +51,6 @@ struct mpack_track_t;
  */
 
 /**
- * The mpack reader's fill function. It should fill the buffer as
- * much as possible, returning the number of bytes put into the buffer.
- *
- * In case of error, it should return zero.
- */
-typedef size_t (*mpack_fill_t)(void* context, char* buffer, size_t count);
-
-/**
  * A buffered MessagePack decoder.
  *
  * The decoder wraps an existing buffer and, optionally, a fill function.
@@ -73,10 +65,23 @@ typedef size_t (*mpack_fill_t)(void* context, char* buffer, size_t count);
  */
 typedef struct mpack_reader_t mpack_reader_t;
 
+/**
+ * The mpack reader's fill function. It should fill the buffer as
+ * much as possible, returning the number of bytes put into the buffer.
+ *
+ * In case of error, it should flag an appropriate error on the reader.
+ */
+typedef size_t (*mpack_fill_t)(mpack_reader_t* reader, char* buffer, size_t count);
+
+/**
+ * A teardown function to be called when the reader is destroyed.
+ */
+typedef void (*mpack_reader_teardown_t)(mpack_reader_t* reader);
+
 struct mpack_reader_t {
-    mpack_fill_t fill;          /* Function to read bytes into the buffer */
-    mpack_teardown_t teardown;  /* Function to teardown the context on destroy */
-    void* context;              /* Context for the reader callbacks */
+    mpack_fill_t fill;                /* Function to read bytes into the buffer */
+    mpack_reader_teardown_t teardown; /* Function to teardown the context on destroy */
+    void* context;                    /* Context for reader callbacks */
 
     char* buffer;       /* Byte buffer */
     size_t size;        /* Size of the buffer, or zero if it's const */
@@ -247,7 +252,7 @@ static inline void mpack_reader_set_fill(mpack_reader_t* reader, mpack_fill_t fi
  * @param reader The MPack reader.
  * @param teardown The function to call when the reader is destroyed.
  */
-static inline void mpack_reader_set_teardown(mpack_reader_t* reader, mpack_teardown_t teardown) {
+static inline void mpack_reader_set_teardown(mpack_reader_t* reader, mpack_reader_teardown_t teardown) {
     reader->teardown = teardown;
 }
 

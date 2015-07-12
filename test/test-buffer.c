@@ -106,13 +106,14 @@ static const int test_buffer_sizes[] = {
     16384, 32768
 };
 
+#if MPACK_READER
 typedef struct test_fill_state_t {
     const char* data;
     size_t remaining;
 } test_fill_state_t;
 
-static size_t test_buffer_fill(void* context, char* buffer, size_t count) {
-    test_fill_state_t* state = (test_fill_state_t*)context;
+static size_t test_buffer_fill(mpack_reader_t* reader, char* buffer, size_t count) {
+    test_fill_state_t* state = (test_fill_state_t*)reader->context;
     if (state->remaining < count)
         count = state->remaining;
     memcpy(buffer, state->data, count);
@@ -120,21 +121,25 @@ static size_t test_buffer_fill(void* context, char* buffer, size_t count) {
     state->remaining -= count;
     return count;
 }
+#endif
 
+#if MPACK_WRITER
 typedef struct test_flush_state_t {
     char* data;
     size_t remaining;
 } test_flush_state_t;
 
-static bool test_buffer_flush(void* context, const char* buffer, size_t count) {
-    test_flush_state_t* state = (test_flush_state_t*)context;
-    if (state->remaining < count)
-        return false;
+static void test_buffer_flush(mpack_writer_t* writer, const char* buffer, size_t count) {
+    test_flush_state_t* state = (test_flush_state_t*)writer->context;
+    if (state->remaining < count) {
+        mpack_writer_flag_error(writer, mpack_error_too_big);
+        return;
+    }
     memcpy(state->data, buffer, count);
     state->data += count;
     state->remaining -= count;
-    return true;
 }
+#endif
 
 #if MPACK_EXPECT
 static void test_expect_buffer_values(mpack_reader_t* reader) {
@@ -344,8 +349,6 @@ void test_buffers(void) {
     MPACK_UNUSED(test_numbers);
     MPACK_UNUSED(test_strings);
     MPACK_UNUSED(test_buffer_sizes);
-    MPACK_UNUSED(test_buffer_fill);
-    MPACK_UNUSED(test_buffer_flush);
 
     #if MPACK_EXPECT
     test_expect_buffer();

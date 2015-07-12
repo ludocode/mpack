@@ -49,12 +49,6 @@ struct mpack_track_t;
  */
 
 /**
- * The mpack writer's flush function to flush the buffer to the output stream.
- * It should return false if writing fails.
- */
-typedef bool (*mpack_flush_t)(void* context, const char* buffer, size_t count);
-
-/**
  * A buffered MessagePack encoder.
  *
  * The encoder wraps an existing buffer and, optionally, a flush function.
@@ -65,10 +59,24 @@ typedef bool (*mpack_flush_t)(void* context, const char* buffer, size_t count);
  */
 typedef struct mpack_writer_t mpack_writer_t;
 
+/**
+ * The mpack writer's flush function to flush the buffer to the output stream.
+ * It should flag an appropriate error on the writer if flushing fails.
+ * Keep in mind that flagging an error may longjmp.
+ *
+ * The specified context for callbacks is at writer->context.
+ */
+typedef void (*mpack_flush_t)(mpack_writer_t* writer, const char* buffer, size_t count);
+
+/**
+ * A teardown function to be called when the writer is destroyed.
+ */
+typedef void (*mpack_writer_teardown_t)(mpack_writer_t* writer);
+
 struct mpack_writer_t {
-    mpack_flush_t flush;        /* Function to write bytes to the output stream */
-    mpack_teardown_t teardown;  /* Function to teardown the context on destroy */
-    void* context;              /* Context for the writer function */
+    mpack_flush_t flush;              /* Function to write bytes to the output stream */
+    mpack_writer_teardown_t teardown; /* Function to teardown the context on destroy */
+    void* context;                    /* Context for writer callbacks */
 
     char* buffer;         /* Byte buffer */
     size_t size;          /* Size of the buffer */
@@ -250,7 +258,7 @@ static inline void mpack_writer_set_flush(mpack_writer_t* writer, mpack_flush_t 
  * @param writer The MPack writer.
  * @param teardown The function to call when the writer is destroyed.
  */
-static inline void mpack_writer_set_teardown(mpack_writer_t* writer, mpack_teardown_t teardown) {
+static inline void mpack_writer_set_teardown(mpack_writer_t* writer, mpack_writer_teardown_t teardown) {
     writer->teardown = teardown;
 }
 

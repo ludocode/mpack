@@ -77,9 +77,14 @@ struct mpack_node_t {
  */
 typedef struct mpack_tree_t mpack_tree_t;
 
+/**
+ * A teardown function to be called when the tree is destroyed.
+ */
+typedef void (*mpack_tree_teardown_t)(mpack_tree_t* tree);
+
 struct mpack_tree_t {
-    mpack_teardown_t teardown;
-    void* context;
+    mpack_tree_teardown_t teardown; /* Function to teardown the context on destroy */
+    void* context;                  /* Context for tree callbacks */
 
     mpack_node_t nil_node; /* a nil node to be returned in case of error */
     mpack_error_t error;
@@ -222,7 +227,7 @@ static inline void mpack_tree_set_context(mpack_tree_t* tree, void* context) {
  * @param tree The MPack tree.
  * @param teardown The function to call when the tree is destroyed.
  */
-static inline void mpack_tree_set_teardown(mpack_tree_t* tree, mpack_teardown_t teardown) {
+static inline void mpack_tree_set_teardown(mpack_tree_t* tree, mpack_tree_teardown_t teardown) {
     tree->teardown = teardown;
 }
 

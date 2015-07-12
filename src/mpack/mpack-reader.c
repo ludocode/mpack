@@ -61,15 +61,21 @@ typedef struct mpack_file_reader_t {
     char buffer[MPACK_BUFFER_SIZE];
 } mpack_file_reader_t;
 
-static size_t mpack_file_reader_fill(void* context, char* buffer, size_t count) {
-    mpack_file_reader_t* file_reader = (mpack_file_reader_t*)context;
+static size_t mpack_file_reader_fill(mpack_reader_t* reader, char* buffer, size_t count) {
+    mpack_file_reader_t* file_reader = (mpack_file_reader_t*)reader->context;
     return fread((void*)buffer, 1, count, file_reader->file);
 }
 
-static void mpack_file_reader_teardown(void* context) {
-    mpack_file_reader_t* file_reader = (mpack_file_reader_t*)context;
-    if (file_reader->file)
-        fclose(file_reader->file);
+static void mpack_file_reader_teardown(mpack_reader_t* reader) {
+    mpack_file_reader_t* file_reader = (mpack_file_reader_t*)reader->context;
+
+    if (file_reader->file) {
+        int ret = fclose(file_reader->file);
+        file_reader->file = NULL;
+        if (ret != 0)
+            mpack_reader_flag_error(reader, mpack_error_io);
+    }
+
     MPACK_FREE(file_reader);
 }
 
@@ -99,7 +105,7 @@ mpack_error_t mpack_reader_destroy_impl(mpack_reader_t* reader, bool cancel) {
     MPACK_READER_TRACK(reader, mpack_track_destroy(&reader->track, cancel));
 
     if (reader->teardown)
-        reader->teardown(reader->context);
+        reader->teardown(reader);
     reader->teardown = NULL;
 
     #if MPACK_SETJMP
@@ -143,7 +149,7 @@ void mpack_reader_flag_error(mpack_reader_t* reader, mpack_error_t error) {
 static inline size_t mpack_fill(mpack_reader_t* reader, char* p, size_t count) {
     if (!reader->fill)
         return 0;
-    size_t ret = reader->fill(reader->context, p, count);
+    size_t ret = reader->fill(reader, p, count);
     if (ret == ((size_t)(-1)))
         return 0;
     return ret;

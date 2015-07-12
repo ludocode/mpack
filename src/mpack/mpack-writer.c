@@ -54,8 +54,6 @@ void mpack_writer_init_error(mpack_writer_t* writer, mpack_error_t error) {
 
 #ifdef MPACK_MALLOC
 typedef struct mpack_growable_writer_t {
-    mpack_writer_t* writer; // this causes the writer to not be movable...
-
     char* data;
     size_t size;
     size_t capacity;
@@ -66,8 +64,8 @@ typedef struct mpack_growable_writer_t {
     char buffer[MPACK_BUFFER_SIZE];
 } mpack_growable_writer_t;
 
-static bool mpack_growable_writer_flush(void* context, const char* buffer, size_t count) {
-    mpack_growable_writer_t* growable_writer = (mpack_growable_writer_t*)context;
+static void mpack_growable_writer_flush(mpack_writer_t* writer, const char* buffer, size_t count) {
+    mpack_growable_writer_t* growable_writer = (mpack_growable_writer_t*)writer->context;
 
     if (growable_writer->size + count > growable_writer->capacity) {
         size_t new_capacity = growable_writer->size + count;
@@ -76,8 +74,8 @@ static bool mpack_growable_writer_flush(void* context, const char* buffer, size_
 
         char* new_data = (char*)MPACK_MALLOC(new_capacity);
         if (new_data == NULL) {
-            mpack_writer_flag_error(growable_writer->writer, mpack_error_memory);
-            return false;
+            mpack_writer_flag_error(writer, mpack_error_memory);
+            return;
         }
 
         if (growable_writer->data) {
@@ -90,13 +88,12 @@ static bool mpack_growable_writer_flush(void* context, const char* buffer, size_
 
     mpack_memcpy(growable_writer->data + growable_writer->size, buffer, count);
     growable_writer->size += count;
-    return true;
 }
 
-static void mpack_growable_writer_teardown(void* context) {
-    mpack_growable_writer_t* growable_writer = (mpack_growable_writer_t*)context;
+static void mpack_growable_writer_teardown(mpack_writer_t* writer) {
+    mpack_growable_writer_t* growable_writer = (mpack_growable_writer_t*)writer->context;
 
-    if (mpack_writer_error(growable_writer->writer) == mpack_ok) {
+    if (mpack_writer_error(writer) == mpack_ok) {
         *growable_writer->target_data = growable_writer->data;
         *growable_writer->target_size = growable_writer->size;
 
@@ -118,7 +115,6 @@ void mpack_writer_init_growable(mpack_writer_t* writer, char** data, size_t* siz
     }
     mpack_memset(growable_writer, 0, sizeof(*growable_writer));
 
-    growable_writer->writer = writer;
     growable_writer->target_data = data;
     growable_writer->target_size = size;
 
@@ -135,16 +131,23 @@ typedef struct mpack_file_writer_t {
     char buffer[MPACK_BUFFER_SIZE];
 } mpack_file_writer_t;
 
-static bool mpack_file_writer_flush(void* context, const char* buffer, size_t count) {
-    mpack_file_writer_t* file_writer = (mpack_file_writer_t*)context;
+static void mpack_file_writer_flush(mpack_writer_t* writer, const char* buffer, size_t count) {
+    mpack_file_writer_t* file_writer = (mpack_file_writer_t*)writer->context;
     size_t written = fwrite((const void*)buffer, 1, count, file_writer->file);
-    return written == count;
+    if (written != count)
+        mpack_writer_flag_error(writer, mpack_error_io);
 }
 
-static void mpack_file_writer_teardown(void* context) {
-    mpack_file_writer_t* file_writer = (mpack_file_writer_t*)context;
-    if (file_writer->file)
-        fclose(file_writer->file);
+static void mpack_file_writer_teardown(mpack_writer_t* writer) {
+    mpack_file_writer_t* file_writer = (mpack_file_writer_t*)writer->context;
+
+    if (file_writer->file) {
+        int ret = fclose(file_writer->file);
+        file_writer->file = NULL;
+        if (ret != 0)
+            mpack_writer_flag_error(writer, mpack_error_io);
+    }
+
     MPACK_FREE(file_writer);
 }
 
@@ -206,20 +209,24 @@ static void mpack_write_native_big(mpack_writer_t* writer, const char* p, size_t
     if (count == 0)
         return;
 
-    // flush the buffer
-    if (!writer->flush || !writer->flush(writer->context, writer->buffer, writer->used)) {
+    // we'll need a flush function
+    if (!writer->flush) {
         mpack_writer_flag_error(writer, mpack_error_io);
         return;
     }
+
+    // flush the buffer
+    writer->flush(writer, writer->buffer, writer->used);
+    if (mpack_writer_error(writer) != mpack_ok)
+        return;
     writer->used = 0;
 
     // flush any data that doesn't fit in the buffer
     n = count - (count % writer->size);
     if (n > 0) {
-        if (!writer->flush(writer->context, p, n)) {
-            mpack_writer_flag_error(writer, mpack_error_io);
+        writer->flush(writer, p, n);
+        if (mpack_writer_error(writer) != mpack_ok)
             return;
-        }
         p += n;
         count -= n;
     }
@@ -344,14 +351,12 @@ mpack_error_t mpack_writer_destroy(mpack_writer_t* writer) {
 
     // flush any outstanding data
     if (mpack_writer_error(writer) == mpack_ok && writer->used != 0 && writer->flush != NULL) {
-        if (!writer->flush(writer->context, writer->buffer, writer->used)) {
-            mpack_writer_flag_error(writer, mpack_error_io);
-        }
+        writer->flush(writer, writer->buffer, writer->used);
         writer->used = 0;
     }
 
     if (writer->teardown)
-        writer->teardown(writer->context);
+        writer->teardown(writer);
     writer->teardown = NULL;
 
     #if MPACK_SETJMP
@@ -367,7 +372,7 @@ void mpack_writer_destroy_cancel(mpack_writer_t* writer) {
     MPACK_WRITER_TRACK(writer, mpack_track_destroy(&writer->track, true));
 
     if (writer->teardown)
-        writer->teardown(writer->context);
+        writer->teardown(writer);
     writer->teardown = NULL;
 
     #if MPACK_SETJMP

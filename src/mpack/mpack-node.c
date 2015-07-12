@@ -285,8 +285,8 @@ typedef struct mpack_file_tree_t {
     char buffer[MPACK_BUFFER_SIZE];
 } mpack_file_tree_t;
 
-static void mpack_file_tree_teardown(void* context) {
-    mpack_file_tree_t* file_tree = (mpack_file_tree_t*)context;
+static void mpack_file_tree_teardown(mpack_tree_t* tree) {
+    mpack_file_tree_t* file_tree = (mpack_file_tree_t*)tree->context;
     MPACK_FREE(file_tree->data);
     MPACK_FREE(file_tree);
 }
@@ -388,7 +388,7 @@ mpack_error_t mpack_tree_destroy(mpack_tree_t* tree) {
     #endif
 
     if (tree->teardown)
-        tree->teardown(tree->context);
+        tree->teardown(tree);
     tree->teardown = NULL;
 
     #if MPACK_SETJMP
