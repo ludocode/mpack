@@ -319,7 +319,7 @@ static void test_write_simple_misc() {
 
 }
 
-#if MPACK_MALLOC
+#ifdef MPACK_MALLOC
 static void test_write_basic_structures() {
     char* buf;
     size_t size;
@@ -667,7 +667,7 @@ void test_writes() {
     test_write_simple_tag_int();
     test_write_simple_misc();
 
-    #if MPACK_MALLOC
+    #ifdef MPACK_MALLOC
     test_write_basic_structures();
     test_write_small_structure_trees();
     #endif
