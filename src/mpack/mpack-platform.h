@@ -107,10 +107,11 @@ extern "C" {
  *
  * In release mode, mpack_assert() is converted to an assurance to the compiler
  * that the expression cannot be false (via e.g. __assume() or __builtin_unreachable())
- * to improve optimization. There is thus no point in "safely" handling the case
- * of this being false. Writing mpack_assert(0) rarely makes sense; the compiler will
- * throw away any code after it. If at any time an mpack_assert() is not true, the
- * behaviour is undefined. This also means the expression is evaluated even in release.
+ * to improve optimization where supported. There is thus no point in "safely" handling
+ * the case of this being false. Writing mpack_assert(0) rarely makes sense;
+ * the compiler will throw away any code after it. If at any time an mpack_assert()
+ * is not true, the behaviour is undefined. This also means the expression is
+ * evaluated even in release.
  *
  * mpack_break() on the other hand is compiled to nothing in release. It is
  * used in situations where we want to highlight a programming error as early as
@@ -125,7 +126,7 @@ extern "C" {
  * the assertion is hit.
  *
  * Note that any arguments to mpack_assert() beyond the first are only evaluated
- * if the expression is false (and are of course not evaluated in release.)
+ * if the expression is false (and are never evaluated in release.)
  *
  * mpack_assert_fail() and mpack_break_hit() are defined separately
  * because assert is noreturn and break isn't. This distinction is very

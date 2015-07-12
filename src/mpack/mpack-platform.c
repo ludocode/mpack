@@ -73,7 +73,7 @@ void mpack_assert_fail(const char* message) {
 
     #if MPACK_STDLIB
     abort();
-    #elif defined(__GCC__)
+    #elif defined(__GCC__) || defined(__clang__)
     __builtin_abort();
     #endif
 
@@ -88,15 +88,13 @@ void mpack_break_hit(const char* message) {
     #endif
 
     #if defined(__GCC__) || defined(__clang__)
-    // __builtin_trap() is not ideal since it's not really possible to continue
-    // execution in a debugger. is __builtin_debugger() a thing on clang? should
-    // we emit e.g. int 3 or equivalent on some platforms?
     __builtin_trap();
     #elif WIN32
     __debugbreak();
     #elif MPACK_STDLIB
-    // we prefer halting completely to continuing with just a print.
     abort();
+    #elif defined(__GCC__) || defined(__clang__)
+    __builtin_abort();
     #endif
 }
 #endif
