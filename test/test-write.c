@@ -637,7 +637,17 @@ static void test_write_small_structure_trees() {
 
 #if MPACK_WRITE_TRACKING
 static void test_write_tracking_errors() {
-    // TODO
+
+    // test that cancel works
+    char buf[4096];
+    mpack_writer_t writer;
+    mpack_writer_init(&writer, buf, sizeof(buf));
+    mpack_start_map(&writer, 5);
+    mpack_start_array(&writer, 5);
+    mpack_writer_destroy_cancel(&writer);
+
+    // TODO: test that errors are flagged
+
 }
 #endif
 

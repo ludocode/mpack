@@ -193,7 +193,8 @@ static inline void mpack_writer_clearjmp(mpack_writer_t* writer) {
 /**
  * Cleans up the mpack writer, flushing any buffered bytes to the
  * underlying stream, if any. Returns the final error state of the
- * writer in case an error occurred flushing.
+ * writer in case an error occurred flushing. Causes an assert if
+ * there are any unclosed compound types in tracking mode.
  *
  * Note that if a jump handler is set, a writer may jump during destroy if it
  * fails to flush any remaining data. In this case the writer will not be fully
@@ -201,6 +202,16 @@ static inline void mpack_writer_clearjmp(mpack_writer_t* writer) {
  * usual in the jump handler.
  */
 mpack_error_t mpack_writer_destroy(mpack_writer_t* writer);
+
+/**
+ * Cleans up the mpack writer, discarding any open writes and unflushed data.
+ *
+ * Use this to cancel writing in the middle of writing a document (for example
+ * in case an error occurred.) This should be used instead of mpack_writer_destroy()
+ * because the former will assert in tracking mode if there are any unclosed
+ * compound types.
+ */
+void mpack_writer_destroy_cancel(mpack_writer_t* writer);
 
 /**
  * Sets the custom pointer to pass to the writer callbacks, such as flush

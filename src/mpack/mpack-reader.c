@@ -111,8 +111,8 @@ mpack_error_t mpack_reader_destroy_impl(mpack_reader_t* reader, bool cancel) {
     return reader->error;
 }
 
-mpack_error_t mpack_reader_destroy_cancel(mpack_reader_t* reader) {
-    return mpack_reader_destroy_impl(reader, true);
+void mpack_reader_destroy_cancel(mpack_reader_t* reader) {
+    mpack_reader_destroy_impl(reader, true);
 }
 
 mpack_error_t mpack_reader_destroy(mpack_reader_t* reader) {

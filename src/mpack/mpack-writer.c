@@ -363,6 +363,20 @@ mpack_error_t mpack_writer_destroy(mpack_writer_t* writer) {
     return writer->error;
 }
 
+void mpack_writer_destroy_cancel(mpack_writer_t* writer) {
+    MPACK_WRITER_TRACK(writer, mpack_track_destroy(&writer->track, true));
+
+    if (writer->teardown)
+        writer->teardown(writer->context);
+    writer->teardown = NULL;
+
+    #if MPACK_SETJMP
+    if (writer->jump_env)
+        MPACK_FREE(writer->jump_env);
+    writer->jump_env = NULL;
+    #endif
+}
+
 void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t value) {
     mpack_writer_track_element(writer);
 

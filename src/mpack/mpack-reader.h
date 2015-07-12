@@ -208,7 +208,7 @@ mpack_error_t mpack_reader_destroy(mpack_reader_t* reader);
  * This should be used if you decide to cancel reading in the middle
  * of the document.
  */
-mpack_error_t mpack_reader_destroy_cancel(mpack_reader_t* reader);
+void mpack_reader_destroy_cancel(mpack_reader_t* reader);
 
 /**
  * Sets the custom pointer to pass to the reader callbacks, such as fill
