@@ -65,7 +65,7 @@ struct mpack_node_t {
     struct mpack_tree_t* tree;
     union {
         const char* bytes;
-        size_t children;
+        mpack_node_t* children;
     } data;
 };
 
@@ -82,32 +82,33 @@ typedef struct mpack_tree_t mpack_tree_t;
  */
 typedef void (*mpack_tree_teardown_t)(mpack_tree_t* tree);
 
+/*
+ * mpack_tree_link_t forms a linked list of node pages. It is allocated
+ * separately from the page so that we can store the first link internally
+ * without a malloc (the only link in a pooled tree), and we don't
+ * affect the size of page pools or violate strict aliasing.
+ */
+typedef struct mpack_tree_link_t {
+    struct mpack_tree_link_t* next;
+    mpack_node_t* nodes;
+    size_t pos;
+    size_t left;
+} mpack_tree_link_t;
+
 struct mpack_tree_t {
     mpack_tree_teardown_t teardown; /* Function to teardown the context on destroy */
     void* context;                  /* Context for tree callbacks */
 
     mpack_node_t nil_node; /* a nil node to be returned in case of error */
     mpack_error_t error;
+
     size_t node_count;
     size_t size;
+    mpack_node_t* root;
 
-    /*
-     * Only one of pool or pages are used. If pool is set, it is treated
-     * as a single external unowned page of nodes. Otherwise, pages are
-     * allocated as needed.
-     *
-     * Note that an array or map contains the node index of the first child
-     * rather than a pointer to it. This is so that pages can be a fixed
-     * size, and a node's children can span multiple pages.
-     */
-
-    mpack_node_t* pool;
-    size_t pool_count;
-
+    mpack_tree_link_t page;
     #ifdef MPACK_MALLOC
-    mpack_node_t** pages;
-    size_t page_count;
-    size_t page_capacity;
+    bool owned;
     #endif
 
     #if MPACK_SETJMP
@@ -119,26 +120,8 @@ struct mpack_tree_t {
 
 // internal node child lookups
 
-static inline mpack_node_t* mpack_tree_node_at(mpack_tree_t* tree, size_t index) {
-    mpack_assert(tree->error == mpack_ok, "cannot fetch node from tree in error state %s",
-            mpack_error_to_string(tree->error));
-
-    #ifdef MPACK_MALLOC
-    if (tree->pages) {
-        mpack_assert(index < tree->page_count * MPACK_NODE_PAGE_SIZE,
-                "cannot fetch node at index %i, tree only has %i nodes",
-                (int)index, (int)tree->page_count * MPACK_NODE_PAGE_SIZE);
-        return &tree->pages[index / MPACK_NODE_PAGE_SIZE][index % MPACK_NODE_PAGE_SIZE];
-    }
-    #endif
-
-    mpack_assert(index < tree->node_count, "cannot fetch node at index %i, tree only has %i nodes",
-            (int)index, (int)tree->node_count);
-    return &tree->pool[index];
-}
-
 static inline mpack_node_t* mpack_node_child(mpack_node_t* node, size_t child) {
-    return mpack_tree_node_at(node->tree, node->data.children + child);
+    return node->data.children + child;
 }
 
 /**
@@ -161,8 +144,12 @@ void mpack_tree_init(mpack_tree_t* tree, const char* data, size_t length);
 
 /**
  * Initializes a tree by parsing the given data buffer, using the given
- * node pool to store the results. The tree must be destroyed
- * with mpack_tree_destroy(), even if parsing fails.
+ * node pool to store the results.
+ *
+ * If the data does not fit in the pool, mpack_error_too_big will be flagged
+ * on the tree.
+ *
+ * The tree must be destroyed with mpack_tree_destroy(), even if parsing fails.
  */
 void mpack_tree_init_pool(mpack_tree_t* tree, const char* data, size_t length, mpack_node_t* node_pool, size_t node_pool_count);
 
