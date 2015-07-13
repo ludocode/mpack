@@ -82,47 +82,12 @@ void mpack_tree_init_clear(mpack_tree_t* tree) {
     tree->nil_node.tag.type = mpack_type_nil;
 }
 
-MPACK_ALWAYS_INLINE bool mpack_tree_prepare_compound_type(mpack_reader_t* reader, mpack_tree_t* tree,
-        mpack_node_t* node, size_t level, size_t total, size_t* possible_nodes_left)
-{
-    if (level + 1 == MPACK_NODE_MAX_DEPTH) {
-        mpack_reader_flag_error(reader, mpack_error_too_big);
-        return false;
-    }
-
-    node->data.children = tree->node_count;
-    tree->node_count += total;
-
-    // each node is at least one byte. count these bytes now to ensure that
-    // malicious nested data is not trying to make us allocate more nodes
-    // than there are bytes in the data.
-    if (total > *possible_nodes_left) {
-        mpack_reader_flag_error(reader, mpack_error_invalid);
-        return false;
-    }
-    *possible_nodes_left -= total;
-
-    // make sure we have enough nodes
-    #ifdef MPACK_MALLOC
-    if (tree->pages) {
-        while (tree->node_count > tree->page_count * MPACK_NODE_PAGE_SIZE) {
-            if (!mpack_tree_grow(tree))
-                return false;
-        }
-    } else
-    #endif
-    {
-        if (tree->node_count > tree->pool_count) {
-            tree->node_count = tree->pool_count;
-            mpack_tree_flag_error(tree, mpack_error_too_big);
-            return false;
-        }
-    }
-
-    return true;
-}
-
 void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length) {
+
+    // This function is unfortunately huge and ugly, but there isn't
+    // a good way to break it apart without losing performance. It's
+    // well-commented to try to make up for it.
+
     if (length == 0) {
         mpack_tree_init_error(tree, mpack_error_io);
         return;
@@ -131,8 +96,9 @@ void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length) {
     mpack_reader_t reader;
     mpack_reader_init_data(&reader, data, length);
 
-    // the stack holds the amount of children left to read in
-    // each level of the tree
+    // We read nodes in a loop instead of recursively for maximum
+    // performance. The stack holds the amount of children left to
+    // read in each level of the tree.
     struct {
         size_t child;
         size_t left;
@@ -142,8 +108,17 @@ void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length) {
     } stack[MPACK_NODE_MAX_DEPTH];
     mpack_memset(stack, 0, sizeof(stack));
 
-    // count the first node now
+    // We keep track of the number of possible nodes left in the data. This
+    // is to ensure that malicious nested data is not trying to make us
+    // run out of memory by allocating too many nodes. (For example malicious
+    // data that repeats 0xDE 0xFF 0xFF would otherwise cause us to run out
+    // of memory. With this, the parser can only allocate as many nodes as
+    // there are bytes in the data. An error will be flagged immediately
+    // if and when there isn't enough data left to fully read all children
+    // of all open compound types on the stack.)
     size_t possible_nodes_left = length - 1;
+
+    // count the first node now
     tree->node_count = 1;
     size_t level = 0;
     stack[0].child = 0;
@@ -155,7 +130,7 @@ void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length) {
         ++stack[level].child;
         node->tree = tree;
 
-        // read a tag, keeping track of the number of possible nodes left. (one
+        // Read a tag, keeping track of the number of possible nodes left. (One
         // byte has already been counted for this node.)
         size_t pos = reader.pos;
         node->tag = mpack_read_tag(&reader);
@@ -166,14 +141,20 @@ void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length) {
         possible_nodes_left -= reader.pos - pos - 1;
         mpack_log("read node tag %s\n", mpack_type_to_string(mpack_node_type(node)));
 
-        // handle compound types
+        // Handle compound types
         mpack_type_t type = mpack_node_type(node);
         switch (type) {
 
             case mpack_type_array:
             case mpack_type_map: {
 
-                // calculate total elements to read
+                // Make sure we have enough room in the stack
+                if (level + 1 == MPACK_NODE_MAX_DEPTH) {
+                    mpack_reader_flag_error(&reader, mpack_error_too_big);
+                    return;
+                }
+
+                // Calculate total elements to read
                 size_t total = node->tag.v.n;
                 if (type == mpack_type_map) {
                     if ((uint64_t)total * 2 > (uint64_t)SIZE_MAX) {
@@ -183,9 +164,36 @@ void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length) {
                     total *= 2;
                 }
 
-                if (!mpack_tree_prepare_compound_type(&reader, tree, node, level, total, &possible_nodes_left))
+                // Each node is at least one byte. Count these bytes now to make
+                // sure there is enough data left.
+                if (total > possible_nodes_left) {
+                    mpack_reader_flag_error(&reader, mpack_error_invalid);
                     return;
+                }
+                possible_nodes_left -= total;
 
+                // Setup this node's children
+                node->data.children = tree->node_count;
+                tree->node_count += total;
+
+                // Make sure we have enough nodes to store the children
+                #ifdef MPACK_MALLOC
+                if (tree->pages) {
+                    while (tree->node_count > tree->page_count * MPACK_NODE_PAGE_SIZE) {
+                        if (!mpack_tree_grow(tree))
+                            return;
+                    }
+                } else
+                #endif
+                {
+                    if (tree->node_count > tree->pool_count) {
+                        tree->node_count = tree->pool_count;
+                        mpack_tree_flag_error(tree, mpack_error_too_big);
+                        return;
+                    }
+                }
+
+                // Push this node onto the stack to read its children
                 ++level;
                 stack[level].child = node->data.children;
                 stack[level].left = total;
@@ -194,7 +202,6 @@ void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length) {
                 #endif
             } break;
 
-            // str/bin/ext data
             case mpack_type_str:
             case mpack_type_bin:
             case mpack_type_ext:
@@ -212,6 +219,7 @@ void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length) {
                 break;
         }
 
+        // Pop any empty compound types from the stack
         while (level != 0 && stack[level].left == 0) {
             #if MPACK_READ_TRACKING
             stack[level].map ? mpack_done_map(&reader) : mpack_done_array(&reader);
@@ -220,8 +228,27 @@ void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length) {
         }
     } while (level != 0 && mpack_reader_error(&reader) == mpack_ok);
 
-    tree->size = length - mpack_reader_remaining(&reader, NULL);
+    size_t remaining = mpack_reader_remaining(&reader, NULL);
+    tree->size = length - remaining;
     tree->error = mpack_reader_destroy(&reader);
+
+    // This seems like a bug / performance flaw in GCC. In release the
+    // below assert would compile to:
+    //
+    //     (!(possible_nodes_left == remaining) ? __builtin_unreachable() : ((void)0))
+    //
+    // This produces identical assembly with GCC 5.1 on ARM64 under -O3, but
+    // with -O3 -flto, node parsing is over 4% slower. This should be a no-op
+    // even in -flto since the function ends here and possible_nodes_left
+    // does not escape this function.
+    //
+    // Leaving a TODO: here to explore this further. In the meantime we preproc it
+    // under MPACK_DEBUG.
+    #if MPACK_DEBUG
+    mpack_assert(possible_nodes_left == remaining,
+            "incorrect calculation of possible nodes! %i possible nodes, but %i bytes remaining",
+            (int)possible_nodes_left, (int)remaining);
+    #endif
 }
 
 #ifdef MPACK_MALLOC

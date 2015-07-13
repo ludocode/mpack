@@ -91,9 +91,15 @@ struct mpack_tree_t {
     size_t node_count;
     size_t size;
 
-    /* only one of pool or pages are used. if pool is set, it is treated
-     * as a single external unowned page of nodes. otherwise, pages are
-     * allocated as needed. */
+    /*
+     * Only one of pool or pages are used. If pool is set, it is treated
+     * as a single external unowned page of nodes. Otherwise, pages are
+     * allocated as needed.
+     *
+     * Note that an array or map contains the node index of the first child
+     * rather than a pointer to it. This is so that pages can be a fixed
+     * size, and a node's children can span multiple pages.
+     */
 
     mpack_node_t* pool;
     size_t pool_count;
