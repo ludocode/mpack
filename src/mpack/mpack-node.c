@@ -40,7 +40,7 @@ mpack_node_t* mpack_tree_root(mpack_tree_t* tree) {
 }
 
 #ifdef MPACK_MALLOC
-static bool mpack_tree_grow(mpack_tree_t* tree) {
+static mpack_error_t mpack_tree_grow(mpack_tree_t* tree) {
 
     // grow page array if needed
     if (tree->page_count == tree->page_capacity) {
@@ -51,10 +51,8 @@ static bool mpack_tree_grow(mpack_tree_t* tree) {
         #else
         mpack_node_t** new_pages = (mpack_node_t**)MPACK_MALLOC(sizeof(mpack_node_t*) * new_capacity);
         #endif
-        if (new_pages == NULL) {
-            mpack_tree_flag_error(tree, mpack_error_memory);
-            return false;
-        }
+        if (new_pages == NULL)
+            return mpack_error_memory;
         #ifndef MPACK_REALLOC
         mpack_memcpy(new_pages, tree->pages, tree->page_count * sizeof(mpack_node_t*));
         MPACK_FREE(tree->pages);
@@ -66,13 +64,11 @@ static bool mpack_tree_grow(mpack_tree_t* tree) {
 
     // allocate new page
     tree->pages[tree->page_count] = (mpack_node_t*)MPACK_MALLOC(sizeof(mpack_node_t) * MPACK_NODE_PAGE_SIZE);
-    if (tree->pages[tree->page_count] == NULL) {
-        mpack_tree_flag_error(tree, mpack_error_memory);
-        return false;
-    }
+    if (tree->pages[tree->page_count] == NULL)
+        return mpack_error_memory;
     ++tree->page_count;
 
-    return true;
+    return mpack_ok;
 }
 #endif
 
@@ -93,6 +89,9 @@ void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length) {
         return;
     }
 
+    // Initialize the reader. The rest of this function flags errors
+    // on the reader, not the tree. We pick up the reader's error
+    // state at the end of parsing.
     mpack_reader_t reader;
     mpack_reader_init_data(&reader, data, length);
 
@@ -151,7 +150,7 @@ void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length) {
                 // Make sure we have enough room in the stack
                 if (level + 1 == MPACK_NODE_MAX_DEPTH) {
                     mpack_reader_flag_error(&reader, mpack_error_too_big);
-                    return;
+                    break;
                 }
 
                 // Calculate total elements to read
@@ -159,7 +158,7 @@ void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length) {
                 if (type == mpack_type_map) {
                     if ((uint64_t)total * 2 > (uint64_t)SIZE_MAX) {
                         mpack_reader_flag_error(&reader, mpack_error_too_big);
-                        return;
+                        break;
                     }
                     total *= 2;
                 }
@@ -168,7 +167,7 @@ void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length) {
                 // sure there is enough data left.
                 if (total > possible_nodes_left) {
                     mpack_reader_flag_error(&reader, mpack_error_invalid);
-                    return;
+                    break;
                 }
                 possible_nodes_left -= total;
 
@@ -180,16 +179,19 @@ void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length) {
                 #ifdef MPACK_MALLOC
                 if (tree->pages) {
                     while (tree->node_count > tree->page_count * MPACK_NODE_PAGE_SIZE) {
-                        if (!mpack_tree_grow(tree))
-                            return;
+                        mpack_error_t error = mpack_tree_grow(tree);
+                        if (error != mpack_ok) {
+                            mpack_reader_flag_error(&reader, mpack_error_too_big);
+                            break;
+                        }
                     }
                 } else
                 #endif
                 {
                     if (tree->node_count > tree->pool_count) {
                         tree->node_count = tree->pool_count;
-                        mpack_tree_flag_error(tree, mpack_error_too_big);
-                        return;
+                        mpack_reader_flag_error(&reader, mpack_error_too_big);
+                        break;
                     }
                 }
 
@@ -207,7 +209,7 @@ void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length) {
             case mpack_type_ext:
                 if (node->tag.v.l > possible_nodes_left) {
                     mpack_reader_flag_error(&reader, mpack_error_invalid);
-                    return;
+                    break;
                 }
                 possible_nodes_left -= node->tag.v.l;
 
