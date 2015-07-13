@@ -427,18 +427,26 @@ void mpack_done_bin(mpack_reader_t* reader);
 /**
  * @fn mpack_done_ext(mpack_reader_t* reader)
  *
- * Finishes reading an extended binary data blob.
+ * Finishes reading an extended type binary data blob.
  *
  * This will track reads to ensure that the correct number of bytes are read.
  */
 void mpack_done_ext(mpack_reader_t* reader);
 
+/**
+ * Finishes reading the given type.
+ *
+ * This will track reads to ensure that the correct number of elements
+ * or bytes are read.
+ */
+void mpack_done_type(mpack_reader_t* reader, mpack_type_t type);
 #else
 static inline void mpack_done_array(mpack_reader_t* reader) {MPACK_UNUSED(reader);}
 static inline void mpack_done_map(mpack_reader_t* reader) {MPACK_UNUSED(reader);}
 static inline void mpack_done_str(mpack_reader_t* reader) {MPACK_UNUSED(reader);}
 static inline void mpack_done_bin(mpack_reader_t* reader) {MPACK_UNUSED(reader);}
 static inline void mpack_done_ext(mpack_reader_t* reader) {MPACK_UNUSED(reader);}
+static inline void mpack_done_type(mpack_reader_t* reader, mpack_type_t type) {MPACK_UNUSED(reader); MPACK_UNUSED(type);}
 #endif
 
 /**

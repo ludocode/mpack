@@ -487,17 +487,26 @@ void mpack_finish_str(mpack_writer_t* writer);
 void mpack_finish_bin(mpack_writer_t* writer);
 
 /**
- * Finishes writing an extension type.
+ * Finishes writing an extended type binary data blob.
  *
  * This will track writes to ensure that the correct number of bytes are written.
  */
 void mpack_finish_ext(mpack_writer_t* writer);
+
+/**
+ * Finishes writing the given compound type.
+ *
+ * This will track writes to ensure that the correct number of elements
+ * or bytes are written.
+ */
+void mpack_finish_type(mpack_writer_t* writer, mpack_type_t type);
 #else
 static inline void mpack_finish_array(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
 static inline void mpack_finish_map(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
 static inline void mpack_finish_str(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
 static inline void mpack_finish_bin(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
 static inline void mpack_finish_ext(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
+static inline void mpack_finish_type(mpack_writer_t* writer, mpack_type_t type) {MPACK_UNUSED(writer); MPACK_UNUSED(type);}
 #endif
 
 /**

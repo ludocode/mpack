@@ -167,69 +167,46 @@ void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length) {
         mpack_log("read node tag %s\n", mpack_type_to_string(mpack_node_type(node)));
 
         // handle compound types
-        switch (mpack_node_type(node)) {
+        mpack_type_t type = mpack_node_type(node);
+        switch (type) {
 
-            // array
-            case mpack_type_array: {
-                size_t total = node->tag.v.n;
-                if (!mpack_tree_prepare_compound_type(&reader, tree, node, level, total, &possible_nodes_left))
-                    return;
-                ++level;
-                stack[level].child = node->data.children;
-                stack[level].left = total;
-                #if MPACK_READ_TRACKING
-                stack[level].map = false;
-                #endif
-            } break;
-
-            // map
+            case mpack_type_array:
             case mpack_type_map: {
-                if ((uint64_t)node->tag.v.n * 2 > (uint64_t)SIZE_MAX) {
-                    mpack_reader_flag_error(&reader, mpack_error_too_big);
-                    return;
+
+                // calculate total elements to read
+                size_t total = node->tag.v.n;
+                if (type == mpack_type_map) {
+                    if ((uint64_t)total * 2 > (uint64_t)SIZE_MAX) {
+                        mpack_reader_flag_error(&reader, mpack_error_too_big);
+                        return;
+                    }
+                    total *= 2;
                 }
-                size_t total = node->tag.v.n * 2;
+
                 if (!mpack_tree_prepare_compound_type(&reader, tree, node, level, total, &possible_nodes_left))
                     return;
+
                 ++level;
                 stack[level].child = node->data.children;
                 stack[level].left = total;
                 #if MPACK_READ_TRACKING
-                stack[level].map = true;
+                stack[level].map = (type == mpack_type_map);
                 #endif
             } break;
 
             // str/bin/ext data
             case mpack_type_str:
             case mpack_type_bin:
-            case mpack_type_ext: {
-                size_t total = node->tag.v.l;
-
-                if (total > possible_nodes_left) {
+            case mpack_type_ext:
+                if (node->tag.v.l > possible_nodes_left) {
                     mpack_reader_flag_error(&reader, mpack_error_invalid);
                     return;
                 }
-                possible_nodes_left -= total;
+                possible_nodes_left -= node->tag.v.l;
 
-                node->data.bytes = mpack_read_bytes_inplace(&reader, total);
-
-                #if MPACK_READ_TRACKING
-                switch (node->tag.type) {
-                    case mpack_type_str:
-                        mpack_done_str(&reader);
-                        break;
-                    case mpack_type_bin:
-                        mpack_done_bin(&reader);
-                        break;
-                    case mpack_type_ext:
-                        mpack_done_ext(&reader);
-                        break;
-                    default:
-                        mpack_assert(0, "unreachable");
-                        break;
-                }
-                #endif
-            } break;
+                node->data.bytes = mpack_read_bytes_inplace(&reader, node->tag.v.l);
+                mpack_done_type(&reader, node->tag.type);
+                break;
 
             default:
                 break;

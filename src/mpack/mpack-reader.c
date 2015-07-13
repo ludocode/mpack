@@ -644,6 +644,10 @@ void mpack_done_bin(mpack_reader_t* reader) {
 void mpack_done_ext(mpack_reader_t* reader) {
     MPACK_READER_TRACK(reader, mpack_track_pop(&reader->track, mpack_type_ext));
 }
+
+void mpack_done_type(mpack_reader_t* reader, mpack_type_t type) {
+    MPACK_READER_TRACK(reader, mpack_track_pop(&reader->track, type));
+}
 #endif
 
 #if MPACK_DEBUG && MPACK_STDIO && MPACK_SETJMP && !MPACK_NO_PRINT

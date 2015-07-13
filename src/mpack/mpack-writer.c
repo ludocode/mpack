@@ -662,6 +662,10 @@ void mpack_finish_bin(mpack_writer_t* writer) {
 void mpack_finish_ext(mpack_writer_t* writer) {
     MPACK_WRITER_TRACK(writer, mpack_track_pop(&writer->track, mpack_type_ext));
 }
+
+void mpack_finish_type(mpack_writer_t* writer, mpack_type_t type) {
+    MPACK_WRITER_TRACK(writer, mpack_track_pop(&writer->track, type));
+}
 #endif
 
 void mpack_start_array(mpack_writer_t* writer, uint32_t count) {
