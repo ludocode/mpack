@@ -186,14 +186,14 @@
 #define MPACK_NODE_PAGE_SIZE (4096 / sizeof(mpack_node_t))
 
 /**
- * The nesting limit for array/map nodes to prevent stack overflows and
- * out-of-memory situations from malicious data.
+ * The initial depth for the node parser. When MPACK_MALLOC is available,
+ * the node parser has no practical depth limit, and it is not recursive
+ * so there is no risk of overflowing the call stack.
  *
- * This is used to pre-allocate space for read/write tracking and for stack
- * space during Node tree parsing, so it should stay relatively small. If
- * you have a need for removing the depth limit, let me know.
+ * If MPACK_MALLOC is not available, this is also the maximum depth since
+ * the node stack cannot grow.
  */
-#define MPACK_NODE_MAX_DEPTH 128
+#define MPACK_NODE_INITIAL_DEPTH 32
 
 
 #endif

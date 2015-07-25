@@ -40,6 +40,7 @@ static void test_example_node() {
         return;
     }
     #endif
+    test_assert(mpack_tree_error(&tree) == mpack_ok);
 
     mpack_node_t* map = mpack_tree_root(&tree);
     test_assert(true == mpack_node_bool(mpack_node_map_cstr(map, "compact")));
@@ -636,6 +637,37 @@ static void test_node_read_data(void) {
     test_tree_destroy_noerror(&tree);
 }
 
+static void test_node_read_deep_stack(void) {
+    static const int depth = 1200;
+    char buf[4096];
+
+    uint8_t* p = (uint8_t*)buf;
+    for (int i = 0; i < depth; ++i) {
+        *p++ = 0x81; // one pair map
+        *p++ = 0x04; // key four
+        *p++ = 0x91; // value one element array
+    }
+    *p++ = 0x07; // final array value seven
+
+    mpack_tree_t tree;
+    test_tree_init(&tree, buf, (size_t)(p - (uint8_t*)buf));
+
+    #ifdef MPACK_MALLOC
+    mpack_node_t* node = mpack_tree_root(&tree);
+    for (int i = 0; i < depth; ++i) {
+        test_assert(mpack_tree_error(&tree) == mpack_ok, "error at depth %i", i);
+        test_assert(mpack_node_map_count(node) == 1, "error at depth %i", i);
+        test_assert(mpack_node_u8(mpack_node_map_key_at(node, 0)) == 4, "error at depth %i", i);
+        test_assert(mpack_node_array_length(mpack_node_map_value_at(node, 0)) == 1, "error at depth %i", i);
+        node = mpack_node_array_at(mpack_node_map_value_at(node, 0), 0);
+    }
+    test_assert(mpack_node_u8(node) == 7, "error in final node");
+    test_tree_destroy_noerror(&tree);
+    #else
+    test_tree_destroy_error(&tree, mpack_error_too_big);
+    #endif
+}
+
 void test_node(void) {
     test_example_node();
 
@@ -662,6 +694,7 @@ void test_node(void) {
     test_node_read_map_search();
     test_node_read_compound_errors();
     test_node_read_data();
+    test_node_read_deep_stack();
 }
 
 #endif
