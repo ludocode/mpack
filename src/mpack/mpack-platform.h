@@ -214,6 +214,20 @@ size_t mpack_strlen(const char *s);
 
 
 
+/* Implement realloc if unavailable */
+#ifdef MPACK_MALLOC
+    #ifdef MPACK_REALLOC
+    static inline void* mpack_realloc(void* old_ptr, size_t used_size, size_t new_size) {
+        MPACK_UNUSED(used_size);
+        return MPACK_REALLOC(old_ptr, new_size);
+    }
+    #else
+    void* mpack_realloc(void* old_ptr, size_t used_size, size_t new_size);
+    #endif
+#endif
+
+
+
 /**
  * @}
  */

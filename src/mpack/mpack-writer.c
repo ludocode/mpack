@@ -86,19 +86,11 @@ static void mpack_growable_writer_flush(mpack_writer_t* writer, const char* data
     if (new_size > writer->size) {
         mpack_log("flush growing from %i to %i\n", (int)writer->size, (int)new_size);
 
-        #ifdef MPACK_REALLOC
-        char* new_buffer = (char*)MPACK_REALLOC(writer->buffer, new_size);
-        #else
-        char* new_buffer = (char*)MPACK_MALLOC(new_size);
-        #endif
+        char* new_buffer = (char*)mpack_realloc(writer->buffer, count, new_size);
         if (new_buffer == NULL) {
             mpack_writer_flag_error(writer, mpack_error_memory);
             return;
         }
-        #ifndef MPACK_REALLOC
-        mpack_memcpy(new_buffer, writer->buffer, count);
-        MPACK_FREE(writer->buffer);
-        #endif
 
         writer->buffer = new_buffer;
         writer->size = new_size;
@@ -122,20 +114,12 @@ static void mpack_growable_writer_teardown(mpack_writer_t* writer) {
         // shrink the buffer to an appropriate size if the data is
         // much smaller than the buffer
         if (writer->used < writer->size / 2) {
-            #ifdef MPACK_REALLOC
-            char* buffer = (char*)MPACK_REALLOC(writer->buffer, writer->used);
-            #else
-            char* buffer = (char*)MPACK_MALLOC(writer->used);
-            #endif
+            char* buffer = (char*)mpack_realloc(writer->buffer, writer->used, writer->used);
             if (!buffer) {
                 MPACK_FREE(writer->buffer);
                 mpack_writer_flag_error(writer, mpack_error_memory);
                 return;
             }
-            #ifndef MPACK_REALLOC
-            memcpy(buffer, writer->buffer, writer->used);
-            MPACK_FREE(writer->buffer);
-            #endif
             writer->buffer = buffer;
             writer->size = writer->used;
         }
