@@ -315,7 +315,7 @@ MPACK_ALWAYS_INLINE void mpack_store_native_u64_at(char* p, uint64_t val) {
     u[7] = (uint8_t)( val        & 0xFF);
 }
 
-static void mpack_write_native_u8(mpack_writer_t* writer, uint8_t val) {
+static inline void mpack_write_native_u8(mpack_writer_t* writer, uint8_t val) {
     if (writer->size - writer->used >= sizeof(val)) {
         mpack_store_native_u8_at(writer->buffer + writer->used, val);
         writer->used += sizeof(val);
@@ -326,7 +326,7 @@ static void mpack_write_native_u8(mpack_writer_t* writer, uint8_t val) {
     }
 }
 
-static void mpack_write_native_u16(mpack_writer_t* writer, uint16_t val) {
+static inline void mpack_write_native_u16(mpack_writer_t* writer, uint16_t val) {
     if (writer->size - writer->used >= sizeof(val)) {
         mpack_store_native_u16_at(writer->buffer + writer->used, val);
         writer->used += sizeof(val);
@@ -337,7 +337,7 @@ static void mpack_write_native_u16(mpack_writer_t* writer, uint16_t val) {
     }
 }
 
-static void mpack_write_native_u32(mpack_writer_t* writer, uint32_t val) {
+static inline void mpack_write_native_u32(mpack_writer_t* writer, uint32_t val) {
     if (writer->size - writer->used >= sizeof(val)) {
         mpack_store_native_u32_at(writer->buffer + writer->used, val);
         writer->used += sizeof(val);
@@ -348,7 +348,7 @@ static void mpack_write_native_u32(mpack_writer_t* writer, uint32_t val) {
     }
 }
 
-static void mpack_write_native_u64(mpack_writer_t* writer, uint64_t val) {
+static inline void mpack_write_native_u64(mpack_writer_t* writer, uint64_t val) {
     if (writer->size - writer->used >= sizeof(val)) {
         mpack_store_native_u64_at(writer->buffer + writer->used, val);
         writer->used += sizeof(val);
@@ -365,7 +365,7 @@ static inline void mpack_write_native_i32 (mpack_writer_t* writer,  int32_t val)
 static inline void mpack_write_native_i64 (mpack_writer_t* writer,  int64_t val) {mpack_write_native_u64 (writer, (uint64_t)val);}
 
 
-static void mpack_write_native_float(mpack_writer_t* writer, float value) {
+static inline void mpack_write_native_float(mpack_writer_t* writer, float value) {
     union {
         float f;
         uint32_t i;
@@ -374,7 +374,7 @@ static void mpack_write_native_float(mpack_writer_t* writer, float value) {
     mpack_write_native_u32(writer, u.i);
 }
 
-static void mpack_write_native_double(mpack_writer_t* writer, double value) {
+static inline void mpack_write_native_double(mpack_writer_t* writer, double value) {
     union {
         double d;
         uint64_t i;
