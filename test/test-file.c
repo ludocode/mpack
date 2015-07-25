@@ -76,7 +76,7 @@ static void test_file_node(void) {
     test_assert(mpack_tree_error(&tree) == mpack_ok, "file tree parsing failed: %s",
             mpack_error_to_string(mpack_tree_error(&tree)));
 
-    mpack_node_t* root = mpack_tree_root(&tree);
+    mpack_node_t root = mpack_tree_root(&tree);
     test_assert(mpack_node_map_count(root) == 2, "map contains %i keys", (int)mpack_node_map_count(root));
     test_assert(mpack_node_i8(mpack_node_map_cstr(root, "schema")) == 0, "checking schema failed");
     test_assert(mpack_node_bool(mpack_node_map_cstr(root, "compact")) == true, "checking compact failed");

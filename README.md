@@ -26,7 +26,7 @@ The Node API parses a chunk of MessagePack data into an immutable tree of dynami
 // parse a file into a node tree
 mpack_tree_t tree;
 mpack_tree_init_file(&tree, "homepage-example.mp", 0);
-mpack_node_t* root = mpack_tree_root(&tree);
+mpack_node_t root = mpack_tree_root(&tree);
 
 // extract the example data on the msgpack homepage
 bool compact = mpack_node_bool(mpack_node_map_cstr(root, "compact"));

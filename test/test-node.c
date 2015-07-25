@@ -30,9 +30,8 @@ static void test_example_node() {
 
     // this is a node pool test even if we have malloc. the rest of the
     // non-simple tests use paging unless malloc is unavailable.
-    mpack_node_t nodes[128];
-    mpack_tree_init_pool(&tree, test, sizeof(test) - 1, nodes, sizeof(nodes) / sizeof(*nodes));
-    //mpack_node_print(mpack_tree_root(&tree));
+    mpack_node_data_t pool[128];
+    mpack_tree_init_pool(&tree, test, sizeof(test) - 1, pool, sizeof(pool) / sizeof(*pool));
 
     #if MPACK_SETJMP
     if (MPACK_TREE_SETJMP(&tree)) {
@@ -42,7 +41,7 @@ static void test_example_node() {
     #endif
     test_assert(mpack_tree_error(&tree) == mpack_ok);
 
-    mpack_node_t* map = mpack_tree_root(&tree);
+    mpack_node_t map = mpack_tree_root(&tree);
     test_assert(true == mpack_node_bool(mpack_node_map_cstr(map, "compact")));
     test_assert(0 == mpack_node_u8(mpack_node_map_cstr(map, "schema")));
 
@@ -50,7 +49,7 @@ static void test_example_node() {
 }
 
 static void test_node_read_uint_fixnum() {
-    mpack_node_t nodes[128];
+    mpack_node_data_t pool[128];
 
     // positive fixnums with u8
     test_simple_tree_read("\x00", 0 == mpack_node_u8(node));
@@ -87,7 +86,7 @@ static void test_node_read_uint_fixnum() {
 }
 
 static void test_node_read_uint_signed_fixnum() {
-    mpack_node_t nodes[128];
+    mpack_node_data_t pool[128];
 
     // positive fixnums with i8
     test_simple_tree_read("\x00", 0 == mpack_node_i8(node));
@@ -124,7 +123,7 @@ static void test_node_read_uint_signed_fixnum() {
 }
 
 static void test_node_read_negative_fixnum() {
-    mpack_node_t nodes[128];
+    mpack_node_data_t pool[128];
 
     // negative fixnums with i8
     test_simple_tree_read("\xff", -1 == mpack_node_i8(node));
@@ -153,7 +152,7 @@ static void test_node_read_negative_fixnum() {
 }
 
 static void test_node_read_uint() {
-    mpack_node_t nodes[128];
+    mpack_node_data_t pool[128];
 
     // positive signed into u8
     test_simple_tree_read("\xd0\x7f", 0x7f == mpack_node_u8(node));
@@ -199,7 +198,7 @@ static void test_node_read_uint() {
 }
 
 static void test_node_read_uint_signed() {
-    mpack_node_t nodes[128];
+    mpack_node_data_t pool[128];
 
     test_simple_tree_read("\xcc\x80", 0x80 == mpack_node_i16(node));
     test_simple_tree_read("\xcc\x80", 0x80 == mpack_node_i32(node));
@@ -226,7 +225,7 @@ static void test_node_read_uint_signed() {
 }
 
 static void test_node_read_int() {
-    mpack_node_t nodes[128];
+    mpack_node_data_t pool[128];
 
     test_simple_tree_read("\xd0\xdf", -33 == mpack_node_i8(node));
     test_simple_tree_read("\xd0\xdf", -33 == mpack_node_i16(node));
@@ -259,7 +258,7 @@ static void test_node_read_int() {
 }
 
 static void test_node_read_ints_dynamic_int() {
-    mpack_node_t nodes[128];
+    mpack_node_data_t pool[128];
 
     // we don't bother to test with different signed/unsigned value
     // functions; they are tested for equality in test-value.c
@@ -303,7 +302,7 @@ static void test_node_read_ints_dynamic_int() {
 }
 
 static void test_node_read_int_bounds() {
-    mpack_node_t nodes[128];
+    mpack_node_data_t pool[128];
 
     test_simple_tree_read_error("\xd1\xff\x7f", 0 == mpack_node_i8(node), mpack_error_type); 
     test_simple_tree_read_error("\xd1\x80\x00", 0 == mpack_node_i8(node), mpack_error_type);
@@ -325,7 +324,7 @@ static void test_node_read_int_bounds() {
 }
 
 static void test_node_read_uint_bounds() {
-    mpack_node_t nodes[128];
+    mpack_node_data_t pool[128];
 
     test_simple_tree_read_error("\xcd\x01\x00", 0 == mpack_node_u8(node), mpack_error_type);
     test_simple_tree_read_error("\xcd\xff\xff", 0 == mpack_node_u8(node), mpack_error_type);
@@ -343,7 +342,7 @@ static void test_node_read_uint_bounds() {
 }
 
 static void test_node_read_misc() {
-    mpack_node_t nodes[128];
+    mpack_node_data_t pool[128];
 
     test_simple_tree_read("\xc0", (mpack_node_nil(node), true));
 
@@ -357,7 +356,7 @@ static void test_node_read_misc() {
 }
 
 static void test_node_read_floats() {
-    mpack_node_t nodes[128];
+    mpack_node_data_t pool[128];
 
     // these are some very simple floats that don't really test IEEE 742 conformance;
     // this section could use some improvement
@@ -393,7 +392,7 @@ static void test_node_read_floats() {
 }
 
 static void test_node_read_bad_type() {
-    mpack_node_t nodes[128];
+    mpack_node_data_t pool[128];
 
     // test that non-compound node functions correctly handle badly typed data
     test_simple_tree_read_error("\xc2", (mpack_node_nil(node), true), mpack_error_type);
@@ -413,7 +412,7 @@ static void test_node_read_bad_type() {
 }
 
 static void test_node_read_pre_error() {
-    mpack_node_t nodes[128];
+    mpack_node_data_t pool[128];
 
     // test that all node functions correctly handle pre-existing errors
 
@@ -435,16 +434,16 @@ static void test_node_read_pre_error() {
     test_simple_tree_read_error("", 0.0 == mpack_node_double_strict(node), mpack_error_io);
 
     test_simple_tree_read_error("", 0 == mpack_node_array_length(node), mpack_error_io);
-    test_simple_tree_read_error("", mpack_node_array_at(node, 0), mpack_error_io);
+    test_simple_tree_read_error("", &tree.nil_node == mpack_node_array_at(node, 0).data, mpack_error_io);
 
     test_simple_tree_read_error("", 0 == mpack_node_map_count(node), mpack_error_io);
-    test_simple_tree_read_error("", mpack_node_map_key_at(node, 0), mpack_error_io);
-    test_simple_tree_read_error("", mpack_node_map_value_at(node, 0), mpack_error_io);
+    test_simple_tree_read_error("", &tree.nil_node == mpack_node_map_key_at(node, 0).data, mpack_error_io);
+    test_simple_tree_read_error("", &tree.nil_node == mpack_node_map_value_at(node, 0).data, mpack_error_io);
 
-    test_simple_tree_read_error("", mpack_node_map_uint(node, 1), mpack_error_io);
-    test_simple_tree_read_error("", mpack_node_map_int(node, -1), mpack_error_io);
-    test_simple_tree_read_error("", mpack_node_map_str(node, "test", 4), mpack_error_io);
-    test_simple_tree_read_error("", mpack_node_map_cstr(node, "test"), mpack_error_io);
+    test_simple_tree_read_error("", &tree.nil_node == mpack_node_map_uint(node, 1).data, mpack_error_io);
+    test_simple_tree_read_error("", &tree.nil_node == mpack_node_map_int(node, -1).data, mpack_error_io);
+    test_simple_tree_read_error("", &tree.nil_node == mpack_node_map_str(node, "test", 4).data, mpack_error_io);
+    test_simple_tree_read_error("", &tree.nil_node == mpack_node_map_cstr(node, "test").data, mpack_error_io);
     test_simple_tree_read_error("", false == mpack_node_map_contains_str(node, "test", 4), mpack_error_io);
     test_simple_tree_read_error("", false == mpack_node_map_contains_cstr(node, "test"), mpack_error_io);
 
@@ -464,7 +463,7 @@ static void test_node_read_array() {
     static const char test[] = "\x93\x90\x91\xc3\x92\xc3\xc3";
     mpack_tree_t tree;
     test_tree_init(&tree, test, sizeof(test) - 1);
-    mpack_node_t* root = mpack_tree_root(&tree);
+    mpack_node_t root = mpack_tree_root(&tree);
 
     test_assert(mpack_type_array == mpack_node_type(root));
     test_assert(3 == mpack_node_array_length(root));
@@ -496,7 +495,7 @@ static void test_node_read_map() {
     static const char test[] = "\x82\x80\x81\x01\x02\x81\x03\x04\xc3";
     mpack_tree_t tree;
     test_tree_init(&tree, test, sizeof(test) - 1);
-    mpack_node_t* root = mpack_tree_root(&tree);
+    mpack_node_t root = mpack_tree_root(&tree);
 
     test_assert(mpack_type_map == mpack_node_type(root));
     test_assert(2 == mpack_node_map_count(root));
@@ -528,7 +527,7 @@ static void test_node_read_map_search() {
     static const char test[] = "\x85\x00\x01\xd0\x7f\x02\xfe\x03\xa5""alice\x04\xa3""bob\x05";
     mpack_tree_t tree;
     test_tree_init(&tree, test, sizeof(test) - 1);
-    mpack_node_t* root = mpack_tree_root(&tree);
+    mpack_node_t root = mpack_tree_root(&tree);
 
     test_assert(1 == mpack_node_i32(mpack_node_map_uint(root, 0)));
     test_assert(1 == mpack_node_i32(mpack_node_map_int(root, 0)));
@@ -546,23 +545,23 @@ static void test_node_read_map_search() {
 }
 
 static void test_node_read_compound_errors(void) {
-    mpack_node_t nodes[128];
+    mpack_node_data_t pool[128];
 
     test_simple_tree_read_error("\x00", 0 == mpack_node_array_length(node), mpack_error_type);
-    test_simple_tree_read_error("\x00", mpack_node_array_at(node, 0), mpack_error_type);
     test_simple_tree_read_error("\x00", 0 == mpack_node_map_count(node), mpack_error_type);
-    test_simple_tree_read_error("\x00", mpack_node_map_key_at(node, 0), mpack_error_type);
-    test_simple_tree_read_error("\x00", mpack_node_map_value_at(node, 0), mpack_error_type);
+    test_simple_tree_read_error("\x00", &tree.nil_node == mpack_node_array_at(node, 0).data, mpack_error_type);
+    test_simple_tree_read_error("\x00", &tree.nil_node == mpack_node_map_key_at(node, 0).data, mpack_error_type);
+    test_simple_tree_read_error("\x00", &tree.nil_node == mpack_node_map_value_at(node, 0).data, mpack_error_type);
 
-    test_simple_tree_read_error("\x80", mpack_node_map_int(node, -1), mpack_error_data);
-    test_simple_tree_read_error("\x80", mpack_node_map_uint(node, 1), mpack_error_data);
-    test_simple_tree_read_error("\x80", mpack_node_map_str(node, "test", 4), mpack_error_data);
-    test_simple_tree_read_error("\x80", mpack_node_map_cstr(node, "test"), mpack_error_data);
+    test_simple_tree_read_error("\x80", &tree.nil_node == mpack_node_map_int(node, -1).data, mpack_error_data);
+    test_simple_tree_read_error("\x80", &tree.nil_node == mpack_node_map_uint(node, 1).data, mpack_error_data);
+    test_simple_tree_read_error("\x80", &tree.nil_node == mpack_node_map_str(node, "test", 4).data, mpack_error_data);
+    test_simple_tree_read_error("\x80", &tree.nil_node == mpack_node_map_cstr(node, "test").data, mpack_error_data);
 
-    test_simple_tree_read_error("\x00", mpack_node_map_int(node, -1), mpack_error_type);
-    test_simple_tree_read_error("\x00", mpack_node_map_uint(node, 1), mpack_error_type);
-    test_simple_tree_read_error("\x00", mpack_node_map_str(node, "test", 4), mpack_error_type);
-    test_simple_tree_read_error("\x00", mpack_node_map_cstr(node, "test"), mpack_error_type);
+    test_simple_tree_read_error("\x00", &tree.nil_node == mpack_node_map_int(node, -1).data, mpack_error_type);
+    test_simple_tree_read_error("\x00", &tree.nil_node == mpack_node_map_uint(node, 1).data, mpack_error_type);
+    test_simple_tree_read_error("\x00", &tree.nil_node == mpack_node_map_str(node, "test", 4).data, mpack_error_type);
+    test_simple_tree_read_error("\x00", &tree.nil_node == mpack_node_map_cstr(node, "test").data, mpack_error_type);
     test_simple_tree_read_error("\x00", false == mpack_node_map_contains_str(node, "test", 4), mpack_error_type);
     test_simple_tree_read_error("\x00", false == mpack_node_map_contains_cstr(node, "test"), mpack_error_type);
 
@@ -599,9 +598,9 @@ static void test_node_read_data(void) {
     static const char test[] = "\x93\xa5""alice\xc4\x03""bob\xd6\x07""carl";
     mpack_tree_t tree;
     test_tree_init(&tree, test, sizeof(test) - 1);
-    mpack_node_t* root = mpack_tree_root(&tree);
+    mpack_node_t root = mpack_tree_root(&tree);
 
-    mpack_node_t* alice = mpack_node_array_at(root, 0);
+    mpack_node_t alice = mpack_node_array_at(root, 0);
     test_assert(5 == mpack_node_data_len(alice));
     test_assert(5 == mpack_node_strlen(alice));
     test_assert(NULL != mpack_node_data(alice));
@@ -619,7 +618,7 @@ static void test_node_read_data(void) {
     free(alice_alloc);
     #endif
 
-    mpack_node_t* bob = mpack_node_array_at(root, 1);
+    mpack_node_t bob = mpack_node_array_at(root, 1);
     test_assert(3 == mpack_node_data_len(bob));
     test_assert(0 == memcmp("bob", mpack_node_data(bob), 3));
 
@@ -629,7 +628,7 @@ static void test_node_read_data(void) {
     free(bob_alloc);
     #endif
 
-    mpack_node_t* carl = mpack_node_array_at(root, 2);
+    mpack_node_t carl = mpack_node_array_at(root, 2);
     test_assert(7 == mpack_node_exttype(carl));
     test_assert(4 == mpack_node_data_len(carl));
     test_assert(0 == memcmp("carl", mpack_node_data(carl), 4));
@@ -653,7 +652,7 @@ static void test_node_read_deep_stack(void) {
     test_tree_init(&tree, buf, (size_t)(p - (uint8_t*)buf));
 
     #ifdef MPACK_MALLOC
-    mpack_node_t* node = mpack_tree_root(&tree);
+    mpack_node_t node = mpack_tree_root(&tree);
     for (int i = 0; i < depth; ++i) {
         test_assert(mpack_tree_error(&tree) == mpack_ok, "error at depth %i", i);
         test_assert(mpack_node_map_count(node) == 1, "error at depth %i", i);
