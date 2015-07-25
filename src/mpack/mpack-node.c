@@ -702,13 +702,13 @@ mpack_node_t mpack_node_map_int_impl(mpack_node_t node, int64_t num, bool option
     }
 
     for (size_t i = 0; i < node.data->tag.v.n; ++i) {
-        mpack_node_t key = mpack_node_child(node, i * 2);
-        mpack_node_t value = mpack_node_child(node, i * 2 + 1);
+        mpack_node_data_t* key = mpack_node_child(node, i * 2);
+        mpack_node_data_t* value = mpack_node_child(node, i * 2 + 1);
 
-        if (key.data->tag.type == mpack_type_int && key.data->tag.v.i == num)
-            return value;
-        if (key.data->tag.type == mpack_type_uint && num >= 0 && key.data->tag.v.u == (uint64_t)num)
-            return value;
+        if (key->tag.type == mpack_type_int && key->tag.v.i == num)
+            return mpack_node(node.tree, value);
+        if (key->tag.type == mpack_type_uint && num >= 0 && key->tag.v.u == (uint64_t)num)
+            return mpack_node(node.tree, value);
     }
 
     if (!optional)
@@ -726,13 +726,13 @@ mpack_node_t mpack_node_map_uint_impl(mpack_node_t node, uint64_t num, bool opti
     }
 
     for (size_t i = 0; i < node.data->tag.v.n; ++i) {
-        mpack_node_t key = mpack_node_child(node, i * 2);
-        mpack_node_t value = mpack_node_child(node, i * 2 + 1);
+        mpack_node_data_t* key = mpack_node_child(node, i * 2);
+        mpack_node_data_t* value = mpack_node_child(node, i * 2 + 1);
 
-        if (key.data->tag.type == mpack_type_uint && key.data->tag.v.u == num)
-            return value;
-        if (key.data->tag.type == mpack_type_int && key.data->tag.v.i >= 0 && (uint64_t)key.data->tag.v.i == num)
-            return value;
+        if (key->tag.type == mpack_type_uint && key->tag.v.u == num)
+            return mpack_node(node.tree, value);
+        if (key->tag.type == mpack_type_int && key->tag.v.i >= 0 && (uint64_t)key->tag.v.i == num)
+            return mpack_node(node.tree, value);
     }
 
     if (!optional)
@@ -750,11 +750,11 @@ mpack_node_t mpack_node_map_str_impl(mpack_node_t node, const char* str, size_t 
     }
 
     for (size_t i = 0; i < node.data->tag.v.n; ++i) {
-        mpack_node_t key = mpack_node_child(node, i * 2);
-        mpack_node_t value = mpack_node_child(node, i * 2 + 1);
+        mpack_node_data_t* key = mpack_node_child(node, i * 2);
+        mpack_node_data_t* value = mpack_node_child(node, i * 2 + 1);
 
-        if (key.data->tag.type == mpack_type_str && key.data->tag.v.l == length && mpack_memcmp(str, key.data->content.bytes, length) == 0)
-            return value;
+        if (key->tag.type == mpack_type_str && key->tag.v.l == length && mpack_memcmp(str, key->content.bytes, length) == 0)
+            return mpack_node(node.tree, value);
     }
 
     if (!optional)
@@ -772,8 +772,8 @@ bool mpack_node_map_contains_str(mpack_node_t node, const char* str, size_t leng
     }
 
     for (size_t i = 0; i < node.data->tag.v.n; ++i) {
-        mpack_node_t key = mpack_node_child(node, i * 2);
-        if (key.data->tag.type == mpack_type_str && key.data->tag.v.l == length && mpack_memcmp(str, key.data->content.bytes, length) == 0)
+        mpack_node_data_t* key = mpack_node_child(node, i * 2);
+        if (key->tag.type == mpack_type_str && key->tag.v.l == length && mpack_memcmp(str, key->content.bytes, length) == 0)
             return true;
     }
 

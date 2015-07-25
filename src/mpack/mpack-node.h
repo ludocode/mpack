@@ -141,8 +141,8 @@ static inline mpack_node_t mpack_node(mpack_tree_t* tree, mpack_node_data_t* dat
     return node;
 }
 
-static inline mpack_node_t mpack_node_child(mpack_node_t node, size_t child) {
-    return mpack_node(node.tree, node.data->content.children + child);
+static inline mpack_node_data_t* mpack_node_child(mpack_node_t node, size_t child) {
+    return node.data->content.children + child;
 }
 
 static inline mpack_node_t mpack_tree_nil_node(mpack_tree_t* tree) {
@@ -836,7 +836,7 @@ static inline mpack_node_t mpack_node_array_at(mpack_node_t node, size_t index) 
         return mpack_tree_nil_node(node.tree);
     }
 
-    return mpack_node_child(node, index);
+    return mpack_node(node.tree, mpack_node_child(node, index));
 }
 
 /**
@@ -870,7 +870,7 @@ static inline mpack_node_t mpack_node_map_at(mpack_node_t node, size_t index, si
         return mpack_tree_nil_node(node.tree);
     }
 
-    return mpack_node_child(node, index * 2 + offset);
+    return mpack_node(node.tree, mpack_node_child(node, index * 2 + offset));
 }
 
 /**
