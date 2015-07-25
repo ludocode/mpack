@@ -144,16 +144,14 @@
  * correct number of elements or bytes are written in a compound type.
  *
  * Note that without write tracking enabled, it is possible for buggy code
- * to emit invalid MessagePack without error by writing the wrong number of
- * elements or bytes in a compound type. For this reason, MPACK_WRITE_TRACKING
- * is enabled by default on writers even in release builds (provided a malloc()
- * is available.) This ensures that any data written successfully via MPack
- * will always parse as valid MessagePack.
+ * to emit invalid MessagePack without flagging an error by writing the wrong
+ * number of elements or bytes in a compound type. With tracking enabled,
+ * MPACK will catch such errors and break on the offending line of code.
  *
- * You should really only disable this if you are using MPack to implement
- * bindings for an existing dynamic structure.
+ * This is enabled by default in debug builds (provided a malloc() is
+ * available.)
  */
-#if MPACK_WRITER && defined(MPACK_MALLOC)
+#if MPACK_DEBUG && MPACK_WRITER && defined(MPACK_MALLOC)
 #define MPACK_WRITE_TRACKING 1
 #endif
 

@@ -71,7 +71,7 @@ In the above example, we encode only to an in-memory buffer. The writer can opti
 
 If any error occurs, the writer is placed in an error state and can optionally longjmp if a handler is set. The writer will flag an error if too much data is written, if the wrong number of elements are written, if the data could not be flushed, etc.
 
-Note in particular that the `mpack_finish_map()` call above ensures that two key/value pairs were actually written as claimed, something that other MessagePack C/C++ libraries may not do. Any data written without error via MPack is guaranteed to parse as valid MessagePack (as long as malloc() is available.)
+Note in particular that in debug mode, the `mpack_finish_map()` call above ensures that two key/value pairs were actually written as claimed, something that other MessagePack C/C++ libraries may not do.
 
 ## Why Not Just Use JSON?
 
