@@ -81,21 +81,21 @@ if ARGUMENTS.get('all'):
     AddBuilds("writer", ["-DMPACK_WRITER=1"] + allconfigs + cflags, [])
     AddBuilds("reader", ["-DMPACK_READER=1"] + allconfigs + cflags, [])
     AddBuilds("expect", ["-DMPACK_READER=1", "-DMPACK_EXPECT=1"] + allconfigs + cflags, [])
-    AddBuilds("node", ["-DMPACK_READER=1", "-DMPACK_NODE=1"] + allconfigs + cflags, [])
+    AddBuilds("node", ["-DMPACK_NODE=1"] + allconfigs + cflags, [])
 
     # no i/o
     AddBuilds("noio", allfeatures + noioconfigs + cflags, [])
     AddBuilds("noio-writer", ["-DMPACK_WRITER=1"] + noioconfigs + cflags, [])
     AddBuilds("noio-reader", ["-DMPACK_READER=1"] + noioconfigs + cflags, [])
     AddBuilds("noio-expect", ["-DMPACK_READER=1", "-DMPACK_EXPECT=1"] + noioconfigs + cflags, [])
-    AddBuilds("noio-node", ["-DMPACK_READER=1", "-DMPACK_NODE=1"] + noioconfigs + cflags, [])
+    AddBuilds("noio-node", ["-DMPACK_NODE=1"] + noioconfigs + cflags, [])
 
     # embedded builds without libc
     AddBuilds("embed", allfeatures + cflags, [])
     AddBuilds("embed-writer", ["-DMPACK_WRITER=1"] + cflags, [])
     AddBuilds("embed-reader", ["-DMPACK_READER=1"] + cflags, [])
     AddBuilds("embed-expect", ["-DMPACK_READER=1", "-DMPACK_EXPECT=1"] + cflags, [])
-    AddBuilds("embed-node", ["-DMPACK_READER=1", "-DMPACK_NODE=1"] + cflags, [])
+    AddBuilds("embed-node", ["-DMPACK_NODE=1"] + cflags, [])
 
     # miscellaneous test builds
     AddBuilds("cxx", allfeatures + allconfigs + cxxflags, ["-lstdc++"])

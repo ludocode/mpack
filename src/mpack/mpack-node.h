@@ -32,10 +32,6 @@
 
 #if MPACK_NODE
 
-#if !MPACK_READER
-#error "MPACK_NODE requires MPACK_READER."
-#endif
-
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -102,11 +98,31 @@ struct mpack_node_t {
 };
 
 struct mpack_node_data_t {
-    mpack_tag_t tag;
-    union {
-        const char* bytes;
-        mpack_node_data_t* children;
-    } content;
+    mpack_type_t type;
+
+    int8_t exttype; /* The extension type if the type is mpack_type_ext. */
+
+    /* The value for non-compound types. */
+    union
+    {
+        bool     b; /* The value if the type is bool. */
+        float    f; /* The value if the type is float. */
+        double   d; /* The value if the type is double. */
+        int64_t  i; /* The value if the type is signed int. */
+        uint64_t u; /* The value if the type is unsigned int. */
+
+        struct {
+            uint32_t l; /* The number of bytes if the type is str, bin or ext. */
+            const char* bytes;
+        } data;
+
+        struct {
+            /* The element count if the type is an array, or the number of
+               key/value pairs if the type is map. */
+            uint32_t n;
+            mpack_node_data_t* children;
+        } content;
+    } value;
 };
 
 struct mpack_tree_t {
@@ -142,7 +158,7 @@ static inline mpack_node_t mpack_node(mpack_tree_t* tree, mpack_node_data_t* dat
 }
 
 static inline mpack_node_data_t* mpack_node_child(mpack_node_t node, size_t child) {
-    return node.data->content.children + child;
+    return node.data->value.content.children + child;
 }
 
 static inline mpack_node_t mpack_tree_nil_node(mpack_tree_t* tree) {
@@ -325,10 +341,26 @@ static inline mpack_error_t mpack_node_error(mpack_node_t node) {
 }
 
 /**
- * Returns the tag contained by the given node.
+ * Returns a tag describing the given node.
  */
 static inline mpack_tag_t mpack_node_tag(mpack_node_t node) {
-    return node.data->tag;
+    mpack_tag_t tag;
+    mpack_memset(&tag, 0, sizeof(tag));
+    tag.type = node.data->type;
+    switch (node.data->type) {
+        case mpack_type_nil:                                            break;
+        case mpack_type_bool:    tag.v.b = node.data->value.b;          break;
+        case mpack_type_float:   tag.v.f = node.data->value.f;          break;
+        case mpack_type_double:  tag.v.d = node.data->value.d;          break;
+        case mpack_type_int:     tag.v.i = node.data->value.i;          break;
+        case mpack_type_uint:    tag.v.u = node.data->value.u;          break;
+        case mpack_type_str:     tag.v.l = node.data->value.data.l;     break;
+        case mpack_type_bin:     tag.v.l = node.data->value.data.l;     break;
+        case mpack_type_ext:     tag.v.l = node.data->value.data.l;     break;
+        case mpack_type_array:   tag.v.n = node.data->value.content.n;  break;
+        case mpack_type_map:     tag.v.n = node.data->value.content.n;  break;
+    }
+    return tag;
 }
 
 #if MPACK_DEBUG && MPACK_STDIO && MPACK_SETJMP && !MPACK_NO_PRINT
@@ -355,7 +387,7 @@ void mpack_node_print(mpack_node_t node);
 static inline mpack_type_t mpack_node_type(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return mpack_type_nil;
-    return node.data->tag.type;
+    return node.data->type;
 }
 
 /**
@@ -364,7 +396,7 @@ static inline mpack_type_t mpack_node_type(mpack_node_t node) {
 static inline void mpack_node_nil(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return;
-    if (node.data->tag.type != mpack_type_nil)
+    if (node.data->type != mpack_type_nil)
         mpack_node_flag_error(node, mpack_error_type);
 }
 
@@ -376,8 +408,8 @@ static inline bool mpack_node_bool(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return false;
 
-    if (node.data->tag.type == mpack_type_bool)
-        return node.data->tag.v.b;
+    if (node.data->type == mpack_type_bool)
+        return node.data->value.b;
 
     mpack_node_flag_error(node, mpack_error_type);
     return false;
@@ -410,12 +442,12 @@ static inline uint8_t mpack_node_u8(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
-    if (node.data->tag.type == mpack_type_uint) {
-        if (node.data->tag.v.u <= UINT8_MAX)
-            return (uint8_t)node.data->tag.v.u;
-    } else if (node.data->tag.type == mpack_type_int) {
-        if (node.data->tag.v.i >= 0 && node.data->tag.v.i <= UINT8_MAX)
-            return (uint8_t)node.data->tag.v.i;
+    if (node.data->type == mpack_type_uint) {
+        if (node.data->value.u <= UINT8_MAX)
+            return (uint8_t)node.data->value.u;
+    } else if (node.data->type == mpack_type_int) {
+        if (node.data->value.i >= 0 && node.data->value.i <= UINT8_MAX)
+            return (uint8_t)node.data->value.i;
     }
 
     mpack_node_flag_error(node, mpack_error_type);
@@ -431,12 +463,12 @@ static inline int8_t mpack_node_i8(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
-    if (node.data->tag.type == mpack_type_uint) {
-        if (node.data->tag.v.u <= INT8_MAX)
-            return (int8_t)node.data->tag.v.u;
-    } else if (node.data->tag.type == mpack_type_int) {
-        if (node.data->tag.v.i >= INT8_MIN && node.data->tag.v.i <= INT8_MAX)
-            return (int8_t)node.data->tag.v.i;
+    if (node.data->type == mpack_type_uint) {
+        if (node.data->value.u <= INT8_MAX)
+            return (int8_t)node.data->value.u;
+    } else if (node.data->type == mpack_type_int) {
+        if (node.data->value.i >= INT8_MIN && node.data->value.i <= INT8_MAX)
+            return (int8_t)node.data->value.i;
     }
 
     mpack_node_flag_error(node, mpack_error_type);
@@ -452,12 +484,12 @@ static inline uint16_t mpack_node_u16(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
-    if (node.data->tag.type == mpack_type_uint) {
-        if (node.data->tag.v.u <= UINT16_MAX)
-            return (uint16_t)node.data->tag.v.u;
-    } else if (node.data->tag.type == mpack_type_int) {
-        if (node.data->tag.v.i >= 0 && node.data->tag.v.i <= UINT16_MAX)
-            return (uint16_t)node.data->tag.v.i;
+    if (node.data->type == mpack_type_uint) {
+        if (node.data->value.u <= UINT16_MAX)
+            return (uint16_t)node.data->value.u;
+    } else if (node.data->type == mpack_type_int) {
+        if (node.data->value.i >= 0 && node.data->value.i <= UINT16_MAX)
+            return (uint16_t)node.data->value.i;
     }
 
     mpack_node_flag_error(node, mpack_error_type);
@@ -473,12 +505,12 @@ static inline int16_t mpack_node_i16(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
-    if (node.data->tag.type == mpack_type_uint) {
-        if (node.data->tag.v.u <= INT16_MAX)
-            return (int16_t)node.data->tag.v.u;
-    } else if (node.data->tag.type == mpack_type_int) {
-        if (node.data->tag.v.i >= INT16_MIN && node.data->tag.v.i <= INT16_MAX)
-            return (int16_t)node.data->tag.v.i;
+    if (node.data->type == mpack_type_uint) {
+        if (node.data->value.u <= INT16_MAX)
+            return (int16_t)node.data->value.u;
+    } else if (node.data->type == mpack_type_int) {
+        if (node.data->value.i >= INT16_MIN && node.data->value.i <= INT16_MAX)
+            return (int16_t)node.data->value.i;
     }
 
     mpack_node_flag_error(node, mpack_error_type);
@@ -494,12 +526,12 @@ static inline uint32_t mpack_node_u32(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
-    if (node.data->tag.type == mpack_type_uint) {
-        if (node.data->tag.v.u <= UINT32_MAX)
-            return (uint32_t)node.data->tag.v.u;
-    } else if (node.data->tag.type == mpack_type_int) {
-        if (node.data->tag.v.i >= 0 && node.data->tag.v.i <= UINT32_MAX)
-            return (uint32_t)node.data->tag.v.i;
+    if (node.data->type == mpack_type_uint) {
+        if (node.data->value.u <= UINT32_MAX)
+            return (uint32_t)node.data->value.u;
+    } else if (node.data->type == mpack_type_int) {
+        if (node.data->value.i >= 0 && node.data->value.i <= UINT32_MAX)
+            return (uint32_t)node.data->value.i;
     }
 
     mpack_node_flag_error(node, mpack_error_type);
@@ -515,12 +547,12 @@ static inline int32_t mpack_node_i32(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
-    if (node.data->tag.type == mpack_type_uint) {
-        if (node.data->tag.v.u <= INT32_MAX)
-            return (int32_t)node.data->tag.v.u;
-    } else if (node.data->tag.type == mpack_type_int) {
-        if (node.data->tag.v.i >= INT32_MIN && node.data->tag.v.i <= INT32_MAX)
-            return (int32_t)node.data->tag.v.i;
+    if (node.data->type == mpack_type_uint) {
+        if (node.data->value.u <= INT32_MAX)
+            return (int32_t)node.data->value.u;
+    } else if (node.data->type == mpack_type_int) {
+        if (node.data->value.i >= INT32_MIN && node.data->value.i <= INT32_MAX)
+            return (int32_t)node.data->value.i;
     }
 
     mpack_node_flag_error(node, mpack_error_type);
@@ -536,11 +568,11 @@ static inline uint64_t mpack_node_u64(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
-    if (node.data->tag.type == mpack_type_uint) {
-        return node.data->tag.v.u;
-    } else if (node.data->tag.type == mpack_type_int) {
-        if (node.data->tag.v.i >= 0)
-            return (uint64_t)node.data->tag.v.i;
+    if (node.data->type == mpack_type_uint) {
+        return node.data->value.u;
+    } else if (node.data->type == mpack_type_int) {
+        if (node.data->value.i >= 0)
+            return (uint64_t)node.data->value.i;
     }
 
     mpack_node_flag_error(node, mpack_error_type);
@@ -556,11 +588,11 @@ static inline int64_t mpack_node_i64(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
-    if (node.data->tag.type == mpack_type_uint) {
-        if (node.data->tag.v.u <= (uint64_t)INT64_MAX)
-            return (int64_t)node.data->tag.v.u;
-    } else if (node.data->tag.type == mpack_type_int) {
-        return node.data->tag.v.i;
+    if (node.data->type == mpack_type_uint) {
+        if (node.data->value.u <= (uint64_t)INT64_MAX)
+            return (int64_t)node.data->value.u;
+    } else if (node.data->type == mpack_type_int) {
+        return node.data->value.i;
     }
 
     mpack_node_flag_error(node, mpack_error_type);
@@ -580,14 +612,14 @@ static inline float mpack_node_float(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0.0f;
 
-    if (node.data->tag.type == mpack_type_uint)
-        return (float)node.data->tag.v.u;
-    else if (node.data->tag.type == mpack_type_int)
-        return (float)node.data->tag.v.i;
-    else if (node.data->tag.type == mpack_type_float)
-        return node.data->tag.v.f;
-    else if (node.data->tag.type == mpack_type_double)
-        return (float)node.data->tag.v.d;
+    if (node.data->type == mpack_type_uint)
+        return (float)node.data->value.u;
+    else if (node.data->type == mpack_type_int)
+        return (float)node.data->value.i;
+    else if (node.data->type == mpack_type_float)
+        return node.data->value.f;
+    else if (node.data->type == mpack_type_double)
+        return (float)node.data->value.d;
 
     mpack_node_flag_error(node, mpack_error_type);
     return 0.0f;
@@ -606,14 +638,14 @@ static inline double mpack_node_double(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0.0;
 
-    if (node.data->tag.type == mpack_type_uint)
-        return (double)node.data->tag.v.u;
-    else if (node.data->tag.type == mpack_type_int)
-        return (double)node.data->tag.v.i;
-    else if (node.data->tag.type == mpack_type_float)
-        return (double)node.data->tag.v.f;
-    else if (node.data->tag.type == mpack_type_double)
-        return node.data->tag.v.d;
+    if (node.data->type == mpack_type_uint)
+        return (double)node.data->value.u;
+    else if (node.data->type == mpack_type_int)
+        return (double)node.data->value.i;
+    else if (node.data->type == mpack_type_float)
+        return (double)node.data->value.f;
+    else if (node.data->type == mpack_type_double)
+        return node.data->value.d;
 
     mpack_node_flag_error(node, mpack_error_type);
     return 0.0;
@@ -629,8 +661,8 @@ static inline float mpack_node_float_strict(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0.0f;
 
-    if (node.data->tag.type == mpack_type_float)
-        return node.data->tag.v.f;
+    if (node.data->type == mpack_type_float)
+        return node.data->value.f;
 
     mpack_node_flag_error(node, mpack_error_type);
     return 0.0f;
@@ -646,10 +678,10 @@ static inline double mpack_node_double_strict(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0.0;
 
-    if (node.data->tag.type == mpack_type_float)
-        return (double)node.data->tag.v.f;
-    else if (node.data->tag.type == mpack_type_double)
-        return node.data->tag.v.d;
+    if (node.data->type == mpack_type_float)
+        return (double)node.data->value.f;
+    else if (node.data->type == mpack_type_double)
+        return node.data->value.d;
 
     mpack_node_flag_error(node, mpack_error_type);
     return 0.0;
@@ -671,8 +703,8 @@ static inline int8_t mpack_node_exttype(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
-    if (node.data->tag.type == mpack_type_ext)
-        return node.data->tag.exttype;
+    if (node.data->type == mpack_type_ext)
+        return node.data->exttype;
 
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
@@ -685,9 +717,9 @@ static inline size_t mpack_node_data_len(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
-    mpack_type_t type = node.data->tag.type;
+    mpack_type_t type = node.data->type;
     if (type == mpack_type_str || type == mpack_type_bin || type == mpack_type_ext)
-        return (size_t)node.data->tag.v.l;
+        return (size_t)node.data->value.data.l;
 
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
@@ -701,8 +733,8 @@ static inline size_t mpack_node_strlen(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
-    if (node.data->tag.type == mpack_type_str)
-        return (size_t)node.data->tag.v.l;
+    if (node.data->type == mpack_type_str)
+        return (size_t)node.data->value.data.l;
 
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
@@ -723,9 +755,9 @@ static inline const char* mpack_node_data(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return NULL;
 
-    mpack_type_t type = node.data->tag.type;
+    mpack_type_t type = node.data->type;
     if (type == mpack_type_str || type == mpack_type_bin || type == mpack_type_ext)
-        return node.data->content.bytes;
+        return node.data->value.data.bytes;
 
     mpack_node_flag_error(node, mpack_error_type);
     return NULL;
@@ -808,12 +840,12 @@ static inline size_t mpack_node_array_length(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
-    if (node.data->tag.type != mpack_type_array) {
+    if (node.data->type != mpack_type_array) {
         mpack_node_flag_error(node, mpack_error_type);
         return 0;
     }
 
-    return (size_t)node.data->tag.v.n;
+    return (size_t)node.data->value.content.n;
 }
 
 /**
@@ -826,12 +858,12 @@ static inline mpack_node_t mpack_node_array_at(mpack_node_t node, size_t index) 
     if (mpack_node_error(node) != mpack_ok)
         return mpack_tree_nil_node(node.tree);
 
-    if (node.data->tag.type != mpack_type_array) {
+    if (node.data->type != mpack_type_array) {
         mpack_node_flag_error(node, mpack_error_type);
         return mpack_tree_nil_node(node.tree);
     }
 
-    if (index >= node.data->tag.v.n) {
+    if (index >= node.data->value.content.n) {
         mpack_node_flag_error(node, mpack_error_data);
         return mpack_tree_nil_node(node.tree);
     }
@@ -847,12 +879,12 @@ static inline size_t mpack_node_map_count(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
-    if (node.data->tag.type != mpack_type_map) {
+    if (node.data->type != mpack_type_map) {
         mpack_node_flag_error(node, mpack_error_type);
         return 0;
     }
 
-    return node.data->tag.v.n;
+    return node.data->value.content.n;
 }
 
 // internal node map lookup
@@ -860,12 +892,12 @@ static inline mpack_node_t mpack_node_map_at(mpack_node_t node, size_t index, si
     if (mpack_node_error(node) != mpack_ok)
         return mpack_tree_nil_node(node.tree);
 
-    if (node.data->tag.type != mpack_type_map) {
+    if (node.data->type != mpack_type_map) {
         mpack_node_flag_error(node, mpack_error_type);
         return mpack_tree_nil_node(node.tree);
     }
 
-    if (index >= node.data->tag.v.n) {
+    if (index >= node.data->value.content.n) {
         mpack_node_flag_error(node, mpack_error_data);
         return mpack_tree_nil_node(node.tree);
     }

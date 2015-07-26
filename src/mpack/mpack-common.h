@@ -266,6 +266,38 @@ static inline bool mpack_tag_equal(mpack_tag_t left, mpack_tag_t right) {
 
 
 
+/* Helpers for fetching an arbitrarily sized int from a memory
+ * location, regardless of endianness or alignment. */
+
+MPACK_ALWAYS_INLINE uint8_t mpack_load_native_u8(const char* p) {
+    return (uint8_t)p[0];
+}
+
+MPACK_ALWAYS_INLINE uint16_t mpack_load_native_u16(const char* p) {
+    return (uint16_t)((((uint16_t)(uint8_t)p[0]) << 8) |
+           ((uint16_t)(uint8_t)p[1]));
+}
+
+MPACK_ALWAYS_INLINE uint32_t mpack_load_native_u32(const char* p) {
+    return (((uint32_t)(uint8_t)p[0]) << 24) |
+           (((uint32_t)(uint8_t)p[1]) << 16) |
+           (((uint32_t)(uint8_t)p[2]) <<  8) |
+            ((uint32_t)(uint8_t)p[3]);
+}
+
+MPACK_ALWAYS_INLINE uint64_t mpack_load_native_u64(const char* p) {
+    return (((uint64_t)(uint8_t)p[0]) << 56) |
+           (((uint64_t)(uint8_t)p[1]) << 48) |
+           (((uint64_t)(uint8_t)p[2]) << 40) |
+           (((uint64_t)(uint8_t)p[3]) << 32) |
+           (((uint64_t)(uint8_t)p[4]) << 24) |
+           (((uint64_t)(uint8_t)p[5]) << 16) |
+           (((uint64_t)(uint8_t)p[6]) <<  8) |
+            ((uint64_t)(uint8_t)p[7]);
+}
+
+
+
 #if MPACK_READ_TRACKING || MPACK_WRITE_TRACKING
 
 /* Tracks the write state of compound elements (maps, arrays, */

@@ -174,8 +174,8 @@
 /**
  * Number of nodes in each allocated node page.
  *
- * As of this writing, nodes are 24 bytes when compiled for a 32-bit
- * architecture and 32 bytes when compiled for a 64-bit architecture.
+ * Nodes are 16 bytes when compiled for a 32-bit architecture and
+ * 24 bytes when compiled for a 64-bit architecture.
  *
  * Using as many nodes fit in one memory page seems to provide the
  * best performance, and has very little waste when parsing small

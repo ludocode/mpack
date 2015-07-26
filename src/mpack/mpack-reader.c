@@ -341,7 +341,7 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
         case 0xf0: case 0xf1: case 0xf2: case 0xf3: case 0xf4: case 0xf5: case 0xf6: case 0xf7:
         case 0xf8: case 0xf9: case 0xfa: case 0xfb: case 0xfc: case 0xfd: case 0xfe: case 0xff:
             var.type = mpack_type_int;
-            var.v.i = (int32_t)(int8_t)type;
+            var.v.i = (int8_t)type;
             return var;
 
         // fixmap
