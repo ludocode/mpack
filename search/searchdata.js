@@ -8,7 +8,8 @@ var indexSectionsWithContent =
   5: "m",
   6: "m",
   7: "m",
-  8: "cenw"
+  8: "m",
+  9: "cenw"
 };
 
 var indexSectionNames =
@@ -21,7 +22,8 @@ var indexSectionNames =
   5: "typedefs",
   6: "enums",
   7: "enumvalues",
-  8: "groups"
+  8: "defines",
+  9: "groups"
 };
 
 var indexSectionLabels =
@@ -34,6 +36,7 @@ var indexSectionLabels =
   5: "Typedefs",
   6: "Enumerations",
   7: "Enumerator",
-  8: "Modules"
+  8: "Macros",
+  9: "Modules"
 };
 

@@ -24,7 +24,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">MPack
-   &#160;<span id="projectnumber">0.4</span>
+   &#160;<span id="projectnumber">0.5</span>
    </div>
    <div id="projectbrief">A C encoding/decoding library for the MessagePack serialization format.</div>
   </td>
@@ -150,18 +150,18 @@ Functions</h2></td></tr>
 <tr class="memitem:ga7110dc658b713b292e9cafee3ccb7424"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga7110dc658b713b292e9cafee3ccb7424">mpack_expect_u64_range</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint64_t min_value, uint64_t max_value)</td></tr>
 <tr class="memdesc:ga7110dc658b713b292e9cafee3ccb7424"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a 64-bit unsigned integer, ensuring that it falls within the given range.  <a href="group__expect.html#ga7110dc658b713b292e9cafee3ccb7424">More...</a><br /></td></tr>
 <tr class="separator:ga7110dc658b713b292e9cafee3ccb7424"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga46b2cb3a32608b853c4fbd0aaf82bef3"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga46b2cb3a32608b853c4fbd0aaf82bef3"></a>
-static uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_u8_max</b> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint8_t max_value)</td></tr>
-<tr class="separator:ga46b2cb3a32608b853c4fbd0aaf82bef3"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gacb966c2403c64d84d7eacdf879762d59"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gacb966c2403c64d84d7eacdf879762d59"></a>
-static uint16_t&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_u16_max</b> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint16_t max_value)</td></tr>
-<tr class="separator:gacb966c2403c64d84d7eacdf879762d59"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gabdbc880d76cba0d285b93753234ff954"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gabdbc880d76cba0d285b93753234ff954"></a>
-static uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_u32_max</b> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t max_value)</td></tr>
-<tr class="separator:gabdbc880d76cba0d285b93753234ff954"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga71995f9ed9a80d6b17c1957a6b3204e4"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga71995f9ed9a80d6b17c1957a6b3204e4"></a>
-static uint64_t&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_u64_max</b> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint64_t max_value)</td></tr>
-<tr class="separator:ga71995f9ed9a80d6b17c1957a6b3204e4"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga61459cbdd02c5b3db5292f9753a03ced"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga61459cbdd02c5b3db5292f9753a03ced"></a>
+uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_u8_max</b> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint8_t max_value)</td></tr>
+<tr class="separator:ga61459cbdd02c5b3db5292f9753a03ced"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga34cfd4d43ba388ff4f983b35c65c669a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga34cfd4d43ba388ff4f983b35c65c669a"></a>
+uint16_t&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_u16_max</b> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint16_t max_value)</td></tr>
+<tr class="separator:ga34cfd4d43ba388ff4f983b35c65c669a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4781e89d1712ae950b768362b8e98065"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga4781e89d1712ae950b768362b8e98065"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_u32_max</b> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t max_value)</td></tr>
+<tr class="separator:ga4781e89d1712ae950b768362b8e98065"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac5babd6ebf912abb4ed67ca8808f3ad0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gac5babd6ebf912abb4ed67ca8808f3ad0"></a>
+uint64_t&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_u64_max</b> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint64_t max_value)</td></tr>
+<tr class="separator:gac5babd6ebf912abb4ed67ca8808f3ad0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaa553c386f7ad6d05423835d31a439461"><td class="memItemLeft" align="right" valign="top">int8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#gaa553c386f7ad6d05423835d31a439461">mpack_expect_i8_range</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, int8_t min_value, int8_t max_value)</td></tr>
 <tr class="memdesc:gaa553c386f7ad6d05423835d31a439461"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads an 8-bit signed integer, ensuring that it falls within the given range.  <a href="group__expect.html#gaa553c386f7ad6d05423835d31a439461">More...</a><br /></td></tr>
 <tr class="separator:gaa553c386f7ad6d05423835d31a439461"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -207,8 +207,11 @@ static uint64_t&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expe
 <tr class="memitem:ga658205c994cf8fce528f4c8a3a957a14"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga658205c994cf8fce528f4c8a3a957a14">mpack_expect_str_buf</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, char *buf, size_t bufsize)</td></tr>
 <tr class="memdesc:ga658205c994cf8fce528f4c8a3a957a14"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a string of at most the given size, writing it into the given buffer and returning its size in bytes.  <a href="group__expect.html#ga658205c994cf8fce528f4c8a3a957a14">More...</a><br /></td></tr>
 <tr class="separator:ga658205c994cf8fce528f4c8a3a957a14"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga68e20a85b3a71bc9632428d2bca67090"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga68e20a85b3a71bc9632428d2bca67090">mpack_expect_str_max</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t maxsize)</td></tr>
+<tr class="memdesc:ga68e20a85b3a71bc9632428d2bca67090"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of a string, raising an error if its length is not at most the given number of bytes (not including any null-terminator.)  <a href="group__expect.html#ga68e20a85b3a71bc9632428d2bca67090">More...</a><br /></td></tr>
+<tr class="separator:ga68e20a85b3a71bc9632428d2bca67090"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gac189c3ea2b957e594854fc2c8cae3cbd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#gac189c3ea2b957e594854fc2c8cae3cbd">mpack_expect_str_length</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t count)</td></tr>
-<tr class="memdesc:gac189c3ea2b957e594854fc2c8cae3cbd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of a string, raising an error if its length is not exactly the given number of bytes.  <a href="group__expect.html#gac189c3ea2b957e594854fc2c8cae3cbd">More...</a><br /></td></tr>
+<tr class="memdesc:gac189c3ea2b957e594854fc2c8cae3cbd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of a string, raising an error if its length is not exactly the given number of bytes (not including any null-terminator.)  <a href="group__expect.html#gac189c3ea2b957e594854fc2c8cae3cbd">More...</a><br /></td></tr>
 <tr class="separator:gac189c3ea2b957e594854fc2c8cae3cbd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga0d720d03002423e764c55b9370d89caf"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga0d720d03002423e764c55b9370d89caf">mpack_expect_str_alloc</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, size_t maxsize, size_t *size)</td></tr>
 <tr class="memdesc:ga0d720d03002423e764c55b9370d89caf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a string with the given total maximum size, allocating storage for it.  <a href="group__expect.html#ga0d720d03002423e764c55b9370d89caf">More...</a><br /></td></tr>
@@ -232,6 +235,9 @@ static uint64_t&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expe
 <tr class="memitem:gadcf7fc94ae30ed5c3752291a0efd43c5"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#gadcf7fc94ae30ed5c3752291a0efd43c5">mpack_expect_bin</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader)</td></tr>
 <tr class="memdesc:gadcf7fc94ae30ed5c3752291a0efd43c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of a binary blob, returning its size in bytes.  <a href="group__expect.html#gadcf7fc94ae30ed5c3752291a0efd43c5">More...</a><br /></td></tr>
 <tr class="separator:gadcf7fc94ae30ed5c3752291a0efd43c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga22329ecfae82fa501cfc9e9324233bb7"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga22329ecfae82fa501cfc9e9324233bb7">mpack_expect_bin_max</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t maxsize)</td></tr>
+<tr class="memdesc:ga22329ecfae82fa501cfc9e9324233bb7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of a binary blob, raising an error if its length is not at most the given number of bytes.  <a href="group__expect.html#ga22329ecfae82fa501cfc9e9324233bb7">More...</a><br /></td></tr>
+<tr class="separator:ga22329ecfae82fa501cfc9e9324233bb7"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gae83eff20642825f13771a2cdceaa7cbd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#gae83eff20642825f13771a2cdceaa7cbd">mpack_expect_bin_size</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t count)</td></tr>
 <tr class="memdesc:gae83eff20642825f13771a2cdceaa7cbd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of a binary blob, raising an error if its length is not exactly the given number of bytes.  <a href="group__expect.html#gae83eff20642825f13771a2cdceaa7cbd">More...</a><br /></td></tr>
 <tr class="separator:gae83eff20642825f13771a2cdceaa7cbd"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -274,9 +280,9 @@ bool&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_map_or_n
 <tr class="memitem:ga4c0b7dd785576183e5444691c7d32b90"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga4c0b7dd785576183e5444691c7d32b90">mpack_expect_array_range</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t min_count, uint32_t max_count)</td></tr>
 <tr class="memdesc:ga4c0b7dd785576183e5444691c7d32b90"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of an array with a number of elements in the given range, returning its element count.  <a href="group__expect.html#ga4c0b7dd785576183e5444691c7d32b90">More...</a><br /></td></tr>
 <tr class="separator:ga4c0b7dd785576183e5444691c7d32b90"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga41c6832ae88c7dce565a99a701520ee5"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga41c6832ae88c7dce565a99a701520ee5"></a>
-static uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_array_max</b> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t max_count)</td></tr>
-<tr class="separator:ga41c6832ae88c7dce565a99a701520ee5"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga3e1599675ca83c5c03af8de220b9a826"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga3e1599675ca83c5c03af8de220b9a826"></a>
+uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_array_max</b> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t max_count)</td></tr>
+<tr class="separator:ga3e1599675ca83c5c03af8de220b9a826"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga799bb820a49f5a8a70e604466f8ab9b5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga799bb820a49f5a8a70e604466f8ab9b5">mpack_expect_array_match</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t count)</td></tr>
 <tr class="memdesc:ga799bb820a49f5a8a70e604466f8ab9b5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of an array of the exact size given.  <a href="group__expect.html#ga799bb820a49f5a8a70e604466f8ab9b5">More...</a><br /></td></tr>
 <tr class="separator:ga799bb820a49f5a8a70e604466f8ab9b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -286,7 +292,7 @@ static uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expe
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Jun 21 2015 13:24:30 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Jul 28 2015 00:00:52 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.9.1
 </small></address>

@@ -24,7 +24,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">MPack
-   &#160;<span id="projectnumber">0.4</span>
+   &#160;<span id="projectnumber">0.5</span>
    </div>
    <div id="projectbrief">A C encoding/decoding library for the MessagePack serialization format.</div>
   </td>
@@ -122,6 +122,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <li>mpack_done_str()
 : <a class="el" href="group__reader.html#gaaad37015e0c53704d9356de06b493de6">mpack-reader.h</a>
 </li>
+<li>mpack_done_type()
+: <a class="el" href="group__reader.html#ga2ec982b75a30187d9f94831f2e4b20a0">mpack-reader.h</a>
+</li>
 <li>mpack_error_to_string()
 : <a class="el" href="group__common.html#gae275cfb03fa60ffac086ae2230c3d470">mpack-common.h</a>
 </li>
@@ -142,6 +145,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </li>
 <li>mpack_expect_bin_buf()
 : <a class="el" href="group__expect.html#ga98004c26b9ebc1b80b4bdec5a1d4b093">mpack-expect.h</a>
+</li>
+<li>mpack_expect_bin_max()
+: <a class="el" href="group__expect.html#ga22329ecfae82fa501cfc9e9324233bb7">mpack-expect.h</a>
 </li>
 <li>mpack_expect_bin_size()
 : <a class="el" href="group__expect.html#gae83eff20642825f13771a2cdceaa7cbd">mpack-expect.h</a>
@@ -236,6 +242,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <li>mpack_expect_str_length()
 : <a class="el" href="group__expect.html#gac189c3ea2b957e594854fc2c8cae3cbd">mpack-expect.h</a>
 </li>
+<li>mpack_expect_str_max()
+: <a class="el" href="group__expect.html#ga68e20a85b3a71bc9632428d2bca67090">mpack-expect.h</a>
+</li>
 <li>mpack_expect_true()
 : <a class="el" href="group__expect.html#gaadfca446696881a598cc4f90892ded88">mpack-expect.h</a>
 </li>
@@ -287,134 +296,140 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <li>mpack_finish_str()
 : <a class="el" href="group__writer.html#ga44f9dd4d379b70fb9534cf1e359e3d4a">mpack-writer.h</a>
 </li>
+<li>mpack_finish_type()
+: <a class="el" href="group__writer.html#gaecfb47a0e86d293ca002f1e11b2edb38">mpack-writer.h</a>
+</li>
 <li>mpack_node_array_at()
-: <a class="el" href="group__node.html#ga8815b5e92240a81bb5b9ff426a5a5667">mpack-node.h</a>
+: <a class="el" href="group__node.html#ga9ec21fe2b75a99dc6c3ca5c6d7528c4e">mpack-node.h</a>
 </li>
 <li>mpack_node_array_length()
-: <a class="el" href="group__node.html#gaba87155cb823f1503a2b8d09fdaf6ece">mpack-node.h</a>
+: <a class="el" href="group__node.html#ga831f47fdd6223dce326fe0f8ecc943d4">mpack-node.h</a>
 </li>
 <li>mpack_node_bool()
-: <a class="el" href="group__node.html#ga427feb8c5ab8225e703d8be8ad33482a">mpack-node.h</a>
+: <a class="el" href="group__node.html#gad15f3dba3fe1c0b5b7d9ed5d2c34215a">mpack-node.h</a>
 </li>
 <li>mpack_node_copy_cstr()
-: <a class="el" href="group__node.html#ga7d590f8d13e44b74a9d90b991d1452f1">mpack-node.h</a>
+: <a class="el" href="group__node.html#gaf38c3d482a5eb473aa37594ee0ebf593">mpack-node.h</a>
 </li>
 <li>mpack_node_copy_data()
-: <a class="el" href="group__node.html#ga2eb3d9b01a9cddaa6412d3c640b59074">mpack-node.h</a>
+: <a class="el" href="group__node.html#ga1e1bd729f15f8016502555da95e2c2ea">mpack-node.h</a>
 </li>
 <li>mpack_node_cstr_alloc()
-: <a class="el" href="group__node.html#ga08acb169ff8140509b6212b86ad251a5">mpack-node.h</a>
+: <a class="el" href="group__node.html#gab441ab5ddeb1ec3e80cf28cfeb50e372">mpack-node.h</a>
 </li>
 <li>mpack_node_data()
-: <a class="el" href="group__node.html#gaacf61fcf6c6e470bad20030d74da1692">mpack-node.h</a>
+: <a class="el" href="group__node.html#ga41ced2d8bfa19e4d19b0f18306bee140">mpack-node.h</a>
 </li>
 <li>mpack_node_data_alloc()
-: <a class="el" href="group__node.html#ga1a8d510ba6188a39ca84523f0f4ee7b7">mpack-node.h</a>
+: <a class="el" href="group__node.html#ga1d04e99353869175c85198e12e958992">mpack-node.h</a>
 </li>
 <li>mpack_node_data_len()
-: <a class="el" href="group__node.html#ga6891d769cc360abeb5a715464d6f278c">mpack-node.h</a>
+: <a class="el" href="group__node.html#gac6dac7b9fe8158f738e87662effc64cf">mpack-node.h</a>
 </li>
 <li>mpack_node_double()
-: <a class="el" href="group__node.html#gae8aa8cd2f21751ad5e98f61a8a0868da">mpack-node.h</a>
+: <a class="el" href="group__node.html#ga22bfc52e19de4f1b5f9db6a9373cce06">mpack-node.h</a>
 </li>
 <li>mpack_node_double_strict()
-: <a class="el" href="group__node.html#ga2fb5f9e40d5b6db5b87857742e41d9e9">mpack-node.h</a>
+: <a class="el" href="group__node.html#ga74a690ab822846b19baa59f32cba766a">mpack-node.h</a>
+</li>
+<li>mpack_node_error()
+: <a class="el" href="group__node.html#ga50003b22aceb00adfa11cd382a9eb7e1">mpack-node.h</a>
 </li>
 <li>mpack_node_exttype()
-: <a class="el" href="group__node.html#gaeb40131513d9489182dfd5bc21c1eca1">mpack-node.h</a>
+: <a class="el" href="group__node.html#gaa7b359078cfddab88fc3c0c8fda4e295">mpack-node.h</a>
 </li>
 <li>mpack_node_false()
-: <a class="el" href="group__node.html#ga802772d269788f673ce2867be1e3c54f">mpack-node.h</a>
+: <a class="el" href="group__node.html#gabc37f432559b3b4be52e91e66a09f57d">mpack-node.h</a>
 </li>
 <li>mpack_node_flag_error()
-: <a class="el" href="group__node.html#ga9afb8b24c2158eba397dab86d00fe1e4">mpack-node.h</a>
+: <a class="el" href="group__node.html#ga46d2b3688954e32cb81268f982362036">mpack-node.h</a>
 </li>
 <li>mpack_node_float()
-: <a class="el" href="group__node.html#gae6babec21308b74695561568f4ed5f19">mpack-node.h</a>
+: <a class="el" href="group__node.html#ga66fed30759650f65e7edaef79b2c73f4">mpack-node.h</a>
 </li>
 <li>mpack_node_float_strict()
-: <a class="el" href="group__node.html#gaa4cf281c5d0ebd75e15ce8175662c2d0">mpack-node.h</a>
+: <a class="el" href="group__node.html#ga2b7dce2bf350091c232cf556ee50ace9">mpack-node.h</a>
 </li>
 <li>mpack_node_i16()
-: <a class="el" href="group__node.html#gab3434e24a97a74a3078b17cfe7407e9b">mpack-node.h</a>
+: <a class="el" href="group__node.html#gafe5d3aa7d76cb528a3dc10024a1eb0d9">mpack-node.h</a>
 </li>
 <li>mpack_node_i32()
-: <a class="el" href="group__node.html#gade50cbe69ac083b36297e5644c8a1b4e">mpack-node.h</a>
+: <a class="el" href="group__node.html#ga0180b62e35f1438807cec5f1dc747f3d">mpack-node.h</a>
 </li>
 <li>mpack_node_i64()
-: <a class="el" href="group__node.html#gabbd4a48dd02f14b7e56e6d67377222bb">mpack-node.h</a>
+: <a class="el" href="group__node.html#gae1364528bea1667a421d39bad3e0453a">mpack-node.h</a>
 </li>
 <li>mpack_node_i8()
-: <a class="el" href="group__node.html#ga0a14a8db2d3a216d78d35b3d87bc62ee">mpack-node.h</a>
+: <a class="el" href="group__node.html#ga5bc29e58ae03edd0d764eac30b6ab38a">mpack-node.h</a>
 </li>
 <li>mpack_node_map_contains_cstr()
-: <a class="el" href="group__node.html#ga0436b1353d5ccaa1f2453b1cd867e7b1">mpack-node.h</a>
+: <a class="el" href="group__node.html#ga1be7c8845cff656408450ca31c3c3cad">mpack-node.h</a>
 </li>
 <li>mpack_node_map_contains_str()
-: <a class="el" href="group__node.html#ga36ef2303735bcd8beccb34cb5031823b">mpack-node.h</a>
+: <a class="el" href="group__node.html#ga5da5d0fcfeae4bc1edb7904fd230f783">mpack-node.h</a>
 </li>
 <li>mpack_node_map_count()
-: <a class="el" href="group__node.html#ga00673689fd0778eb56d072c83dbe4612">mpack-node.h</a>
+: <a class="el" href="group__node.html#ga03b7cb69d8648ede7a9d9d018b76b8a7">mpack-node.h</a>
 </li>
 <li>mpack_node_map_cstr()
-: <a class="el" href="group__node.html#gad7426b5bca23281fbe01916d4dcc839f">mpack-node.h</a>
+: <a class="el" href="group__node.html#ga6ce515ec366036b1602bafe65a56ef7e">mpack-node.h</a>
 </li>
-<li>mpack_node_map_cstr_option()
-: <a class="el" href="group__node.html#ga9e1c3af2e36fbd821af403de186a0e6e">mpack-node.h</a>
+<li>mpack_node_map_cstr_optional()
+: <a class="el" href="group__node.html#ga349940b9a92f53b8dbdfdab049cc667e">mpack-node.h</a>
 </li>
 <li>mpack_node_map_int()
-: <a class="el" href="group__node.html#gaf4dfb087e21a2be122317cf2e18a1077">mpack-node.h</a>
+: <a class="el" href="group__node.html#gad85dcc667be1797e106fc106346ee828">mpack-node.h</a>
 </li>
-<li>mpack_node_map_int_option()
-: <a class="el" href="group__node.html#gae81d6580a10c81a129413e3908da844a">mpack-node.h</a>
+<li>mpack_node_map_int_optional()
+: <a class="el" href="group__node.html#ga107c576a3abc79e7dd0048e8ecdbcffc">mpack-node.h</a>
 </li>
 <li>mpack_node_map_key_at()
-: <a class="el" href="group__node.html#ga75e448830da245a522861956529ea7ce">mpack-node.h</a>
+: <a class="el" href="group__node.html#ga74e16d4e1723a959ec90365078b9668c">mpack-node.h</a>
 </li>
 <li>mpack_node_map_str()
-: <a class="el" href="group__node.html#ga4f4da1eeee7f2c5a50ad73c84aa38da3">mpack-node.h</a>
+: <a class="el" href="group__node.html#gae307e6001afd0af57b76e612ec74c1b3">mpack-node.h</a>
 </li>
-<li>mpack_node_map_str_option()
-: <a class="el" href="group__node.html#gad3b10f71af9e1405678b1861ddc45dc8">mpack-node.h</a>
+<li>mpack_node_map_str_optional()
+: <a class="el" href="group__node.html#ga6adb4420a9f506885e65bb54f35909ce">mpack-node.h</a>
 </li>
 <li>mpack_node_map_uint()
-: <a class="el" href="group__node.html#ga9a63f56651fe393e7b48292d7fb0a012">mpack-node.h</a>
+: <a class="el" href="group__node.html#gab1b0edee199d7a2ed032efe412328a29">mpack-node.h</a>
 </li>
-<li>mpack_node_map_uint_option()
-: <a class="el" href="group__node.html#ga84938215919103b530bc2636b797c3a8">mpack-node.h</a>
+<li>mpack_node_map_uint_optional()
+: <a class="el" href="group__node.html#gab11b76ad94a8b758203b3c530af88112">mpack-node.h</a>
 </li>
 <li>mpack_node_map_value_at()
-: <a class="el" href="group__node.html#ga69d7e51e163255dc2b4356b0b66fa024">mpack-node.h</a>
+: <a class="el" href="group__node.html#ga88b570192e47f589bc49cca2e88583b4">mpack-node.h</a>
 </li>
 <li>mpack_node_nil()
-: <a class="el" href="group__node.html#ga2e075dbd1ac8836b7c631c0ea5b403f0">mpack-node.h</a>
+: <a class="el" href="group__node.html#ga42f4b9aebd9d612b1e5073490a4abba4">mpack-node.h</a>
 </li>
 <li>mpack_node_print()
-: <a class="el" href="group__node.html#gae72a258011a9d8c292fbcf548fe99441">mpack-node.h</a>
+: <a class="el" href="group__node.html#gad244551de13bd2574fb0fe7da6ba5fdd">mpack-node.h</a>
 </li>
 <li>mpack_node_strlen()
-: <a class="el" href="group__node.html#gac57c140ec84f733b2f56a24aabc5f642">mpack-node.h</a>
+: <a class="el" href="group__node.html#gae8a777b769930bea4e8a11738179ae7e">mpack-node.h</a>
 </li>
 <li>mpack_node_tag()
-: <a class="el" href="group__node.html#ga081cca345df307ef6163dce6e5edca3f">mpack-node.h</a>
+: <a class="el" href="group__node.html#ga9bafb2aa97ea8ce8f517303329236b2c">mpack-node.h</a>
 </li>
 <li>mpack_node_true()
-: <a class="el" href="group__node.html#gad2b94b12f8388cefc69af4376a932d31">mpack-node.h</a>
+: <a class="el" href="group__node.html#gab54c26f5fc03f73b02070a72610c9127">mpack-node.h</a>
 </li>
 <li>mpack_node_type()
-: <a class="el" href="group__node.html#ga99eae0af8378f7d70a9e21c6ed25260f">mpack-node.h</a>
+: <a class="el" href="group__node.html#gabf769643817c3d88f98cc40801fba2eb">mpack-node.h</a>
 </li>
 <li>mpack_node_u16()
-: <a class="el" href="group__node.html#ga64f4986b0cf2016d8005d9073df468f9">mpack-node.h</a>
+: <a class="el" href="group__node.html#gadcfbddcda8865d49667003bc16d41e42">mpack-node.h</a>
 </li>
 <li>mpack_node_u32()
-: <a class="el" href="group__node.html#ga9521185833aeffba9ed863c5f5cb6a92">mpack-node.h</a>
+: <a class="el" href="group__node.html#ga996315bf57d89a2a6f5d4e2936ed74e4">mpack-node.h</a>
 </li>
 <li>mpack_node_u64()
-: <a class="el" href="group__node.html#ga21e9b738e729e7b6ee123466aa23832b">mpack-node.h</a>
+: <a class="el" href="group__node.html#ga3d5e8f4732b9e7db24cf9f4581b13356">mpack-node.h</a>
 </li>
 <li>mpack_node_u8()
-: <a class="el" href="group__node.html#ga95ea9a57265bf34b13acd21639005287">mpack-node.h</a>
+: <a class="el" href="group__node.html#gad54f9c1d4bfdb0ae572782c4307d475f">mpack-node.h</a>
 </li>
 <li>mpack_read_bytes()
 : <a class="el" href="group__reader.html#gaeb91e8d4e2a7b7f6562d8bbb7400275c">mpack-reader.h</a>
@@ -425,23 +440,23 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <li>mpack_read_tag()
 : <a class="el" href="group__reader.html#ga70c00ecaf381e9711f6c1d0fa92f0c2f">mpack-reader.h</a>
 </li>
-<li>mpack_reader_buffer_size()
-: <a class="el" href="group__reader.html#ga0e6986239cdba0bb12e7da7a50078321">mpack-reader.h</a>
-</li>
 <li>mpack_reader_clearjmp()
-: <a class="el" href="group__reader.html#ga6e47849411acaac1c035360119d9c8ad">mpack-reader.h</a>
+: <a class="el" href="group__reader.html#ga7d9b67d7b15cc312c2054464e16c934a">mpack-reader.h</a>
 </li>
 <li>mpack_reader_destroy()
 : <a class="el" href="group__reader.html#gac04666405e21eea6e8819182571f0d20">mpack-reader.h</a>
 </li>
 <li>mpack_reader_destroy_cancel()
-: <a class="el" href="group__reader.html#ga46d4a15ef9d4b836e115599b8d0ba97a">mpack-reader.h</a>
+: <a class="el" href="group__reader.html#gad7752b631c5f4e6e56b4a38781aca876">mpack-reader.h</a>
 </li>
 <li>mpack_reader_error()
-: <a class="el" href="group__reader.html#ga2a994a437e56ba80d43c2f166a0ff116">mpack-reader.h</a>
+: <a class="el" href="group__reader.html#ga79050efd2a581e8216f58d4946e7abc2">mpack-reader.h</a>
 </li>
 <li>mpack_reader_flag_error()
 : <a class="el" href="group__reader.html#ga5c45c2e0592f16ae671cd509d8d8c512">mpack-reader.h</a>
+</li>
+<li>mpack_reader_flag_if_error()
+: <a class="el" href="group__reader.html#ga1f9f39b4a0795a0ea298ef1963fec79e">mpack-reader.h</a>
 </li>
 <li>mpack_reader_init()
 : <a class="el" href="group__reader.html#ga1d79c00c6c013b879b164c26753b3e83">mpack-reader.h</a>
@@ -459,13 +474,16 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 : <a class="el" href="group__reader.html#ga291a38358bde6992b16edda81f2fcf45">mpack-reader.h</a>
 </li>
 <li>mpack_reader_set_context()
-: <a class="el" href="group__reader.html#ga9c6d8df4e61aa78f6db584973af5d825">mpack-reader.h</a>
+: <a class="el" href="group__reader.html#gafc76e77e7431f13ba7ff6a6a83fffe07">mpack-reader.h</a>
 </li>
 <li>mpack_reader_set_fill()
-: <a class="el" href="group__reader.html#ga71c3b1465a06935af1c0b5f141b4faed">mpack-reader.h</a>
+: <a class="el" href="group__reader.html#ga3409b7100075f67778cfb87fbb558694">mpack-reader.h</a>
 </li>
 <li>mpack_reader_set_teardown()
-: <a class="el" href="group__reader.html#ga703a552707e6f42f5d3e13c67bd17c41">mpack-reader.h</a>
+: <a class="el" href="group__reader.html#gad04ce10afce7422697d861f46e5aee86">mpack-reader.h</a>
+</li>
+<li>mpack_should_read_bytes_inplace()
+: <a class="el" href="group__reader.html#gaa69e23a50f63c84b45f9247db9c22ad0">mpack-reader.h</a>
 </li>
 <li>mpack_skip_bytes()
 : <a class="el" href="group__reader.html#ga0c7e1dd2be56ce3d596326c4463e7229">mpack-reader.h</a>
@@ -486,37 +504,37 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 : <a class="el" href="group__writer.html#ga0f293abb4441a1113b2ed956c3e735ad">mpack-writer.h</a>
 </li>
 <li>mpack_tag_bool()
-: <a class="el" href="group__common.html#gaa88dca8b89ea08a336affa822080f4e2">mpack-common.h</a>
+: <a class="el" href="group__common.html#gaafdb8f338605dfb8bf1e1edb6c07940e">mpack-common.h</a>
 </li>
 <li>mpack_tag_cmp()
 : <a class="el" href="group__common.html#ga959a1299fde759b8fab2341cfb1355b8">mpack-common.h</a>
 </li>
 <li>mpack_tag_double()
-: <a class="el" href="group__common.html#ga03fb3526ee0c17f2243ecfadf24f2fe8">mpack-common.h</a>
+: <a class="el" href="group__common.html#gac9f0e0d6573ffafb1536ee6f02b742b6">mpack-common.h</a>
 </li>
 <li>mpack_tag_equal()
-: <a class="el" href="group__common.html#ga5a5ba64b004b5b8070ed42e0711e25cb">mpack-common.h</a>
+: <a class="el" href="group__common.html#ga6278d8f1818309765fb7e30c14440b23">mpack-common.h</a>
 </li>
 <li>mpack_tag_float()
-: <a class="el" href="group__common.html#ga8e844ebbe4e28265639287cfbf3c9fc7">mpack-common.h</a>
+: <a class="el" href="group__common.html#ga9323e7f5d3f615fcab945ff909fa5673">mpack-common.h</a>
 </li>
 <li>mpack_tag_int()
-: <a class="el" href="group__common.html#ga1e9dae6edd2741dad0b591b5259b3d7a">mpack-common.h</a>
+: <a class="el" href="group__common.html#ga79fe4bddaffe6ebe8d97e362fe90ee5c">mpack-common.h</a>
 </li>
 <li>mpack_tag_nil()
-: <a class="el" href="group__common.html#gae0993d9686a408b830b0c1bdce0ae29a">mpack-common.h</a>
+: <a class="el" href="group__common.html#ga7dddc1921b402cd058bd32099db02fd0">mpack-common.h</a>
 </li>
 <li>mpack_tag_uint()
-: <a class="el" href="group__common.html#ga0d845f25c84adc2359d5fd4e34802f78">mpack-common.h</a>
+: <a class="el" href="group__common.html#gae3e808c63fa0ba040429f955249791d2">mpack-common.h</a>
 </li>
 <li>mpack_tree_clearjmp()
-: <a class="el" href="group__node.html#gaba74fc941de75eb0675df944b08eb84f">mpack-node.h</a>
+: <a class="el" href="group__node.html#ga6e52ad6879ffc8e3070d0e4a6fda60b2">mpack-node.h</a>
 </li>
 <li>mpack_tree_destroy()
 : <a class="el" href="group__node.html#gabf57acbc8356be8fab13a64f78986fdc">mpack-node.h</a>
 </li>
 <li>mpack_tree_error()
-: <a class="el" href="group__node.html#ga2cafadddc36ff6956dfdcd81b65f3cb1">mpack-node.h</a>
+: <a class="el" href="group__node.html#gac62f4d7bfac176dd636924f201cc4712">mpack-node.h</a>
 </li>
 <li>mpack_tree_flag_error()
 : <a class="el" href="group__node.html#ga46fdd2e384e7399f07a600e13962a492">mpack-node.h</a>
@@ -530,20 +548,20 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <li>mpack_tree_init_file()
 : <a class="el" href="group__node.html#ga2f8327cf4ebc79d9358ee0a1643af66c">mpack-node.h</a>
 </li>
-<li>mpack_tree_init_nodes()
-: <a class="el" href="group__node.html#ga05598e52b8426c14082629082079c021">mpack-node.h</a>
+<li>mpack_tree_init_pool()
+: <a class="el" href="group__node.html#ga3cb51d3adfadc336a2ac28605a939a83">mpack-node.h</a>
 </li>
 <li>mpack_tree_root()
-: <a class="el" href="group__node.html#gaf9e9f4a05c240f292814fcdb42f8af91">mpack-node.h</a>
+: <a class="el" href="group__node.html#ga2c49262ce28699d5ec90db09b5fd2eee">mpack-node.h</a>
 </li>
 <li>mpack_tree_set_context()
-: <a class="el" href="group__node.html#ga3f05552f6b20218fdcc47fdfa83f4118">mpack-node.h</a>
+: <a class="el" href="group__node.html#gaad3dea301d544aa434ca661ef3b913d1">mpack-node.h</a>
 </li>
 <li>mpack_tree_set_teardown()
-: <a class="el" href="group__node.html#ga160ddf529aea535c24752a848a1c48de">mpack-node.h</a>
+: <a class="el" href="group__node.html#gabfbf5d62990974e24f8abfed38c554e7">mpack-node.h</a>
 </li>
 <li>mpack_tree_size()
-: <a class="el" href="group__node.html#ga4e42ac819ba9b5ada878f7b6ee8b76bf">mpack-node.h</a>
+: <a class="el" href="group__node.html#ga21aac296233a8a52d75cf7a1c57dd78f">mpack-node.h</a>
 </li>
 <li>mpack_type_to_string()
 : <a class="el" href="group__common.html#ga3b259cbb9ea12088346ff897676219d0">mpack-common.h</a>
@@ -566,6 +584,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <li>mpack_write_ext()
 : <a class="el" href="group__writer.html#ga409f4bb30eb73628490ebf6f445fabc4">mpack-writer.h</a>
 </li>
+<li>mpack_write_false()
+: <a class="el" href="group__writer.html#gab05b274195191e6e98c4a8d0ec730f63">mpack-writer.h</a>
+</li>
 <li>mpack_write_float()
 : <a class="el" href="group__writer.html#ga285ce9cc180f3b623fbf07c67e2f9ca3">mpack-writer.h</a>
 </li>
@@ -582,7 +603,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 : <a class="el" href="group__writer.html#ga4776a1693cf3d69f628ea0306b3867ac">mpack-writer.h</a>
 </li>
 <li>mpack_write_int()
-: <a class="el" href="group__writer.html#ga448a5bb0fd9de2015da8171eb4f92642">mpack-writer.h</a>
+: <a class="el" href="group__writer.html#gadf4d702ebb08c040512f141ed46395c7">mpack-writer.h</a>
 </li>
 <li>mpack_write_nil()
 : <a class="el" href="group__writer.html#gaea8d479af0d05cff5194502362ae82a5">mpack-writer.h</a>
@@ -592,6 +613,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </li>
 <li>mpack_write_tag()
 : <a class="el" href="group__writer.html#ga17155afc35912817c13802d502f14e80">mpack-writer.h</a>
+</li>
+<li>mpack_write_true()
+: <a class="el" href="group__writer.html#ga5d9f083fd8556ba30f93d4ad139d0dad">mpack-writer.h</a>
 </li>
 <li>mpack_write_u16()
 : <a class="el" href="group__writer.html#gabfd74ba7f9f7fddb04d5b4fc5775342d">mpack-writer.h</a>
@@ -606,19 +630,22 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 : <a class="el" href="group__writer.html#ga573a41209a4b9125ee28c19cddef309a">mpack-writer.h</a>
 </li>
 <li>mpack_write_uint()
-: <a class="el" href="group__writer.html#gab4f2e1ecba64f6181623278f8f91b72a">mpack-writer.h</a>
+: <a class="el" href="group__writer.html#gab2e3cd22bad53b31bed85d7b46d135c9">mpack-writer.h</a>
 </li>
 <li>mpack_writer_buffer_used()
-: <a class="el" href="group__writer.html#ga280641f8f0123b39620671326c9c5deb">mpack-writer.h</a>
+: <a class="el" href="group__writer.html#ga52d9c903ac8d34d9b789551d83f09a87">mpack-writer.h</a>
 </li>
 <li>mpack_writer_clearjmp()
-: <a class="el" href="group__writer.html#ga00ae0198388322f19eeda6a40df2a5ff">mpack-writer.h</a>
+: <a class="el" href="group__writer.html#ga242550770196f12747a18763fa48d590">mpack-writer.h</a>
 </li>
 <li>mpack_writer_destroy()
 : <a class="el" href="group__writer.html#ga1cf5a2d9b687d94f637a36123ef7cec0">mpack-writer.h</a>
 </li>
+<li>mpack_writer_destroy_cancel()
+: <a class="el" href="group__writer.html#gacf654c5df6118ee87e9eaca4abacbf80">mpack-writer.h</a>
+</li>
 <li>mpack_writer_error()
-: <a class="el" href="group__writer.html#ga42883a4fddead3e47841fe2148592f70">mpack-writer.h</a>
+: <a class="el" href="group__writer.html#ga3adcd5dc4478fbd25b5b48a1c93f0597">mpack-writer.h</a>
 </li>
 <li>mpack_writer_flag_error()
 : <a class="el" href="group__writer.html#gaf90e598304c7e8a423c534a5d554075e">mpack-writer.h</a>
@@ -636,19 +663,19 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 : <a class="el" href="group__writer.html#ga0aa3b265fb5ece9c4cba0f2b1bfbdb53">mpack-writer.h</a>
 </li>
 <li>mpack_writer_set_context()
-: <a class="el" href="group__writer.html#gae785a9bb5f5903606b0ce7ef591d0877">mpack-writer.h</a>
+: <a class="el" href="group__writer.html#ga64b403d4370a99e063052f7b9188ad0b">mpack-writer.h</a>
 </li>
 <li>mpack_writer_set_flush()
-: <a class="el" href="group__writer.html#ga603fa72ebf84ac80d8fff08bd2ea9602">mpack-writer.h</a>
+: <a class="el" href="group__writer.html#gad484b1d8fcbe1a704ac6af06499f462b">mpack-writer.h</a>
 </li>
 <li>mpack_writer_set_teardown()
-: <a class="el" href="group__writer.html#gaf9ba2a1aadbcf45c27ac6185ae7fd013">mpack-writer.h</a>
+: <a class="el" href="group__writer.html#gaec0ca26b9eeba93fa07cd82eff32d526">mpack-writer.h</a>
 </li>
 </ul>
 </div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Jun 21 2015 13:24:30 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Tue Jul 28 2015 00:00:53 for MPack by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.9.1
 </small></address>
