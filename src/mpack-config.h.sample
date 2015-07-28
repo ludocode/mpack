@@ -187,11 +187,14 @@
  * The initial depth for the node parser. When MPACK_MALLOC is available,
  * the node parser has no practical depth limit, and it is not recursive
  * so there is no risk of overflowing the call stack.
- *
- * If MPACK_MALLOC is not available, this is also the maximum depth since
- * the node stack cannot grow.
  */
-#define MPACK_NODE_INITIAL_DEPTH 32
+#define MPACK_NODE_INITIAL_DEPTH 8
+
+/**
+ * The maximum depth for the node parser if MPACK_MALLOC is not available.
+ * The parsing stack is placed on the call stack.
+ */
+#define MPACK_NODE_MAX_DEPTH_WITHOUT_MALLOC 32
 
 
 #endif

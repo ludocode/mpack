@@ -45,7 +45,7 @@ typedef struct mpack_tree_parser_t {
     size_t level;
     size_t depth;
     mpack_level_t* stack;
-
+    bool stack_allocated;
 } mpack_tree_parser_t;
 
 static inline uint8_t mpack_tree_u8(mpack_tree_parser_t* parser) {
@@ -127,11 +127,28 @@ void mpack_tree_parse_children(mpack_tree_parser_t* parser, mpack_node_data_t* n
     if (parser->level + 1 == parser->depth) {
         #ifdef MPACK_MALLOC
         size_t new_depth = parser->depth * 2;
-        parser->stack = (mpack_level_t*)mpack_realloc(parser->stack, sizeof(mpack_level_t) * parser->depth, sizeof(mpack_level_t) * new_depth);
-        if (!parser->stack) {
-            mpack_tree_flag_error(parser->tree, mpack_error_memory);
-            parser->level = 0;
-            return;
+        mpack_log("growing stack to depth %i\n", (int)new_depth);
+
+        // Replace the stack-allocated parsing stack
+        if (parser->stack_allocated) {
+            mpack_level_t* new_stack = (mpack_level_t*)MPACK_MALLOC(sizeof(mpack_level_t) * new_depth);
+            if (!new_stack) {
+                mpack_tree_flag_error(parser->tree, mpack_error_memory);
+                parser->level = 0;
+                return;
+            }
+            memcpy(new_stack, parser->stack, sizeof(mpack_level_t) * parser->depth);
+            parser->stack = new_stack;
+            parser->stack_allocated = false;
+
+        // Realloc the allocated parsing stack
+        } else {
+            parser->stack = (mpack_level_t*)mpack_realloc(parser->stack, sizeof(mpack_level_t) * parser->depth, sizeof(mpack_level_t) * new_depth);
+            if (!parser->stack) {
+                mpack_tree_flag_error(parser->tree, mpack_error_memory);
+                parser->level = 0;
+                return;
+            }
         }
         parser->depth = new_depth;
         #else
@@ -244,7 +261,6 @@ void mpack_tree_parse_children(mpack_tree_parser_t* parser, mpack_node_data_t* n
     ++parser->level;
     parser->stack[parser->level].child = node->value.content.children;
     parser->stack[parser->level].left = total;
-
 }
 
 void mpack_tree_parse_bytes(mpack_tree_parser_t* parser, mpack_node_data_t* node) {
@@ -261,6 +277,7 @@ void mpack_tree_parse_bytes(mpack_tree_parser_t* parser, mpack_node_data_t* node
 }
 
 void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length) {
+    mpack_log("starting parse\n");
 
     // This function is unfortunately huge and ugly, but there isn't
     // a good way to break it apart without losing performance. It's
@@ -289,14 +306,20 @@ void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length) {
     // We read nodes in a loop instead of recursively for maximum
     // performance. The stack holds the amount of children left to
     // read in each level of the tree.
-    static const size_t initial_depth = MPACK_NODE_INITIAL_DEPTH;
-    parser.depth = initial_depth;
+
+    // Even when we have a malloc() function, it's much faster to
+    // allocate the initial parsing stack on the call stack. We
+    // replace it with a heap allocation if we need to grow it.
     #ifdef MPACK_MALLOC
-    parser.stack = (mpack_level_t*)MPACK_MALLOC(sizeof(mpack_level_t) * initial_depth);
+    static const size_t initial_depth = MPACK_NODE_INITIAL_DEPTH;
+    parser.stack_allocated = true;
     #else
-    mpack_level_t stack_[initial_depth];
-    parser.stack = stack_;
+    static const size_t initial_depth = MPACK_NODE_MAX_DEPTH_WITHOUT_MALLOC;
     #endif
+
+    mpack_level_t stack_[initial_depth];
+    parser.depth = initial_depth;
+    parser.stack = stack_;
 
     // We keep track of the number of possible nodes left in the data. This
     // is to ensure that malicious nested data is not trying to make us
@@ -601,10 +624,13 @@ void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length) {
     } while (parser.level != 0 && mpack_tree_error(parser.tree) == mpack_ok);
 
     #ifdef MPACK_MALLOC
-    MPACK_FREE(parser.stack);
+    if (!parser.stack_allocated)
+        MPACK_FREE(parser.stack);
     #endif
 
-    tree->size = parser.left;
+    tree->size = length - parser.left;
+    mpack_log("parsed tree of %i bytes, %i bytes left\n", (int)tree->size, (int)parser.left);
+    mpack_log("%i nodes in final page\n", (int)tree->page.pos);
 
     // This seems like a bug / performance flaw in GCC. In release the
     // below assert would compile to:

@@ -181,9 +181,12 @@ size_t mpack_strlen(const char *s);
 
 
 
-/* Clean up the debug logging */
+/* Debug logging */
+#if 0
+#define mpack_log(...) printf(__VA_ARGS__);
+#else
 #define mpack_log(...) ((void)0)
-/* #define mpack_log(...) printf(__VA_ARGS__); */
+#endif
 
 
 

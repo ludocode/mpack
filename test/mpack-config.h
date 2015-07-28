@@ -47,7 +47,7 @@
 #ifdef MPACK_MALLOC
 #define MPACK_NODE_INITIAL_DEPTH 3
 #else
-#define MPACK_NODE_INITIAL_DEPTH 32
+#define MPACK_NODE_MAX_DEPTH_WITHOUT_MALLOC 32
 #endif
 
 // don't include debug print functions in code coverage
