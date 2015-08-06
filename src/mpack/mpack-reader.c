@@ -670,10 +670,10 @@ static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
             break;
 
         case mpack_type_int:
-            printf("%"PRIi64, val.v.i);
+            printf("%" PRIi64, val.v.i);
             break;
         case mpack_type_uint:
-            printf("%"PRIu64, val.v.u);
+            printf("%" PRIu64, val.v.u);
             break;
 
         case mpack_type_bin:

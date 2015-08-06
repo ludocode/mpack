@@ -265,7 +265,7 @@ uint64_t mpack_expect_u64_range(mpack_reader_t* reader, uint64_t min_value, uint
 
     // make sure the range is sensible
     mpack_assert(min_value <= max_value,
-            "min_value %"PRIu64" must be less than or equal to max_value %"PRIu64, min_value, max_value);
+            "min_value %" PRIu64 " must be less than or equal to max_value %" PRIu64, min_value, max_value);
 
 
     // read the value
