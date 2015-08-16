@@ -45,7 +45,6 @@ allconfigs = noioconfigs + ["-DMPACK_STDIO=1"]
 debugflags = ["-DDEBUG", "-O0"]
 releaseflags = ["-Os"]
 cflags = ["-std=c99", "-Wc++-compat"]
-cxxflags = ["-xc++", "-std=c++98"]
 
 
 # Functions to add a variant build. One variant build will build and run the
@@ -98,11 +97,17 @@ if ARGUMENTS.get('all'):
     AddBuilds("embed-node", ["-DMPACK_NODE=1"] + cflags, [])
 
     # miscellaneous test builds
-    AddBuilds("cxx", allfeatures + allconfigs + cxxflags, ["-lstdc++"])
+    AddBuilds("cxx", allfeatures + allconfigs + ["-xc++", "-std=c++98"], ["-lstdc++"])
     AddBuilds("notrack", ["-DMPACK_NO_TRACKING=1"] + allfeatures + allconfigs + cflags, [])
     AddBuilds("realloc", allfeatures + allconfigs + debugflags + cflags + ["-DMPACK_REALLOC=test_realloc"], [])
 
-    # 32-bit builds (note Travis-CI doesn't support multilib)
+    # Travis-CI currently only has GCC 4.6 and Clang 3.4, doesn't properly support these options
+    if 'TRAVIS' not in env:
+        AddBuilds("c11", allfeatures + allconfigs + ["-std=c11", "-Wc++-compat"], [])
+        AddBuilds("cxx11", allfeatures + allconfigs + ["-xc++", "-std=c++11"], ["-lstdc++"])
+        AddBuilds("cxx14", allfeatures + allconfigs + ["-xc++", "-std=c++14"], ["-lstdc++"])
+
+    # 32-bit builds (Travis-CI doesn't support multilib)
     if 'TRAVIS' not in env and '64' in platform.architecture()[0]:
         AddBuilds("32",     allfeatures + allconfigs + cflags + ["-m32"], ["-m32"])
-        AddBuilds("cxx-32", allfeatures + allconfigs + cxxflags + ["-m32"], ["-m32", "-lstdc++"])
+        AddBuilds("cxx11-32", allfeatures + allconfigs + ["-xc++", "-std=c++11"] + ["-m32"], ["-m32", "-lstdc++"])
