@@ -3,8 +3,6 @@
 PROJECT_NAME = "MPack"
 PROJECT_BRIEF = "A C encoding/decoding library for the MessagePack serialization format."
 
-# This is the only place where the version number is defined.
-# The packaging script pulls the version number from here.
 PROJECT_NUMBER = develop
 
 INPUT = \
