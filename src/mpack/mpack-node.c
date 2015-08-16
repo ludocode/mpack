@@ -856,7 +856,7 @@ void mpack_node_flag_error(mpack_node_t node, mpack_error_t error) {
 #if MPACK_DEBUG && MPACK_STDIO && MPACK_SETJMP && !MPACK_NO_PRINT
 static void mpack_node_print_element(mpack_node_t node, size_t depth) {
     mpack_node_data_t* data = node.data;
-    switch (data.type) {
+    switch (data->type) {
 
         case mpack_type_nil:
             printf("null");
@@ -890,9 +890,9 @@ static void mpack_node_print_element(mpack_node_t node, size_t depth) {
         case mpack_type_str:
             {
                 putchar('"');
-                const char* data = mpack_node_data(node);
+                const char* bytes = mpack_node_data(node);
                 for (size_t i = 0; i < data->value.data.l; ++i) {
-                    char c = data[i];
+                    char c = bytes[i];
                     switch (c) {
                         case '\n': printf("\\n"); break;
                         case '\\': printf("\\\\"); break;
