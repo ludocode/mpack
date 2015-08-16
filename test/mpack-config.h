@@ -50,8 +50,5 @@
 #define MPACK_NODE_MAX_DEPTH_WITHOUT_MALLOC 32
 #endif
 
-// don't include debug print functions in code coverage
-#define MPACK_NO_PRINT 1
-
 #endif
 
