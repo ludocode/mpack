@@ -67,7 +67,7 @@ void mpack_assert_fail(const char* message) {
 
     #if defined(__GCC__) || defined(__clang__)
     __builtin_trap();
-    #elif WIN32
+    #elif defined(WIN32)
     __debugbreak();
     #endif
 
@@ -89,7 +89,7 @@ void mpack_break_hit(const char* message) {
 
     #if defined(__GCC__) || defined(__clang__)
     __builtin_trap();
-    #elif WIN32
+    #elif defined(WIN32)
     __debugbreak();
     #elif MPACK_STDLIB
     abort();
