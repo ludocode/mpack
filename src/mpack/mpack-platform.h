@@ -90,7 +90,7 @@ extern "C" {
     #define MPACK_UNREACHABLE __builtin_unreachable()
     #define MPACK_NORETURN(fn) fn __attribute__((noreturn))
     #define MPACK_ALWAYS_INLINE __attribute__((always_inline)) static inline
-#elif _MSC_VER
+#elif defined(_MSC_VER)
     #define MPACK_UNREACHABLE __assume(0)
     #define MPACK_NORETURN(fn) __declspec(noreturn) fn
     #define MPACK_ALWAYS_INLINE __forceinline static
