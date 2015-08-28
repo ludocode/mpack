@@ -30,14 +30,64 @@
 #ifndef MPACK_PLATFORM_H
 #define MPACK_PLATFORM_H 1
 
-#if defined(WIN32) && MPACK_INTERNAL
-#define _CRT_SECURE_NO_WARNINGS 1
-#endif
 
-#include "mpack-config.h"
 
 /* For now, nothing in here should be seen by Doxygen. */
 /** @cond */
+
+#if defined(WIN32) && defined(MPACK_INTERNAL) && MPACK_INTERNAL
+#define _CRT_SECURE_NO_WARNINGS 1
+#endif
+
+
+
+#include "mpack-config.h"
+
+/*
+ * Now that the config is included, we undef any of the configs
+ * that aren't true. This allows defining configs to 0 without
+ * us having to write "#if defined(X) && X" everywhere.
+ */
+#if defined(MPACK_READER) && !MPACK_READER
+#undef MPACK_READER
+#endif
+#if defined(MPACK_EXPECT) && !MPACK_EXPECT
+#undef MPACK_EXPECT
+#endif
+#if defined(MPACK_NODE) && !MPACK_NODE
+#undef MPACK_NODE
+#endif
+#if defined(MPACK_WRITER) && !MPACK_WRITER
+#undef MPACK_WRITER
+#endif
+#if defined(MPACK_STDLIB) && !MPACK_STDLIB
+#undef MPACK_STDLIB
+#endif
+#if defined(MPACK_STDIO) && !MPACK_STDIO
+#undef MPACK_STDIO
+#endif
+#if defined(MPACK_SETJMP) && !MPACK_SETJMP
+#undef MPACK_SETJMP
+#endif
+#if defined(MPACK_DEBUG) && !MPACK_DEBUG
+#undef MPACK_DEBUG
+#endif
+#if defined(MPACK_CUSTOM_ASSERT) && !MPACK_CUSTOM_ASSERT
+#undef MPACK_CUSTOM_ASSERT
+#endif
+#if defined(MPACK_READ_TRACKING) && !MPACK_READ_TRACKING
+#undef MPACK_READ_TRACKING
+#endif
+#if defined(MPACK_WRITE_TRACKING) && !MPACK_WRITE_TRACKING
+#undef MPACK_WRITE_TRACKING
+#endif
+#if defined(MPACK_NO_TRACKING) && !MPACK_NO_TRACKING
+#undef MPACK_NO_TRACKING
+#endif
+
+
+
+/* System headers (based on configuration) */
 
 #ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS 1
@@ -55,14 +105,14 @@
 #include <inttypes.h>
 #include <limits.h>
 
-#if MPACK_STDLIB
+#ifdef MPACK_STDLIB
 #include <string.h>
 #include <stdlib.h>
 #endif
-#if MPACK_STDIO
+#ifdef MPACK_STDIO
 #include <stdio.h>
 #endif
-#if MPACK_SETJMP
+#ifdef MPACK_SETJMP
 #include <setjmp.h>
 #endif
 
@@ -72,9 +122,11 @@ extern "C" {
 
 
 
+/* Miscellaneous helper macros */
+
 #define MPACK_UNUSED(var) ((void)(var))
 
-#if MPACK_AMALGAMATED
+#ifdef MPACK_AMALGAMATED
 #define MPACK_INTERNAL_STATIC static
 #else
 #define MPACK_INTERNAL_STATIC
@@ -86,6 +138,7 @@ extern "C" {
 
 
 /* Some compiler-specific keywords and builtins */
+
 #if defined(__GNUC__) || defined(__clang__)
     #define MPACK_UNREACHABLE __builtin_unreachable()
     #define MPACK_NORETURN(fn) fn __attribute__((noreturn))
@@ -137,9 +190,9 @@ extern "C" {
  * important for static analysis tools to give correct results.
  */
 
-#if MPACK_DEBUG
+#ifdef MPACK_DEBUG
     MPACK_NORETURN(void mpack_assert_fail(const char* message));
-    #if MPACK_STDIO
+    #ifdef MPACK_STDIO
         MPACK_NORETURN(void mpack_assert_fail_format(const char* format, ...));
         #define mpack_assert_fail_at(line, file, expr, ...) \
                 mpack_assert_fail_format("mpack assertion failed at " file ":" #line "\n" expr "\n" __VA_ARGS__)
@@ -152,7 +205,7 @@ extern "C" {
     #define mpack_assert(expr, ...) ((!(expr)) ? mpack_assert_fail_pos(__LINE__, __FILE__, #expr, __VA_ARGS__) : (void)0)
 
     void mpack_break_hit(const char* message);
-    #if MPACK_STDIO
+    #ifdef MPACK_STDIO
         void mpack_break_hit_format(const char* format, ...);
         #define mpack_break_hit_at(line, file, ...) \
                 mpack_break_hit_format("mpack breakpoint hit at " file ":" #line "\n" __VA_ARGS__)
@@ -169,7 +222,9 @@ extern "C" {
 
 
 
-#if MPACK_STDLIB
+
+/* Wrap some needed libc functions */
+#ifdef MPACK_STDLIB
 #define mpack_memset memset
 #define mpack_memcpy memcpy
 #define mpack_memmove memmove
@@ -201,20 +256,20 @@ size_t mpack_strlen(const char *s);
 #if !defined(MPACK_MALLOC) && defined(MPACK_FREE)
     #error "MPACK_FREE requires MPACK_MALLOC."
 #endif
-#if MPACK_READ_TRACKING && (!defined(MPACK_READER) || !MPACK_READER)
+#if defined(MPACK_READ_TRACKING) && !defined(MPACK_READER)
     #error "MPACK_READ_TRACKING requires MPACK_READER."
 #endif
-#if MPACK_WRITE_TRACKING && (!defined(MPACK_WRITER) || !MPACK_WRITER)
+#if defined(MPACK_WRITE_TRACKING) && !defined(MPACK_WRITER)
     #error "MPACK_WRITE_TRACKING requires MPACK_WRITER."
 #endif
 #ifndef MPACK_MALLOC
-    #if MPACK_STDIO
+    #ifdef MPACK_STDIO
     #error "MPACK_STDIO requires preprocessor definitions for MPACK_MALLOC and MPACK_FREE."
     #endif
-    #if MPACK_READ_TRACKING
+    #ifdef MPACK_READ_TRACKING
     #error "MPACK_READ_TRACKING requires preprocessor definitions for MPACK_MALLOC and MPACK_FREE."
     #endif
-    #if MPACK_WRITE_TRACKING
+    #ifdef MPACK_WRITE_TRACKING
     #error "MPACK_WRITE_TRACKING requires preprocessor definitions for MPACK_MALLOC and MPACK_FREE."
     #endif
 #endif

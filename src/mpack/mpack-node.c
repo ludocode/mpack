@@ -23,7 +23,7 @@
 
 #include "mpack-node.h"
 
-#if MPACK_NODE
+#ifdef MPACK_NODE
 
 
 
@@ -644,7 +644,7 @@ void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length) {
     //
     // Leaving a TODO: here to explore this further. In the meantime we preproc it
     // under MPACK_DEBUG.
-    #if MPACK_DEBUG
+    #ifdef MPACK_DEBUG
     mpack_assert(parser.possible_nodes_left == parser.left,
             "incorrect calculation of possible nodes! %i possible nodes, but %i bytes remaining",
             (int)parser.possible_nodes_left, (int)parser.left);
@@ -702,7 +702,7 @@ void mpack_tree_init_error(mpack_tree_t* tree, mpack_error_t error) {
     tree->error = error;
 }
 
-#if MPACK_STDIO
+#ifdef MPACK_STDIO
 typedef struct mpack_file_tree_t {
     char* data;
     size_t size;
@@ -821,7 +821,7 @@ mpack_error_t mpack_tree_destroy(mpack_tree_t* tree) {
         tree->teardown(tree);
     tree->teardown = NULL;
 
-    #if MPACK_SETJMP
+    #ifdef MPACK_SETJMP
     if (tree->jump_env)
         MPACK_FREE(tree->jump_env);
     tree->jump_env = NULL;
@@ -835,7 +835,7 @@ void mpack_tree_flag_error(mpack_tree_t* tree, mpack_error_t error) {
 
     if (tree->error == mpack_ok) {
         tree->error = error;
-        #if MPACK_SETJMP
+        #ifdef MPACK_SETJMP
         if (tree->jump_env)
             longjmp(*tree->jump_env, 1);
         #endif
@@ -853,7 +853,7 @@ void mpack_node_flag_error(mpack_node_t node, mpack_error_t error) {
     mpack_tree_flag_error(node.tree, error);
 }
 
-#if MPACK_DEBUG && MPACK_STDIO && MPACK_SETJMP && !MPACK_NO_PRINT
+#if defined(MPACK_DEBUG) && defined(MPACK_STDIO) && defined(MPACK_SETJMP) && !defined(MPACK_NO_PRINT)
 static void mpack_node_print_element(mpack_node_t node, size_t depth) {
     mpack_node_data_t* data = node.data;
     switch (data->type) {

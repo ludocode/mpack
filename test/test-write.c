@@ -22,7 +22,7 @@
 #include "test-write.h"
 #include "test.h"
 
-#if MPACK_WRITER
+#ifdef MPACK_WRITER
 
 // writes ints using the auto int()/uint() functions
 static void test_write_simple_auto_int() {
@@ -635,7 +635,7 @@ static void test_write_small_structure_trees() {
 }
 #endif
 
-#if MPACK_WRITE_TRACKING
+#ifdef MPACK_WRITE_TRACKING
 static void test_write_tracking_errors() {
 
     // test that cancel works
@@ -672,7 +672,7 @@ void test_writes() {
     test_write_small_structure_trees();
     #endif
 
-    #if MPACK_WRITE_TRACKING
+    #ifdef MPACK_WRITE_TRACKING
     test_write_tracking_errors();
     #endif
 }

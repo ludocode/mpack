@@ -71,7 +71,7 @@
  *
  * A string containing the MPack version.
  */
-#if MPACK_AMALGAMATED
+#ifdef MPACK_AMALGAMATED
 #define MPACK_VERSION_STRING MPACK_VERSION_STRING_BASE
 #else
 #define MPACK_VERSION_STRING MPACK_VERSION_STRING_BASE "dev"
@@ -83,7 +83,7 @@
  *
  * A string describing MPack, containing the library name, version and debug mode.
  */
-#if MPACK_DEBUG
+#ifdef MPACK_DEBUG
 #define MPACK_LIBRARY_STRING "MPack " MPACK_VERSION_STRING "-debug"
 #else
 #define MPACK_LIBRARY_STRING "MPack " MPACK_VERSION_STRING
@@ -305,7 +305,7 @@ MPACK_ALWAYS_INLINE uint64_t mpack_load_native_u64(const char* p) {
 
 
 
-#if MPACK_READ_TRACKING || MPACK_WRITE_TRACKING
+#if defined(MPACK_READ_TRACKING) || defined(MPACK_WRITE_TRACKING)
 
 /* Tracks the write state of compound elements (maps, arrays, */
 /* strings, binary blobs and extension types) */
@@ -322,7 +322,7 @@ typedef struct mpack_track_t {
     mpack_track_element_t* elements;
 } mpack_track_t;
 
-#if MPACK_INTERNAL
+#ifdef MPACK_INTERNAL
 MPACK_INTERNAL_STATIC mpack_error_t mpack_track_init(mpack_track_t* track);
 MPACK_INTERNAL_STATIC mpack_error_t mpack_track_grow(mpack_track_t* track);
 
@@ -452,7 +452,7 @@ static inline mpack_error_t mpack_track_destroy(mpack_track_t* track, bool cance
 
 
 
-#if MPACK_INTERNAL
+#ifdef MPACK_INTERNAL
 
 /* The below code is from Bjoern Hoehrmann's Flexible and Economical */
 /* UTF-8 decoder, modified to make it static and add the mpack prefix. */

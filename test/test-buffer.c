@@ -106,7 +106,7 @@ static const int test_buffer_sizes[] = {
     16384, 32768
 };
 
-#if MPACK_READER
+#ifdef MPACK_READER
 typedef struct test_fill_state_t {
     const char* data;
     size_t remaining;
@@ -123,7 +123,7 @@ static size_t test_buffer_fill(mpack_reader_t* reader, char* buffer, size_t coun
 }
 #endif
 
-#if MPACK_WRITER
+#ifdef MPACK_WRITER
 typedef struct test_flush_state_t {
     char* data;
     size_t remaining;
@@ -141,7 +141,7 @@ static void test_buffer_flush(mpack_writer_t* writer, const char* buffer, size_t
 }
 #endif
 
-#if MPACK_EXPECT
+#ifdef MPACK_EXPECT
 static void test_expect_buffer_values(mpack_reader_t* reader) {
     test_read_noerror(reader, 2 == mpack_expect_u8(reader));
     test_read_noerror(reader, 17 == mpack_expect_u8(reader));
@@ -193,7 +193,7 @@ static void test_expect_buffer_values(mpack_reader_t* reader) {
 }
 #endif
 
-#if MPACK_WRITER
+#ifdef MPACK_WRITER
 static void test_write_buffer_values(mpack_writer_t* writer) {
     test_write_noerror(writer, mpack_write_u8(writer, 2));
     test_write_noerror(writer, mpack_write_u8(writer, 17));
@@ -245,7 +245,7 @@ static void test_write_buffer_values(mpack_writer_t* writer) {
 }
 #endif
 
-#if MPACK_EXPECT
+#ifdef MPACK_EXPECT
 static void test_expect_buffer(void) {
     for (size_t i = 0; i < sizeof(test_buffer_sizes) / sizeof(test_buffer_sizes[0]); ++i) {
 
@@ -267,7 +267,7 @@ static void test_expect_buffer(void) {
 }
 #endif
 
-#if MPACK_WRITER
+#ifdef MPACK_WRITER
 static void test_write_buffer(void) {
     for (size_t i = 0; i < sizeof(test_buffer_sizes) / sizeof(test_buffer_sizes[0]); ++i) {
         size_t output_size = 0xffff;
@@ -299,7 +299,7 @@ static void test_write_buffer(void) {
 }
 #endif
 
-#if MPACK_READER
+#ifdef MPACK_READER
 static void test_inplace_buffer(void) {
     for (size_t i = 0; i < sizeof(test_buffer_sizes) / sizeof(test_buffer_sizes[0]); ++i) {
 
@@ -350,13 +350,13 @@ void test_buffers(void) {
     MPACK_UNUSED(test_strings);
     MPACK_UNUSED(test_buffer_sizes);
 
-    #if MPACK_EXPECT
+    #ifdef MPACK_EXPECT
     test_expect_buffer();
     #endif
-    #if MPACK_WRITER
+    #ifdef MPACK_WRITER
     test_write_buffer();
     #endif
-    #if MPACK_READER
+    #ifdef MPACK_READER
     test_inplace_buffer();
     #endif
 }

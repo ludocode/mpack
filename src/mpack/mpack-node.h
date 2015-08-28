@@ -30,7 +30,7 @@
 
 #include "mpack-reader.h"
 
-#if MPACK_NODE
+#ifdef MPACK_NODE
 
 #ifdef __cplusplus
 extern "C" {
@@ -144,7 +144,7 @@ struct mpack_tree_t {
     bool owned;
     #endif
 
-    #if MPACK_SETJMP
+    #ifdef MPACK_SETJMP
     /* Optional jump target in case of error (pointer because it's
      * very large and may be unused) */
     jmp_buf* jump_env;
@@ -207,7 +207,7 @@ void mpack_tree_init_pool(mpack_tree_t* tree, const char* data, size_t length, m
  */
 void mpack_tree_init_error(mpack_tree_t* tree, mpack_error_t error);
 
-#if MPACK_STDIO
+#ifdef MPACK_STDIO
 /**
  * Initializes a tree by reading and parsing the given file. The tree must be
  * destroyed with mpack_tree_destroy(), even if parsing fails.
@@ -272,7 +272,7 @@ static inline void mpack_tree_set_teardown(mpack_tree_t* tree, mpack_tree_teardo
     tree->teardown = teardown;
 }
 
-#if MPACK_SETJMP
+#ifdef MPACK_SETJMP
 
 /**
  * @hideinitializer
@@ -370,7 +370,7 @@ static inline mpack_tag_t mpack_node_tag(mpack_node_t node) {
     return tag;
 }
 
-#if MPACK_DEBUG && MPACK_STDIO && MPACK_SETJMP && !MPACK_NO_PRINT
+#if defined(MPACK_DEBUG) && defined(MPACK_STDIO) && defined(MPACK_SETJMP) && !defined(MPACK_NO_PRINT)
 /**
  * Converts a node to JSON and pretty-prints it to stdout.
  *

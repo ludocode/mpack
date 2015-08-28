@@ -72,7 +72,7 @@ extern "C" {
             "reader flagged error %i", (int)mpack_reader_error(reader)); \
 } while (0)
 
-#if MPACK_EXPECT
+#ifdef MPACK_EXPECT
 void test_expect(void);
 #endif
 

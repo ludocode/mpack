@@ -32,7 +32,7 @@
 extern "C" {
 #endif
 
-#if MPACK_STDIO
+#ifdef MPACK_STDIO
 void test_file(void);
 #endif
 

@@ -23,7 +23,7 @@
 
 #include "mpack-expect.h"
 
-#if MPACK_EXPECT
+#ifdef MPACK_EXPECT
 
 
 // Basic Number Functions

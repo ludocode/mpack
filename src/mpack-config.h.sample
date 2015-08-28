@@ -133,7 +133,7 @@
  * This is enabled by default in debug builds (provided a malloc() is
  * available.)
  */
-#if MPACK_DEBUG && MPACK_READER && defined(MPACK_MALLOC)
+#if defined(MPACK_DEBUG) && MPACK_DEBUG && defined(MPACK_READER) && MPACK_READER && defined(MPACK_MALLOC)
 #define MPACK_READ_TRACKING 1
 #endif
 
@@ -151,7 +151,7 @@
  * This is enabled by default in debug builds (provided a malloc() is
  * available.)
  */
-#if MPACK_DEBUG && MPACK_WRITER && defined(MPACK_MALLOC)
+#if defined(MPACK_DEBUG) && MPACK_DEBUG && defined(MPACK_WRITER) && MPACK_WRITER && defined(MPACK_MALLOC)
 #define MPACK_WRITE_TRACKING 1
 #endif
 

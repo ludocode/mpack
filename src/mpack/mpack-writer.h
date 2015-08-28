@@ -30,13 +30,13 @@
 
 #include "mpack-common.h"
 
-#if MPACK_WRITER
+#ifdef MPACK_WRITER
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#if MPACK_WRITE_TRACKING
+#ifdef MPACK_WRITE_TRACKING
 struct mpack_track_t;
 #endif
 
@@ -83,13 +83,13 @@ struct mpack_writer_t {
     size_t used;          /* How many bytes have been written into the buffer */
     mpack_error_t error;  /* Error state */
 
-    #if MPACK_SETJMP
+    #ifdef MPACK_SETJMP
     /* Optional jump target in case of error (pointer because it's
      * very large and may be unused) */
     jmp_buf* jump_env;
     #endif
 
-    #if MPACK_WRITE_TRACKING
+    #ifdef MPACK_WRITE_TRACKING
     mpack_track_t track; /* Stack of map/array/str/bin/ext writes */
     #endif
 };
@@ -138,7 +138,7 @@ void mpack_writer_init_growable(mpack_writer_t* writer, char** data, size_t* siz
  */
 void mpack_writer_init_error(mpack_writer_t* writer, mpack_error_t error);
 
-#if MPACK_STDIO
+#ifdef MPACK_STDIO
 /**
  * Initializes an mpack writer that writes to a file.
  */
@@ -162,7 +162,7 @@ void mpack_writer_init_file(mpack_writer_t* writer, const char* filename);
 #define mpack_writer_init_stack(writer) \
     mpack_writer_init_stack_line(__LINE__, (writer))
 
-#if MPACK_SETJMP
+#ifdef MPACK_SETJMP
 
 /**
  * @hideinitializer
@@ -459,7 +459,7 @@ void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count);
  */
 void mpack_write_bytes(mpack_writer_t* writer, const char* data, size_t count);
 
-#if MPACK_WRITE_TRACKING
+#ifdef MPACK_WRITE_TRACKING
 /**
  * Finishes writing an array.
  *

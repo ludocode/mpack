@@ -30,13 +30,13 @@
 
 #include "mpack-common.h"
 
-#if MPACK_READER
+#ifdef MPACK_READER
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#if MPACK_READ_TRACKING
+#ifdef MPACK_READ_TRACKING
 struct mpack_track_t;
 #endif
 
@@ -89,18 +89,18 @@ struct mpack_reader_t {
     size_t pos;         /* Position within the buffer */
     mpack_error_t error;  /* Error state */
 
-    #if MPACK_SETJMP
+    #ifdef MPACK_SETJMP
     /* Optional jump target in case of error (pointer because it's
      * very large and may be unused) */
     jmp_buf* jump_env;
     #endif
 
-    #if MPACK_READ_TRACKING
+    #ifdef MPACK_READ_TRACKING
     mpack_track_t track; /* Stack of map/array/str/bin/ext reads */
     #endif
 };
 
-#if MPACK_SETJMP
+#ifdef MPACK_SETJMP
 
 /**
  * @hideinitializer
@@ -166,7 +166,7 @@ void mpack_reader_init_error(mpack_reader_t* reader, mpack_error_t error);
  */
 void mpack_reader_init_data(mpack_reader_t* reader, const char* data, size_t count);
 
-#if MPACK_STDIO
+#ifdef MPACK_STDIO
 /**
  * Initializes an mpack reader that reads from a file.
  */
@@ -391,7 +391,7 @@ static inline bool mpack_should_read_bytes_inplace(mpack_reader_t* reader, size_
     return (reader->size == 0 || count > reader->size / 8);
 }
 
-#if MPACK_READ_TRACKING
+#ifdef MPACK_READ_TRACKING
 /**
  * Finishes reading an array.
  *
@@ -457,7 +457,7 @@ static inline void mpack_done_type(mpack_reader_t* reader, mpack_type_t type) {M
  */
 void mpack_discard(mpack_reader_t* reader);
 
-#if MPACK_DEBUG && MPACK_STDIO && MPACK_SETJMP && !MPACK_NO_PRINT
+#if defined(MPACK_DEBUG) && defined(MPACK_STDIO) && defined(MPACK_SETJMP) && !defined(MPACK_NO_PRINT)
 /*! Converts a chunk of messagepack to JSON and pretty-prints it to stdout. */
 void mpack_debug_print(const char* data, int len);
 #endif
@@ -468,7 +468,7 @@ void mpack_debug_print(const char* data, int len);
 
 
 
-#if MPACK_INTERNAL
+#ifdef MPACK_INTERNAL
 
 void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count);
 
@@ -487,12 +487,12 @@ static inline void mpack_read_native(mpack_reader_t* reader, char* p, size_t cou
 // Reads native bytes with jump disabled. This allows mpack reader functions
 // to hold an allocated buffer and read native data into it without leaking it.
 static inline void mpack_read_native_nojump(mpack_reader_t* reader, char* p, size_t count) {
-    #if MPACK_SETJMP
+    #ifdef MPACK_SETJMP
     jmp_buf* jump_env = reader->jump_env;
     reader->jump_env = NULL;
     #endif
     mpack_read_native(reader, p, count);
-    #if MPACK_SETJMP
+    #ifdef MPACK_SETJMP
     reader->jump_env = jump_env;
     #endif
 }
@@ -572,7 +572,7 @@ MPACK_ALWAYS_INLINE double mpack_read_native_double(mpack_reader_t* reader) {
     return u.d;
 }
 
-#if MPACK_READ_TRACKING
+#ifdef MPACK_READ_TRACKING
 #define MPACK_READER_TRACK(reader, error) mpack_reader_flag_if_error(reader, error)
 #else
 #define MPACK_READER_TRACK(reader, error) MPACK_UNUSED(reader)

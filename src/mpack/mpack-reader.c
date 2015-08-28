@@ -23,7 +23,7 @@
 
 #include "mpack-reader.h"
 
-#if MPACK_READER
+#ifdef MPACK_READER
 
 void mpack_reader_init(mpack_reader_t* reader, char* buffer, size_t size, size_t count) {
     mpack_memset(reader, 0, sizeof(*reader));
@@ -55,7 +55,7 @@ void mpack_reader_init_data(mpack_reader_t* reader, const char* data, size_t cou
     MPACK_READER_TRACK(reader, mpack_track_init(&reader->track));
 }
 
-#if MPACK_STDIO
+#ifdef MPACK_STDIO
 typedef struct mpack_file_reader_t {
     FILE* file;
     char buffer[MPACK_BUFFER_SIZE];
@@ -108,7 +108,7 @@ mpack_error_t mpack_reader_destroy_impl(mpack_reader_t* reader, bool cancel) {
         reader->teardown(reader);
     reader->teardown = NULL;
 
-    #if MPACK_SETJMP
+    #ifdef MPACK_SETJMP
     if (reader->jump_env)
         MPACK_FREE(reader->jump_env);
     reader->jump_env = NULL;
@@ -137,7 +137,7 @@ void mpack_reader_flag_error(mpack_reader_t* reader, mpack_error_t error) {
 
     if (reader->error == mpack_ok) {
         reader->error = error;
-        #if MPACK_SETJMP
+        #ifdef MPACK_SETJMP
         if (reader->jump_env)
             longjmp(*reader->jump_env, 1);
         #endif
@@ -624,7 +624,7 @@ void mpack_discard(mpack_reader_t* reader) {
     }
 }
 
-#if MPACK_READ_TRACKING
+#ifdef MPACK_READ_TRACKING
 void mpack_done_array(mpack_reader_t* reader) {
     MPACK_READER_TRACK(reader, mpack_track_pop(&reader->track, mpack_type_array));
 }
@@ -650,7 +650,7 @@ void mpack_done_type(mpack_reader_t* reader, mpack_type_t type) {
 }
 #endif
 
-#if MPACK_DEBUG && MPACK_STDIO && MPACK_SETJMP && !MPACK_NO_PRINT
+#if defined(MPACK_DEBUG) && defined(MPACK_STDIO) && defined(MPACK_SETJMP) && !defined(MPACK_NO_PRINT)
 static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
     mpack_tag_t val = mpack_read_tag(reader);
     switch (val.type) {

@@ -34,16 +34,16 @@
 #include <stdlib.h>
 #include <math.h>
 
-#if WIN32
+#ifdef WIN32
 #include <float.h>
 #define isnanf _isnan
 #endif
 
-#if __APPLE__
+#ifdef __APPLE__
 #define isnanf isnan
 #endif
 
-#if WIN32
+#ifdef WIN32
 #define unlink _unlink
 #endif
 

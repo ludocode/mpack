@@ -1,7 +1,7 @@
 
 #include "test-file.h"
 
-#if MPACK_STDIO
+#ifdef MPACK_STDIO
 
 #ifndef WIN32
 #include <unistd.h>
@@ -10,7 +10,7 @@
 static const char* test_filename = "testfile.mp";
 static const char test_data[] = "\x82\xA7""compact\xC3\xA6""schema\x00";
 
-#if MPACK_WRITER
+#ifdef MPACK_WRITER
 static void test_file_write(void) {
     mpack_writer_t writer;
     mpack_writer_init_file(&writer, test_filename);
@@ -50,7 +50,7 @@ static void test_write_file(void) {
 }
 #endif
 
-#if MPACK_EXPECT
+#ifdef MPACK_EXPECT
 static void test_file_read(void) {
     mpack_reader_t reader;
     mpack_reader_init_file(&reader, test_filename);
@@ -69,7 +69,7 @@ static void test_file_read(void) {
 }
 #endif
 
-#if MPACK_NODE
+#ifdef MPACK_NODE
 static void test_file_node(void) {
     mpack_tree_t tree;
     mpack_tree_init_file(&tree, test_filename, 0);
@@ -87,17 +87,17 @@ static void test_file_node(void) {
 #endif
 
 void test_file(void) {
-    #if MPACK_WRITER
+    #ifdef MPACK_WRITER
     test_file_write();
     test_file_check();
     #else
     test_write_file();
     #endif
 
-    #if MPACK_EXPECT
+    #ifdef MPACK_EXPECT
     test_file_read();
     #endif
-    #if MPACK_NODE
+    #ifdef MPACK_NODE
     test_file_node();
     #endif
 
