@@ -2,7 +2,10 @@
 /**
  * This is a sample MPack configuration file. Copy it to mpack-config.h somewhere
  * in your project's include tree and, optionally, edit it to suit your setup.
+ *
  * In most cases you can leave this file with the default config.
+ *
+ * You can also override the default configuration by pre-defining options to 0 or 1.
  */
 
 #ifndef MPACK_CONFIG_H
@@ -14,16 +17,24 @@
  */
 
 /** Enables compilation of the base Tag Reader. */
+#ifndef MPACK_READER
 #define MPACK_READER 1
+#endif
 
 /** Enables compilation of the static Expect API. */
+#ifndef MPACK_EXPECT
 #define MPACK_EXPECT 1
+#endif
 
 /** Enables compilation of the dynamic Node API. */
+#ifndef MPACK_NODE
 #define MPACK_NODE 1
+#endif
 
 /** Enables compilation of the Writer. */
+#ifndef MPACK_WRITER
 #define MPACK_WRITER 1
+#endif
 
 
 /*
@@ -34,13 +45,17 @@
  * Enables the use of C stdlib. This allows the library to use malloc
  * for debugging and in allocation helpers.
  */
+#ifndef MPACK_STDLIB
 #define MPACK_STDLIB 1
+#endif
 
 /**
  * Enables the use of C stdio. This adds helpers for easily
  * reading/writing C files and makes debugging easier.
  */
+#ifndef MPACK_STDIO
 #define MPACK_STDIO 1
+#endif
 
 /**
  * \def MPACK_MALLOC
@@ -86,7 +101,7 @@
  * Note that you don't have to use it; this just enables the option. It can be
  * disabled to avoid the dependency on setjmp.h .
  */
-#if defined(MPACK_MALLOC)
+#if !defined(MPACK_SETJMP) && defined(MPACK_MALLOC)
 #define MPACK_SETJMP 1
 #endif
 
@@ -107,10 +122,8 @@
  * files. Your entire project must be compiled with the same value of
  * MPACK_DEBUG. (This is why NDEBUG is not used.)
  */
-#if defined(DEBUG) || defined(_DEBUG)
+#if !defined(MPACK_DEBUG) && (defined(DEBUG) || defined(_DEBUG))
 #define MPACK_DEBUG 1
-#else
-#define MPACK_DEBUG 0
 #endif
 
 /**
@@ -122,7 +135,9 @@
  * Asserts are only used when MPACK_DEBUG is enabled, and can be triggered
  * by bugs in mpack or bugs due to incorrect usage of mpack.
  */
+#ifndef MPACK_CUSTOM_ASSERT
 #define MPACK_CUSTOM_ASSERT 0
+#endif
 
 /**
  * \def MPACK_READ_TRACKING
@@ -133,7 +148,10 @@
  * This is enabled by default in debug builds (provided a malloc() is
  * available.)
  */
-#if defined(MPACK_DEBUG) && MPACK_DEBUG && defined(MPACK_READER) && MPACK_READER && defined(MPACK_MALLOC)
+#if !defined(MPACK_READ_TRACKING) && \
+        defined(MPACK_DEBUG) && MPACK_DEBUG && \
+        defined(MPACK_READER) && MPACK_READER && \
+        defined(MPACK_MALLOC)
 #define MPACK_READ_TRACKING 1
 #endif
 
@@ -151,7 +169,10 @@
  * This is enabled by default in debug builds (provided a malloc() is
  * available.)
  */
-#if defined(MPACK_DEBUG) && MPACK_DEBUG && defined(MPACK_WRITER) && MPACK_WRITER && defined(MPACK_MALLOC)
+#if !defined(MPACK_WRITE_TRACKING) && \
+        defined(MPACK_DEBUG) && MPACK_DEBUG && \
+        defined(MPACK_WRITER) && MPACK_WRITER && \
+        defined(MPACK_MALLOC)
 #define MPACK_WRITE_TRACKING 1
 #endif
 
@@ -164,12 +185,16 @@
  * Stack space to use when initializing a reader or writer with a
  * stack-allocated buffer.
  */
+#ifndef MPACK_STACK_SIZE
 #define MPACK_STACK_SIZE 4096
+#endif
 
 /**
  * Buffer size to use for allocated buffers (such as for a file writer.)
  */
+#ifndef MPACK_BUFFER_SIZE
 #define MPACK_BUFFER_SIZE 65536
+#endif
 
 /**
  * Number of nodes in each allocated node page.
@@ -181,20 +206,26 @@
  * best performance, and has very little waste when parsing small
  * messages.
  */
+#ifndef MPACK_NODE_PAGE_SIZE
 #define MPACK_NODE_PAGE_SIZE (4096 / sizeof(mpack_node_t))
+#endif
 
 /**
  * The initial depth for the node parser. When MPACK_MALLOC is available,
  * the node parser has no practical depth limit, and it is not recursive
  * so there is no risk of overflowing the call stack.
  */
+#ifndef MPACK_NODE_INITIAL_DEPTH
 #define MPACK_NODE_INITIAL_DEPTH 8
+#endif
 
 /**
  * The maximum depth for the node parser if MPACK_MALLOC is not available.
  * The parsing stack is placed on the call stack.
  */
+#ifndef MPACK_NODE_MAX_DEPTH_WITHOUT_MALLOC
 #define MPACK_NODE_MAX_DEPTH_WITHOUT_MALLOC 32
+#endif
 
 
 #endif
