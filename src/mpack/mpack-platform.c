@@ -161,6 +161,8 @@ size_t mpack_strlen(const char *s) {
 
 #if defined(MPACK_MALLOC) && !defined(MPACK_REALLOC)
 void* mpack_realloc(void* old_ptr, size_t used_size, size_t new_size) {
+    if (new_size == 0)
+        return NULL;
     void* new_ptr = malloc(new_size);
     if (new_ptr == NULL)
         return NULL;
