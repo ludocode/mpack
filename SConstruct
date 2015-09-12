@@ -36,7 +36,6 @@ allfeatures = [
 ]
 noioconfigs = [
     "-DMPACK_STDLIB=1",
-    "-DMPACK_SETJMP=1",
     "-DMPACK_MALLOC=test_malloc",
     "-DMPACK_FREE=test_free",
 ]

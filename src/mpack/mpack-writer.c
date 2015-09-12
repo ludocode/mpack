@@ -213,10 +213,8 @@ void mpack_writer_flag_error(mpack_writer_t* writer, mpack_error_t error) {
 
     if (writer->error == mpack_ok) {
         writer->error = error;
-        #ifdef MPACK_SETJMP
-        if (writer->jump_env)
-            longjmp(*writer->jump_env, 1);
-        #endif
+        if (writer->error_fn)
+            writer->error_fn(writer, writer->error);
     }
 }
 
@@ -397,12 +395,6 @@ mpack_error_t mpack_writer_destroy(mpack_writer_t* writer) {
         writer->teardown = NULL;
     }
 
-    #ifdef MPACK_SETJMP
-    if (writer->jump_env)
-        MPACK_FREE(writer->jump_env);
-    writer->jump_env = NULL;
-    #endif
-
     return writer->error;
 }
 
@@ -412,12 +404,6 @@ void mpack_writer_destroy_cancel(mpack_writer_t* writer) {
     if (writer->teardown)
         writer->teardown(writer);
     writer->teardown = NULL;
-
-    #ifdef MPACK_SETJMP
-    if (writer->jump_env)
-        MPACK_FREE(writer->jump_env);
-    writer->jump_env = NULL;
-    #endif
 }
 
 void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t value) {

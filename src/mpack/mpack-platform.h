@@ -66,9 +66,6 @@
 #if defined(MPACK_STDIO) && !MPACK_STDIO
 #undef MPACK_STDIO
 #endif
-#if defined(MPACK_SETJMP) && !MPACK_SETJMP
-#undef MPACK_SETJMP
-#endif
 #if defined(MPACK_DEBUG) && !MPACK_DEBUG
 #undef MPACK_DEBUG
 #endif
@@ -111,9 +108,6 @@
 #endif
 #ifdef MPACK_STDIO
 #include <stdio.h>
-#endif
-#ifdef MPACK_SETJMP
-#include <setjmp.h>
 #endif
 
 #ifdef __cplusplus

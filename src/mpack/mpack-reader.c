@@ -108,12 +108,6 @@ mpack_error_t mpack_reader_destroy_impl(mpack_reader_t* reader, bool cancel) {
         reader->teardown(reader);
     reader->teardown = NULL;
 
-    #ifdef MPACK_SETJMP
-    if (reader->jump_env)
-        MPACK_FREE(reader->jump_env);
-    reader->jump_env = NULL;
-    #endif
-
     return reader->error;
 }
 
@@ -137,10 +131,8 @@ void mpack_reader_flag_error(mpack_reader_t* reader, mpack_error_t error) {
 
     if (reader->error == mpack_ok) {
         reader->error = error;
-        #ifdef MPACK_SETJMP
-        if (reader->jump_env)
-            longjmp(*reader->jump_env, 1);
-        #endif
+        if (reader->error_fn)
+            reader->error_fn(reader, error);
     }
 }
 
@@ -650,9 +642,11 @@ void mpack_done_type(mpack_reader_t* reader, mpack_type_t type) {
 }
 #endif
 
-#if defined(MPACK_DEBUG) && defined(MPACK_STDIO) && defined(MPACK_SETJMP) && !defined(MPACK_NO_PRINT)
+#if defined(MPACK_DEBUG) && defined(MPACK_STDIO) && !defined(MPACK_NO_PRINT)
 static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
     mpack_tag_t val = mpack_read_tag(reader);
+    if (mpack_reader_error(reader) != mpack_ok)
+        return;
     switch (val.type) {
 
         case mpack_type_nil:
@@ -680,6 +674,8 @@ static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
             // skip data
             for (size_t i = 0; i < val.v.l; ++i)
                 mpack_read_native_u8(reader);
+            if (mpack_reader_error(reader) != mpack_ok)
+                return;
             printf("<binary data>");
             mpack_done_bin(reader);
             break;
@@ -688,6 +684,8 @@ static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
             // skip data
             for (size_t i = 0; i < val.v.l; ++i)
                 mpack_read_native_u8(reader);
+            if (mpack_reader_error(reader) != mpack_ok)
+                return;
             printf("<ext data of type %i>", val.exttype);
             mpack_done_ext(reader);
             break;
@@ -697,6 +695,8 @@ static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
             for (size_t i = 0; i < val.v.l; ++i) {
                 char c;
                 mpack_read_bytes(reader, &c, 1);
+                if (mpack_reader_error(reader) != mpack_ok)
+                    return;
                 switch (c) {
                     case '\n': printf("\\n"); break;
                     case '\\': printf("\\\\"); break;
@@ -711,9 +711,13 @@ static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
         case mpack_type_array:
             printf("[\n");
             for (size_t i = 0; i < val.v.n; ++i) {
+                if (mpack_reader_error(reader) != mpack_ok)
+                    return;
                 for (size_t j = 0; j < depth + 1; ++j)
                     printf("    ");
                 mpack_debug_print_element(reader, depth + 1);
+                if (mpack_reader_error(reader) != mpack_ok)
+                    return;
                 if (i != val.v.n - 1)
                     putchar(',');
                 putchar('\n');
@@ -730,8 +734,12 @@ static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
                 for (size_t j = 0; j < depth + 1; ++j)
                     printf("    ");
                 mpack_debug_print_element(reader, depth + 1);
+                if (mpack_reader_error(reader) != mpack_ok)
+                    return;
                 printf(": ");
                 mpack_debug_print_element(reader, depth + 1);
+                if (mpack_reader_error(reader) != mpack_ok)
+                    return;
                 if (i != val.v.n - 1)
                     putchar(',');
                 putchar('\n');
@@ -747,10 +755,6 @@ static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
 void mpack_debug_print(const char* data, int len) {
     mpack_reader_t reader;
     mpack_reader_init_data(&reader, data, len);
-    if (MPACK_READER_SETJMP(&reader)) {
-        printf("<mpack parsing error %s>\n", mpack_error_to_string(mpack_reader_error(&reader)));
-        return;
-    }
 
     int depth = 2;
     for (int i = 0; i < depth; ++i)
@@ -758,7 +762,9 @@ void mpack_debug_print(const char* data, int len) {
     mpack_debug_print_element(&reader, depth);
     putchar('\n');
 
-    if (mpack_reader_remaining(&reader, NULL) > 0)
+    if (mpack_reader_error(&reader) != mpack_ok)
+        printf("<mpack parsing error %s>\n", mpack_error_to_string(mpack_reader_error(&reader)));
+    else if (mpack_reader_remaining(&reader, NULL) > 0)
         printf("<%i extra bytes at end of mpack>\n", (int)mpack_reader_remaining(&reader, NULL));
 }
 #endif
