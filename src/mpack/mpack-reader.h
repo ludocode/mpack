@@ -71,7 +71,33 @@ typedef struct mpack_reader_t mpack_reader_t;
  *
  * In case of error, it should flag an appropriate error on the reader.
  */
-typedef size_t (*mpack_fill_t)(mpack_reader_t* reader, char* buffer, size_t count);
+typedef size_t (*mpack_reader_fill_t)(mpack_reader_t* reader, char* buffer, size_t count);
+
+/**
+ * An error handler function to be called when an error is flagged on
+ * the reader.
+ *
+ * The error handler will only be called once on the first error flagged;
+ * any subsequent reads and errors are ignored, and the reader is
+ * permanently in that error state.
+ *
+ * MPack is safe against non-local jumps out of error handler callbacks.
+ * This means you are allowed to longjmp or throw an exception (in C++
+ * or with SEH) out of this callback.
+ *
+ * Bear in mind when using longjmp that local non-volatile variables that
+ * have changed are undefined when setjmp() returns, so you can't put the
+ * reader on the stack in the same activation frame as the setjmp without
+ * declaring it volatile.)
+ *
+ * You must still eventually destroy the reader. It is not destroyed
+ * automatically when an error is flagged. It is safe to destroy the
+ * reader within this error callback, but you will either need to perform
+ * a non-local jump, or store something in your context to identify
+ * that the reader is destroyed since any future accesses to it cause
+ * undefined behavior.
+ */
+typedef void (*mpack_reader_error_t)(mpack_reader_t* reader, mpack_error_t error);
 
 /**
  * A teardown function to be called when the reader is destroyed.
@@ -79,7 +105,8 @@ typedef size_t (*mpack_fill_t)(mpack_reader_t* reader, char* buffer, size_t coun
 typedef void (*mpack_reader_teardown_t)(mpack_reader_t* reader);
 
 struct mpack_reader_t {
-    mpack_fill_t fill;                /* Function to read bytes into the buffer */
+    mpack_reader_fill_t fill;         /* Function to read bytes into the buffer */
+    mpack_reader_error_t error_fn;    /* Function to call on error */
     mpack_reader_teardown_t teardown; /* Function to teardown the context on destroy */
     void* context;                    /* Context for reader callbacks */
 
@@ -89,54 +116,10 @@ struct mpack_reader_t {
     size_t pos;         /* Position within the buffer */
     mpack_error_t error;  /* Error state */
 
-    #ifdef MPACK_SETJMP
-    /* Optional jump target in case of error (pointer because it's
-     * very large and may be unused) */
-    jmp_buf* jump_env;
-    #endif
-
     #ifdef MPACK_READ_TRACKING
     mpack_track_t track; /* Stack of map/array/str/bin/ext reads */
     #endif
 };
-
-#ifdef MPACK_SETJMP
-
-/**
- * @hideinitializer
- *
- * Registers a jump target in case of error.
- *
- * If the reader is in an error state, 1 is returned when this is called. Otherwise
- * 0 is returned when this is called, and when the first error occurs, control flow
- * will jump to the point where this was called, resuming as though it returned 1.
- * This ensures an error handling block runs exactly once in case of error.
- *
- * A reader that jumps still needs to be destroyed. You must call
- * mpack_reader_destroy() in your jump handler after getting the final error state.
- *
- * The argument may be evaluated multiple times.
- *
- * @returns 0 if the reader is not in an error state; 1 if and when an error occurs.
- * @see mpack_reader_destroy()
- */
-#define MPACK_READER_SETJMP(reader)                                        \
-    (mpack_assert((reader)->jump_env == NULL, "already have a jump set!"), \
-    ((reader)->error != mpack_ok) ? 1 :                                    \
-        !((reader)->jump_env = (jmp_buf*)MPACK_MALLOC(sizeof(jmp_buf))) ?  \
-            ((reader)->error = mpack_error_memory, 1) :                    \
-            (setjmp(*(reader)->jump_env)))
-
-/**
- * Clears a jump target. Subsequent read errors will not cause the reader to
- * jump.
- */
-static inline void mpack_reader_clearjmp(mpack_reader_t* reader) {
-    if (reader->jump_env)
-        MPACK_FREE(reader->jump_env);
-    reader->jump_env = NULL;
-}
-#endif
 
 /**
  * Initializes an mpack reader with the given buffer. The reader does
@@ -240,9 +223,26 @@ static inline void mpack_reader_set_context(mpack_reader_t* reader, void* contex
  * @param reader The MPack reader.
  * @param fill The function to fetch additional data into the buffer.
  */
-static inline void mpack_reader_set_fill(mpack_reader_t* reader, mpack_fill_t fill) {
+static inline void mpack_reader_set_fill(mpack_reader_t* reader, mpack_reader_fill_t fill) {
     mpack_assert(reader->size != 0, "cannot use fill function without a writeable buffer!");
     reader->fill = fill;
+}
+
+/**
+ * Sets the error function to call when an error is flagged on the reader.
+ *
+ * This should normally be used with mpack_reader_set_context() to register
+ * a custom pointer to pass to the error function.
+ *
+ * See the definition of mpack_reader_error_t for more information about
+ * what you can do from an error callback.
+ *
+ * @see mpack_reader_error_t
+ * @param reader The MPack reader.
+ * @param error The function to call when an error is flagged on the reader.
+ */
+static inline void mpack_reader_set_error_handler(mpack_reader_t* reader, mpack_reader_error_t error_fn) {
+    reader->error_fn = error_fn;
 }
 
 /**
@@ -316,9 +316,9 @@ size_t mpack_reader_remaining(mpack_reader_t* reader, const char** data);
 /**
  * Reads a MessagePack object header (an MPack tag.)
  *
- * If an error occurs, the mpack_reader_t is placed in an error state, a
- * longjmp is performed (if set), and a nil tag is returned. If the reader
- * is already in an error state, a nil tag is returned.
+ * If an error occurs, the mpack_reader_t is placed in an error state and
+ * a nil tag is returned. If the reader is already in an error state, a
+ * nil tag is returned.
  *
  * If the type is compound (i.e. is a map, array, string, binary or
  * extension type), additional reads are required to get the actual data,
@@ -458,7 +458,7 @@ static inline void mpack_done_type(mpack_reader_t* reader, mpack_type_t type) {M
  */
 void mpack_discard(mpack_reader_t* reader);
 
-#if defined(MPACK_DEBUG) && defined(MPACK_STDIO) && defined(MPACK_SETJMP) && !defined(MPACK_NO_PRINT)
+#if defined(MPACK_DEBUG) && defined(MPACK_STDIO) && !defined(MPACK_NO_PRINT)
 /*! Converts a chunk of messagepack to JSON and pretty-prints it to stdout. */
 void mpack_debug_print(const char* data, int len);
 #endif
@@ -485,17 +485,14 @@ static inline void mpack_read_native(mpack_reader_t* reader, char* p, size_t cou
     }
 }
 
-// Reads native bytes with jump disabled. This allows mpack reader functions
-// to hold an allocated buffer and read native data into it without leaking it.
+// Reads native bytes with error callback disabled. This allows mpack reader functions
+// to hold an allocated buffer and read native data into it without leaking it in
+// case of a non-local jump out of an error handler.
 static inline void mpack_read_native_nojump(mpack_reader_t* reader, char* p, size_t count) {
-    #ifdef MPACK_SETJMP
-    jmp_buf* jump_env = reader->jump_env;
-    reader->jump_env = NULL;
-    #endif
+    mpack_reader_error_t error_fn = reader->error_fn;
+    reader->error_fn = NULL;
     mpack_read_native(reader, p, count);
-    #ifdef MPACK_SETJMP
-    reader->jump_env = jump_env;
-    #endif
+    reader->error_fn = error_fn;
 }
 
 MPACK_ALWAYS_INLINE uint8_t mpack_read_native_u8(mpack_reader_t* reader) {

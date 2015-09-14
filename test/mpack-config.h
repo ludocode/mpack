@@ -19,7 +19,6 @@
 
     #define MPACK_STDLIB 1
     #define MPACK_STDIO 1
-    #define MPACK_SETJMP 1
     #define MPACK_MALLOC test_malloc
     #define MPACK_FREE test_free
 #endif

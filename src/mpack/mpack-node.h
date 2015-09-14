@@ -73,6 +73,32 @@ typedef struct mpack_node_data_t mpack_node_data_t;
 typedef struct mpack_tree_t mpack_tree_t;
 
 /**
+ * An error handler function to be called when an error is flagged on
+ * the tree.
+ *
+ * The error handler will only be called once on the first error flagged;
+ * any subsequent node reads and errors are ignored, and the tree is
+ * permanently in that error state.
+ *
+ * MPack is safe against non-local jumps out of error handler callbacks.
+ * This means you are allowed to longjmp or throw an exception (in C++
+ * or with SEH) out of this callback.
+ *
+ * Bear in mind when using longjmp that local non-volatile variables that
+ * have changed are undefined when setjmp() returns, so you can't put the
+ * tree on the stack in the same activation frame as the setjmp without
+ * declaring it volatile.)
+ *
+ * You must still eventually destroy the tree. It is not destroyed
+ * automatically when an error is flagged. It is safe to destroy the
+ * tree within this error callback, but you will either need to perform
+ * a non-local jump, or store something in your context to identify
+ * that the tree is destroyed since any future accesses to it cause
+ * undefined behavior.
+ */
+typedef void (*mpack_tree_error_t)(mpack_tree_t* tree, mpack_error_t error);
+
+/**
  * A teardown function to be called when the tree is destroyed.
  */
 typedef void (*mpack_tree_teardown_t)(mpack_tree_t* tree);
@@ -129,6 +155,7 @@ struct mpack_node_data_t {
 };
 
 struct mpack_tree_t {
+    mpack_tree_error_t error_fn;    /* Function to call on error */
     mpack_tree_teardown_t teardown; /* Function to teardown the context on destroy */
     void* context;                  /* Context for tree callbacks */
 
@@ -142,12 +169,6 @@ struct mpack_tree_t {
     mpack_tree_link_t page;
     #ifdef MPACK_MALLOC
     bool owned;
-    #endif
-
-    #ifdef MPACK_SETJMP
-    /* Optional jump target in case of error (pointer because it's
-     * very large and may be unused) */
-    jmp_buf* jump_env;
     #endif
 };
 
@@ -260,6 +281,23 @@ static inline void mpack_tree_set_context(mpack_tree_t* tree, void* context) {
 }
 
 /**
+ * Sets the error function to call when an error is flagged on the tree.
+ *
+ * This should normally be used with mpack_tree_set_context() to register
+ * a custom pointer to pass to the error function.
+ *
+ * See the definition of mpack_tree_error_t for more information about
+ * what you can do from an error callback.
+ *
+ * @see mpack_tree_error_t
+ * @param tree The MPack tree.
+ * @param error The function to call when an error is flagged on the tree.
+ */
+static inline void mpack_tree_set_error_handler(mpack_tree_t* tree, mpack_tree_error_t error_fn) {
+    tree->error_fn = error_fn;
+}
+
+/**
  * Sets the teardown function to call when the tree is destroyed.
  *
  * This should normally be used with mpack_tree_set_context() to register
@@ -271,43 +309,6 @@ static inline void mpack_tree_set_context(mpack_tree_t* tree, void* context) {
 static inline void mpack_tree_set_teardown(mpack_tree_t* tree, mpack_tree_teardown_t teardown) {
     tree->teardown = teardown;
 }
-
-#ifdef MPACK_SETJMP
-
-/**
- * @hideinitializer
- *
- * Registers a jump target in case of error.
- *
- * If the tree is in an error state, 1 is returned when this is called. Otherwise
- * 0 is returned when this is called, and when the first error occurs, control flow
- * will jump to the point where this was called, resuming as though it returned 1.
- * This ensures an error handling block runs exactly once in case of error.
- *
- * A tree that jumps still needs to be destroyed. You must call
- * mpack_tree_destroy() in your jump handler after getting the final error state.
- *
- * The argument may be evaluated multiple times.
- *
- * @returns 0 if the tree is not in an error state; 1 if and when an error occurs.
- * @see mpack_tree_destroy()
- */
-#define MPACK_TREE_SETJMP(tree)                                          \
-    (mpack_assert((tree)->jump_env == NULL, "already have a jump set!"), \
-    ((tree)->error != mpack_ok) ? 1 :                                    \
-        !((tree)->jump_env = (jmp_buf*)MPACK_MALLOC(sizeof(jmp_buf))) ?  \
-            ((tree)->error = mpack_error_memory, 1) :                    \
-            (setjmp(*(tree)->jump_env)))
-
-/**
- * Clears a jump target. Subsequent tree reading errors will not cause a jump.
- */
-static inline void mpack_tree_clearjmp(mpack_tree_t* tree) {
-    if (tree->jump_env)
-        MPACK_FREE(tree->jump_env);
-    tree->jump_env = NULL;
-}
-#endif
 
 /**
  * Places the tree in the given error state, jumping if a jump target is set.
@@ -370,7 +371,7 @@ static inline mpack_tag_t mpack_node_tag(mpack_node_t node) {
     return tag;
 }
 
-#if defined(MPACK_DEBUG) && defined(MPACK_STDIO) && defined(MPACK_SETJMP) && !defined(MPACK_NO_PRINT)
+#if defined(MPACK_DEBUG) && defined(MPACK_STDIO) && !defined(MPACK_NO_PRINT)
 /**
  * Converts a node to JSON and pretty-prints it to stdout.
  *

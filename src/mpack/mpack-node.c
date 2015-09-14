@@ -821,12 +821,6 @@ mpack_error_t mpack_tree_destroy(mpack_tree_t* tree) {
         tree->teardown(tree);
     tree->teardown = NULL;
 
-    #ifdef MPACK_SETJMP
-    if (tree->jump_env)
-        MPACK_FREE(tree->jump_env);
-    tree->jump_env = NULL;
-    #endif
-
     return tree->error;
 }
 
@@ -835,10 +829,8 @@ void mpack_tree_flag_error(mpack_tree_t* tree, mpack_error_t error) {
 
     if (tree->error == mpack_ok) {
         tree->error = error;
-        #ifdef MPACK_SETJMP
-        if (tree->jump_env)
-            longjmp(*tree->jump_env, 1);
-        #endif
+        if (tree->error_fn)
+            tree->error_fn(tree, error);
     }
 
 }
@@ -853,7 +845,7 @@ void mpack_node_flag_error(mpack_node_t node, mpack_error_t error) {
     mpack_tree_flag_error(node.tree, error);
 }
 
-#if defined(MPACK_DEBUG) && defined(MPACK_STDIO) && defined(MPACK_SETJMP) && !defined(MPACK_NO_PRINT)
+#if defined(MPACK_DEBUG) && defined(MPACK_STDIO) && !defined(MPACK_NO_PRINT)
 static void mpack_node_print_element(mpack_node_t node, size_t depth) {
     mpack_node_data_t* data = node.data;
     switch (data->type) {
