@@ -136,9 +136,11 @@ extern "C" {
  *   - functions declared inline regardless of optimization options (MPACK_INLINE)
  *   - functions declared inline only in builds optimized for speed (MPACK_INLINE_SPEED)
  *
- * Only one non-inline definition of each function should exist in the final
- * build, and comparing addresses of functions should compare equal regardless
- * of whether they are declared inline.
+ * MPack does not use static inline in header files; only one non-inline definition
+ * of each function should exist in the final build. This reduces the binary size
+ * in cases where the compiler cannot or chooses not to inline a function.
+ * The addresses of functions should also compare equal across translation units
+ * regardless of whether they are declared inline.
  *
  * The above requirements mean that the declaration and definition of non-trivial
  * inline functions must be separated so that the definitions will only
