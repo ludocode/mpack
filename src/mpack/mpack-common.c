@@ -162,7 +162,7 @@ int mpack_tag_cmp(mpack_tag_t left, mpack_tag_t right) {
 #define MPACK_TRACKING_INITIAL_CAPACITY 8
 #endif
 
-MPACK_INTERNAL_STATIC mpack_error_t mpack_track_init(mpack_track_t* track) {
+mpack_error_t mpack_track_init(mpack_track_t* track) {
     track->count = 0;
     track->capacity = MPACK_TRACKING_INITIAL_CAPACITY;
     track->elements = (mpack_track_element_t*)MPACK_MALLOC(sizeof(mpack_track_element_t) * track->capacity);
@@ -171,7 +171,7 @@ MPACK_INTERNAL_STATIC mpack_error_t mpack_track_init(mpack_track_t* track) {
     return mpack_ok;
 }
 
-MPACK_INTERNAL_STATIC mpack_error_t mpack_track_grow(mpack_track_t* track) {
+mpack_error_t mpack_track_grow(mpack_track_t* track) {
     mpack_assert(track->elements, "null track elements!");
     mpack_assert(track->count == track->capacity, "incorrect growing?");
 
@@ -188,4 +188,33 @@ MPACK_INTERNAL_STATIC mpack_error_t mpack_track_grow(mpack_track_t* track) {
 }
 
 #endif
+
+
+
+/* The below code is from Bjoern Hoehrmann's Flexible and Economical */
+/* UTF-8 decoder, modified to support MPack inlining and add the mpack prefix. */
+
+/* Copyright (c) 2008-2010 Bjoern Hoehrmann <bjoern@hoehrmann.de> */
+/* See http://bjoern.hoehrmann.de/utf-8/decoder/dfa/ for details. */
+
+const uint8_t mpack_utf8d[] = {
+  /* The first part of the table maps bytes to character classes that */
+  /* to reduce the size of the transition table and create bitmasks. */
+   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
+   1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,  9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,
+   7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,  7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
+   8,8,2,2,2,2,2,2,2,2,2,2,2,2,2,2,  2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
+  10,3,3,3,3,3,3,3,3,3,3,3,3,4,3,3, 11,6,6,6,5,8,8,8,8,8,8,8,8,8,8,8,
+
+  /* The second part is a transition table that maps a combination */
+  /* of a state of the automaton and a character class to a state. */
+   0,12,24,36,60,96,84,12,12,12,48,72, 12,12,12,12,12,12,12,12,12,12,12,12,
+  12, 0,12,12,12,12,12, 0,12, 0,12,12, 12,24,12,12,12,12,12,24,12,24,12,12,
+  12,12,12,12,12,12,12,24,12,12,12,12, 12,24,12,12,12,12,12,12,12,24,12,12,
+  12,12,12,12,12,12,12,36,12,36,12,12, 12,36,12,12,12,12,12,36,12,36,12,12,
+  12,36,12,12,12,12,12,12,12,12,12,12,
+};
 

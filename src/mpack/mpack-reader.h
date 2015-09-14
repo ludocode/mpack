@@ -207,7 +207,7 @@ void mpack_reader_destroy_cancel(mpack_reader_t* reader);
  * @param reader The MPack reader.
  * @param context User data to pass to the reader callbacks.
  */
-static inline void mpack_reader_set_context(mpack_reader_t* reader, void* context) {
+MPACK_INLINE void mpack_reader_set_context(mpack_reader_t* reader, void* context) {
     reader->context = context;
 }
 
@@ -223,7 +223,7 @@ static inline void mpack_reader_set_context(mpack_reader_t* reader, void* contex
  * @param reader The MPack reader.
  * @param fill The function to fetch additional data into the buffer.
  */
-static inline void mpack_reader_set_fill(mpack_reader_t* reader, mpack_reader_fill_t fill) {
+MPACK_INLINE void mpack_reader_set_fill(mpack_reader_t* reader, mpack_reader_fill_t fill) {
     mpack_assert(reader->size != 0, "cannot use fill function without a writeable buffer!");
     reader->fill = fill;
 }
@@ -241,7 +241,7 @@ static inline void mpack_reader_set_fill(mpack_reader_t* reader, mpack_reader_fi
  * @param reader The MPack reader.
  * @param error The function to call when an error is flagged on the reader.
  */
-static inline void mpack_reader_set_error_handler(mpack_reader_t* reader, mpack_reader_error_t error_fn) {
+MPACK_INLINE void mpack_reader_set_error_handler(mpack_reader_t* reader, mpack_reader_error_t error_fn) {
     reader->error_fn = error_fn;
 }
 
@@ -254,7 +254,7 @@ static inline void mpack_reader_set_error_handler(mpack_reader_t* reader, mpack_
  * @param reader The MPack reader.
  * @param teardown The function to call when the reader is destroyed.
  */
-static inline void mpack_reader_set_teardown(mpack_reader_t* reader, mpack_reader_teardown_t teardown) {
+MPACK_INLINE void mpack_reader_set_teardown(mpack_reader_t* reader, mpack_reader_teardown_t teardown) {
     reader->teardown = teardown;
 }
 
@@ -264,7 +264,7 @@ static inline void mpack_reader_set_teardown(mpack_reader_t* reader, mpack_reade
  * If a reader is in an error state, you should discard all data since the
  * last time the error flag was checked. The error flag cannot be cleared.
  */
-static inline mpack_error_t mpack_reader_error(mpack_reader_t* reader) {
+MPACK_INLINE mpack_error_t mpack_reader_error(mpack_reader_t* reader) {
     return reader->error;
 }
 
@@ -289,11 +289,15 @@ void mpack_reader_flag_error(mpack_reader_t* reader, mpack_error_t error);
  * If the given error is mpack_ok or if the reader is already in an error state,
  * this call is ignored and the actual error state of the reader is returned.
  */
-static inline mpack_error_t mpack_reader_flag_if_error(mpack_reader_t* reader, mpack_error_t error) {
+MPACK_INLINE_SPEED mpack_error_t mpack_reader_flag_if_error(mpack_reader_t* reader, mpack_error_t error);
+
+#if MPACK_DEFINE_INLINE_SPEED
+MPACK_INLINE_SPEED mpack_error_t mpack_reader_flag_if_error(mpack_reader_t* reader, mpack_error_t error) {
     if (error != mpack_ok)
         mpack_reader_flag_error(reader, error);
     return mpack_reader_error(reader);
 }
+#endif
 
 /**
  * Returns bytes left in the reader's buffer.
@@ -388,9 +392,13 @@ const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count);
  *
  * @see mpack_read_bytes_inplace()
  */
-static inline bool mpack_should_read_bytes_inplace(mpack_reader_t* reader, size_t count) {
+MPACK_INLINE_SPEED bool mpack_should_read_bytes_inplace(mpack_reader_t* reader, size_t count);
+
+#if MPACK_DEFINE_INLINE_SPEED
+MPACK_INLINE_SPEED bool mpack_should_read_bytes_inplace(mpack_reader_t* reader, size_t count) {
     return (reader->size == 0 || count > reader->size / 8);
 }
+#endif
 
 #ifdef MPACK_READ_TRACKING
 /**
@@ -444,12 +452,12 @@ void mpack_done_ext(mpack_reader_t* reader);
  */
 void mpack_done_type(mpack_reader_t* reader, mpack_type_t type);
 #else
-static inline void mpack_done_array(mpack_reader_t* reader) {MPACK_UNUSED(reader);}
-static inline void mpack_done_map(mpack_reader_t* reader) {MPACK_UNUSED(reader);}
-static inline void mpack_done_str(mpack_reader_t* reader) {MPACK_UNUSED(reader);}
-static inline void mpack_done_bin(mpack_reader_t* reader) {MPACK_UNUSED(reader);}
-static inline void mpack_done_ext(mpack_reader_t* reader) {MPACK_UNUSED(reader);}
-static inline void mpack_done_type(mpack_reader_t* reader, mpack_type_t type) {MPACK_UNUSED(reader); MPACK_UNUSED(type);}
+MPACK_INLINE void mpack_done_array(mpack_reader_t* reader) {MPACK_UNUSED(reader);}
+MPACK_INLINE void mpack_done_map(mpack_reader_t* reader) {MPACK_UNUSED(reader);}
+MPACK_INLINE void mpack_done_str(mpack_reader_t* reader) {MPACK_UNUSED(reader);}
+MPACK_INLINE void mpack_done_bin(mpack_reader_t* reader) {MPACK_UNUSED(reader);}
+MPACK_INLINE void mpack_done_ext(mpack_reader_t* reader) {MPACK_UNUSED(reader);}
+MPACK_INLINE void mpack_done_type(mpack_reader_t* reader, mpack_type_t type) {MPACK_UNUSED(reader); MPACK_UNUSED(type);}
 #endif
 
 /**
@@ -475,7 +483,10 @@ void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count);
 
 // Reads count bytes into p, deferring to mpack_read_native_big() if more
 // bytes are needed than are available in the buffer.
-static inline void mpack_read_native(mpack_reader_t* reader, char* p, size_t count) {
+MPACK_INLINE_SPEED void mpack_read_native(mpack_reader_t* reader, char* p, size_t count);
+
+#if MPACK_DEFINE_INLINE_SPEED
+MPACK_INLINE_SPEED void mpack_read_native(mpack_reader_t* reader, char* p, size_t count) {
     if (count > reader->left) {
         mpack_read_native_big(reader, p, count);
     } else {
@@ -484,16 +495,21 @@ static inline void mpack_read_native(mpack_reader_t* reader, char* p, size_t cou
         reader->left -= count;
     }
 }
+#endif
 
 // Reads native bytes with error callback disabled. This allows mpack reader functions
 // to hold an allocated buffer and read native data into it without leaking it in
 // case of a non-local jump out of an error handler.
-static inline void mpack_read_native_nojump(mpack_reader_t* reader, char* p, size_t count) {
+MPACK_INLINE_SPEED void mpack_read_native_nojump(mpack_reader_t* reader, char* p, size_t count);
+
+#if MPACK_DEFINE_INLINE_SPEED
+MPACK_INLINE_SPEED void mpack_read_native_nojump(mpack_reader_t* reader, char* p, size_t count) {
     mpack_reader_error_t error_fn = reader->error_fn;
     reader->error_fn = NULL;
     mpack_read_native(reader, p, count);
     reader->error_fn = error_fn;
 }
+#endif
 
 MPACK_ALWAYS_INLINE uint8_t mpack_read_native_u8(mpack_reader_t* reader) {
     if (reader->left >= sizeof(uint8_t)) {
@@ -576,14 +592,22 @@ MPACK_ALWAYS_INLINE double mpack_read_native_double(mpack_reader_t* reader) {
 #define MPACK_READER_TRACK(reader, error) (MPACK_UNUSED(reader), mpack_ok)
 #endif
 
-static inline mpack_error_t mpack_reader_track_element(mpack_reader_t* reader) {
+MPACK_INLINE_SPEED mpack_error_t mpack_reader_track_element(mpack_reader_t* reader);
+
+#if MPACK_DEFINE_INLINE_SPEED
+MPACK_INLINE_SPEED mpack_error_t mpack_reader_track_element(mpack_reader_t* reader) {
     return MPACK_READER_TRACK(reader, mpack_track_element(&reader->track, true));
 }
+#endif
 
-static inline mpack_error_t mpack_reader_track_bytes(mpack_reader_t* reader, uint64_t count) {
+MPACK_INLINE_SPEED mpack_error_t mpack_reader_track_bytes(mpack_reader_t* reader, uint64_t count);
+
+#if MPACK_DEFINE_INLINE_SPEED
+MPACK_INLINE_SPEED mpack_error_t mpack_reader_track_bytes(mpack_reader_t* reader, uint64_t count) {
     MPACK_UNUSED(count);
     return MPACK_READER_TRACK(reader, mpack_track_bytes(&reader->track, true, count));
 }
+#endif
 
 #endif
 

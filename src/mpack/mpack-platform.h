@@ -123,12 +123,6 @@ extern "C" {
 
 #define MPACK_UNUSED(var) ((void)(var))
 
-#ifdef MPACK_AMALGAMATED
-#define MPACK_INTERNAL_STATIC static
-#else
-#define MPACK_INTERNAL_STATIC
-#endif
-
 #define MPACK_STRINGIFY_IMPL(arg) #arg
 #define MPACK_STRINGIFY(arg) MPACK_STRINGIFY_IMPL(arg)
 
@@ -142,12 +136,11 @@ extern "C" {
  *   - functions declared inline regardless of optimization options (MPACK_INLINE)
  *   - functions declared inline only in builds optimized for speed (MPACK_INLINE_SPEED)
  *
- * MPack is currently transitioning away from using "static inline". Only one
- * non-inline definition of each function should exist in the final build, and
- * comparing addresses of functions should compare equal regardless of whether
- * they are declared inline.
+ * Only one non-inline definition of each function should exist in the final
+ * build, and comparing addresses of functions should compare equal regardless
+ * of whether they are declared inline.
  *
- * The above requirements mean that the declaration and definition of most
+ * The above requirements mean that the declaration and definition of non-trivial
  * inline functions must be separated so that the definitions will only
  * appear when necessary. In addition, three different linkage models need
  * to be supported:
@@ -341,7 +334,7 @@ size_t mpack_strlen(const char *s);
 /* Implement realloc if unavailable */
 #ifdef MPACK_MALLOC
     #ifdef MPACK_REALLOC
-    static inline void* mpack_realloc(void* old_ptr, size_t used_size, size_t new_size) {
+    MPACK_ALWAYS_INLINE void* mpack_realloc(void* old_ptr, size_t used_size, size_t new_size) {
         MPACK_UNUSED(used_size);
         return MPACK_REALLOC(old_ptr, new_size);
     }

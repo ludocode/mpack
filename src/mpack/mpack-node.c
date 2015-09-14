@@ -845,6 +845,26 @@ void mpack_node_flag_error(mpack_node_t node, mpack_error_t error) {
     mpack_tree_flag_error(node.tree, error);
 }
 
+mpack_tag_t mpack_node_tag(mpack_node_t node) {
+    mpack_tag_t tag;
+    mpack_memset(&tag, 0, sizeof(tag));
+    tag.type = node.data->type;
+    switch (node.data->type) {
+        case mpack_type_nil:                                            break;
+        case mpack_type_bool:    tag.v.b = node.data->value.b;          break;
+        case mpack_type_float:   tag.v.f = node.data->value.f;          break;
+        case mpack_type_double:  tag.v.d = node.data->value.d;          break;
+        case mpack_type_int:     tag.v.i = node.data->value.i;          break;
+        case mpack_type_uint:    tag.v.u = node.data->value.u;          break;
+        case mpack_type_str:     tag.v.l = node.data->value.data.l;     break;
+        case mpack_type_bin:     tag.v.l = node.data->value.data.l;     break;
+        case mpack_type_ext:     tag.v.l = node.data->value.data.l;     break;
+        case mpack_type_array:   tag.v.n = node.data->value.content.n;  break;
+        case mpack_type_map:     tag.v.n = node.data->value.content.n;  break;
+    }
+    return tag;
+}
+
 #if defined(MPACK_DEBUG) && defined(MPACK_STDIO) && !defined(MPACK_NO_PRINT)
 static void mpack_node_print_element(mpack_node_t node, size_t depth) {
     mpack_node_data_t* data = node.data;
