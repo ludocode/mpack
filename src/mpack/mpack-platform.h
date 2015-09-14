@@ -149,8 +149,13 @@ extern "C" {
  *  - The GNU model, where "inline" emits a definition and "extern inline" does not
  *  - The C++ model, where "inline" emits a definition with weak linkage
  *
- * The macros below wrap up everything above. All inline functions have a single
- * non-inline definition emitted in the compilation of mpack-platform.c.
+ * The macros below wrap up everything above. All inline functions defined in header
+ * files have a single non-inline definition emitted in the compilation of
+ * mpack-platform.c.
+ *
+ * Inline functions in source files are defined static, so MPACK_STATIC_INLINE
+ * is used for small functions and MPACK_STATIC_INLINE_SPEED is used for
+ * larger optionally inline functions.
  */
 
 #if defined(__cplusplus)
@@ -175,7 +180,10 @@ extern "C" {
     #endif
 #endif
 
+#define MPACK_STATIC_INLINE static inline
+
 #if MPACK_OPTIMIZE_FOR_SIZE
+    #define MPACK_STATIC_INLINE_SPEED static
     #define MPACK_INLINE_SPEED /* nothing */
     #ifdef MPACK_EMIT_INLINE_DEFS
         #define MPACK_DEFINE_INLINE_SPEED 1
@@ -183,6 +191,7 @@ extern "C" {
         #define MPACK_DEFINE_INLINE_SPEED 0
     #endif
 #else
+    #define MPACK_STATIC_INLINE_SPEED static inline
     #define MPACK_INLINE_SPEED MPACK_INLINE
     #define MPACK_DEFINE_INLINE_SPEED 1
 #endif
