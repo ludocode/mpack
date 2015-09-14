@@ -259,6 +259,16 @@ static inline void mpack_reader_set_teardown(mpack_reader_t* reader, mpack_reade
 }
 
 /**
+ * Queries the error state of the MPack reader.
+ *
+ * If a reader is in an error state, you should discard all data since the
+ * last time the error flag was checked. The error flag cannot be cleared.
+ */
+static inline mpack_error_t mpack_reader_error(mpack_reader_t* reader) {
+    return reader->error;
+}
+
+/**
  * Places the reader in the given error state, jumping if a jump target is set.
  *
  * This allows you to externally flag errors, for example if you are validating
@@ -270,17 +280,19 @@ static inline void mpack_reader_set_teardown(mpack_reader_t* reader, mpack_reade
 void mpack_reader_flag_error(mpack_reader_t* reader, mpack_error_t error);
 
 /**
- * Places the reader in the given error state if the given error is not mpack_ok.
+ * Places the reader in the given error state if the given error is not mpack_ok,
+ * returning the resulting error state of the reader.
  *
  * This allows you to externally flag errors, for example if you are validating
  * data as you read it.
  *
- * If the error is mpack_ok, or if the reader is already in an error state, this
- * call is ignored and no jump is performed.
+ * If the given error is mpack_ok or if the reader is already in an error state,
+ * this call is ignored and the actual error state of the reader is returned.
  */
-static inline void mpack_reader_flag_if_error(mpack_reader_t* reader, mpack_error_t error) {
+static inline mpack_error_t mpack_reader_flag_if_error(mpack_reader_t* reader, mpack_error_t error) {
     if (error != mpack_ok)
         mpack_reader_flag_error(reader, error);
+    return mpack_reader_error(reader);
 }
 
 /**
@@ -302,22 +314,11 @@ static inline void mpack_reader_flag_if_error(mpack_reader_t* reader, mpack_erro
 size_t mpack_reader_remaining(mpack_reader_t* reader, const char** data);
 
 /**
- * Queries the error state of the MPack reader.
- *
- * If a reader is in an error state, you should discard all data since the
- * last time the error flag was checked. The error flag cannot be cleared.
- */
-static inline mpack_error_t mpack_reader_error(mpack_reader_t* reader) {
-    return reader->error;
-}
-
-/**
  * Reads a MessagePack object header (an MPack tag.)
  *
  * If an error occurs, the mpack_reader_t is placed in an error state, a
- * longjmp is performed (if set), and the return value is undefined.
- * If the reader is already in an error state, the return value
- * is undefined.
+ * longjmp is performed (if set), and a nil tag is returned. If the reader
+ * is already in an error state, a nil tag is returned.
  *
  * If the type is compound (i.e. is a map, array, string, binary or
  * extension type), additional reads are required to get the actual data,
@@ -573,18 +574,18 @@ MPACK_ALWAYS_INLINE double mpack_read_native_double(mpack_reader_t* reader) {
 }
 
 #ifdef MPACK_READ_TRACKING
-#define MPACK_READER_TRACK(reader, error) mpack_reader_flag_if_error(reader, error)
+#define MPACK_READER_TRACK(reader, error) mpack_reader_flag_if_error((reader), (error))
 #else
-#define MPACK_READER_TRACK(reader, error) MPACK_UNUSED(reader)
+#define MPACK_READER_TRACK(reader, error) (MPACK_UNUSED(reader), mpack_ok)
 #endif
 
-static inline void mpack_reader_track_element(mpack_reader_t* reader) {
-    MPACK_READER_TRACK(reader, mpack_track_element(&reader->track, true));
+static inline mpack_error_t mpack_reader_track_element(mpack_reader_t* reader) {
+    return MPACK_READER_TRACK(reader, mpack_track_element(&reader->track, true));
 }
 
-static inline void mpack_reader_track_bytes(mpack_reader_t* reader, uint64_t count) {
-    MPACK_READER_TRACK(reader, mpack_track_bytes(&reader->track, true, count));
+static inline mpack_error_t mpack_reader_track_bytes(mpack_reader_t* reader, uint64_t count) {
     MPACK_UNUSED(count);
+    return MPACK_READER_TRACK(reader, mpack_track_bytes(&reader->track, true, count));
 }
 
 #endif
