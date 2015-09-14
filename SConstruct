@@ -42,7 +42,7 @@ noioconfigs = [
 allconfigs = noioconfigs + ["-DMPACK_STDIO=1"]
 
 debugflags = ["-DDEBUG", "-O0"]
-releaseflags = ["-Os"] # If you change this, also change the MPACK_OPTIMIZE_FOR_SIZE test below
+releaseflags = ["-Os"] # If you change this, also change the MPACK_OPTIMIZE_FOR_SIZE below to test the opposite
 cflags = ["-std=c99", "-Wc++-compat"]
 
 

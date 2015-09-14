@@ -138,7 +138,7 @@ extern "C" {
  * Definition of inline macros.
  *
  * MPack supports several different modes for inline functions:
- *   - functions force-inlined (MPACK_ALWAYS_INLINE)
+ *   - functions declared with a platform-specific always-inline (MPACK_ALWAYS_INLINE)
  *   - functions declared inline regardless of optimization options (MPACK_INLINE)
  *   - functions declared inline only in builds optimized for speed (MPACK_INLINE_SPEED)
  *
@@ -205,15 +205,15 @@ extern "C" {
 #if defined(__GNUC__) || defined(__clang__)
     #define MPACK_UNREACHABLE __builtin_unreachable()
     #define MPACK_NORETURN(fn) fn __attribute__((noreturn))
-    #define MPACK_ALWAYS_INLINE __attribute__((always_inline)) static inline
+    #define MPACK_ALWAYS_INLINE __attribute__((always_inline)) MPACK_INLINE
 #elif defined(_MSC_VER)
     #define MPACK_UNREACHABLE __assume(0)
     #define MPACK_NORETURN(fn) __declspec(noreturn) fn
-    #define MPACK_ALWAYS_INLINE __forceinline static
+    #define MPACK_ALWAYS_INLINE __forceinline MPACK_INLINE
 #else
     #define MPACK_UNREACHABLE ((void)0)
     #define MPACK_NORETURN(fn) fn
-    #define MPACK_ALWAYS_INLINE static inline
+    #define MPACK_ALWAYS_INLINE MPACK_INLINE
 #endif
 
 
