@@ -26,6 +26,10 @@
 
 void test_tags() {
 
+    // ensure there is only one inline definition (the other
+    // address here is in main)
+    test_assert(fn_mpack_tag_nil == &mpack_tag_nil);
+
     // uints
     test_assert(mpack_tag_uint(0).v.u == 0);
     test_assert(mpack_tag_uint(1).v.u == 1);

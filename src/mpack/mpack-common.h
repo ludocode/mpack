@@ -181,7 +181,7 @@ typedef struct mpack_tag_t {
 } mpack_tag_t;
 
 /** Generates a nil tag. */
-static inline mpack_tag_t mpack_tag_nil(void) {
+MPACK_INLINE mpack_tag_t mpack_tag_nil(void) {
     mpack_tag_t ret;
     mpack_memset(&ret, 0, sizeof(ret));
     ret.type = mpack_type_nil;

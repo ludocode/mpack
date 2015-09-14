@@ -81,6 +81,9 @@
 #if defined(MPACK_NO_TRACKING) && !MPACK_NO_TRACKING
 #undef MPACK_NO_TRACKING
 #endif
+#ifndef MPACK_OPTIMIZE_FOR_SIZE
+#define MPACK_OPTIMIZE_FOR_SIZE 0
+#endif
 
 
 
@@ -131,6 +134,72 @@ extern "C" {
 
 
 
+/*
+ * Definition of inline macros.
+ *
+ * MPack supports several different modes for inline functions:
+ *   - functions force-inlined (MPACK_ALWAYS_INLINE)
+ *   - functions declared inline regardless of optimization options (MPACK_INLINE)
+ *   - functions declared inline only in builds optimized for speed (MPACK_INLINE_SPEED)
+ *
+ * MPack is currently transitioning away from using "static inline". Only one
+ * non-inline definition of each function should exist in the final build, and
+ * comparing addresses of functions should compare equal regardless of whether
+ * they are declared inline.
+ *
+ * The above requirements mean that the declaration and definition of most
+ * inline functions must be separated so that the definitions will only
+ * appear when necessary. In addition, three different linkage models need
+ * to be supported:
+ *
+ *  - The C99 model, where "inline" does not emit a definition and "extern inline" does
+ *  - The GNU model, where "inline" emits a definition and "extern inline" does not
+ *  - The C++ model, where "inline" emits a definition with weak linkage
+ *
+ * The macros below wrap up everything above. All inline functions have a single
+ * non-inline definition emitted in the compilation of mpack-platform.c.
+ */
+
+#if defined(__cplusplus)
+    // C++ rules
+    // The linker will need weak symbol support to link C++ object files,
+    // so we don't need to worry about emitting a single definition.
+    #define MPACK_INLINE inline
+#elif defined(__GNUC__) && (defined(__GNUC_GNU_INLINE__) || \
+        !defined(__GNUC_STDC_INLINE__) && !defined(__GNUC_GNU_INLINE__))
+    // GNU rules
+    #ifdef MPACK_EMIT_INLINE_DEFS
+        #define MPACK_INLINE inline
+    #else
+        #define MPACK_INLINE extern inline
+    #endif
+#else
+    // C99 rules
+    #ifdef MPACK_EMIT_INLINE_DEFS
+        #define MPACK_INLINE extern inline
+    #else
+        #define MPACK_INLINE inline
+    #endif
+#endif
+
+#if MPACK_OPTIMIZE_FOR_SIZE
+    #define MPACK_INLINE_SPEED /* nothing */
+    #ifdef MPACK_EMIT_INLINE_DEFS
+        #define MPACK_DEFINE_INLINE_SPEED 1
+    #else
+        #define MPACK_DEFINE_INLINE_SPEED 0
+    #endif
+#else
+    #define MPACK_INLINE_SPEED MPACK_INLINE
+    #define MPACK_DEFINE_INLINE_SPEED 1
+#endif
+
+#ifdef MPACK_OPTIMIZE_FOR_SPEED
+#error "You should define MPACK_OPTIMIZE_FOR_SIZE, not MPACK_OPTIMIZE_FOR_SPEED."
+#endif
+
+
+
 /* Some compiler-specific keywords and builtins */
 
 #if defined(__GNUC__) || defined(__clang__)
@@ -146,7 +215,6 @@ extern "C" {
     #define MPACK_NORETURN(fn) fn
     #define MPACK_ALWAYS_INLINE static inline
 #endif
-
 
 
 

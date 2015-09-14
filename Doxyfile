@@ -20,9 +20,13 @@ HTML_OUTPUT = docs
 GENERATE_LATEX = no
 STRIP_FROM_PATH = . ./src
 
+# We define MPACK_ALWAYS_INLINE=static because they are
+# currently declared static, so addresses taken in different
+# translation units will not compare equal.
 PREDEFINED = \
-    static= \
     inline= \
+    MPACK_INLINE= \
+    MPACK_ALWAYS_INLINE=static \
     \
     MPACK_READER=1 \
     MPACK_WRITER=1 \
