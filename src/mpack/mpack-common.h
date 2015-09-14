@@ -41,8 +41,8 @@
 /* Version information */
 
 #define MPACK_VERSION_MAJOR 0  /**< The major version number of MPack. */
-#define MPACK_VERSION_MINOR 5  /**< The minor version number of MPack. */
-#define MPACK_VERSION_PATCH 2  /**< The patch version number of MPack. */
+#define MPACK_VERSION_MINOR 6  /**< The minor version number of MPack. */
+#define MPACK_VERSION_PATCH 0  /**< The patch version number of MPack. */
 
 /** A number containing the version number of MPack for comparison purposes. */
 #define MPACK_VERSION ((MPACK_VERSION_MAJOR * 10000) + \
