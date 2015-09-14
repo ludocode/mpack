@@ -48,7 +48,8 @@ done
 echo -e "#endif\n" >> $HEADER
 
 # assemble source
-echo -e "#define MPACK_INTERNAL 1\n" >> $SOURCE
+echo -e "#define MPACK_INTERNAL 1" >> $SOURCE
+echo -e "#define MPACK_EMIT_INLINE_DEFS 1\n" >> $SOURCE
 echo -e "#include \"mpack.h\"\n" >> $SOURCE
 for f in $FILES; do
     echo -e "\n/* $f.c */" >> $SOURCE

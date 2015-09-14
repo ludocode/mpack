@@ -42,7 +42,7 @@ noioconfigs = [
 allconfigs = noioconfigs + ["-DMPACK_STDIO=1"]
 
 debugflags = ["-DDEBUG", "-O0"]
-releaseflags = ["-Os"]
+releaseflags = ["-Os"] # If you change this, also change the MPACK_OPTIMIZE_FOR_SIZE below to test the opposite
 cflags = ["-std=c99", "-Wc++-compat"]
 
 
@@ -73,6 +73,8 @@ AddBuild("debug", allfeatures + allconfigs + debugflags + cflags, [])
 
 if ARGUMENTS.get('all'):
     AddBuild("release", allfeatures + allconfigs + releaseflags + cflags, [])
+    AddBuild("release-speed", ["-DMPACK_OPTIMIZE_FOR_SIZE=0"] +
+            allfeatures + allconfigs + releaseflags + cflags, [])
 
     # feature subsets with default configuration
     AddBuilds("empty", allconfigs + cflags, [])

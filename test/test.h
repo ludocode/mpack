@@ -56,6 +56,8 @@
 
 #include "mpack/mpack.h"
 
+extern mpack_tag_t (*fn_mpack_tag_nil)(void);
+
 #ifdef __cplusplus
 extern "C" {
 #endif

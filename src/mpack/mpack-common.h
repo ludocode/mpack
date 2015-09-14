@@ -181,7 +181,7 @@ typedef struct mpack_tag_t {
 } mpack_tag_t;
 
 /** Generates a nil tag. */
-static inline mpack_tag_t mpack_tag_nil(void) {
+MPACK_INLINE mpack_tag_t mpack_tag_nil(void) {
     mpack_tag_t ret;
     mpack_memset(&ret, 0, sizeof(ret));
     ret.type = mpack_type_nil;
@@ -189,7 +189,7 @@ static inline mpack_tag_t mpack_tag_nil(void) {
 }
 
 /** Generates a signed int tag. */
-static inline mpack_tag_t mpack_tag_int(int64_t value) {
+MPACK_INLINE mpack_tag_t mpack_tag_int(int64_t value) {
     mpack_tag_t ret;
     mpack_memset(&ret, 0, sizeof(ret));
     ret.type = mpack_type_int;
@@ -198,7 +198,7 @@ static inline mpack_tag_t mpack_tag_int(int64_t value) {
 }
 
 /** Generates an unsigned int tag. */
-static inline mpack_tag_t mpack_tag_uint(uint64_t value) {
+MPACK_INLINE mpack_tag_t mpack_tag_uint(uint64_t value) {
     mpack_tag_t ret;
     mpack_memset(&ret, 0, sizeof(ret));
     ret.type = mpack_type_uint;
@@ -207,7 +207,7 @@ static inline mpack_tag_t mpack_tag_uint(uint64_t value) {
 }
 
 /** Generates a bool tag. */
-static inline mpack_tag_t mpack_tag_bool(bool value) {
+MPACK_INLINE mpack_tag_t mpack_tag_bool(bool value) {
     mpack_tag_t ret;
     mpack_memset(&ret, 0, sizeof(ret));
     ret.type = mpack_type_bool;
@@ -216,7 +216,7 @@ static inline mpack_tag_t mpack_tag_bool(bool value) {
 }
 
 /** Generates a float tag. */
-static inline mpack_tag_t mpack_tag_float(float value) {
+MPACK_INLINE mpack_tag_t mpack_tag_float(float value) {
     mpack_tag_t ret;
     mpack_memset(&ret, 0, sizeof(ret));
     ret.type = mpack_type_float;
@@ -225,7 +225,7 @@ static inline mpack_tag_t mpack_tag_float(float value) {
 }
 
 /** Generates a double tag. */
-static inline mpack_tag_t mpack_tag_double(double value) {
+MPACK_INLINE mpack_tag_t mpack_tag_double(double value) {
     mpack_tag_t ret;
     mpack_memset(&ret, 0, sizeof(ret));
     ret.type = mpack_type_double;
@@ -260,7 +260,7 @@ int mpack_tag_cmp(mpack_tag_t left, mpack_tag_t right);
  *
  * Floating point numbers are compared bit-for-bit, not using the language's operator==.
  */
-static inline bool mpack_tag_equal(mpack_tag_t left, mpack_tag_t right) {
+MPACK_INLINE bool mpack_tag_equal(mpack_tag_t left, mpack_tag_t right) {
     return mpack_tag_cmp(left, right) == 0;
 }
 
@@ -323,14 +323,22 @@ typedef struct mpack_track_t {
 } mpack_track_t;
 
 #ifdef MPACK_INTERNAL
-MPACK_INTERNAL_STATIC mpack_error_t mpack_track_init(mpack_track_t* track);
-MPACK_INTERNAL_STATIC mpack_error_t mpack_track_grow(mpack_track_t* track);
+mpack_error_t mpack_track_init(mpack_track_t* track);
+mpack_error_t mpack_track_grow(mpack_track_t* track);
 
 // These look like some overly large inline functions, but really
 // they are mostly asserts. They boil down to just a few checks
 // and assignments.
 
-static inline mpack_error_t mpack_track_push(mpack_track_t* track, mpack_type_t type, uint64_t count) {
+MPACK_INLINE_SPEED mpack_error_t mpack_track_push(mpack_track_t* track, mpack_type_t type, uint64_t count);
+MPACK_INLINE_SPEED mpack_error_t mpack_track_pop(mpack_track_t* track, mpack_type_t type);
+MPACK_INLINE_SPEED mpack_error_t mpack_track_element(mpack_track_t* track, bool read);
+MPACK_INLINE_SPEED mpack_error_t mpack_track_bytes(mpack_track_t* track, bool read, uint64_t count);
+MPACK_INLINE_SPEED mpack_error_t mpack_track_check_empty(mpack_track_t* track);
+MPACK_INLINE_SPEED mpack_error_t mpack_track_destroy(mpack_track_t* track, bool cancel);
+
+#if MPACK_DEFINE_INLINE_SPEED
+MPACK_INLINE_SPEED mpack_error_t mpack_track_push(mpack_track_t* track, mpack_type_t type, uint64_t count) {
     mpack_assert(track->elements, "null track elements!");
 
     // maps have twice the number of elements (key/value pairs)
@@ -351,7 +359,7 @@ static inline mpack_error_t mpack_track_push(mpack_track_t* track, mpack_type_t 
     return mpack_ok;
 }
 
-static inline mpack_error_t mpack_track_pop(mpack_track_t* track, mpack_type_t type) {
+MPACK_INLINE_SPEED mpack_error_t mpack_track_pop(mpack_track_t* track, mpack_type_t type) {
     mpack_assert(track->elements, "null track elements!");
 
     if (track->count == 0) {
@@ -378,7 +386,7 @@ static inline mpack_error_t mpack_track_pop(mpack_track_t* track, mpack_type_t t
     return mpack_ok;
 }
 
-static inline mpack_error_t mpack_track_element(mpack_track_t* track, bool read) {
+MPACK_INLINE_SPEED mpack_error_t mpack_track_element(mpack_track_t* track, bool read) {
     MPACK_UNUSED(read);
     mpack_assert(track->elements, "null track elements!");
 
@@ -404,7 +412,7 @@ static inline mpack_error_t mpack_track_element(mpack_track_t* track, bool read)
     return mpack_ok;
 }
 
-static inline mpack_error_t mpack_track_bytes(mpack_track_t* track, bool read, uint64_t count) {
+MPACK_INLINE_SPEED mpack_error_t mpack_track_bytes(mpack_track_t* track, bool read, uint64_t count) {
     MPACK_UNUSED(read);
     mpack_assert(track->elements, "null track elements!");
 
@@ -431,7 +439,7 @@ static inline mpack_error_t mpack_track_bytes(mpack_track_t* track, bool read, u
     return mpack_ok;
 }
 
-static inline mpack_error_t mpack_track_check_empty(mpack_track_t* track) {
+MPACK_INLINE_SPEED mpack_error_t mpack_track_check_empty(mpack_track_t* track) {
     if (track->count != 0) {
         mpack_assert(0, "unclosed %s", mpack_type_to_string(track->elements[0].type));
         return mpack_error_bug;
@@ -439,12 +447,13 @@ static inline mpack_error_t mpack_track_check_empty(mpack_track_t* track) {
     return mpack_ok;
 }
 
-static inline mpack_error_t mpack_track_destroy(mpack_track_t* track, bool cancel) {
+MPACK_INLINE_SPEED mpack_error_t mpack_track_destroy(mpack_track_t* track, bool cancel) {
     mpack_error_t error = cancel ? mpack_ok : mpack_track_check_empty(track);
     MPACK_FREE(track->elements);
     track->elements = NULL;
     return error;
 }
+#endif
 
 #endif
 /** @endcond */
@@ -455,7 +464,7 @@ static inline mpack_error_t mpack_track_destroy(mpack_track_t* track, bool cance
 #ifdef MPACK_INTERNAL
 
 /* The below code is from Bjoern Hoehrmann's Flexible and Economical */
-/* UTF-8 decoder, modified to make it static and add the mpack prefix. */
+/* UTF-8 decoder, modified to support MPack inlining and add the mpack prefix. */
 
 /* Copyright (c) 2008-2010 Bjoern Hoehrmann <bjoern@hoehrmann.de> */
 /* See http://bjoern.hoehrmann.de/utf-8/decoder/dfa/ for details. */
@@ -463,29 +472,12 @@ static inline mpack_error_t mpack_track_destroy(mpack_track_t* track, bool cance
 #define MPACK_UTF8_ACCEPT 0
 #define MPACK_UTF8_REJECT 12
 
-static const uint8_t mpack_utf8d[] = {
-  /* The first part of the table maps bytes to character classes that */
-  /* to reduce the size of the transition table and create bitmasks. */
-   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-   1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,  9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,
-   7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,  7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
-   8,8,2,2,2,2,2,2,2,2,2,2,2,2,2,2,  2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
-  10,3,3,3,3,3,3,3,3,3,3,3,3,4,3,3, 11,6,6,6,5,8,8,8,8,8,8,8,8,8,8,8,
+MPACK_INLINE_SPEED uint32_t mpack_utf8_decode(uint32_t* state, uint32_t* codep, uint32_t byte);
 
-  /* The second part is a transition table that maps a combination */
-  /* of a state of the automaton and a character class to a state. */
-   0,12,24,36,60,96,84,12,12,12,48,72, 12,12,12,12,12,12,12,12,12,12,12,12,
-  12, 0,12,12,12,12,12, 0,12, 0,12,12, 12,24,12,12,12,12,12,24,12,24,12,12,
-  12,12,12,12,12,12,12,24,12,12,12,12, 12,24,12,12,12,12,12,12,12,24,12,12,
-  12,12,12,12,12,12,12,36,12,36,12,12, 12,36,12,12,12,12,12,36,12,36,12,12,
-  12,36,12,12,12,12,12,12,12,12,12,12,
-};
+#if MPACK_DEFINE_INLINE_SPEED
+extern const uint8_t mpack_utf8d[];
 
-static inline
-uint32_t mpack_utf8_decode(uint32_t* state, uint32_t* codep, uint32_t byte) {
+MPACK_INLINE_SPEED uint32_t mpack_utf8_decode(uint32_t* state, uint32_t* codep, uint32_t byte) {
   uint32_t type = mpack_utf8d[byte];
 
   *codep = (*state != MPACK_UTF8_ACCEPT) ?
@@ -495,6 +487,7 @@ uint32_t mpack_utf8_decode(uint32_t* state, uint32_t* codep, uint32_t byte) {
   *state = mpack_utf8d[256 + *state + type];
   return *state;
 }
+#endif
 
 #endif
 

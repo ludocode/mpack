@@ -212,7 +212,7 @@ void mpack_writer_destroy_cancel(mpack_writer_t* writer);
  * @param writer The MPack writer.
  * @param context User data to pass to the writer callbacks.
  */
-static inline void mpack_writer_set_context(mpack_writer_t* writer, void* context) {
+MPACK_INLINE void mpack_writer_set_context(mpack_writer_t* writer, void* context) {
     writer->context = context;
 }
 
@@ -228,7 +228,7 @@ static inline void mpack_writer_set_context(mpack_writer_t* writer, void* contex
  * @param writer The MPack writer.
  * @param flush The function to write out data from the buffer.
  */
-static inline void mpack_writer_set_flush(mpack_writer_t* writer, mpack_writer_flush_t flush) {
+MPACK_INLINE void mpack_writer_set_flush(mpack_writer_t* writer, mpack_writer_flush_t flush) {
     mpack_assert(writer->size != 0, "cannot use flush function without a writeable buffer!");
     writer->flush = flush;
 }
@@ -246,7 +246,7 @@ static inline void mpack_writer_set_flush(mpack_writer_t* writer, mpack_writer_f
  * @param writer The MPack writer.
  * @param error The function to call when an error is flagged on the writer.
  */
-static inline void mpack_writer_set_error_handler(mpack_writer_t* writer, mpack_writer_error_t error_fn) {
+MPACK_INLINE void mpack_writer_set_error_handler(mpack_writer_t* writer, mpack_writer_error_t error_fn) {
     writer->error_fn = error_fn;
 }
 
@@ -259,7 +259,7 @@ static inline void mpack_writer_set_error_handler(mpack_writer_t* writer, mpack_
  * @param writer The MPack writer.
  * @param teardown The function to call when the writer is destroyed.
  */
-static inline void mpack_writer_set_teardown(mpack_writer_t* writer, mpack_writer_teardown_t teardown) {
+MPACK_INLINE void mpack_writer_set_teardown(mpack_writer_t* writer, mpack_writer_teardown_t teardown) {
     writer->teardown = teardown;
 }
 
@@ -268,7 +268,7 @@ static inline void mpack_writer_set_teardown(mpack_writer_t* writer, mpack_write
  * may be less than the total number of bytes written if bytes have
  * been flushed to an underlying stream.
  */
-static inline size_t mpack_writer_buffer_used(mpack_writer_t* writer) {
+MPACK_INLINE size_t mpack_writer_buffer_used(mpack_writer_t* writer) {
     return writer->used;
 }
 
@@ -290,7 +290,7 @@ void mpack_writer_flag_error(mpack_writer_t* writer, mpack_error_t error);
  * If a writer is in an error state, you should discard all data since the
  * last time the error flag was checked. The error flag cannot be cleared.
  */
-static inline mpack_error_t mpack_writer_error(mpack_writer_t* writer) {
+MPACK_INLINE mpack_error_t mpack_writer_error(mpack_writer_t* writer) {
     return writer->error;
 }
 
@@ -326,7 +326,7 @@ void mpack_write_i32(mpack_writer_t* writer, int32_t value);
 void mpack_write_i64(mpack_writer_t* writer, int64_t value);
 
 /*! Writes an integer in the most efficient packing available. */
-static inline void mpack_write_int(mpack_writer_t* writer, int64_t value) {
+MPACK_INLINE void mpack_write_int(mpack_writer_t* writer, int64_t value) {
     mpack_write_i64(writer, value);
 }
 
@@ -343,7 +343,7 @@ void mpack_write_u32(mpack_writer_t* writer, uint32_t value);
 void mpack_write_u64(mpack_writer_t* writer, uint64_t value);
 
 /*! Writes an unsigned integer in the most efficient packing available. */
-static inline void mpack_write_uint(mpack_writer_t* writer, uint64_t value) {
+MPACK_INLINE void mpack_write_uint(mpack_writer_t* writer, uint64_t value) {
     mpack_write_u64(writer, value);
 }
 
@@ -502,12 +502,12 @@ void mpack_finish_ext(mpack_writer_t* writer);
  */
 void mpack_finish_type(mpack_writer_t* writer, mpack_type_t type);
 #else
-static inline void mpack_finish_array(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
-static inline void mpack_finish_map(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
-static inline void mpack_finish_str(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
-static inline void mpack_finish_bin(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
-static inline void mpack_finish_ext(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
-static inline void mpack_finish_type(mpack_writer_t* writer, mpack_type_t type) {MPACK_UNUSED(writer); MPACK_UNUSED(type);}
+MPACK_INLINE void mpack_finish_array(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
+MPACK_INLINE void mpack_finish_map(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
+MPACK_INLINE void mpack_finish_str(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
+MPACK_INLINE void mpack_finish_bin(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
+MPACK_INLINE void mpack_finish_ext(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
+MPACK_INLINE void mpack_finish_type(mpack_writer_t* writer, mpack_type_t type) {MPACK_UNUSED(writer); MPACK_UNUSED(type);}
 #endif
 
 /**

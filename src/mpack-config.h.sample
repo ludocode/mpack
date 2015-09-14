@@ -172,6 +172,22 @@
  */
 
 /**
+ * Whether to optimize for size or speed. Optimizing for size causes
+ * very few functions to be declared inline, and can save a couple
+ * kilobytes of space in the resulting executable.
+ *
+ * This automatically detects -Os with GCC/Clang. Unfortunately there
+ * doesn't seem to be a macro defined for /Os under MSVC.
+ */
+#ifndef MPACK_OPTIMIZE_FOR_SIZE
+#ifdef __OPTIMIZE_SIZE__
+#define MPACK_OPTIMIZE_FOR_SIZE 1
+#else
+#define MPACK_OPTIMIZE_FOR_SIZE 0
+#endif
+#endif
+
+/**
  * Stack space to use when initializing a reader or writer with a
  * stack-allocated buffer.
  */

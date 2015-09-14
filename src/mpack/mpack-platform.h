@@ -81,6 +81,9 @@
 #if defined(MPACK_NO_TRACKING) && !MPACK_NO_TRACKING
 #undef MPACK_NO_TRACKING
 #endif
+#ifndef MPACK_OPTIMIZE_FOR_SIZE
+#define MPACK_OPTIMIZE_FOR_SIZE 0
+#endif
 
 
 
@@ -120,14 +123,84 @@ extern "C" {
 
 #define MPACK_UNUSED(var) ((void)(var))
 
-#ifdef MPACK_AMALGAMATED
-#define MPACK_INTERNAL_STATIC static
-#else
-#define MPACK_INTERNAL_STATIC
-#endif
-
 #define MPACK_STRINGIFY_IMPL(arg) #arg
 #define MPACK_STRINGIFY(arg) MPACK_STRINGIFY_IMPL(arg)
+
+
+
+/*
+ * Definition of inline macros.
+ *
+ * MPack supports several different modes for inline functions:
+ *   - functions declared with a platform-specific always-inline (MPACK_ALWAYS_INLINE)
+ *   - functions declared inline regardless of optimization options (MPACK_INLINE)
+ *   - functions declared inline only in builds optimized for speed (MPACK_INLINE_SPEED)
+ *
+ * MPack does not use static inline in header files; only one non-inline definition
+ * of each function should exist in the final build. This reduces the binary size
+ * in cases where the compiler cannot or chooses not to inline a function.
+ * The addresses of functions should also compare equal across translation units
+ * regardless of whether they are declared inline.
+ *
+ * The above requirements mean that the declaration and definition of non-trivial
+ * inline functions must be separated so that the definitions will only
+ * appear when necessary. In addition, three different linkage models need
+ * to be supported:
+ *
+ *  - The C99 model, where "inline" does not emit a definition and "extern inline" does
+ *  - The GNU model, where "inline" emits a definition and "extern inline" does not
+ *  - The C++ model, where "inline" emits a definition with weak linkage
+ *
+ * The macros below wrap up everything above. All inline functions defined in header
+ * files have a single non-inline definition emitted in the compilation of
+ * mpack-platform.c.
+ *
+ * Inline functions in source files are defined static, so MPACK_STATIC_INLINE
+ * is used for small functions and MPACK_STATIC_INLINE_SPEED is used for
+ * larger optionally inline functions.
+ */
+
+#if defined(__cplusplus)
+    // C++ rules
+    // The linker will need weak symbol support to link C++ object files,
+    // so we don't need to worry about emitting a single definition.
+    #define MPACK_INLINE inline
+#elif defined(__GNUC__) && (defined(__GNUC_GNU_INLINE__) || \
+        !defined(__GNUC_STDC_INLINE__) && !defined(__GNUC_GNU_INLINE__))
+    // GNU rules
+    #ifdef MPACK_EMIT_INLINE_DEFS
+        #define MPACK_INLINE inline
+    #else
+        #define MPACK_INLINE extern inline
+    #endif
+#else
+    // C99 rules
+    #ifdef MPACK_EMIT_INLINE_DEFS
+        #define MPACK_INLINE extern inline
+    #else
+        #define MPACK_INLINE inline
+    #endif
+#endif
+
+#define MPACK_STATIC_INLINE static inline
+
+#if MPACK_OPTIMIZE_FOR_SIZE
+    #define MPACK_STATIC_INLINE_SPEED static
+    #define MPACK_INLINE_SPEED /* nothing */
+    #ifdef MPACK_EMIT_INLINE_DEFS
+        #define MPACK_DEFINE_INLINE_SPEED 1
+    #else
+        #define MPACK_DEFINE_INLINE_SPEED 0
+    #endif
+#else
+    #define MPACK_STATIC_INLINE_SPEED static inline
+    #define MPACK_INLINE_SPEED MPACK_INLINE
+    #define MPACK_DEFINE_INLINE_SPEED 1
+#endif
+
+#ifdef MPACK_OPTIMIZE_FOR_SPEED
+#error "You should define MPACK_OPTIMIZE_FOR_SIZE, not MPACK_OPTIMIZE_FOR_SPEED."
+#endif
 
 
 
@@ -136,17 +209,16 @@ extern "C" {
 #if defined(__GNUC__) || defined(__clang__)
     #define MPACK_UNREACHABLE __builtin_unreachable()
     #define MPACK_NORETURN(fn) fn __attribute__((noreturn))
-    #define MPACK_ALWAYS_INLINE __attribute__((always_inline)) static inline
+    #define MPACK_ALWAYS_INLINE __attribute__((always_inline)) MPACK_INLINE
 #elif defined(_MSC_VER)
     #define MPACK_UNREACHABLE __assume(0)
     #define MPACK_NORETURN(fn) __declspec(noreturn) fn
-    #define MPACK_ALWAYS_INLINE __forceinline static
+    #define MPACK_ALWAYS_INLINE __forceinline MPACK_INLINE
 #else
     #define MPACK_UNREACHABLE ((void)0)
     #define MPACK_NORETURN(fn) fn
-    #define MPACK_ALWAYS_INLINE static inline
+    #define MPACK_ALWAYS_INLINE MPACK_INLINE
 #endif
-
 
 
 
@@ -273,7 +345,7 @@ size_t mpack_strlen(const char *s);
 /* Implement realloc if unavailable */
 #ifdef MPACK_MALLOC
     #ifdef MPACK_REALLOC
-    static inline void* mpack_realloc(void* old_ptr, size_t used_size, size_t new_size) {
+    MPACK_ALWAYS_INLINE void* mpack_realloc(void* old_ptr, size_t used_size, size_t new_size) {
         MPACK_UNUSED(used_size);
         return MPACK_REALLOC(old_ptr, new_size);
     }

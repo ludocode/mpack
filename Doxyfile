@@ -21,8 +21,9 @@ GENERATE_LATEX = no
 STRIP_FROM_PATH = . ./src
 
 PREDEFINED = \
-    static= \
     inline= \
+    MPACK_INLINE= \
+    MPACK_ALWAYS_INLINE= \
     \
     MPACK_READER=1 \
     MPACK_WRITER=1 \
