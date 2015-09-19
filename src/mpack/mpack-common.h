@@ -30,12 +30,6 @@
 
 #include "mpack-platform.h"
 
-/** @cond */
-#ifndef MPACK_STACK_SIZE
-#define MPACK_STACK_SIZE 4096
-#endif
-/** @endcond */
-
 
 
 /* Version information */
