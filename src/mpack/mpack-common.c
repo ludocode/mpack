@@ -23,12 +23,12 @@
 
 #include "mpack-common.h"
 
-#if defined(MPACK_DEBUG) && defined(MPACK_STDIO)
+#if MPACK_DEBUG && MPACK_STDIO
 #include <stdarg.h>
 #endif
 
 const char* mpack_error_to_string(mpack_error_t error) {
-    #ifdef MPACK_DEBUG
+    #if MPACK_DEBUG
     switch (error) {
         #define MPACK_ERROR_STRING_CASE(e) case e: return #e
         MPACK_ERROR_STRING_CASE(mpack_ok);
@@ -51,7 +51,7 @@ const char* mpack_error_to_string(mpack_error_t error) {
 }
 
 const char* mpack_type_to_string(mpack_type_t type) {
-    #ifdef MPACK_DEBUG
+    #if MPACK_DEBUG
     switch (type) {
         #define MPACK_TYPE_STRING_CASE(e) case e: return #e
         MPACK_TYPE_STRING_CASE(mpack_type_nil);
@@ -154,7 +154,7 @@ int mpack_tag_cmp(mpack_tag_t left, mpack_tag_t right) {
 
 
 
-#if defined(MPACK_READ_TRACKING) || defined(MPACK_WRITE_TRACKING)
+#if MPACK_READ_TRACKING || MPACK_WRITE_TRACKING
 
 #ifndef MPACK_TRACKING_INITIAL_CAPACITY
 // seems like a reasonable number. we grow by doubling, and it only

@@ -23,7 +23,7 @@
 
 #include "mpack-node.h"
 
-#ifdef MPACK_NODE
+#if MPACK_NODE
 
 
 
@@ -644,7 +644,7 @@ void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length) {
     //
     // Leaving a TODO: here to explore this further. In the meantime we preproc it
     // under MPACK_DEBUG.
-    #ifdef MPACK_DEBUG
+    #if MPACK_DEBUG
     mpack_assert(parser.possible_nodes_left == parser.left,
             "incorrect calculation of possible nodes! %i possible nodes, but %i bytes remaining",
             (int)parser.possible_nodes_left, (int)parser.left);
@@ -702,7 +702,7 @@ void mpack_tree_init_error(mpack_tree_t* tree, mpack_error_t error) {
     tree->error = error;
 }
 
-#ifdef MPACK_STDIO
+#if MPACK_STDIO
 typedef struct mpack_file_tree_t {
     char* data;
     size_t size;
@@ -865,7 +865,7 @@ mpack_tag_t mpack_node_tag(mpack_node_t node) {
     return tag;
 }
 
-#if defined(MPACK_DEBUG) && defined(MPACK_STDIO) && !defined(MPACK_NO_PRINT)
+#if MPACK_DEBUG && MPACK_STDIO && !MPACK_NO_PRINT
 static void mpack_node_print_element(mpack_node_t node, size_t depth) {
     mpack_node_data_t* data = node.data;
     switch (data->type) {

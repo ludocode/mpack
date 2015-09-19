@@ -40,16 +40,16 @@ int main(void) {
 
     test_tags();
 
-    #ifdef MPACK_EXPECT
+    #if MPACK_EXPECT
     test_expect();
     #endif
-    #ifdef MPACK_WRITER
+    #if MPACK_WRITER
     test_writes();
     #endif
-    #ifdef MPACK_NODE
+    #if MPACK_NODE
     test_node();
     #endif
-    #ifdef MPACK_STDIO
+    #if MPACK_STDIO
     test_file();
     #endif
 

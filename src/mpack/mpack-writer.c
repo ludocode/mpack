@@ -23,9 +23,9 @@
 
 #include "mpack-writer.h"
 
-#ifdef MPACK_WRITER
+#if MPACK_WRITER
 
-#ifdef MPACK_WRITE_TRACKING
+#if MPACK_WRITE_TRACKING
 #define MPACK_WRITER_TRACK(writer, error) mpack_writer_flag_if_error(writer, error)
 
 MPACK_STATIC_INLINE_SPEED void mpack_writer_flag_if_error(mpack_writer_t* writer, mpack_error_t error) {
@@ -161,7 +161,7 @@ void mpack_writer_init_growable(mpack_writer_t* writer, char** target_data, size
 }
 #endif
 
-#ifdef MPACK_STDIO
+#if MPACK_STDIO
 typedef struct mpack_file_writer_t {
     FILE* file;
     char buffer[MPACK_BUFFER_SIZE];
@@ -612,7 +612,7 @@ void mpack_write_double(mpack_writer_t* writer, double value) {
     mpack_write_native_double(writer, value);
 }
 
-#ifdef MPACK_WRITE_TRACKING
+#if MPACK_WRITE_TRACKING
 void mpack_finish_array(mpack_writer_t* writer) {
     MPACK_WRITER_TRACK(writer, mpack_track_pop(&writer->track, mpack_type_array));
 }

@@ -21,7 +21,7 @@
 
 #include "test-node.h"
 
-#ifdef MPACK_NODE
+#if MPACK_NODE
 
 // tests the example on the messagepack homepage
 static void test_example_node() {

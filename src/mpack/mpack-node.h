@@ -30,7 +30,7 @@
 
 #include "mpack-reader.h"
 
-#ifdef MPACK_NODE
+#if MPACK_NODE
 
 #ifdef __cplusplus
 extern "C" {
@@ -228,7 +228,7 @@ void mpack_tree_init_pool(mpack_tree_t* tree, const char* data, size_t length, m
  */
 void mpack_tree_init_error(mpack_tree_t* tree, mpack_error_t error);
 
-#ifdef MPACK_STDIO
+#if MPACK_STDIO
 /**
  * Initializes a tree by reading and parsing the given file. The tree must be
  * destroyed with mpack_tree_destroy(), even if parsing fails.
@@ -353,7 +353,7 @@ MPACK_INLINE mpack_error_t mpack_node_error(mpack_node_t node) {
  */
 mpack_tag_t mpack_node_tag(mpack_node_t node);
 
-#if defined(MPACK_DEBUG) && defined(MPACK_STDIO) && !defined(MPACK_NO_PRINT)
+#if MPACK_DEBUG && MPACK_STDIO && !MPACK_NO_PRINT
 /**
  * Converts a node to JSON and pretty-prints it to stdout.
  *

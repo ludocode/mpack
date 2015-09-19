@@ -35,6 +35,8 @@
 /* For now, nothing in here should be seen by Doxygen. */
 /** @cond */
 
+
+
 #if defined(WIN32) && defined(MPACK_INTERNAL) && MPACK_INTERNAL
 #define _CRT_SECURE_NO_WARNINGS 1
 #endif
@@ -44,45 +46,62 @@
 #include "mpack-config.h"
 
 /*
- * Now that the config is included, we undef any of the configs
- * that aren't true. This allows defining configs to 0 without
- * us having to write "#if defined(X) && X" everywhere.
+ * Now that the config is included, we define to 0 any of the configuration
+ * options and other switches that aren't defined. This supports -Wundef
+ * without us having to write "#if defined(X) && X" everywhere (and while
+ * allowing configs to be pre-defined to 0.)
  */
-#if defined(MPACK_READER) && !MPACK_READER
-#undef MPACK_READER
+#ifndef MPACK_READER
+#define MPACK_READER 0
 #endif
-#if defined(MPACK_EXPECT) && !MPACK_EXPECT
-#undef MPACK_EXPECT
+#ifndef MPACK_EXPECT
+#define MPACK_EXPECT 0
 #endif
-#if defined(MPACK_NODE) && !MPACK_NODE
-#undef MPACK_NODE
+#ifndef MPACK_NODE
+#define MPACK_NODE 0
 #endif
-#if defined(MPACK_WRITER) && !MPACK_WRITER
-#undef MPACK_WRITER
+#ifndef MPACK_WRITER
+#define MPACK_WRITER 0
 #endif
-#if defined(MPACK_STDLIB) && !MPACK_STDLIB
-#undef MPACK_STDLIB
+
+#ifndef MPACK_STDLIB
+#define MPACK_STDLIB 0
 #endif
-#if defined(MPACK_STDIO) && !MPACK_STDIO
-#undef MPACK_STDIO
+#ifndef MPACK_STDIO
+#define MPACK_STDIO 0
 #endif
-#if defined(MPACK_DEBUG) && !MPACK_DEBUG
-#undef MPACK_DEBUG
+
+#ifndef MPACK_DEBUG
+#define MPACK_DEBUG 0
 #endif
-#if defined(MPACK_CUSTOM_ASSERT) && !MPACK_CUSTOM_ASSERT
-#undef MPACK_CUSTOM_ASSERT
+#ifndef MPACK_CUSTOM_ASSERT
+#define MPACK_CUSTOM_ASSERT 0
 #endif
-#if defined(MPACK_READ_TRACKING) && !MPACK_READ_TRACKING
-#undef MPACK_READ_TRACKING
+
+#ifndef MPACK_READ_TRACKING
+#define MPACK_READ_TRACKING 0
 #endif
-#if defined(MPACK_WRITE_TRACKING) && !MPACK_WRITE_TRACKING
-#undef MPACK_WRITE_TRACKING
+#ifndef MPACK_WRITE_TRACKING
+#define MPACK_WRITE_TRACKING 0
 #endif
-#if defined(MPACK_NO_TRACKING) && !MPACK_NO_TRACKING
-#undef MPACK_NO_TRACKING
+#ifndef MPACK_NO_TRACKING
+#define MPACK_NO_TRACKING 0
 #endif
 #ifndef MPACK_OPTIMIZE_FOR_SIZE
 #define MPACK_OPTIMIZE_FOR_SIZE 0
+#endif
+
+#ifndef MPACK_EMIT_INLINE_DEFS
+#define MPACK_EMIT_INLINE_DEFS 0
+#endif
+#ifndef MPACK_AMALGAMATED
+#define MPACK_AMALGAMATED 0
+#endif
+#ifndef MPACK_INTERNAL
+#define MPACK_INTERNAL 0
+#endif
+#ifndef MPACK_NO_PRINT
+#define MPACK_NO_PRINT 0
 #endif
 
 
@@ -105,11 +124,11 @@
 #include <inttypes.h>
 #include <limits.h>
 
-#ifdef MPACK_STDLIB
+#if MPACK_STDLIB
 #include <string.h>
 #include <stdlib.h>
 #endif
-#ifdef MPACK_STDIO
+#if MPACK_STDIO
 #include <stdio.h>
 #endif
 
@@ -168,14 +187,14 @@ extern "C" {
 #elif defined(__GNUC__) && (defined(__GNUC_GNU_INLINE__) || \
         !defined(__GNUC_STDC_INLINE__) && !defined(__GNUC_GNU_INLINE__))
     // GNU rules
-    #ifdef MPACK_EMIT_INLINE_DEFS
+    #if MPACK_EMIT_INLINE_DEFS
         #define MPACK_INLINE inline
     #else
         #define MPACK_INLINE extern inline
     #endif
 #else
     // C99 rules
-    #ifdef MPACK_EMIT_INLINE_DEFS
+    #if MPACK_EMIT_INLINE_DEFS
         #define MPACK_INLINE extern inline
     #else
         #define MPACK_INLINE inline
@@ -187,7 +206,7 @@ extern "C" {
 #if MPACK_OPTIMIZE_FOR_SIZE
     #define MPACK_STATIC_INLINE_SPEED static
     #define MPACK_INLINE_SPEED /* nothing */
-    #ifdef MPACK_EMIT_INLINE_DEFS
+    #if MPACK_EMIT_INLINE_DEFS
         #define MPACK_DEFINE_INLINE_SPEED 1
     #else
         #define MPACK_DEFINE_INLINE_SPEED 0
@@ -256,9 +275,9 @@ extern "C" {
  * important for static analysis tools to give correct results.
  */
 
-#ifdef MPACK_DEBUG
+#if MPACK_DEBUG
     MPACK_NORETURN(void mpack_assert_fail(const char* message));
-    #ifdef MPACK_STDIO
+    #if MPACK_STDIO
         MPACK_NORETURN(void mpack_assert_fail_format(const char* format, ...));
         #define mpack_assert_fail_at(line, file, expr, ...) \
                 mpack_assert_fail_format("mpack assertion failed at " file ":" #line "\n" expr "\n" __VA_ARGS__)
@@ -271,7 +290,7 @@ extern "C" {
     #define mpack_assert(expr, ...) ((!(expr)) ? mpack_assert_fail_pos(__LINE__, __FILE__, #expr, __VA_ARGS__) : (void)0)
 
     void mpack_break_hit(const char* message);
-    #ifdef MPACK_STDIO
+    #if MPACK_STDIO
         void mpack_break_hit_format(const char* format, ...);
         #define mpack_break_hit_at(line, file, ...) \
                 mpack_break_hit_format("mpack breakpoint hit at " file ":" #line "\n" __VA_ARGS__)
@@ -290,7 +309,7 @@ extern "C" {
 
 
 /* Wrap some needed libc functions */
-#ifdef MPACK_STDLIB
+#if MPACK_STDLIB
 #define mpack_memset memset
 #define mpack_memcpy memcpy
 #define mpack_memmove memmove
@@ -322,20 +341,20 @@ size_t mpack_strlen(const char *s);
 #if !defined(MPACK_MALLOC) && defined(MPACK_FREE)
     #error "MPACK_FREE requires MPACK_MALLOC."
 #endif
-#if defined(MPACK_READ_TRACKING) && !defined(MPACK_READER)
+#if MPACK_READ_TRACKING && !defined(MPACK_READER)
     #error "MPACK_READ_TRACKING requires MPACK_READER."
 #endif
-#if defined(MPACK_WRITE_TRACKING) && !defined(MPACK_WRITER)
+#if MPACK_WRITE_TRACKING && !defined(MPACK_WRITER)
     #error "MPACK_WRITE_TRACKING requires MPACK_WRITER."
 #endif
 #ifndef MPACK_MALLOC
-    #ifdef MPACK_STDIO
+    #if MPACK_STDIO
     #error "MPACK_STDIO requires preprocessor definitions for MPACK_MALLOC and MPACK_FREE."
     #endif
-    #ifdef MPACK_READ_TRACKING
+    #if MPACK_READ_TRACKING
     #error "MPACK_READ_TRACKING requires preprocessor definitions for MPACK_MALLOC and MPACK_FREE."
     #endif
-    #ifdef MPACK_WRITE_TRACKING
+    #if MPACK_WRITE_TRACKING
     #error "MPACK_WRITE_TRACKING requires preprocessor definitions for MPACK_MALLOC and MPACK_FREE."
     #endif
 #endif

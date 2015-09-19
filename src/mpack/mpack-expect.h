@@ -30,9 +30,9 @@
 
 #include "mpack-reader.h"
 
-#ifdef MPACK_EXPECT
+#if MPACK_EXPECT
 
-#if !defined(MPACK_READER)
+#if !MPACK_READER
 #error "MPACK_EXPECT requires MPACK_READER."
 #endif
 

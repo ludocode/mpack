@@ -23,7 +23,7 @@
 
 #include "mpack-reader.h"
 
-#ifdef MPACK_READER
+#if MPACK_READER
 
 void mpack_reader_init(mpack_reader_t* reader, char* buffer, size_t size, size_t count) {
     mpack_memset(reader, 0, sizeof(*reader));
@@ -55,7 +55,7 @@ void mpack_reader_init_data(mpack_reader_t* reader, const char* data, size_t cou
     MPACK_UNUSED(MPACK_READER_TRACK(reader, mpack_track_init(&reader->track)));
 }
 
-#ifdef MPACK_STDIO
+#if MPACK_STDIO
 typedef struct mpack_file_reader_t {
     FILE* file;
     char buffer[MPACK_BUFFER_SIZE];
@@ -635,7 +635,7 @@ void mpack_discard(mpack_reader_t* reader) {
     }
 }
 
-#ifdef MPACK_READ_TRACKING
+#if MPACK_READ_TRACKING
 void mpack_done_array(mpack_reader_t* reader) {
     MPACK_UNUSED(MPACK_READER_TRACK(reader, mpack_track_pop(&reader->track, mpack_type_array)));
 }
@@ -661,7 +661,7 @@ void mpack_done_type(mpack_reader_t* reader, mpack_type_t type) {
 }
 #endif
 
-#if defined(MPACK_DEBUG) && defined(MPACK_STDIO) && !defined(MPACK_NO_PRINT)
+#if MPACK_DEBUG && MPACK_STDIO && !MPACK_NO_PRINT
 static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
     mpack_tag_t val = mpack_read_tag(reader);
     if (mpack_reader_error(reader) != mpack_ok)

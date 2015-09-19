@@ -30,13 +30,13 @@
 
 #include "mpack-common.h"
 
-#ifdef MPACK_WRITER
+#if MPACK_WRITER
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#ifdef MPACK_WRITE_TRACKING
+#if MPACK_WRITE_TRACKING
 struct mpack_track_t;
 #endif
 
@@ -109,7 +109,7 @@ struct mpack_writer_t {
     size_t used;          /* How many bytes have been written into the buffer */
     mpack_error_t error;  /* Error state */
 
-    #ifdef MPACK_WRITE_TRACKING
+    #if MPACK_WRITE_TRACKING
     mpack_track_t track; /* Stack of map/array/str/bin/ext writes */
     #endif
 };
@@ -158,7 +158,7 @@ void mpack_writer_init_growable(mpack_writer_t* writer, char** data, size_t* siz
  */
 void mpack_writer_init_error(mpack_writer_t* writer, mpack_error_t error);
 
-#ifdef MPACK_STDIO
+#if MPACK_STDIO
 /**
  * Initializes an mpack writer that writes to a file.
  */
@@ -458,7 +458,7 @@ void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count);
  */
 void mpack_write_bytes(mpack_writer_t* writer, const char* data, size_t count);
 
-#ifdef MPACK_WRITE_TRACKING
+#if MPACK_WRITE_TRACKING
 /**
  * Finishes writing an array.
  *

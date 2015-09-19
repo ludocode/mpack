@@ -28,13 +28,13 @@
 #include "mpack-platform.h"
 #include "mpack.h"
 
-#if defined(MPACK_DEBUG) && defined(MPACK_STDIO)
+#if MPACK_DEBUG && MPACK_STDIO
 #include <stdarg.h>
 #endif
 
 
 
-#if defined(MPACK_DEBUG) && defined(MPACK_STDIO)
+#if MPACK_DEBUG && MPACK_STDIO
 void mpack_assert_fail_format(const char* format, ...) {
     char buffer[512];
     va_list args;
@@ -56,7 +56,7 @@ void mpack_break_hit_format(const char* format, ...) {
 }
 #endif
 
-#ifdef MPACK_CUSTOM_ASSERT
+#if MPACK_CUSTOM_ASSERT
 void mpack_break_hit(const char* message) {
     // If we have a custom assert handler, break just wraps it
     // for simplicity.
@@ -66,7 +66,7 @@ void mpack_break_hit(const char* message) {
 void mpack_assert_fail(const char* message) {
     MPACK_UNUSED(message);
 
-    #ifdef MPACK_STDIO
+    #if MPACK_STDIO
     fprintf(stderr, "%s\n", message);
     #endif
 
@@ -76,7 +76,7 @@ void mpack_assert_fail(const char* message) {
     __debugbreak();
     #endif
 
-    #ifdef MPACK_STDLIB
+    #if MPACK_STDLIB
     abort();
     #elif defined(__GCC__) || defined(__clang__)
     __builtin_abort();
@@ -88,7 +88,7 @@ void mpack_assert_fail(const char* message) {
 void mpack_break_hit(const char* message) {
     MPACK_UNUSED(message);
 
-    #ifdef MPACK_STDIO
+    #if MPACK_STDIO
     fprintf(stderr, "%s\n", message);
     #endif
 
@@ -96,7 +96,7 @@ void mpack_break_hit(const char* message) {
     __builtin_trap();
     #elif defined(WIN32)
     __debugbreak();
-    #elif defined(MPACK_STDLIB)
+    #elif MPACK_STDLIB
     abort();
     #elif defined(__GCC__) || defined(__clang__)
     __builtin_abort();
@@ -106,7 +106,7 @@ void mpack_break_hit(const char* message) {
 
 
 
-#if !defined(MPACK_STDLIB)
+#if !MPACK_STDLIB
 
 // The below are adapted from the C wikibook:
 //     https://en.wikibooks.org/wiki/C_Programming/Strings

@@ -30,13 +30,13 @@
 
 #include "mpack-common.h"
 
-#ifdef MPACK_READER
+#if MPACK_READER
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#ifdef MPACK_READ_TRACKING
+#if MPACK_READ_TRACKING
 struct mpack_track_t;
 #endif
 
@@ -116,7 +116,7 @@ struct mpack_reader_t {
     size_t pos;         /* Position within the buffer */
     mpack_error_t error;  /* Error state */
 
-    #ifdef MPACK_READ_TRACKING
+    #if MPACK_READ_TRACKING
     mpack_track_t track; /* Stack of map/array/str/bin/ext reads */
     #endif
 };
@@ -149,7 +149,7 @@ void mpack_reader_init_error(mpack_reader_t* reader, mpack_error_t error);
  */
 void mpack_reader_init_data(mpack_reader_t* reader, const char* data, size_t count);
 
-#ifdef MPACK_STDIO
+#if MPACK_STDIO
 /**
  * Initializes an mpack reader that reads from a file.
  */
@@ -400,7 +400,7 @@ MPACK_INLINE_SPEED bool mpack_should_read_bytes_inplace(mpack_reader_t* reader, 
 }
 #endif
 
-#ifdef MPACK_READ_TRACKING
+#if MPACK_READ_TRACKING
 /**
  * Finishes reading an array.
  *
@@ -466,7 +466,7 @@ MPACK_INLINE void mpack_done_type(mpack_reader_t* reader, mpack_type_t type) {MP
  */
 void mpack_discard(mpack_reader_t* reader);
 
-#if defined(MPACK_DEBUG) && defined(MPACK_STDIO) && !defined(MPACK_NO_PRINT)
+#if MPACK_DEBUG && MPACK_STDIO && !MPACK_NO_PRINT
 /*! Converts a chunk of messagepack to JSON and pretty-prints it to stdout. */
 void mpack_debug_print(const char* data, int len);
 #endif
@@ -477,7 +477,7 @@ void mpack_debug_print(const char* data, int len);
 
 
 
-#ifdef MPACK_INTERNAL
+#if MPACK_INTERNAL
 
 void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count);
 
@@ -586,7 +586,7 @@ MPACK_ALWAYS_INLINE double mpack_read_native_double(mpack_reader_t* reader) {
     return u.d;
 }
 
-#ifdef MPACK_READ_TRACKING
+#if MPACK_READ_TRACKING
 #define MPACK_READER_TRACK(reader, error) mpack_reader_flag_if_error((reader), (error))
 #else
 #define MPACK_READER_TRACK(reader, error) (MPACK_UNUSED(reader), mpack_ok)

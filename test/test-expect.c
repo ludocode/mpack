@@ -21,7 +21,7 @@
 
 #include "test-expect.h"
 
-#ifdef MPACK_EXPECT
+#if MPACK_EXPECT
 
 // tests the example on the messagepack homepage
 static void test_expect_example_read() {
