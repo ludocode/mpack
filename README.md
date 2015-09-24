@@ -89,7 +89,7 @@ Conceptually, MessagePack stores data similarly to JSON: they are both composed 
 
 - Binary data is not supported by JSON at all. Small binary blobs such as icons and thumbnails need to be Base64 encoded or passed out-of-band.
 
-The above issues greatly increase the complexity of the decoder. Full-featured JSON decoders are quite large, and minimal decoders tend to leave out such features as string unescaping and float parsing, instead leaving these up to the user or platform. This can lead to hard-to-find and/or platform-specific bugs. This also significantly decreases performance, making JSON unattractive for use in applications such as mobile games.
+The above issues greatly increase the complexity of the decoder. Full-featured JSON decoders are quite large, and minimal decoders tend to leave out such features as string unescaping and float parsing, instead leaving these up to the user or platform. This can lead to hard-to-find platform-specific and locale-specific bugs. This also significantly decreases performance, making JSON unattractive for use in applications such as mobile games.
 
 While the space inefficiencies of JSON can be partially mitigated through minification and compression, the performance inefficiencies cannot. More importantly, if you are minifying and compressing the data, then why use a human-readable format in the first place?
 

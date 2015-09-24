@@ -178,6 +178,9 @@
  *
  * This automatically detects -Os with GCC/Clang. Unfortunately there
  * doesn't seem to be a macro defined for /Os under MSVC.
+ *
+ * This feature is currently experimental and may be removed in a
+ * future release.
  */
 #ifndef MPACK_OPTIMIZE_FOR_SIZE
 #ifdef __OPTIMIZE_SIZE__

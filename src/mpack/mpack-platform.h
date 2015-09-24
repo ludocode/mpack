@@ -156,7 +156,7 @@ extern "C" {
  *   - functions declared inline only in builds optimized for speed (MPACK_INLINE_SPEED)
  *
  * MPack does not use static inline in header files; only one non-inline definition
- * of each function should exist in the final build. This reduces the binary size
+ * of each function should exist in the final build. This can reduce the binary size
  * in cases where the compiler cannot or chooses not to inline a function.
  * The addresses of functions should also compare equal across translation units
  * regardless of whether they are declared inline.
@@ -250,10 +250,10 @@ extern "C" {
  * In release mode, mpack_assert() is converted to an assurance to the compiler
  * that the expression cannot be false (via e.g. __assume() or __builtin_unreachable())
  * to improve optimization where supported. There is thus no point in "safely" handling
- * the case of this being false. Writing mpack_assert(0) rarely makes sense;
- * the compiler will throw away any code after it. If at any time an mpack_assert()
- * is not true, the behaviour is undefined. This also means the expression is
- * evaluated even in release.
+ * the case of this being false. Writing mpack_assert(0) rarely makes sense (except
+ * possibly as a default handler in a switch) since the compiler will throw away any
+ * code after it. If at any time an mpack_assert() is not true, the behaviour is
+ * undefined. This also means the expression is evaluated even in release.
  *
  * mpack_break() on the other hand is compiled to nothing in release. It is
  * used in situations where we want to highlight a programming error as early as

@@ -61,7 +61,8 @@ typedef struct mpack_writer_t mpack_writer_t;
 
 /**
  * The mpack writer's flush function to flush the buffer to the output stream.
- * It should flag an appropriate error on the writer if flushing fails.
+ * It should flag an appropriate error on the writer if flushing fails (usually
+ * mpack_error_io.)
  *
  * The specified context for callbacks is at writer->context.
  */
@@ -169,7 +170,8 @@ void mpack_writer_init_file(mpack_writer_t* writer, const char* filename);
  * @def mpack_writer_init_stack(writer, flush, context)
  * @hideinitializer
  *
- * Initializes an mpack writer using stack space.
+ * Initializes an mpack writer using stack space as a buffer. A flush function
+ * should be added to the writer to flush the buffer.
  */
 
 #define mpack_writer_init_stack_line_ex(line, writer) \
