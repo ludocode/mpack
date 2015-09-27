@@ -580,6 +580,7 @@ char* mpack_expect_cstr_alloc(mpack_reader_t* reader, size_t maxsize) {
 
     if (mpack_reader_error(reader)) {
         MPACK_FREE(str);
+        reader->error_fn(reader, mpack_reader_error(reader));
         return NULL;
     }
     str[length] = 0;

@@ -32,13 +32,6 @@ static void test_example_node() {
     // non-simple tests use paging unless malloc is unavailable.
     mpack_node_data_t pool[128];
     mpack_tree_init_pool(&tree, test, sizeof(test) - 1, pool, sizeof(pool) / sizeof(*pool));
-
-    #if MPACK_SETJMP
-    if (MPACK_TREE_SETJMP(&tree)) {
-        test_assert(0, "jumped! error: %s", mpack_error_to_string(mpack_tree_error(&tree)));
-        return;
-    }
-    #endif
     test_assert(mpack_tree_error(&tree) == mpack_ok);
 
     mpack_node_t map = mpack_tree_root(&tree);

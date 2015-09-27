@@ -30,6 +30,8 @@
 #include "test-node.h"
 #include "test-file.h"
 
+mpack_tag_t (*fn_mpack_tag_nil)(void) = &mpack_tag_nil;
+
 int passes;
 int tests;
 

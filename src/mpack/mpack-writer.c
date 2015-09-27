@@ -28,7 +28,7 @@
 #if MPACK_WRITE_TRACKING
 #define MPACK_WRITER_TRACK(writer, error) mpack_writer_flag_if_error(writer, error)
 
-static inline void mpack_writer_flag_if_error(mpack_writer_t* writer, mpack_error_t error) {
+MPACK_STATIC_INLINE_SPEED void mpack_writer_flag_if_error(mpack_writer_t* writer, mpack_error_t error) {
     if (error != mpack_ok)
         mpack_writer_flag_error(writer, error);
 }
@@ -36,7 +36,7 @@ static inline void mpack_writer_flag_if_error(mpack_writer_t* writer, mpack_erro
 #define MPACK_WRITER_TRACK(writer, error) MPACK_UNUSED(writer)
 #endif
 
-static inline void mpack_writer_track_element(mpack_writer_t* writer) {
+MPACK_STATIC_INLINE_SPEED void mpack_writer_track_element(mpack_writer_t* writer) {
     MPACK_WRITER_TRACK(writer, mpack_track_element(&writer->track, true));
 }
 
@@ -213,10 +213,8 @@ void mpack_writer_flag_error(mpack_writer_t* writer, mpack_error_t error) {
 
     if (writer->error == mpack_ok) {
         writer->error = error;
-        #if MPACK_SETJMP
-        if (writer->jump_env)
-            longjmp(*writer->jump_env, 1);
-        #endif
+        if (writer->error_fn)
+            writer->error_fn(writer, writer->error);
     }
 }
 
@@ -273,7 +271,7 @@ static void mpack_write_native_big(mpack_writer_t* writer, const char* p, size_t
     }
 }
 
-static inline void mpack_write_native(mpack_writer_t* writer, const char* p, size_t count) {
+MPACK_STATIC_INLINE_SPEED void mpack_write_native(mpack_writer_t* writer, const char* p, size_t count) {
     if (mpack_writer_error(writer) != mpack_ok)
         return;
     if (writer->size - writer->used < count) {
@@ -315,7 +313,7 @@ MPACK_ALWAYS_INLINE void mpack_store_native_u64_at(char* p, uint64_t val) {
     u[7] = (uint8_t)( val        & 0xFF);
 }
 
-static inline void mpack_write_native_u8(mpack_writer_t* writer, uint8_t val) {
+MPACK_STATIC_INLINE_SPEED void mpack_write_native_u8(mpack_writer_t* writer, uint8_t val) {
     if (writer->size - writer->used >= sizeof(val)) {
         mpack_store_native_u8_at(writer->buffer + writer->used, val);
         writer->used += sizeof(val);
@@ -326,7 +324,7 @@ static inline void mpack_write_native_u8(mpack_writer_t* writer, uint8_t val) {
     }
 }
 
-static inline void mpack_write_native_u16(mpack_writer_t* writer, uint16_t val) {
+MPACK_STATIC_INLINE_SPEED void mpack_write_native_u16(mpack_writer_t* writer, uint16_t val) {
     if (writer->size - writer->used >= sizeof(val)) {
         mpack_store_native_u16_at(writer->buffer + writer->used, val);
         writer->used += sizeof(val);
@@ -337,7 +335,7 @@ static inline void mpack_write_native_u16(mpack_writer_t* writer, uint16_t val) 
     }
 }
 
-static inline void mpack_write_native_u32(mpack_writer_t* writer, uint32_t val) {
+MPACK_STATIC_INLINE_SPEED void mpack_write_native_u32(mpack_writer_t* writer, uint32_t val) {
     if (writer->size - writer->used >= sizeof(val)) {
         mpack_store_native_u32_at(writer->buffer + writer->used, val);
         writer->used += sizeof(val);
@@ -348,7 +346,7 @@ static inline void mpack_write_native_u32(mpack_writer_t* writer, uint32_t val) 
     }
 }
 
-static inline void mpack_write_native_u64(mpack_writer_t* writer, uint64_t val) {
+MPACK_STATIC_INLINE_SPEED void mpack_write_native_u64(mpack_writer_t* writer, uint64_t val) {
     if (writer->size - writer->used >= sizeof(val)) {
         mpack_store_native_u64_at(writer->buffer + writer->used, val);
         writer->used += sizeof(val);
@@ -359,13 +357,13 @@ static inline void mpack_write_native_u64(mpack_writer_t* writer, uint64_t val) 
     }
 }
 
-static inline void mpack_write_native_i8  (mpack_writer_t* writer,  int8_t  val) {mpack_write_native_u8  (writer, (uint8_t )val);}
-static inline void mpack_write_native_i16 (mpack_writer_t* writer,  int16_t val) {mpack_write_native_u16 (writer, (uint16_t)val);}
-static inline void mpack_write_native_i32 (mpack_writer_t* writer,  int32_t val) {mpack_write_native_u32 (writer, (uint32_t)val);}
-static inline void mpack_write_native_i64 (mpack_writer_t* writer,  int64_t val) {mpack_write_native_u64 (writer, (uint64_t)val);}
+MPACK_STATIC_INLINE void mpack_write_native_i8  (mpack_writer_t* writer,  int8_t  val) {mpack_write_native_u8  (writer, (uint8_t )val);}
+MPACK_STATIC_INLINE void mpack_write_native_i16 (mpack_writer_t* writer,  int16_t val) {mpack_write_native_u16 (writer, (uint16_t)val);}
+MPACK_STATIC_INLINE void mpack_write_native_i32 (mpack_writer_t* writer,  int32_t val) {mpack_write_native_u32 (writer, (uint32_t)val);}
+MPACK_STATIC_INLINE void mpack_write_native_i64 (mpack_writer_t* writer,  int64_t val) {mpack_write_native_u64 (writer, (uint64_t)val);}
 
 
-static inline void mpack_write_native_float(mpack_writer_t* writer, float value) {
+MPACK_STATIC_INLINE_SPEED void mpack_write_native_float(mpack_writer_t* writer, float value) {
     union {
         float f;
         uint32_t i;
@@ -374,7 +372,7 @@ static inline void mpack_write_native_float(mpack_writer_t* writer, float value)
     mpack_write_native_u32(writer, u.i);
 }
 
-static inline void mpack_write_native_double(mpack_writer_t* writer, double value) {
+MPACK_STATIC_INLINE_SPEED void mpack_write_native_double(mpack_writer_t* writer, double value) {
     union {
         double d;
         uint64_t i;
@@ -397,12 +395,6 @@ mpack_error_t mpack_writer_destroy(mpack_writer_t* writer) {
         writer->teardown = NULL;
     }
 
-    #if MPACK_SETJMP
-    if (writer->jump_env)
-        MPACK_FREE(writer->jump_env);
-    writer->jump_env = NULL;
-    #endif
-
     return writer->error;
 }
 
@@ -412,12 +404,6 @@ void mpack_writer_destroy_cancel(mpack_writer_t* writer) {
     if (writer->teardown)
         writer->teardown(writer);
     writer->teardown = NULL;
-
-    #if MPACK_SETJMP
-    if (writer->jump_env)
-        MPACK_FREE(writer->jump_env);
-    writer->jump_env = NULL;
-    #endif
 }
 
 void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t value) {

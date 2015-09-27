@@ -19,7 +19,6 @@
 
     #define MPACK_STDLIB 1
     #define MPACK_STDIO 1
-    #define MPACK_SETJMP 1
     #define MPACK_MALLOC test_malloc
     #define MPACK_FREE test_free
 #endif
@@ -27,10 +26,10 @@
 // Tracking matches the default config, except the test suite
 // also supports MPACK_NO_TRACKING to disable it.
 #if defined(MPACK_MALLOC) && !defined(MPACK_NO_TRACKING)
-    #if MPACK_DEBUG && MPACK_READER
+    #if defined(MPACK_DEBUG) && MPACK_DEBUG && defined(MPACK_READER) && MPACK_READER
         #define MPACK_READ_TRACKING 1
     #endif
-    #if MPACK_WRITER
+    #if defined(MPACK_DEBUG) && MPACK_DEBUG && defined(MPACK_WRITER) && MPACK_WRITER
         #define MPACK_WRITE_TRACKING 1
     #endif
 #endif

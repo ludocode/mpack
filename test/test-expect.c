@@ -29,13 +29,6 @@ static void test_expect_example_read() {
     mpack_reader_t reader;
     mpack_reader_init_data(&reader, test, sizeof(test) - 1);
 
-    #if MPACK_SETJMP
-    if (MPACK_READER_SETJMP(&reader)) {
-        test_assert(0, "jumped! error: %s", mpack_error_to_string(mpack_reader_error(&reader)));
-        return;
-    }
-    #endif
-
     test_assert(2 == mpack_expect_map(&reader));
     mpack_expect_cstr_match(&reader, "compact");
     test_assert(true == mpack_expect_bool(&reader));

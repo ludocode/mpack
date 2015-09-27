@@ -48,7 +48,7 @@ typedef struct mpack_tree_parser_t {
     bool stack_allocated;
 } mpack_tree_parser_t;
 
-static inline uint8_t mpack_tree_u8(mpack_tree_parser_t* parser) {
+MPACK_STATIC_INLINE_SPEED uint8_t mpack_tree_u8(mpack_tree_parser_t* parser) {
     if (parser->possible_nodes_left < sizeof(uint8_t)) {
         mpack_tree_flag_error(parser->tree, mpack_error_io);
         return 0;
@@ -60,7 +60,7 @@ static inline uint8_t mpack_tree_u8(mpack_tree_parser_t* parser) {
     return val;
 }
 
-static inline uint16_t mpack_tree_u16(mpack_tree_parser_t* parser) {
+MPACK_STATIC_INLINE_SPEED uint16_t mpack_tree_u16(mpack_tree_parser_t* parser) {
     if (parser->possible_nodes_left < sizeof(uint16_t)) {
         mpack_tree_flag_error(parser->tree, mpack_error_io);
         return 0;
@@ -72,7 +72,7 @@ static inline uint16_t mpack_tree_u16(mpack_tree_parser_t* parser) {
     return val;
 }
 
-static inline uint32_t mpack_tree_u32(mpack_tree_parser_t* parser) {
+MPACK_STATIC_INLINE_SPEED uint32_t mpack_tree_u32(mpack_tree_parser_t* parser) {
     if (parser->possible_nodes_left < sizeof(uint32_t)) {
         mpack_tree_flag_error(parser->tree, mpack_error_io);
         return 0;
@@ -84,7 +84,7 @@ static inline uint32_t mpack_tree_u32(mpack_tree_parser_t* parser) {
     return val;
 }
 
-static inline uint64_t mpack_tree_u64(mpack_tree_parser_t* parser) {
+MPACK_STATIC_INLINE_SPEED uint64_t mpack_tree_u64(mpack_tree_parser_t* parser) {
     if (parser->possible_nodes_left < sizeof(uint64_t)) {
         mpack_tree_flag_error(parser->tree, mpack_error_io);
         return 0;
@@ -96,12 +96,12 @@ static inline uint64_t mpack_tree_u64(mpack_tree_parser_t* parser) {
     return val;
 }
 
-static inline int8_t  mpack_tree_i8 (mpack_tree_parser_t* parser) {return (int8_t) mpack_tree_u8(parser); }
-static inline int16_t mpack_tree_i16(mpack_tree_parser_t* parser) {return (int16_t)mpack_tree_u16(parser);}
-static inline int32_t mpack_tree_i32(mpack_tree_parser_t* parser) {return (int32_t)mpack_tree_u32(parser);}
-static inline int64_t mpack_tree_i64(mpack_tree_parser_t* parser) {return (int64_t)mpack_tree_u64(parser);}
+MPACK_STATIC_INLINE int8_t  mpack_tree_i8 (mpack_tree_parser_t* parser) {return (int8_t) mpack_tree_u8(parser); }
+MPACK_STATIC_INLINE int16_t mpack_tree_i16(mpack_tree_parser_t* parser) {return (int16_t)mpack_tree_u16(parser);}
+MPACK_STATIC_INLINE int32_t mpack_tree_i32(mpack_tree_parser_t* parser) {return (int32_t)mpack_tree_u32(parser);}
+MPACK_STATIC_INLINE int64_t mpack_tree_i64(mpack_tree_parser_t* parser) {return (int64_t)mpack_tree_u64(parser);}
 
-static inline float mpack_tree_float(mpack_tree_parser_t* parser) {
+MPACK_STATIC_INLINE_SPEED float mpack_tree_float(mpack_tree_parser_t* parser) {
     union {
         float f;
         uint32_t i;
@@ -110,7 +110,7 @@ static inline float mpack_tree_float(mpack_tree_parser_t* parser) {
     return u.f;
 }
 
-static inline double mpack_tree_double(mpack_tree_parser_t* parser) {
+MPACK_STATIC_INLINE_SPEED double mpack_tree_double(mpack_tree_parser_t* parser) {
     union {
         double d;
         uint64_t i;
@@ -821,12 +821,6 @@ mpack_error_t mpack_tree_destroy(mpack_tree_t* tree) {
         tree->teardown(tree);
     tree->teardown = NULL;
 
-    #if MPACK_SETJMP
-    if (tree->jump_env)
-        MPACK_FREE(tree->jump_env);
-    tree->jump_env = NULL;
-    #endif
-
     return tree->error;
 }
 
@@ -835,10 +829,8 @@ void mpack_tree_flag_error(mpack_tree_t* tree, mpack_error_t error) {
 
     if (tree->error == mpack_ok) {
         tree->error = error;
-        #if MPACK_SETJMP
-        if (tree->jump_env)
-            longjmp(*tree->jump_env, 1);
-        #endif
+        if (tree->error_fn)
+            tree->error_fn(tree, error);
     }
 
 }
@@ -853,7 +845,27 @@ void mpack_node_flag_error(mpack_node_t node, mpack_error_t error) {
     mpack_tree_flag_error(node.tree, error);
 }
 
-#if MPACK_DEBUG && MPACK_STDIO && MPACK_SETJMP && !MPACK_NO_PRINT
+mpack_tag_t mpack_node_tag(mpack_node_t node) {
+    mpack_tag_t tag;
+    mpack_memset(&tag, 0, sizeof(tag));
+    tag.type = node.data->type;
+    switch (node.data->type) {
+        case mpack_type_nil:                                            break;
+        case mpack_type_bool:    tag.v.b = node.data->value.b;          break;
+        case mpack_type_float:   tag.v.f = node.data->value.f;          break;
+        case mpack_type_double:  tag.v.d = node.data->value.d;          break;
+        case mpack_type_int:     tag.v.i = node.data->value.i;          break;
+        case mpack_type_uint:    tag.v.u = node.data->value.u;          break;
+        case mpack_type_str:     tag.v.l = node.data->value.data.l;     break;
+        case mpack_type_bin:     tag.v.l = node.data->value.data.l;     break;
+        case mpack_type_ext:     tag.v.l = node.data->value.data.l;     break;
+        case mpack_type_array:   tag.v.n = node.data->value.content.n;  break;
+        case mpack_type_map:     tag.v.n = node.data->value.content.n;  break;
+    }
+    return tag;
+}
+
+#if MPACK_DEBUG && MPACK_STDIO && !MPACK_NO_PRINT
 static void mpack_node_print_element(mpack_node_t node, size_t depth) {
     mpack_node_data_t* data = node.data;
     switch (data->type) {

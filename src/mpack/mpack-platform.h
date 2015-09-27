@@ -30,14 +30,83 @@
 #ifndef MPACK_PLATFORM_H
 #define MPACK_PLATFORM_H 1
 
-#if defined(WIN32) && MPACK_INTERNAL
-#define _CRT_SECURE_NO_WARNINGS 1
-#endif
 
-#include "mpack-config.h"
 
 /* For now, nothing in here should be seen by Doxygen. */
 /** @cond */
+
+
+
+#if defined(WIN32) && defined(MPACK_INTERNAL) && MPACK_INTERNAL
+#define _CRT_SECURE_NO_WARNINGS 1
+#endif
+
+
+
+#include "mpack-config.h"
+
+/*
+ * Now that the config is included, we define to 0 any of the configuration
+ * options and other switches that aren't defined. This supports -Wundef
+ * without us having to write "#if defined(X) && X" everywhere (and while
+ * allowing configs to be pre-defined to 0.)
+ */
+#ifndef MPACK_READER
+#define MPACK_READER 0
+#endif
+#ifndef MPACK_EXPECT
+#define MPACK_EXPECT 0
+#endif
+#ifndef MPACK_NODE
+#define MPACK_NODE 0
+#endif
+#ifndef MPACK_WRITER
+#define MPACK_WRITER 0
+#endif
+
+#ifndef MPACK_STDLIB
+#define MPACK_STDLIB 0
+#endif
+#ifndef MPACK_STDIO
+#define MPACK_STDIO 0
+#endif
+
+#ifndef MPACK_DEBUG
+#define MPACK_DEBUG 0
+#endif
+#ifndef MPACK_CUSTOM_ASSERT
+#define MPACK_CUSTOM_ASSERT 0
+#endif
+
+#ifndef MPACK_READ_TRACKING
+#define MPACK_READ_TRACKING 0
+#endif
+#ifndef MPACK_WRITE_TRACKING
+#define MPACK_WRITE_TRACKING 0
+#endif
+#ifndef MPACK_NO_TRACKING
+#define MPACK_NO_TRACKING 0
+#endif
+#ifndef MPACK_OPTIMIZE_FOR_SIZE
+#define MPACK_OPTIMIZE_FOR_SIZE 0
+#endif
+
+#ifndef MPACK_EMIT_INLINE_DEFS
+#define MPACK_EMIT_INLINE_DEFS 0
+#endif
+#ifndef MPACK_AMALGAMATED
+#define MPACK_AMALGAMATED 0
+#endif
+#ifndef MPACK_INTERNAL
+#define MPACK_INTERNAL 0
+#endif
+#ifndef MPACK_NO_PRINT
+#define MPACK_NO_PRINT 0
+#endif
+
+
+
+/* System headers (based on configuration) */
 
 #ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS 1
@@ -62,9 +131,6 @@
 #if MPACK_STDIO
 #include <stdio.h>
 #endif
-#if MPACK_SETJMP
-#include <setjmp.h>
-#endif
 
 #ifdef __cplusplus
 extern "C" {
@@ -72,34 +138,106 @@ extern "C" {
 
 
 
-#define MPACK_UNUSED(var) ((void)(var))
+/* Miscellaneous helper macros */
 
-#if MPACK_AMALGAMATED
-#define MPACK_INTERNAL_STATIC static
-#else
-#define MPACK_INTERNAL_STATIC
-#endif
+#define MPACK_UNUSED(var) ((void)(var))
 
 #define MPACK_STRINGIFY_IMPL(arg) #arg
 #define MPACK_STRINGIFY(arg) MPACK_STRINGIFY_IMPL(arg)
 
 
 
+/*
+ * Definition of inline macros.
+ *
+ * MPack supports several different modes for inline functions:
+ *   - functions declared with a platform-specific always-inline (MPACK_ALWAYS_INLINE)
+ *   - functions declared inline regardless of optimization options (MPACK_INLINE)
+ *   - functions declared inline only in builds optimized for speed (MPACK_INLINE_SPEED)
+ *
+ * MPack does not use static inline in header files; only one non-inline definition
+ * of each function should exist in the final build. This can reduce the binary size
+ * in cases where the compiler cannot or chooses not to inline a function.
+ * The addresses of functions should also compare equal across translation units
+ * regardless of whether they are declared inline.
+ *
+ * The above requirements mean that the declaration and definition of non-trivial
+ * inline functions must be separated so that the definitions will only
+ * appear when necessary. In addition, three different linkage models need
+ * to be supported:
+ *
+ *  - The C99 model, where "inline" does not emit a definition and "extern inline" does
+ *  - The GNU model, where "inline" emits a definition and "extern inline" does not
+ *  - The C++ model, where "inline" emits a definition with weak linkage
+ *
+ * The macros below wrap up everything above. All inline functions defined in header
+ * files have a single non-inline definition emitted in the compilation of
+ * mpack-platform.c.
+ *
+ * Inline functions in source files are defined static, so MPACK_STATIC_INLINE
+ * is used for small functions and MPACK_STATIC_INLINE_SPEED is used for
+ * larger optionally inline functions.
+ */
+
+#if defined(__cplusplus)
+    // C++ rules
+    // The linker will need weak symbol support to link C++ object files,
+    // so we don't need to worry about emitting a single definition.
+    #define MPACK_INLINE inline
+#elif defined(__GNUC__) && (defined(__GNUC_GNU_INLINE__) || \
+        !defined(__GNUC_STDC_INLINE__) && !defined(__GNUC_GNU_INLINE__))
+    // GNU rules
+    #if MPACK_EMIT_INLINE_DEFS
+        #define MPACK_INLINE inline
+    #else
+        #define MPACK_INLINE extern inline
+    #endif
+#else
+    // C99 rules
+    #if MPACK_EMIT_INLINE_DEFS
+        #define MPACK_INLINE extern inline
+    #else
+        #define MPACK_INLINE inline
+    #endif
+#endif
+
+#define MPACK_STATIC_INLINE static inline
+
+#if MPACK_OPTIMIZE_FOR_SIZE
+    #define MPACK_STATIC_INLINE_SPEED static
+    #define MPACK_INLINE_SPEED /* nothing */
+    #if MPACK_EMIT_INLINE_DEFS
+        #define MPACK_DEFINE_INLINE_SPEED 1
+    #else
+        #define MPACK_DEFINE_INLINE_SPEED 0
+    #endif
+#else
+    #define MPACK_STATIC_INLINE_SPEED static inline
+    #define MPACK_INLINE_SPEED MPACK_INLINE
+    #define MPACK_DEFINE_INLINE_SPEED 1
+#endif
+
+#ifdef MPACK_OPTIMIZE_FOR_SPEED
+#error "You should define MPACK_OPTIMIZE_FOR_SIZE, not MPACK_OPTIMIZE_FOR_SPEED."
+#endif
+
+
+
 /* Some compiler-specific keywords and builtins */
+
 #if defined(__GNUC__) || defined(__clang__)
     #define MPACK_UNREACHABLE __builtin_unreachable()
     #define MPACK_NORETURN(fn) fn __attribute__((noreturn))
-    #define MPACK_ALWAYS_INLINE __attribute__((always_inline)) static inline
+    #define MPACK_ALWAYS_INLINE __attribute__((always_inline)) MPACK_INLINE
 #elif defined(_MSC_VER)
     #define MPACK_UNREACHABLE __assume(0)
     #define MPACK_NORETURN(fn) __declspec(noreturn) fn
-    #define MPACK_ALWAYS_INLINE __forceinline static
+    #define MPACK_ALWAYS_INLINE __forceinline
 #else
     #define MPACK_UNREACHABLE ((void)0)
     #define MPACK_NORETURN(fn) fn
-    #define MPACK_ALWAYS_INLINE static inline
+    #define MPACK_ALWAYS_INLINE MPACK_INLINE
 #endif
-
 
 
 
@@ -112,10 +250,10 @@ extern "C" {
  * In release mode, mpack_assert() is converted to an assurance to the compiler
  * that the expression cannot be false (via e.g. __assume() or __builtin_unreachable())
  * to improve optimization where supported. There is thus no point in "safely" handling
- * the case of this being false. Writing mpack_assert(0) rarely makes sense;
- * the compiler will throw away any code after it. If at any time an mpack_assert()
- * is not true, the behaviour is undefined. This also means the expression is
- * evaluated even in release.
+ * the case of this being false. Writing mpack_assert(0) rarely makes sense (except
+ * possibly as a default handler in a switch) since the compiler will throw away any
+ * code after it. If at any time an mpack_assert() is not true, the behaviour is
+ * undefined. This also means the expression is evaluated even in release.
  *
  * mpack_break() on the other hand is compiled to nothing in release. It is
  * used in situations where we want to highlight a programming error as early as
@@ -169,6 +307,8 @@ extern "C" {
 
 
 
+
+/* Wrap some needed libc functions */
 #if MPACK_STDLIB
 #define mpack_memset memset
 #define mpack_memcpy memcpy
@@ -201,10 +341,10 @@ size_t mpack_strlen(const char *s);
 #if !defined(MPACK_MALLOC) && defined(MPACK_FREE)
     #error "MPACK_FREE requires MPACK_MALLOC."
 #endif
-#if MPACK_READ_TRACKING && (!defined(MPACK_READER) || !MPACK_READER)
+#if MPACK_READ_TRACKING && !defined(MPACK_READER)
     #error "MPACK_READ_TRACKING requires MPACK_READER."
 #endif
-#if MPACK_WRITE_TRACKING && (!defined(MPACK_WRITER) || !MPACK_WRITER)
+#if MPACK_WRITE_TRACKING && !defined(MPACK_WRITER)
     #error "MPACK_WRITE_TRACKING requires MPACK_WRITER."
 #endif
 #ifndef MPACK_MALLOC
@@ -224,7 +364,7 @@ size_t mpack_strlen(const char *s);
 /* Implement realloc if unavailable */
 #ifdef MPACK_MALLOC
     #ifdef MPACK_REALLOC
-    static inline void* mpack_realloc(void* old_ptr, size_t used_size, size_t new_size) {
+    MPACK_ALWAYS_INLINE void* mpack_realloc(void* old_ptr, size_t used_size, size_t new_size) {
         MPACK_UNUSED(used_size);
         return MPACK_REALLOC(old_ptr, new_size);
     }

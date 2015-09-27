@@ -230,19 +230,19 @@ uint32_t mpack_expect_u32_range(mpack_reader_t* reader, uint32_t min_value, uint
  */
 uint64_t mpack_expect_u64_range(mpack_reader_t* reader, uint64_t min_value, uint64_t max_value);
 
-static inline uint8_t mpack_expect_u8_max(mpack_reader_t* reader, uint8_t max_value) {
+MPACK_INLINE uint8_t mpack_expect_u8_max(mpack_reader_t* reader, uint8_t max_value) {
     return mpack_expect_u8_range(reader, 0, max_value);
 }
 
-static inline uint16_t mpack_expect_u16_max(mpack_reader_t* reader, uint16_t max_value) {
+MPACK_INLINE uint16_t mpack_expect_u16_max(mpack_reader_t* reader, uint16_t max_value) {
     return mpack_expect_u16_range(reader, 0, max_value);
 }
 
-static inline uint32_t mpack_expect_u32_max(mpack_reader_t* reader, uint32_t max_value) {
+MPACK_INLINE uint32_t mpack_expect_u32_max(mpack_reader_t* reader, uint32_t max_value) {
     return mpack_expect_u32_range(reader, 0, max_value);
 }
 
-static inline uint64_t mpack_expect_u64_max(mpack_reader_t* reader, uint64_t max_value) {
+MPACK_INLINE uint64_t mpack_expect_u64_max(mpack_reader_t* reader, uint64_t max_value) {
     return mpack_expect_u64_range(reader, 0, max_value);
 }
 
@@ -441,7 +441,7 @@ uint32_t mpack_expect_array(mpack_reader_t* reader);
  */
 uint32_t mpack_expect_array_range(mpack_reader_t* reader, uint32_t min_count, uint32_t max_count);
 
-static inline uint32_t mpack_expect_array_max(mpack_reader_t* reader, uint32_t max_count) {
+MPACK_INLINE uint32_t mpack_expect_array_max(mpack_reader_t* reader, uint32_t max_count) {
     return mpack_expect_array_range(reader, 0, max_count);
 }
 
@@ -517,10 +517,14 @@ size_t mpack_expect_str_buf(mpack_reader_t* reader, char* buf, size_t bufsize);
  * mpack_error_type is raised if the value is not a string or if its
  * length does not match.
  */
-static inline void mpack_expect_str_max(mpack_reader_t* reader, uint32_t maxsize) {
+MPACK_INLINE_SPEED void mpack_expect_str_max(mpack_reader_t* reader, uint32_t maxsize);
+
+#if MPACK_DEFINE_INLINE_SPEED
+MPACK_INLINE_SPEED void mpack_expect_str_max(mpack_reader_t* reader, uint32_t maxsize) {
     if (mpack_expect_str(reader) > maxsize)
         mpack_reader_flag_error(reader, mpack_error_type);
 }
+#endif
 
 /**
  * Reads the start of a string, raising an error if its length is not
@@ -533,10 +537,14 @@ static inline void mpack_expect_str_max(mpack_reader_t* reader, uint32_t maxsize
  * mpack_error_type is raised if the value is not a string or if its
  * length does not match.
  */
-static inline void mpack_expect_str_length(mpack_reader_t* reader, uint32_t count) {
+MPACK_INLINE_SPEED void mpack_expect_str_length(mpack_reader_t* reader, uint32_t count);
+
+#if MPACK_DEFINE_INLINE_SPEED
+MPACK_INLINE_SPEED void mpack_expect_str_length(mpack_reader_t* reader, uint32_t count) {
     if (mpack_expect_str(reader) != count)
         mpack_reader_flag_error(reader, mpack_error_type);
 }
+#endif
 
 
 /**
@@ -624,10 +632,14 @@ uint32_t mpack_expect_bin(mpack_reader_t* reader);
  * mpack_error_type is raised if the value is not a binary blob or if its
  * length does not match.
  */
-static inline void mpack_expect_bin_max(mpack_reader_t* reader, uint32_t maxsize) {
+MPACK_INLINE_SPEED void mpack_expect_bin_max(mpack_reader_t* reader, uint32_t maxsize);
+
+#if MPACK_DEFINE_INLINE_SPEED
+MPACK_INLINE_SPEED void mpack_expect_bin_max(mpack_reader_t* reader, uint32_t maxsize) {
     if (mpack_expect_str(reader) > maxsize)
         mpack_reader_flag_error(reader, mpack_error_type);
 }
+#endif
 
 /**
  * Reads the start of a binary blob, raising an error if its length is not
@@ -640,10 +652,14 @@ static inline void mpack_expect_bin_max(mpack_reader_t* reader, uint32_t maxsize
  * mpack_error_type is raised if the value is not a binary blob or if its
  * length does not match.
  */
-static inline void mpack_expect_bin_size(mpack_reader_t* reader, uint32_t count) {
+MPACK_INLINE_SPEED void mpack_expect_bin_size(mpack_reader_t* reader, uint32_t count);
+
+#if MPACK_DEFINE_INLINE_SPEED
+MPACK_INLINE_SPEED void mpack_expect_bin_size(mpack_reader_t* reader, uint32_t count) {
     if (mpack_expect_str(reader) != count)
         mpack_reader_flag_error(reader, mpack_error_type);
 }
+#endif
 
 /**
  * Reads a binary blob into the given buffer, returning its size in bytes.

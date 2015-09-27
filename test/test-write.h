@@ -28,7 +28,7 @@
 extern "C" {
 #endif
 
-#if MPACK_WRITER
+#ifdef MPACK_WRITER
 
 // these setup and destroy test writers and check them for errors.
 // they are generally macros so that the asserts are on the line of the test.

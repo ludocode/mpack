@@ -19,9 +19,14 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+// We define MPACK_EMIT_INLINE_DEFS and include mpack.h to emit
+// standalone definitions of all (non-static) inline functions in MPack.
+
 #define MPACK_INTERNAL 1
+#define MPACK_EMIT_INLINE_DEFS 1
 
 #include "mpack-platform.h"
+#include "mpack.h"
 
 #if MPACK_DEBUG && MPACK_STDIO
 #include <stdarg.h>
@@ -161,7 +166,9 @@ size_t mpack_strlen(const char *s) {
 
 #if defined(MPACK_MALLOC) && !defined(MPACK_REALLOC)
 void* mpack_realloc(void* old_ptr, size_t used_size, size_t new_size) {
-    void* new_ptr = malloc(new_size);
+    if (new_size == 0)
+        return NULL;
+    void* new_ptr = MPACK_MALLOC(new_size);
     if (new_ptr == NULL)
         return NULL;
     mpack_memcpy(new_ptr, old_ptr, used_size);

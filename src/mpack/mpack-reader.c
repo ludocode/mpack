@@ -30,7 +30,7 @@ void mpack_reader_init(mpack_reader_t* reader, char* buffer, size_t size, size_t
     reader->buffer = buffer;
     reader->size = size;
     reader->left = count;
-    MPACK_READER_TRACK(reader, mpack_track_init(&reader->track));
+    MPACK_UNUSED(MPACK_READER_TRACK(reader, mpack_track_init(&reader->track)));
 }
 
 void mpack_reader_init_error(mpack_reader_t* reader, mpack_error_t error) {
@@ -52,7 +52,7 @@ void mpack_reader_init_data(mpack_reader_t* reader, const char* data, size_t cou
     reader->buffer = (char*)data;
     #endif
 
-    MPACK_READER_TRACK(reader, mpack_track_init(&reader->track));
+    MPACK_UNUSED(MPACK_READER_TRACK(reader, mpack_track_init(&reader->track)));
 }
 
 #if MPACK_STDIO
@@ -102,17 +102,11 @@ void mpack_reader_init_file(mpack_reader_t* reader, const char* filename) {
 
 mpack_error_t mpack_reader_destroy_impl(mpack_reader_t* reader, bool cancel) {
     MPACK_UNUSED(cancel);
-    MPACK_READER_TRACK(reader, mpack_track_destroy(&reader->track, cancel));
+    MPACK_UNUSED(MPACK_READER_TRACK(reader, mpack_track_destroy(&reader->track, cancel)));
 
     if (reader->teardown)
         reader->teardown(reader);
     reader->teardown = NULL;
-
-    #if MPACK_SETJMP
-    if (reader->jump_env)
-        MPACK_FREE(reader->jump_env);
-    reader->jump_env = NULL;
-    #endif
 
     return reader->error;
 }
@@ -126,7 +120,7 @@ mpack_error_t mpack_reader_destroy(mpack_reader_t* reader) {
 }
 
 size_t mpack_reader_remaining(mpack_reader_t* reader, const char** data) {
-    MPACK_READER_TRACK(reader, mpack_track_check_empty(&reader->track));
+    MPACK_UNUSED(MPACK_READER_TRACK(reader, mpack_track_check_empty(&reader->track)));
     if (data)
         *data = reader->buffer + reader->pos;
     return reader->left;
@@ -137,16 +131,14 @@ void mpack_reader_flag_error(mpack_reader_t* reader, mpack_error_t error) {
 
     if (reader->error == mpack_ok) {
         reader->error = error;
-        #if MPACK_SETJMP
-        if (reader->jump_env)
-            longjmp(*reader->jump_env, 1);
-        #endif
+        if (reader->error_fn)
+            reader->error_fn(reader, error);
     }
 }
 
 // A helper to call the reader fill function. This makes sure it's
 // implemented and guards against overflow in case it returns -1.
-static inline size_t mpack_fill(mpack_reader_t* reader, char* p, size_t count) {
+MPACK_STATIC_INLINE_SPEED size_t mpack_fill(mpack_reader_t* reader, char* p, size_t count) {
     if (!reader->fill)
         return 0;
     size_t ret = reader->fill(reader, p, count);
@@ -298,15 +290,14 @@ const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count) {
 }
 
 mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
-    mpack_tag_t var;
-    mpack_memset(&var, 0, sizeof(var));
-    var.type = mpack_type_nil;
+    mpack_tag_t var = mpack_tag_nil();
 
     // get the type
     uint8_t type = mpack_read_native_u8(reader);
     if (mpack_reader_error(reader))
-        return var;
-    mpack_reader_track_element(reader);
+        return mpack_tag_nil();
+    if (mpack_reader_track_element(reader) != mpack_ok)
+        return mpack_tag_nil();
 
     // unfortunately, by far the fastest way to parse a tag is to switch
     // on the first byte, and to explicitly list every possible byte. so for
@@ -349,7 +340,8 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
         case 0x88: case 0x89: case 0x8a: case 0x8b: case 0x8c: case 0x8d: case 0x8e: case 0x8f:
             var.type = mpack_type_map;
             var.v.n = type & ~0xf0;
-            MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_map, var.v.n));
+            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_map, var.v.n)) != mpack_ok)
+                return mpack_tag_nil();
             return var;
 
         // fixarray
@@ -357,7 +349,8 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
         case 0x98: case 0x99: case 0x9a: case 0x9b: case 0x9c: case 0x9d: case 0x9e: case 0x9f:
             var.type = mpack_type_array;
             var.v.n = type & ~0xf0;
-            MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_array, var.v.n));
+            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_array, var.v.n)) != mpack_ok)
+                return mpack_tag_nil();
             return var;
 
         // fixstr
@@ -367,13 +360,13 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
         case 0xb8: case 0xb9: case 0xba: case 0xbb: case 0xbc: case 0xbd: case 0xbe: case 0xbf:
             var.type = mpack_type_str;
             var.v.l = type & ~0xe0;
-            MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_str, var.v.l));
+            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_str, var.v.l)) != mpack_ok)
+                return mpack_tag_nil();
             return var;
 
         // nil
         case 0xc0:
-            var.type = mpack_type_nil;
-            return var;
+            return mpack_tag_nil();
 
         // bool
         case 0xc2: case 0xc3:
@@ -385,21 +378,24 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
         case 0xc4:
             var.type = mpack_type_bin;
             var.v.l = mpack_read_native_u8(reader);
-            MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_bin, var.v.l));
+            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_bin, var.v.l)) != mpack_ok)
+                return mpack_tag_nil();
             return var;
 
         // bin16
         case 0xc5:
             var.type = mpack_type_bin;
             var.v.l = mpack_read_native_u16(reader);
-            MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_bin, var.v.l));
+            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_bin, var.v.l)) != mpack_ok)
+                return mpack_tag_nil();
             return var;
 
         // bin32
         case 0xc6:
             var.type = mpack_type_bin;
             var.v.l = mpack_read_native_u32(reader);
-            MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_bin, var.v.l));
+            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_bin, var.v.l)) != mpack_ok)
+                return mpack_tag_nil();
             return var;
 
         // ext8
@@ -407,7 +403,8 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
             var.type = mpack_type_ext;
             var.v.l = mpack_read_native_u8(reader);
             var.exttype = mpack_read_native_i8(reader);
-            MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_ext, var.v.l));
+            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_ext, var.v.l)) != mpack_ok)
+                return mpack_tag_nil();
             return var;
 
         // ext16
@@ -415,7 +412,8 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
             var.type = mpack_type_ext;
             var.v.l = mpack_read_native_u16(reader);
             var.exttype = mpack_read_native_i8(reader);
-            MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_ext, var.v.l));
+            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_ext, var.v.l)) != mpack_ok)
+                return mpack_tag_nil();
             return var;
 
         // ext32
@@ -423,7 +421,8 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
             var.type = mpack_type_ext;
             var.v.l = mpack_read_native_u32(reader);
             var.exttype = mpack_read_native_i8(reader);
-            MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_ext, var.v.l));
+            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_ext, var.v.l)) != mpack_ok)
+                return mpack_tag_nil();
             return var;
 
         // float
@@ -491,7 +490,8 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
             var.type = mpack_type_ext;
             var.v.l = 1;
             var.exttype = mpack_read_native_i8(reader);
-            MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_ext, var.v.l));
+            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_ext, var.v.l)) != mpack_ok)
+                return mpack_tag_nil();
             return var;
 
         // fixext2
@@ -499,7 +499,8 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
             var.type = mpack_type_ext;
             var.v.l = 2;
             var.exttype = mpack_read_native_i8(reader);
-            MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_ext, var.v.l));
+            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_ext, var.v.l)) != mpack_ok)
+                return mpack_tag_nil();
             return var;
 
         // fixext4
@@ -507,7 +508,8 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
             var.type = mpack_type_ext;
             var.v.l = 4;
             var.exttype = mpack_read_native_i8(reader);
-            MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_ext, var.v.l));
+            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_ext, var.v.l)) != mpack_ok)
+                return mpack_tag_nil();
             return var;
 
         // fixext8
@@ -515,7 +517,8 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
             var.type = mpack_type_ext;
             var.v.l = 8;
             var.exttype = mpack_read_native_i8(reader);
-            MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_ext, var.v.l));
+            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_ext, var.v.l)) != mpack_ok)
+                return mpack_tag_nil();
             return var;
 
         // fixext16
@@ -523,56 +526,64 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
             var.type = mpack_type_ext;
             var.v.l = 16;
             var.exttype = mpack_read_native_i8(reader);
-            MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_ext, var.v.l));
+            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_ext, var.v.l)) != mpack_ok)
+                return mpack_tag_nil();
             return var;
 
         // str8
         case 0xd9:
             var.type = mpack_type_str;
             var.v.l = mpack_read_native_u8(reader);
-            MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_str, var.v.l));
+            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_str, var.v.l)) != mpack_ok)
+                return mpack_tag_nil();
             return var;
 
         // str16
         case 0xda:
             var.type = mpack_type_str;
             var.v.l = mpack_read_native_u16(reader);
-            MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_str, var.v.l));
+            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_str, var.v.l)) != mpack_ok)
+                return mpack_tag_nil();
             return var;
 
         // str32
         case 0xdb:
             var.type = mpack_type_str;
             var.v.l = mpack_read_native_u32(reader);
-            MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_str, var.v.l));
+            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_str, var.v.l)) != mpack_ok)
+                return mpack_tag_nil();
             return var;
 
         // array16
         case 0xdc:
             var.type = mpack_type_array;
             var.v.n = mpack_read_native_u16(reader);
-            MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_array, var.v.n));
+            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_array, var.v.n)) != mpack_ok)
+                return mpack_tag_nil();
             return var;
 
         // array32
         case 0xdd:
             var.type = mpack_type_array;
             var.v.n = mpack_read_native_u32(reader);
-            MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_array, var.v.n));
+            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_array, var.v.n)) != mpack_ok)
+                return mpack_tag_nil();
             return var;
 
         // map16
         case 0xde:
             var.type = mpack_type_map;
             var.v.n = mpack_read_native_u16(reader);
-            MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_map, var.v.n));
+            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_map, var.v.n)) != mpack_ok)
+                return mpack_tag_nil();
             return var;
 
         // map32
         case 0xdf:
             var.type = mpack_type_map;
             var.v.n = mpack_read_native_u32(reader);
-            MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_map, var.v.n));
+            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_map, var.v.n)) != mpack_ok)
+                return mpack_tag_nil();
             return var;
 
         // reserved
@@ -582,7 +593,7 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
 
     // unrecognized type
     mpack_reader_flag_error(reader, mpack_error_invalid);
-    return var;
+    return mpack_tag_nil();
 }
 
 void mpack_discard(mpack_reader_t* reader) {
@@ -626,33 +637,35 @@ void mpack_discard(mpack_reader_t* reader) {
 
 #if MPACK_READ_TRACKING
 void mpack_done_array(mpack_reader_t* reader) {
-    MPACK_READER_TRACK(reader, mpack_track_pop(&reader->track, mpack_type_array));
+    MPACK_UNUSED(MPACK_READER_TRACK(reader, mpack_track_pop(&reader->track, mpack_type_array)));
 }
 
 void mpack_done_map(mpack_reader_t* reader) {
-    MPACK_READER_TRACK(reader, mpack_track_pop(&reader->track, mpack_type_map));
+    MPACK_UNUSED(MPACK_READER_TRACK(reader, mpack_track_pop(&reader->track, mpack_type_map)));
 }
 
 void mpack_done_str(mpack_reader_t* reader) {
-    MPACK_READER_TRACK(reader, mpack_track_pop(&reader->track, mpack_type_str));
+    MPACK_UNUSED(MPACK_READER_TRACK(reader, mpack_track_pop(&reader->track, mpack_type_str)));
 }
 
 void mpack_done_bin(mpack_reader_t* reader) {
-    MPACK_READER_TRACK(reader, mpack_track_pop(&reader->track, mpack_type_bin));
+    MPACK_UNUSED(MPACK_READER_TRACK(reader, mpack_track_pop(&reader->track, mpack_type_bin)));
 }
 
 void mpack_done_ext(mpack_reader_t* reader) {
-    MPACK_READER_TRACK(reader, mpack_track_pop(&reader->track, mpack_type_ext));
+    MPACK_UNUSED(MPACK_READER_TRACK(reader, mpack_track_pop(&reader->track, mpack_type_ext)));
 }
 
 void mpack_done_type(mpack_reader_t* reader, mpack_type_t type) {
-    MPACK_READER_TRACK(reader, mpack_track_pop(&reader->track, type));
+    MPACK_UNUSED(MPACK_READER_TRACK(reader, mpack_track_pop(&reader->track, type)));
 }
 #endif
 
-#if MPACK_DEBUG && MPACK_STDIO && MPACK_SETJMP && !MPACK_NO_PRINT
+#if MPACK_DEBUG && MPACK_STDIO && !MPACK_NO_PRINT
 static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
     mpack_tag_t val = mpack_read_tag(reader);
+    if (mpack_reader_error(reader) != mpack_ok)
+        return;
     switch (val.type) {
 
         case mpack_type_nil:
@@ -680,6 +693,8 @@ static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
             // skip data
             for (size_t i = 0; i < val.v.l; ++i)
                 mpack_read_native_u8(reader);
+            if (mpack_reader_error(reader) != mpack_ok)
+                return;
             printf("<binary data>");
             mpack_done_bin(reader);
             break;
@@ -688,6 +703,8 @@ static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
             // skip data
             for (size_t i = 0; i < val.v.l; ++i)
                 mpack_read_native_u8(reader);
+            if (mpack_reader_error(reader) != mpack_ok)
+                return;
             printf("<ext data of type %i>", val.exttype);
             mpack_done_ext(reader);
             break;
@@ -697,6 +714,8 @@ static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
             for (size_t i = 0; i < val.v.l; ++i) {
                 char c;
                 mpack_read_bytes(reader, &c, 1);
+                if (mpack_reader_error(reader) != mpack_ok)
+                    return;
                 switch (c) {
                     case '\n': printf("\\n"); break;
                     case '\\': printf("\\\\"); break;
@@ -711,9 +730,13 @@ static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
         case mpack_type_array:
             printf("[\n");
             for (size_t i = 0; i < val.v.n; ++i) {
+                if (mpack_reader_error(reader) != mpack_ok)
+                    return;
                 for (size_t j = 0; j < depth + 1; ++j)
                     printf("    ");
                 mpack_debug_print_element(reader, depth + 1);
+                if (mpack_reader_error(reader) != mpack_ok)
+                    return;
                 if (i != val.v.n - 1)
                     putchar(',');
                 putchar('\n');
@@ -730,8 +753,12 @@ static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
                 for (size_t j = 0; j < depth + 1; ++j)
                     printf("    ");
                 mpack_debug_print_element(reader, depth + 1);
+                if (mpack_reader_error(reader) != mpack_ok)
+                    return;
                 printf(": ");
                 mpack_debug_print_element(reader, depth + 1);
+                if (mpack_reader_error(reader) != mpack_ok)
+                    return;
                 if (i != val.v.n - 1)
                     putchar(',');
                 putchar('\n');
@@ -747,10 +774,6 @@ static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
 void mpack_debug_print(const char* data, int len) {
     mpack_reader_t reader;
     mpack_reader_init_data(&reader, data, len);
-    if (MPACK_READER_SETJMP(&reader)) {
-        printf("<mpack parsing error %s>\n", mpack_error_to_string(mpack_reader_error(&reader)));
-        return;
-    }
 
     int depth = 2;
     for (int i = 0; i < depth; ++i)
@@ -758,7 +781,9 @@ void mpack_debug_print(const char* data, int len) {
     mpack_debug_print_element(&reader, depth);
     putchar('\n');
 
-    if (mpack_reader_remaining(&reader, NULL) > 0)
+    if (mpack_reader_error(&reader) != mpack_ok)
+        printf("<mpack parsing error %s>\n", mpack_error_to_string(mpack_reader_error(&reader)));
+    else if (mpack_reader_remaining(&reader, NULL) > 0)
         printf("<%i extra bytes at end of mpack>\n", (int)mpack_reader_remaining(&reader, NULL));
 }
 #endif
