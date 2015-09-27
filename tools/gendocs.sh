@@ -1,6 +1,6 @@
 #!/bin/bash
 
-[[ -z $(git status --porcelain) ]] || { git status --porcelain; echo "Cannot generate docs, tree is not clean!" ; exit 1; }
+[[ -z $(git status --porcelain) ]] || { git status --porcelain; echo "Tree is not clean!" ; exit 1; }
 
 # Insert version number into Doxyfile
 MAJOR=`grep '^#define MPACK_VERSION_MAJOR' src/mpack/mpack-common.h|sed 's/.* \([0-9][0-9]*\) .*/\1/'`

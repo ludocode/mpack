@@ -22,8 +22,6 @@ env.Append(LINKFLAGS = [
 
 if 'CC' not in env or "clang" not in env['CC']:
     env.Append(CPPFLAGS = ["-Wno-float-conversion"]) # unsupported in clang 3.4
-    env.Append(CPPFLAGS = ["-fprofile-arcs", "-ftest-coverage"]) # only works properly with gcc
-    env.Append(LINKFLAGS = ["-fprofile-arcs", "-ftest-coverage"])
 
 
 # Optional flags used in various builds
@@ -45,6 +43,10 @@ debugflags = ["-DDEBUG", "-O0"]
 releaseflags = ["-Os"] # If you change this, also change the MPACK_OPTIMIZE_FOR_SIZE below to test the opposite
 cflags = ["-std=c99", "-Wc++-compat"]
 
+gcovflags = []
+if ARGUMENTS.get('gcov'):
+    gcovflags = ["-fprofile-arcs", "-ftest-coverage"]
+
 
 # Functions to add a variant build. One variant build will build and run the
 # entire library and test suite in a given configuration.
@@ -61,11 +63,10 @@ def AddBuilds(variant_dir, cppflags, linkflags):
     AddBuild("release-" + variant_dir, releaseflags + cppflags, releaseflags + linkflags)
 
 
-# The default build, everything in debug. Run "scons dev=1" during
-# development to build only this. You would also use this for static
-# analysis, e.g. "scan-build scons dev=1".
+# The default build, everything in debug. This is the build used
+# for code coverage measurement and static analysis.
 
-AddBuild("debug", allfeatures + allconfigs + debugflags + cflags, [])
+AddBuild("debug", allfeatures + allconfigs + debugflags + cflags + gcovflags, gcovflags)
 
 
 # Otherwise run all builds. Use a parallel build, e.g. "scons -j12" to
