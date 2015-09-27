@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/ludocode/mpack.svg?branch=master)](https://travis-ci.org/ludocode/mpack/branches)
-
 ## Introduction
 
 MPack is a C implementation of an encoder and decoder for the [MessagePack](http://msgpack.org/) serialization format. It is intended to be:
@@ -16,7 +14,13 @@ The MPack code is small enough to be embedded directly into your codebase. The e
 
 MPack is written in the portable intersection of C99 and C++. In other words, it's written in C99, but if you are stuck using a certain popular compiler from a certain unpopular vendor that refuses to support C99, you can compile it as C++ instead.
 
-*NOTE: MPack is beta software under development. The API occasionally changes, there are still some TODOs in the codebase, some security issues to fix, some MessagePack 1.0/1.1 compatibility and interoperability issues to sort out, some test suite portability issues to fix, and there is only around 65% unit test coverage.*
+## Build Status
+
+MPack is beta software under development.
+
+| [Travis-CI](https://travis-ci.org/) | [Coveralls.io](https://coveralls.io/) |
+| :-------: | :----------: |
+| [![Build Status](https://travis-ci.org/ludocode/mpack.svg?branch=develop)](https://travis-ci.org/ludocode/mpack/branches) | [![Coverage Status](https://coveralls.io/repos/ludocode/mpack/badge.svg?branch=develop&service=github)](https://coveralls.io/github/ludocode/mpack?branch=develop) |
 
 ## The Node Reader API
 
