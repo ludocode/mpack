@@ -232,7 +232,7 @@ extern "C" {
 #elif defined(_MSC_VER)
     #define MPACK_UNREACHABLE __assume(0)
     #define MPACK_NORETURN(fn) __declspec(noreturn) fn
-    #define MPACK_ALWAYS_INLINE __forceinline MPACK_INLINE
+    #define MPACK_ALWAYS_INLINE __forceinline
 #else
     #define MPACK_UNREACHABLE ((void)0)
     #define MPACK_NORETURN(fn) fn
