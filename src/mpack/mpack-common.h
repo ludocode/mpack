@@ -30,6 +30,8 @@
 
 #include "mpack-platform.h"
 
+MPACK_HEADER_START
+
 
 
 /* Version information */
@@ -84,10 +86,6 @@
 #endif
 
 
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * @defgroup common Common Elements
@@ -487,9 +485,7 @@ MPACK_INLINE_SPEED uint32_t mpack_utf8_decode(uint32_t* state, uint32_t* codep, 
 
 
 
-#ifdef __cplusplus
-}
-#endif
+MPACK_HEADER_END
 
 #endif
 

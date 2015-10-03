@@ -30,11 +30,9 @@
 
 #include "mpack-common.h"
 
-#if MPACK_WRITER
+MPACK_HEADER_START
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#if MPACK_WRITER
 
 #if MPACK_WRITE_TRACKING
 struct mpack_track_t;
@@ -528,10 +526,9 @@ void mpack_write_cstr(mpack_writer_t* writer, const char* str);
  * @}
  */
 
-#ifdef __cplusplus
-}
 #endif
 
-#endif
+MPACK_HEADER_END
+
 #endif
 

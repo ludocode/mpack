@@ -132,9 +132,27 @@
 #include <stdio.h>
 #endif
 
+
+
+/*
+ * Header configuration
+ */
+
 #ifdef __cplusplus
-extern "C" {
+#define MPACK_EXTERN_C_START extern "C" {
+#define MPACK_EXTERN_C_END   }
+#else
+#define MPACK_EXTERN_C_START /* nothing */
+#define MPACK_EXTERN_C_END   /* nothing */
 #endif
+
+#define MPACK_HEADER_START \
+    MPACK_EXTERN_C_START
+
+#define MPACK_HEADER_END \
+    MPACK_EXTERN_C_END
+
+MPACK_HEADER_START
 
 
 
@@ -379,9 +397,7 @@ size_t mpack_strlen(const char *s);
  * @}
  */
 
-#ifdef __cplusplus
-}
-#endif
+MPACK_HEADER_END
 
 /** @endcond */
 

@@ -30,11 +30,9 @@
 
 #include "mpack-reader.h"
 
-#if MPACK_NODE
+MPACK_HEADER_START
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#if MPACK_NODE
 
 /**
  * @defgroup node Node API
@@ -1123,11 +1121,10 @@ MPACK_INLINE bool mpack_node_map_contains_cstr(mpack_node_t node, const char* cs
  * @}
  */
 
-#ifdef __cplusplus
-}
 #endif
 
-#endif
+MPACK_HEADER_END
+
 #endif
 
 

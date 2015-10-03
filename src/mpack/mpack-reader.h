@@ -30,11 +30,9 @@
 
 #include "mpack-common.h"
 
-#if MPACK_READER
+MPACK_HEADER_START
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#if MPACK_READER
 
 #if MPACK_READ_TRACKING
 struct mpack_track_t;
@@ -613,10 +611,9 @@ MPACK_INLINE_SPEED mpack_error_t mpack_reader_track_bytes(mpack_reader_t* reader
 
 
 
-#ifdef __cplusplus
-}
 #endif
 
-#endif
+MPACK_HEADER_END
+
 #endif
 

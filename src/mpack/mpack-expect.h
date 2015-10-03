@@ -30,14 +30,12 @@
 
 #include "mpack-reader.h"
 
+MPACK_HEADER_START
+
 #if MPACK_EXPECT
 
 #if !MPACK_READER
 #error "MPACK_EXPECT requires MPACK_READER."
-#endif
-
-#ifdef __cplusplus
-extern "C" {
 #endif
 
 /**
@@ -698,11 +696,10 @@ char* mpack_expect_ext_type_alloc(mpack_reader_t* reader, uint8_t exttype, size_
  * @}
  */
 
-#ifdef __cplusplus
-}
 #endif
 
-#endif
+MPACK_HEADER_END
+
 #endif
 
 
