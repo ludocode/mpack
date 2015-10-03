@@ -16,12 +16,20 @@ env.Append(CPPFLAGS = [
     "-DMPACK_SCONS=1",
     "-g",
     ])
+env.Append(CFLAGS = [
+    "-Wmissing-prototypes"
+    ])
+env.Append(CXXFLAGS = [
+    "-Wmissing-declarations"
+    ])
 env.Append(LINKFLAGS = [
     "-g",
     ])
 
-if 'CC' not in env or "clang" not in env['CC']:
-    env.Append(CPPFLAGS = ["-Wno-float-conversion"]) # unsupported in clang 3.4
+if 'TRAVIS' not in env:
+    # Travis-CI currently uses Clang 3.4 which does not support this option,
+    # and it also appears to be incompatible with other GCC options on Travis-CI
+    env.Append(CPPFLAGS = ["-Wno-float-conversion"])
 
 
 # Optional flags used in various builds
@@ -55,7 +63,13 @@ def AddBuild(variant_dir, cppflags, linkflags):
     env.SConscript("SConscript",
             variant_dir="build/" + variant_dir,
             src="../..",
-            exports={'env': env, 'CPPFLAGS': cppflags, 'LINKFLAGS': linkflags},
+            exports={
+                'env': env,
+                'CPPFLAGS': cppflags,
+                'CFLAGS': env["CFLAGS"],
+                'CXXFLAGS': env["CXXFLAGS"],
+                'LINKFLAGS': linkflags
+                },
             duplicate=0)
 
 def AddBuilds(variant_dir, cppflags, linkflags):

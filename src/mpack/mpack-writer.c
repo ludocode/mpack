@@ -282,18 +282,18 @@ MPACK_STATIC_INLINE_SPEED void mpack_write_native(mpack_writer_t* writer, const 
     }
 }
 
-MPACK_ALWAYS_INLINE void mpack_store_native_u8_at(char* p, uint8_t val) {
+MPACK_STATIC_ALWAYS_INLINE void mpack_store_native_u8_at(char* p, uint8_t val) {
     uint8_t* u = (uint8_t*)p;
     u[0] = val;
 }
 
-MPACK_ALWAYS_INLINE void mpack_store_native_u16_at(char* p, uint16_t val) {
+MPACK_STATIC_ALWAYS_INLINE void mpack_store_native_u16_at(char* p, uint16_t val) {
     uint8_t* u = (uint8_t*)p;
     u[0] = (uint8_t)((val >> 8) & 0xFF);
     u[1] = (uint8_t)( val       & 0xFF);
 }
 
-MPACK_ALWAYS_INLINE void mpack_store_native_u32_at(char* p, uint32_t val) {
+MPACK_STATIC_ALWAYS_INLINE void mpack_store_native_u32_at(char* p, uint32_t val) {
     uint8_t* u = (uint8_t*)p;
     u[0] = (uint8_t)((val >> 24) & 0xFF);
     u[1] = (uint8_t)((val >> 16) & 0xFF);
@@ -301,7 +301,7 @@ MPACK_ALWAYS_INLINE void mpack_store_native_u32_at(char* p, uint32_t val) {
     u[3] = (uint8_t)( val        & 0xFF);
 }
 
-MPACK_ALWAYS_INLINE void mpack_store_native_u64_at(char* p, uint64_t val) {
+MPACK_STATIC_ALWAYS_INLINE void mpack_store_native_u64_at(char* p, uint64_t val) {
     uint8_t* u = (uint8_t*)p;
     u[0] = (uint8_t)((val >> 56) & 0xFF);
     u[1] = (uint8_t)((val >> 48) & 0xFF);

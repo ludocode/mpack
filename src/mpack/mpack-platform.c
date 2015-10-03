@@ -34,7 +34,9 @@
 
 
 
-#if MPACK_DEBUG && MPACK_STDIO
+#if MPACK_DEBUG
+
+#if MPACK_STDIO
 void mpack_assert_fail_format(const char* format, ...) {
     char buffer[512];
     va_list args;
@@ -102,6 +104,8 @@ void mpack_break_hit(const char* message) {
     __builtin_abort();
     #endif
 }
+#endif
+
 #endif
 
 

@@ -119,7 +119,7 @@ MPACK_STATIC_INLINE_SPEED double mpack_tree_double(mpack_tree_parser_t* parser) 
     return u.d;
 }
 
-void mpack_tree_parse_children(mpack_tree_parser_t* parser, mpack_node_data_t* node) {
+static void mpack_tree_parse_children(mpack_tree_parser_t* parser, mpack_node_data_t* node) {
     mpack_type_t type = node->type;
     size_t total = node->value.content.n;
 
@@ -263,7 +263,7 @@ void mpack_tree_parse_children(mpack_tree_parser_t* parser, mpack_node_data_t* n
     parser->stack[parser->level].left = total;
 }
 
-void mpack_tree_parse_bytes(mpack_tree_parser_t* parser, mpack_node_data_t* node) {
+static void mpack_tree_parse_bytes(mpack_tree_parser_t* parser, mpack_node_data_t* node) {
     size_t length = node->value.data.l;
     if (length > parser->possible_nodes_left) {
         mpack_tree_flag_error(parser->tree, mpack_error_invalid);
@@ -276,7 +276,7 @@ void mpack_tree_parse_bytes(mpack_tree_parser_t* parser, mpack_node_data_t* node
     parser->possible_nodes_left -= length;
 }
 
-void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length) {
+static void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length) {
     mpack_log("starting parse\n");
 
     // This function is unfortunately huge and ugly, but there isn't
@@ -661,7 +661,7 @@ mpack_node_t mpack_tree_root(mpack_tree_t* tree) {
     return mpack_node(tree, (mpack_tree_error(tree) != mpack_ok) ? &tree->nil_node : tree->root);
 }
 
-void mpack_tree_init_clear(mpack_tree_t* tree) {
+static void mpack_tree_init_clear(mpack_tree_t* tree) {
     mpack_memset(tree, 0, sizeof(*tree));
     tree->nil_node.type = mpack_type_nil;
 }

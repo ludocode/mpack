@@ -146,10 +146,26 @@
 #define MPACK_EXTERN_C_END   /* nothing */
 #endif
 
+/* GCC versions from 4.6 to before 5.1 warn about defining a C99
+ * non-static inline function before declaring it (see issue #20) */
+#if (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
+#define MPACK_DECLARED_INLINE_WARNING_START \
+    _Pragma ("GCC diagnostic push") \
+    _Pragma ("GCC diagnostic ignored \"-Wmissing-prototypes\"") \
+    _Pragma ("GCC diagnostic ignored \"-Wmissing-declarations\"")
+#define MPACK_DECLARED_INLINE_WARNING_END \
+    _Pragma ("GCC diagnostic pop")
+#else
+#define MPACK_DECLARED_INLINE_WARNING_START /* nothing */
+#define MPACK_DECLARED_INLINE_WARNING_END /* nothing */
+#endif
+
 #define MPACK_HEADER_START \
-    MPACK_EXTERN_C_START
+    MPACK_EXTERN_C_START \
+    MPACK_DECLARED_INLINE_WARNING_START
 
 #define MPACK_HEADER_END \
+    MPACK_DECLARED_INLINE_WARNING_END \
     MPACK_EXTERN_C_END
 
 MPACK_HEADER_START
@@ -186,7 +202,7 @@ MPACK_HEADER_START
  *
  *  - The C99 model, where "inline" does not emit a definition and "extern inline" does
  *  - The GNU model, where "inline" emits a definition and "extern inline" does not
- *  - The C++ model, where "inline" emits a definition with weak linkage
+ *  - The C++ model, where "inline" emits a definition with special (COMDAT) linkage
  *
  * The macros below wrap up everything above. All inline functions defined in header
  * files have a single non-inline definition emitted in the compilation of
@@ -247,14 +263,17 @@ MPACK_HEADER_START
     #define MPACK_UNREACHABLE __builtin_unreachable()
     #define MPACK_NORETURN(fn) fn __attribute__((noreturn))
     #define MPACK_ALWAYS_INLINE __attribute__((always_inline)) MPACK_INLINE
+    #define MPACK_STATIC_ALWAYS_INLINE static __attribute__((always_inline)) inline
 #elif defined(_MSC_VER)
     #define MPACK_UNREACHABLE __assume(0)
     #define MPACK_NORETURN(fn) __declspec(noreturn) fn
     #define MPACK_ALWAYS_INLINE __forceinline
+    #define MPACK_STATIC_ALWAYS_INLINE static __forceinline
 #else
     #define MPACK_UNREACHABLE ((void)0)
     #define MPACK_NORETURN(fn) fn
     #define MPACK_ALWAYS_INLINE MPACK_INLINE
+    #define MPACK_STATIC_ALWAYS_INLINE static inline
 #endif
 
 
