@@ -619,6 +619,7 @@ void mpack_discard(mpack_reader_t* reader) {
                 if (mpack_reader_error(reader))
                     break;
             }
+            mpack_done_array(reader);
             break;
         }
         case mpack_type_map: {
@@ -628,6 +629,7 @@ void mpack_discard(mpack_reader_t* reader) {
                 if (mpack_reader_error(reader))
                     break;
             }
+            mpack_done_map(reader);
             break;
         }
         default:

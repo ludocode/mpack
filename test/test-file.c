@@ -146,6 +146,16 @@ static void test_node_print(void) {
 }
 #endif
 
+#if MPACK_READER
+static void test_file_discard(void) {
+    mpack_reader_t reader;
+    mpack_reader_init_file(&reader, "test/test-file.mp");
+    mpack_discard(&reader);
+    mpack_error_t error = mpack_reader_destroy(&reader);
+    test_assert(error == mpack_ok, "read failed with %s", mpack_error_to_string(error));
+}
+#endif
+
 #if MPACK_EXPECT
 static void test_file_read(void) {
     mpack_reader_t reader;
@@ -185,6 +195,7 @@ static void test_file_node(void) {
 void test_file(void) {
     #if MPACK_READER
     test_print();
+    test_file_discard();
     #endif
     #if MPACK_NODE
     test_node_print();
