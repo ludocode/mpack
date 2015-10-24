@@ -856,9 +856,15 @@ mpack_tag_t mpack_node_tag(mpack_node_t node) {
         case mpack_type_double:  tag.v.d = node.data->value.d;          break;
         case mpack_type_int:     tag.v.i = node.data->value.i;          break;
         case mpack_type_uint:    tag.v.u = node.data->value.u;          break;
+
         case mpack_type_str:     tag.v.l = node.data->value.data.l;     break;
         case mpack_type_bin:     tag.v.l = node.data->value.data.l;     break;
-        case mpack_type_ext:     tag.v.l = node.data->value.data.l;     break;
+
+        case mpack_type_ext:
+            tag.v.l = node.data->value.data.l;
+            tag.exttype = node.data->exttype;
+            break;
+
         case mpack_type_array:   tag.v.n = node.data->value.content.n;  break;
         case mpack_type_map:     tag.v.n = node.data->value.content.n;  break;
     }
