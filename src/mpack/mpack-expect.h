@@ -228,20 +228,80 @@ uint32_t mpack_expect_u32_range(mpack_reader_t* reader, uint32_t min_value, uint
  */
 uint64_t mpack_expect_u64_range(mpack_reader_t* reader, uint64_t min_value, uint64_t max_value);
 
+/**
+ * Reads an unsigned integer, ensuring that it falls within the given range.
+ *
+ * The underlying type may be an integer type of any size and signedness,
+ * as long as the value can be represented in an unsigned int.
+ *
+ * Returns min_value if an error occurs.
+ */
+MPACK_INLINE unsigned int mpack_expect_uint_range(mpack_reader_t* reader, unsigned int min_value, unsigned int max_value) {
+    // This should be true at compile-time, so this just wraps the 32-bit
+    // function. We fallback to 64-bit if for some reason sizeof(int) isn't 4.
+    if (sizeof(unsigned int) == 4)
+        return (unsigned int)mpack_expect_u32_range(reader, (uint32_t)min_value, (uint32_t)max_value);
+    return (unsigned int)mpack_expect_u64_range(reader, min_value, max_value);
+}
+
+/**
+ * Reads an 8-bit unsigned integer, ensuring that it is at most max_value.
+ *
+ * The underlying type may be an integer type of any size and signedness,
+ * as long as the value can be represented in an 8-bit unsigned int.
+ *
+ * Returns 0 if an error occurs.
+ */
 MPACK_INLINE uint8_t mpack_expect_u8_max(mpack_reader_t* reader, uint8_t max_value) {
     return mpack_expect_u8_range(reader, 0, max_value);
 }
 
+/**
+ * Reads a 16-bit unsigned integer, ensuring that it is at most max_value.
+ *
+ * The underlying type may be an integer type of any size and signedness,
+ * as long as the value can be represented in a 16-bit unsigned int.
+ *
+ * Returns 0 if an error occurs.
+ */
 MPACK_INLINE uint16_t mpack_expect_u16_max(mpack_reader_t* reader, uint16_t max_value) {
     return mpack_expect_u16_range(reader, 0, max_value);
 }
 
+/**
+ * Reads a 32-bit unsigned integer, ensuring that it is at most max_value.
+ *
+ * The underlying type may be an integer type of any size and signedness,
+ * as long as the value can be represented in a 32-bit unsigned int.
+ *
+ * Returns 0 if an error occurs.
+ */
 MPACK_INLINE uint32_t mpack_expect_u32_max(mpack_reader_t* reader, uint32_t max_value) {
     return mpack_expect_u32_range(reader, 0, max_value);
 }
 
+/**
+ * Reads a 64-bit unsigned integer, ensuring that it is at most max_value.
+ *
+ * The underlying type may be an integer type of any size and signedness,
+ * as long as the value can be represented in a 64-bit unsigned int.
+ *
+ * Returns 0 if an error occurs.
+ */
 MPACK_INLINE uint64_t mpack_expect_u64_max(mpack_reader_t* reader, uint64_t max_value) {
     return mpack_expect_u64_range(reader, 0, max_value);
+}
+
+/**
+ * Reads an unsigned integer, ensuring that it is at most max_value.
+ *
+ * The underlying type may be an integer type of any size and signedness,
+ * as long as the value can be represented in an unsigned int.
+ *
+ * Returns 0 if an error occurs.
+ */
+MPACK_INLINE unsigned int mpack_expect_uint_max(mpack_reader_t* reader, unsigned int max_value) {
+    return mpack_expect_uint_range(reader, 0, max_value);
 }
 
 /**
@@ -285,6 +345,86 @@ int32_t mpack_expect_i32_range(mpack_reader_t* reader, int32_t min_value, int32_
 int64_t mpack_expect_i64_range(mpack_reader_t* reader, int64_t min_value, int64_t max_value);
 
 /**
+ * Reads a signed integer, ensuring that it falls within the given range.
+ *
+ * The underlying type may be an integer type of any size and signedness,
+ * as long as the value can be represented in a signed int.
+ *
+ * Returns min_value if an error occurs.
+ */
+MPACK_INLINE int mpack_expect_int_range(mpack_reader_t* reader, int min_value, int max_value) {
+    // This should be true at compile-time, so this just wraps the 32-bit
+    // function. We fallback to 64-bit if for some reason sizeof(int) isn't 4.
+    if (sizeof(int) == 4)
+        return (int)mpack_expect_i32_range(reader, (int32_t)min_value, (int32_t)max_value);
+    return (int)mpack_expect_i64_range(reader, min_value, max_value);
+}
+
+/**
+ * Reads an 8-bit signed integer, ensuring that it is at least zero and at
+ * most max_value.
+ *
+ * The underlying type may be an integer type of any size and signedness,
+ * as long as the value can be represented in an 8-bit signed int.
+ *
+ * Returns 0 if an error occurs.
+ */
+MPACK_INLINE int8_t mpack_expect_i8_max(mpack_reader_t* reader, int8_t max_value) {
+    return mpack_expect_i8_range(reader, 0, max_value);
+}
+
+/**
+ * Reads a 16-bit signed integer, ensuring that it is at least zero and at
+ * most max_value.
+ *
+ * The underlying type may be an integer type of any size and signedness,
+ * as long as the value can be represented in a 16-bit signed int.
+ *
+ * Returns 0 if an error occurs.
+ */
+MPACK_INLINE int16_t mpack_expect_i16_max(mpack_reader_t* reader, int16_t max_value) {
+    return mpack_expect_i16_range(reader, 0, max_value);
+}
+
+/**
+ * Reads a 32-bit signed integer, ensuring that it is at least zero and at
+ * most max_value.
+ *
+ * The underlying type may be an integer type of any size and signedness,
+ * as long as the value can be represented in a 32-bit signed int.
+ *
+ * Returns 0 if an error occurs.
+ */
+MPACK_INLINE int32_t mpack_expect_i32_max(mpack_reader_t* reader, int32_t max_value) {
+    return mpack_expect_i32_range(reader, 0, max_value);
+}
+
+/**
+ * Reads a 64-bit signed integer, ensuring that it is at least zero and at
+ * most max_value.
+ *
+ * The underlying type may be an integer type of any size and signedness,
+ * as long as the value can be represented in a 64-bit signed int.
+ *
+ * Returns 0 if an error occurs.
+ */
+MPACK_INLINE int64_t mpack_expect_i64_max(mpack_reader_t* reader, int64_t max_value) {
+    return mpack_expect_i64_range(reader, 0, max_value);
+}
+
+/**
+ * Reads an int, ensuring that it is at least zero and at most max_value.
+ *
+ * The underlying type may be an integer type of any size and signedness,
+ * as long as the value can be represented in a signed int.
+ *
+ * Returns 0 if an error occurs.
+ */
+MPACK_INLINE int mpack_expect_int_max(mpack_reader_t* reader, int max_value) {
+    return mpack_expect_int_range(reader, 0, max_value);
+}
+
+/**
  * Reads a number, ensuring that it falls within the given range and returning
  * the value as a float. The underlying value can be an integer, float or
  * double; the value is converted to a float.
@@ -311,6 +451,59 @@ double mpack_expect_double_range(mpack_reader_t* reader, double min_value, doubl
 /**
  * @}
  */
+
+
+
+// These are additional Basic Number functions that wrap inline range functions.
+
+/**
+ * @name Basic Number Functions
+ * @{
+ */
+
+/**
+ * Reads an unsigned int.
+ *
+ * The underlying type may be an integer type of any size and signedness,
+ * as long as the value can be represented in an unsigned int.
+ *
+ * Returns zero if an error occurs.
+ */
+MPACK_INLINE unsigned int mpack_expect_uint(mpack_reader_t* reader) {
+
+    // This should be true at compile-time, so this just wraps the 32-bit function.
+    if (sizeof(unsigned int) == 4)
+        return (unsigned int)mpack_expect_u32(reader);
+
+    // Otherwise we wrap the max function to ensure it fits.
+    return (unsigned int)mpack_expect_u64_max(reader, UINT_MAX);
+
+}
+
+/**
+ * Reads a signed int.
+ *
+ * The underlying type may be an integer type of any size and signedness,
+ * as long as the value can be represented in a signed int.
+ *
+ * Returns zero if an error occurs.
+ */
+MPACK_INLINE int mpack_expect_int(mpack_reader_t* reader) {
+
+    // This should be true at compile-time, so this just wraps the 32-bit function.
+    if (sizeof(int) == 4)
+        return (int)mpack_expect_i32(reader);
+
+    // Otherwise we wrap the range function to ensure it fits.
+    return (int)mpack_expect_i64_range(reader, INT_MIN, INT_MAX);
+
+}
+
+/**
+ * @}
+ */
+
+
 
 /**
  * @name Matching Number Functions

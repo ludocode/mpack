@@ -329,68 +329,41 @@ static void test_expect_uint_bounds() {
 
 }
 
-static void test_expect_uint_range() {
-    test_simple_read("\x00", 0 == mpack_expect_u8_max(&reader, 0));
-    test_simple_read_error("\x01", 0 == mpack_expect_u8_max(&reader, 0), mpack_error_type);
+#define TEST_EXPECT_UINT_RANGE(name) \
+    test_simple_read("\x00", 0 == mpack_expect_##name##_max(&reader, 0));                                  \
+    test_simple_read_error("\x01", 0 == mpack_expect_##name##_max(&reader, 0), mpack_error_type);          \
+                                                                                                           \
+    test_simple_read_error("\x00", 1 == mpack_expect_##name##_range(&reader, 1, 3), mpack_error_type);     \
+    test_simple_read("\x01", 1 == mpack_expect_##name##_range(&reader, 1, 3));                             \
+    test_simple_read("\x02", 2 == mpack_expect_##name##_range(&reader, 1, 3));                             \
+    test_simple_read("\x03", 3 == mpack_expect_##name##_range(&reader, 1, 3));                             \
+    test_simple_read_error("\x04", 1 == mpack_expect_##name##_range(&reader, 1, 3), mpack_error_type);
 
-    test_simple_read_error("\x00", 1 == mpack_expect_u8_range(&reader, 1, 3), mpack_error_type);
-    test_simple_read("\x01", 1 == mpack_expect_u8_range(&reader, 1, 3));
-    test_simple_read("\x02", 2 == mpack_expect_u8_range(&reader, 1, 3));
-    test_simple_read("\x03", 3 == mpack_expect_u8_range(&reader, 1, 3));
-    test_simple_read_error("\x04", 1 == mpack_expect_u8_range(&reader, 1, 3), mpack_error_type);
-
-    test_simple_read("\x00", 0 == mpack_expect_u16_max(&reader, 0));
-    test_simple_read_error("\x01", 0 == mpack_expect_u16_max(&reader, 0), mpack_error_type);
-
-    test_simple_read_error("\x00", 1 == mpack_expect_u16_range(&reader, 1, 3), mpack_error_type);
-    test_simple_read("\x01", 1 == mpack_expect_u16_range(&reader, 1, 3));
-    test_simple_read("\x02", 2 == mpack_expect_u16_range(&reader, 1, 3));
-    test_simple_read("\x03", 3 == mpack_expect_u16_range(&reader, 1, 3));
-    test_simple_read_error("\x04", 1 == mpack_expect_u16_range(&reader, 1, 3), mpack_error_type);
-
-    test_simple_read("\x00", 0 == mpack_expect_u32_max(&reader, 0));
-    test_simple_read_error("\x01", 0 == mpack_expect_u32_max(&reader, 0), mpack_error_type);
-
-    test_simple_read_error("\x00", 1 == mpack_expect_u32_range(&reader, 1, 3), mpack_error_type);
-    test_simple_read("\x01", 1 == mpack_expect_u32_range(&reader, 1, 3));
-    test_simple_read("\x02", 2 == mpack_expect_u32_range(&reader, 1, 3));
-    test_simple_read("\x03", 3 == mpack_expect_u32_range(&reader, 1, 3));
-    test_simple_read_error("\x04", 1 == mpack_expect_u32_range(&reader, 1, 3), mpack_error_type);
-
-    test_simple_read("\x00", 0 == mpack_expect_u64_max(&reader, 0));
-    test_simple_read_error("\x01", 0 == mpack_expect_u64_max(&reader, 0), mpack_error_type);
-
-    test_simple_read_error("\x00", 1 == mpack_expect_u64_range(&reader, 1, 3), mpack_error_type);
-    test_simple_read("\x01", 1 == mpack_expect_u64_range(&reader, 1, 3));
-    test_simple_read("\x02", 2 == mpack_expect_u64_range(&reader, 1, 3));
-    test_simple_read("\x03", 3 == mpack_expect_u64_range(&reader, 1, 3));
-    test_simple_read_error("\x04", 1 == mpack_expect_u64_range(&reader, 1, 3), mpack_error_type);
-}
+#define TEST_EXPECT_INT_RANGE(name) \
+    test_simple_read("\x00", 0 == mpack_expect_##name##_max(&reader, 0));                                  \
+    test_simple_read_error("\x01", 0 == mpack_expect_##name##_max(&reader, 0), mpack_error_type);          \
+    test_simple_read_error("\xff", 0 == mpack_expect_##name##_max(&reader, 0), mpack_error_type);          \
+                                                                                                           \
+    test_simple_read_error("\xfe", -1 == mpack_expect_##name##_range(&reader, -1, 1), mpack_error_type);   \
+    test_simple_read("\xff", -1 == mpack_expect_##name##_range(&reader, -1, 1));                           \
+    test_simple_read("\x00", 0 == mpack_expect_##name##_range(&reader, -1, 1));                            \
+    test_simple_read("\x01", 1 == mpack_expect_##name##_range(&reader, -1, 1));                            \
+    test_simple_read_error("\x02", -1 == mpack_expect_##name##_range(&reader, -1, 1), mpack_error_type);
 
 static void test_expect_int_range() {
-    test_simple_read_error("\xfe", -1 == mpack_expect_i8_range(&reader, -1, 1), mpack_error_type);
-    test_simple_read("\xff", -1 == mpack_expect_i8_range(&reader, -1, 1));
-    test_simple_read("\x00", 0 == mpack_expect_i8_range(&reader, -1, 1));
-    test_simple_read("\x01", 1 == mpack_expect_i8_range(&reader, -1, 1));
-    test_simple_read_error("\x02", -1 == mpack_expect_i8_range(&reader, -1, 1), mpack_error_type);
-
-    test_simple_read_error("\xfe", -1 == mpack_expect_i16_range(&reader, -1, 1), mpack_error_type);
-    test_simple_read("\xff", -1 == mpack_expect_i16_range(&reader, -1, 1));
-    test_simple_read("\x00", 0 == mpack_expect_i16_range(&reader, -1, 1));
-    test_simple_read("\x01", 1 == mpack_expect_i16_range(&reader, -1, 1));
-    test_simple_read_error("\x02", -1 == mpack_expect_i16_range(&reader, -1, 1), mpack_error_type);
-
-    test_simple_read_error("\xfe", -1 == mpack_expect_i32_range(&reader, -1, 1), mpack_error_type);
-    test_simple_read("\xff", -1 == mpack_expect_i32_range(&reader, -1, 1));
-    test_simple_read("\x00", 0 == mpack_expect_i32_range(&reader, -1, 1));
-    test_simple_read("\x01", 1 == mpack_expect_i32_range(&reader, -1, 1));
-    test_simple_read_error("\x02", -1 == mpack_expect_i32_range(&reader, -1, 1), mpack_error_type);
-
-    test_simple_read_error("\xfe", -1 == mpack_expect_i64_range(&reader, -1, 1), mpack_error_type);
-    test_simple_read("\xff", -1 == mpack_expect_i64_range(&reader, -1, 1));
-    test_simple_read("\x00", 0 == mpack_expect_i64_range(&reader, -1, 1));
-    test_simple_read("\x01", 1 == mpack_expect_i64_range(&reader, -1, 1));
-    test_simple_read_error("\x02", -1 == mpack_expect_i64_range(&reader, -1, 1), mpack_error_type);
+    // these currently don't test anything involving the limits of
+    // each data type; there doesn't seem to be much point in doing
+    // so, since they all wrap the normal expect functions.
+    TEST_EXPECT_UINT_RANGE(u8);
+    TEST_EXPECT_UINT_RANGE(u16);
+    TEST_EXPECT_UINT_RANGE(u32);
+    TEST_EXPECT_UINT_RANGE(u64);
+    TEST_EXPECT_UINT_RANGE(uint);
+    TEST_EXPECT_INT_RANGE(i8);
+    TEST_EXPECT_INT_RANGE(i16);
+    TEST_EXPECT_INT_RANGE(i32);
+    TEST_EXPECT_INT_RANGE(i64);
+    TEST_EXPECT_INT_RANGE(int);
 }
 
 static void test_expect_misc() {
@@ -482,7 +455,6 @@ void test_expect() {
     test_expect_uint_bounds();
     test_expect_int_bounds();
     test_expect_ints_dynamic_int();
-    test_expect_uint_range();
     test_expect_int_range();
 
     // other
