@@ -178,149 +178,43 @@ double mpack_expect_double_strict(mpack_reader_t* reader) {
 
 
 // Ranged Number Functions
+//
+// All ranged number functions are identical other than the type, so we
+// define their content with a macro. The prototypes are still written
+// out in full to support ctags/IDE tools.
 
-int8_t mpack_expect_i8_range(mpack_reader_t* reader, int8_t min_value, int8_t max_value) {
-
-    // make sure the range is sensible
-    mpack_assert(min_value <= max_value, "min_value %i must be less than or equal to max_value %i",
-            min_value, max_value);
-
-    // read the value
-    int8_t val = mpack_expect_i8(reader);
-    if (mpack_reader_error(reader) != mpack_ok)
-        return min_value;
-
-    // make sure it fits
-    if (val < min_value || val > max_value) {
-        mpack_reader_flag_error(reader, mpack_error_type);
-        return min_value;
-    }
-
+#define MPACK_EXPECT_RANGE_IMPL(name, type_t)                           \
+                                                                        \
+    /* make sure the range is sensible */                               \
+    mpack_assert(min_value <= max_value,                                \
+            "min_value %i must be less than or equal to max_value %i",  \
+            min_value, max_value);                                      \
+                                                                        \
+    /* read the value */                                                \
+    type_t val = mpack_expect_##name(reader);                           \
+    if (mpack_reader_error(reader) != mpack_ok)                         \
+        return min_value;                                               \
+                                                                        \
+    /* make sure it fits */                                             \
+    if (val < min_value || val > max_value) {                           \
+        mpack_reader_flag_error(reader, mpack_error_type);              \
+        return min_value;                                               \
+    }                                                                   \
+                                                                        \
     return val;
-}
 
-// TODO: missing i16_range, i32_range, i64_range?
+uint8_t mpack_expect_u8_range(mpack_reader_t* reader, uint8_t min_value, uint8_t max_value) {MPACK_EXPECT_RANGE_IMPL(u8, uint8_t)}
+uint16_t mpack_expect_u16_range(mpack_reader_t* reader, uint16_t min_value, uint16_t max_value) {MPACK_EXPECT_RANGE_IMPL(u16, uint16_t)}
+uint32_t mpack_expect_u32_range(mpack_reader_t* reader, uint32_t min_value, uint32_t max_value) {MPACK_EXPECT_RANGE_IMPL(u32, uint32_t)}
+uint64_t mpack_expect_u64_range(mpack_reader_t* reader, uint64_t min_value, uint64_t max_value) {MPACK_EXPECT_RANGE_IMPL(u64, uint64_t)}
 
-uint8_t mpack_expect_u8_range(mpack_reader_t* reader, uint8_t min_value, uint8_t max_value) {
+int8_t mpack_expect_i8_range(mpack_reader_t* reader, int8_t min_value, int8_t max_value) {MPACK_EXPECT_RANGE_IMPL(i8, int8_t)}
+int16_t mpack_expect_i16_range(mpack_reader_t* reader, int16_t min_value, int16_t max_value) {MPACK_EXPECT_RANGE_IMPL(i16, int16_t)}
+int32_t mpack_expect_i32_range(mpack_reader_t* reader, int32_t min_value, int32_t max_value) {MPACK_EXPECT_RANGE_IMPL(i32, int32_t)}
+int64_t mpack_expect_i64_range(mpack_reader_t* reader, int64_t min_value, int64_t max_value) {MPACK_EXPECT_RANGE_IMPL(i64, int64_t)}
 
-    // make sure the range is sensible
-    mpack_assert(min_value <= max_value, "min_value %u must be less than or equal to max_value %u",
-            min_value, max_value);
-
-    // read the value
-    uint8_t val = mpack_expect_u8(reader);
-    if (mpack_reader_error(reader) != mpack_ok)
-        return min_value;
-
-    // make sure it fits
-    if (val < min_value || val > max_value) {
-        mpack_reader_flag_error(reader, mpack_error_type);
-        return min_value;
-    }
-
-    return val;
-}
-
-uint16_t mpack_expect_u16_range(mpack_reader_t* reader, uint16_t min_value, uint16_t max_value) {
-
-    // make sure the range is sensible
-    mpack_assert(min_value <= max_value, "min_value %u must be less than or equal to max_value %u",
-            min_value, max_value);
-
-    // read the value
-    uint16_t val = mpack_expect_u16(reader);
-    if (mpack_reader_error(reader) != mpack_ok)
-        return min_value;
-
-    // make sure it fits
-    if (val < min_value || val > max_value) {
-        mpack_reader_flag_error(reader, mpack_error_type);
-        return min_value;
-    }
-
-    return val;
-}
-
-uint32_t mpack_expect_u32_range(mpack_reader_t* reader, uint32_t min_value, uint32_t max_value) {
-
-    // make sure the range is sensible
-    mpack_assert(min_value <= max_value, "min_value %u must be less than or equal to max_value %u",
-            min_value, max_value);
-
-    // read the value
-    uint32_t val = mpack_expect_u32(reader);
-    if (mpack_reader_error(reader) != mpack_ok)
-        return min_value;
-
-    // make sure it fits
-    if (val < min_value || val > max_value) {
-        mpack_reader_flag_error(reader, mpack_error_type);
-        return min_value;
-    }
-
-    return val;
-}
-
-uint64_t mpack_expect_u64_range(mpack_reader_t* reader, uint64_t min_value, uint64_t max_value) {
-
-    // make sure the range is sensible
-    mpack_assert(min_value <= max_value,
-            "min_value %" PRIu64 " must be less than or equal to max_value %" PRIu64, min_value, max_value);
-
-
-    // read the value
-    uint64_t val = mpack_expect_u64(reader);
-    if (mpack_reader_error(reader) != mpack_ok)
-        return min_value;
-
-    // make sure it fits
-    if (val < min_value || val > max_value) {
-        mpack_reader_flag_error(reader, mpack_error_type);
-        return min_value;
-    }
-
-    return val;
-}
-
-float mpack_expect_float_range(mpack_reader_t* reader, float min_value, float max_value) {
-
-    // make sure the range is sensible
-    mpack_assert(min_value <= max_value, "min_value %f must be less than or equal to max_value %f",
-            min_value, max_value);
-
-    // read the value
-    float val = mpack_expect_float(reader);
-    if (mpack_reader_error(reader) != mpack_ok)
-        return min_value;
-
-    // make sure it fits
-    if (val < min_value || val > max_value) {
-        mpack_reader_flag_error(reader, mpack_error_type);
-        return min_value;
-    }
-
-    return val;
-}
-
-double mpack_expect_double_range(mpack_reader_t* reader, double min_value, double max_value) {
-
-    // make sure the range is sensible
-    mpack_assert(min_value <= max_value, "min_value %f must be less than or equal to max_value %f",
-            min_value, max_value);
-
-    // read the value
-    double val = mpack_expect_double(reader);
-    if (mpack_reader_error(reader) != mpack_ok)
-        return min_value;
-
-    // make sure it fits
-    if (val < min_value || val > max_value) {
-        mpack_reader_flag_error(reader, mpack_error_type);
-        return min_value;
-    }
-
-    return val;
-}
+float mpack_expect_float_range(mpack_reader_t* reader, float min_value, float max_value) {MPACK_EXPECT_RANGE_IMPL(float, float)}
+double mpack_expect_double_range(mpack_reader_t* reader, double min_value, double max_value) {MPACK_EXPECT_RANGE_IMPL(double, double)}
 
 
 // Matching Number Functions

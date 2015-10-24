@@ -329,6 +329,70 @@ static void test_expect_uint_bounds() {
 
 }
 
+static void test_expect_uint_range() {
+    test_simple_read("\x00", 0 == mpack_expect_u8_max(&reader, 0));
+    test_simple_read_error("\x01", 0 == mpack_expect_u8_max(&reader, 0), mpack_error_type);
+
+    test_simple_read_error("\x00", 1 == mpack_expect_u8_range(&reader, 1, 3), mpack_error_type);
+    test_simple_read("\x01", 1 == mpack_expect_u8_range(&reader, 1, 3));
+    test_simple_read("\x02", 2 == mpack_expect_u8_range(&reader, 1, 3));
+    test_simple_read("\x03", 3 == mpack_expect_u8_range(&reader, 1, 3));
+    test_simple_read_error("\x04", 1 == mpack_expect_u8_range(&reader, 1, 3), mpack_error_type);
+
+    test_simple_read("\x00", 0 == mpack_expect_u16_max(&reader, 0));
+    test_simple_read_error("\x01", 0 == mpack_expect_u16_max(&reader, 0), mpack_error_type);
+
+    test_simple_read_error("\x00", 1 == mpack_expect_u16_range(&reader, 1, 3), mpack_error_type);
+    test_simple_read("\x01", 1 == mpack_expect_u16_range(&reader, 1, 3));
+    test_simple_read("\x02", 2 == mpack_expect_u16_range(&reader, 1, 3));
+    test_simple_read("\x03", 3 == mpack_expect_u16_range(&reader, 1, 3));
+    test_simple_read_error("\x04", 1 == mpack_expect_u16_range(&reader, 1, 3), mpack_error_type);
+
+    test_simple_read("\x00", 0 == mpack_expect_u32_max(&reader, 0));
+    test_simple_read_error("\x01", 0 == mpack_expect_u32_max(&reader, 0), mpack_error_type);
+
+    test_simple_read_error("\x00", 1 == mpack_expect_u32_range(&reader, 1, 3), mpack_error_type);
+    test_simple_read("\x01", 1 == mpack_expect_u32_range(&reader, 1, 3));
+    test_simple_read("\x02", 2 == mpack_expect_u32_range(&reader, 1, 3));
+    test_simple_read("\x03", 3 == mpack_expect_u32_range(&reader, 1, 3));
+    test_simple_read_error("\x04", 1 == mpack_expect_u32_range(&reader, 1, 3), mpack_error_type);
+
+    test_simple_read("\x00", 0 == mpack_expect_u64_max(&reader, 0));
+    test_simple_read_error("\x01", 0 == mpack_expect_u64_max(&reader, 0), mpack_error_type);
+
+    test_simple_read_error("\x00", 1 == mpack_expect_u64_range(&reader, 1, 3), mpack_error_type);
+    test_simple_read("\x01", 1 == mpack_expect_u64_range(&reader, 1, 3));
+    test_simple_read("\x02", 2 == mpack_expect_u64_range(&reader, 1, 3));
+    test_simple_read("\x03", 3 == mpack_expect_u64_range(&reader, 1, 3));
+    test_simple_read_error("\x04", 1 == mpack_expect_u64_range(&reader, 1, 3), mpack_error_type);
+}
+
+static void test_expect_int_range() {
+    test_simple_read_error("\xfe", -1 == mpack_expect_i8_range(&reader, -1, 1), mpack_error_type);
+    test_simple_read("\xff", -1 == mpack_expect_i8_range(&reader, -1, 1));
+    test_simple_read("\x00", 0 == mpack_expect_i8_range(&reader, -1, 1));
+    test_simple_read("\x01", 1 == mpack_expect_i8_range(&reader, -1, 1));
+    test_simple_read_error("\x02", -1 == mpack_expect_i8_range(&reader, -1, 1), mpack_error_type);
+
+    test_simple_read_error("\xfe", -1 == mpack_expect_i16_range(&reader, -1, 1), mpack_error_type);
+    test_simple_read("\xff", -1 == mpack_expect_i16_range(&reader, -1, 1));
+    test_simple_read("\x00", 0 == mpack_expect_i16_range(&reader, -1, 1));
+    test_simple_read("\x01", 1 == mpack_expect_i16_range(&reader, -1, 1));
+    test_simple_read_error("\x02", -1 == mpack_expect_i16_range(&reader, -1, 1), mpack_error_type);
+
+    test_simple_read_error("\xfe", -1 == mpack_expect_i32_range(&reader, -1, 1), mpack_error_type);
+    test_simple_read("\xff", -1 == mpack_expect_i32_range(&reader, -1, 1));
+    test_simple_read("\x00", 0 == mpack_expect_i32_range(&reader, -1, 1));
+    test_simple_read("\x01", 1 == mpack_expect_i32_range(&reader, -1, 1));
+    test_simple_read_error("\x02", -1 == mpack_expect_i32_range(&reader, -1, 1), mpack_error_type);
+
+    test_simple_read_error("\xfe", -1 == mpack_expect_i64_range(&reader, -1, 1), mpack_error_type);
+    test_simple_read("\xff", -1 == mpack_expect_i64_range(&reader, -1, 1));
+    test_simple_read("\x00", 0 == mpack_expect_i64_range(&reader, -1, 1));
+    test_simple_read("\x01", 1 == mpack_expect_i64_range(&reader, -1, 1));
+    test_simple_read_error("\x02", -1 == mpack_expect_i64_range(&reader, -1, 1), mpack_error_type);
+}
+
 static void test_expect_misc() {
     test_simple_read("\xc0", (mpack_expect_nil(&reader), true));
     test_simple_read("\xc2", false == mpack_expect_bool(&reader));
@@ -418,6 +482,8 @@ void test_expect() {
     test_expect_uint_bounds();
     test_expect_int_bounds();
     test_expect_ints_dynamic_int();
+    test_expect_uint_range();
+    test_expect_int_range();
 
     // other
     test_expect_misc();
