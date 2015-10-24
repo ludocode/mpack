@@ -98,6 +98,29 @@ extern jmp_buf test_assert_jmp;
 #define TEST_ASSERT_CLEARJMP() \
     (test_assert(test_assert_jmp_set, "an assert jmp is not set!"), \
         test_assert_jmp_set = false)
+
+// runs the given expression, causing a unit test failure if an assertion
+// is not triggered. (note that stack variables may need to be marked volatile
+// since non-volatile stack variables that are written to after setjmp are
+// undefined after longjmp.)
+#define test_expecting_assert(expr) do { \
+    bool jumped = false; \
+    if (TEST_ASSERT_SETJMP()) { \
+        jumped = true; \
+    } else { \
+        (expr); \
+    } \
+    TEST_ASSERT_CLEARJMP(); \
+    test_assert(jumped, "expression should assert, but didn't: " #expr); \
+} while (0)
+
+#else
+
+// in release mode we just run the expr since asserts are compiled out.
+#define test_expecting_assert(expr) do { \
+    (expr); \
+} while (0)
+
 #endif
 
 #ifdef __cplusplus
