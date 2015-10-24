@@ -569,11 +569,11 @@ void mpack_expect_false(mpack_reader_t* reader);
  * alternating between keys and values. @ref mpack_done_map() must be called
  * once all elements have been read.
  *
- * mpack_error_type is raised if the value is not a map.
- *
  * Note that maps in JSON are unordered, so it is recommended not to expect
  * a specific ordering for your map values in case your data is converted
  * to/from JSON.
+ *
+ * @throws mpack_error_type if the value is not a map.
  */
 uint32_t mpack_expect_map(mpack_reader_t* reader);
 
@@ -585,14 +585,37 @@ uint32_t mpack_expect_map(mpack_reader_t* reader);
  * alternating between keys and values. @ref mpack_done_map() must be called
  * once all elements have been read.
  *
- * mpack_error_type is raised if the value is not a map or if its size does
+ * Note that maps in JSON are unordered, so it is recommended not to expect
+ * a specific ordering for your map values in case your data is converted
+ * to/from JSON.
+ *
+ * min_count is returned if an error occurs.
+ *
+ * @throws mpack_error_type if the value is not a map or if its size does
  * not fall within the given range.
+ */
+uint32_t mpack_expect_map_range(mpack_reader_t* reader, uint32_t min_count, uint32_t max_count);
+
+/**
+ * Reads the start of a map with a number of elements at most max_count,
+ * returning its element count.
+ *
+ * A number of values follow equal to twice the element count of the map,
+ * alternating between keys and values. @ref mpack_done_map() must be called
+ * once all elements have been read.
  *
  * Note that maps in JSON are unordered, so it is recommended not to expect
  * a specific ordering for your map values in case your data is converted
  * to/from JSON.
+ *
+ * Zero is returned if an error occurs.
+ *
+ * @throws mpack_error_type if the value is not a map or if its size is
+ * greater than max_count.
  */
-uint32_t mpack_expect_map_range(mpack_reader_t* reader, uint32_t min_count, uint32_t max_count);
+MPACK_INLINE uint32_t mpack_expect_map_max(mpack_reader_t* reader, uint32_t max_count) {
+    return mpack_expect_map_range(reader, 0, max_count);
+}
 
 /**
  * Reads the start of a map of the exact size given.
@@ -601,12 +624,12 @@ uint32_t mpack_expect_map_range(mpack_reader_t* reader, uint32_t min_count, uint
  * alternating between keys and values. @ref mpack_done_map() must be called
  * once all elements have been read.
  *
- * @ref mpack_error_type is raised if the value is not a map or if its size
- * does not match the given count.
- *
  * Note that maps in JSON are unordered, so it is recommended not to expect
  * a specific ordering for your map values in case your data is converted
  * to/from JSON.
+ *
+ * @throws mpack_error_type if the value is not a map or if its size
+ * does not match the given count.
  */
 void mpack_expect_map_match(mpack_reader_t* reader, uint32_t count);
 
@@ -627,11 +650,25 @@ uint32_t mpack_expect_array(mpack_reader_t* reader);
  * A number of values follow equal to the element count of the array.
  * @ref mpack_done_array() must be called once all elements have been read.
  *
+ * min_count is returned if an error occurs.
+ *
  * @throws mpack_error_type if the value is not an array or if its size does
  * not fall within the given range.
  */
 uint32_t mpack_expect_array_range(mpack_reader_t* reader, uint32_t min_count, uint32_t max_count);
 
+/**
+ * Reads the start of an array with a number of elements at most max_count,
+ * returning its element count.
+ *
+ * A number of values follow equal to the element count of the array.
+ * @ref mpack_done_array() must be called once all elements have been read.
+ *
+ * Zero is returned if an error occurs.
+ *
+ * @throws mpack_error_type if the value is not an array or if its size is
+ * greater than max_count.
+ */
 MPACK_INLINE uint32_t mpack_expect_array_max(mpack_reader_t* reader, uint32_t max_count) {
     return mpack_expect_array_range(reader, 0, max_count);
 }

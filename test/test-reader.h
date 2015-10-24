@@ -46,6 +46,13 @@ extern "C" {
     mpack_reader_destroy(reader); \
 } while (0)
 
+// tears down a reader with tracking cancelling, ensuring it has no errors
+#define test_reader_destroy_cancel_noerror(reader) do { \
+    test_assert(mpack_reader_error(reader) == mpack_ok, \
+            "reader is in error state %i", (int)mpack_reader_error(reader)); \
+    mpack_reader_destroy_cancel(reader); \
+} while (0)
+
 // tears down a reader, ensuring it is in the given error state
 #define test_reader_destroy_error(reader, error) do { \
     mpack_error_t e = (error); \
@@ -76,6 +83,14 @@ extern "C" {
     mpack_reader_init_data(&reader, data, sizeof(data) - 1); \
     test_assert((read_expr), "simple read test did not pass: " #read_expr); \
     test_reader_destroy_noerror(&reader); \
+} while (0)
+
+// runs a simple reader test, ensuring the expression is true and no errors occur, cancelling to ignore tracking info
+#define test_simple_read_cancel(data, read_expr) do { \
+    mpack_reader_t reader; \
+    mpack_reader_init_data(&reader, data, sizeof(data) - 1); \
+    test_assert((read_expr), "simple read test did not pass: " #read_expr); \
+    test_reader_destroy_cancel_noerror(&reader); \
 } while (0)
 
 // runs a simple reader test, ensuring the expression is true and the given error is raised

@@ -509,6 +509,64 @@ static void test_expect_pre_error() {
     test_simple_read_error("", 0.0 == mpack_expect_double_strict(&reader), mpack_error_io);
 }
 
+static void test_expect_data() {
+
+    test_simple_read_cancel("\xa0", 0 == mpack_expect_str(&reader));
+
+}
+
+static void test_expect_compound() {
+
+    // arrays
+    test_simple_read_cancel("\x90", 0 == mpack_expect_array(&reader));
+    test_simple_read_cancel("\x91", 1 == mpack_expect_array(&reader));
+    test_simple_read_cancel("\x9f", 15 == mpack_expect_array(&reader));
+    test_simple_read_cancel("\xdc\x00\x00", 0 == mpack_expect_array(&reader));
+    test_simple_read_cancel("\xdc\x01\x00", 0x100 == mpack_expect_array(&reader));
+    test_simple_read_cancel("\xdc\xff\xff", 0xffff == mpack_expect_array(&reader));
+    test_simple_read_cancel("\xdd\x00\x00\x00\x00", 0 == mpack_expect_array(&reader));
+    test_simple_read_cancel("\xdd\x00\x00\x01\x00", 0x100 == mpack_expect_array(&reader));
+    test_simple_read_cancel("\xdd\x00\x01\x00\x00", 0x10000 == mpack_expect_array(&reader));
+    test_simple_read_cancel("\xdd\xff\xff\xff\xff", UINT32_MAX == mpack_expect_array(&reader));
+
+    test_simple_read_cancel("\x91", 1 == mpack_expect_array_range(&reader, 0, 1));
+    test_simple_read_cancel("\x91", 1 == mpack_expect_array_range(&reader, 1, 1));
+    test_simple_read_error("\x91", 2 == mpack_expect_array_range(&reader, 2, 2), mpack_error_type);
+    test_simple_read_assert("\x91", mpack_expect_array_range(reader, 2, 1));
+    test_simple_read_cancel("\x91", 1 == mpack_expect_array_max(&reader, 1));
+    test_simple_read_error("\x91", 0 == mpack_expect_array_max(&reader, 0), mpack_error_type);
+
+    test_simple_read_cancel("\x90", (mpack_expect_array_match(&reader, 0), true));
+    test_simple_read_cancel("\x9f", (mpack_expect_array_match(&reader, 15), true));
+    test_simple_read_cancel("\xdc\xff\xff", (mpack_expect_array_match(&reader, 0xffff), true));
+    test_simple_read_cancel("\xdd\xff\xff\xff\xff", (mpack_expect_array_match(&reader, UINT32_MAX), true));
+
+    // maps
+    test_simple_read_cancel("\x80", 0 == mpack_expect_map(&reader));
+    test_simple_read_cancel("\x81", 1 == mpack_expect_map(&reader));
+    test_simple_read_cancel("\x8f", 15 == mpack_expect_map(&reader));
+    test_simple_read_cancel("\xde\x00\x00", 0 == mpack_expect_map(&reader));
+    test_simple_read_cancel("\xde\x01\x00", 0x100 == mpack_expect_map(&reader));
+    test_simple_read_cancel("\xde\xff\xff", 0xffff == mpack_expect_map(&reader));
+    test_simple_read_cancel("\xdf\x00\x00\x00\x00", 0 == mpack_expect_map(&reader));
+    test_simple_read_cancel("\xdf\x00\x00\x01\x00", 0x100 == mpack_expect_map(&reader));
+    test_simple_read_cancel("\xdf\x00\x01\x00\x00", 0x10000 == mpack_expect_map(&reader));
+    test_simple_read_cancel("\xdf\xff\xff\xff\xff", UINT32_MAX == mpack_expect_map(&reader));
+
+    test_simple_read_cancel("\x81", 1 == mpack_expect_map_range(&reader, 0, 1));
+    test_simple_read_cancel("\x81", 1 == mpack_expect_map_range(&reader, 1, 1));
+    test_simple_read_error("\x81", 2 == mpack_expect_map_range(&reader, 2, 2), mpack_error_type);
+    test_simple_read_assert("\x81", mpack_expect_map_range(reader, 2, 1));
+    test_simple_read_cancel("\x81", 1 == mpack_expect_map_max(&reader, 1));
+    test_simple_read_error("\x81", 0 == mpack_expect_map_max(&reader, 0), mpack_error_type);
+
+    test_simple_read_cancel("\x80", (mpack_expect_map_match(&reader, 0), true));
+    test_simple_read_cancel("\x8f", (mpack_expect_map_match(&reader, 15), true));
+    test_simple_read_cancel("\xde\xff\xff", (mpack_expect_map_match(&reader, 0xffff), true));
+    test_simple_read_cancel("\xdf\xff\xff\xff\xff", (mpack_expect_map_match(&reader, UINT32_MAX), true));
+
+}
+
 void test_expect() {
     test_expect_example_read();
 
@@ -531,6 +589,10 @@ void test_expect() {
     test_expect_reals_range();
     test_expect_bad_type();
     test_expect_pre_error();
+
+    // compound types
+    test_expect_data();
+    test_expect_compound();
 }
 
 #endif

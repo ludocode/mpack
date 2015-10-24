@@ -382,7 +382,9 @@ MPACK_STATIC_INLINE_SPEED void mpack_write_native_double(mpack_writer_t* writer,
 }
 
 mpack_error_t mpack_writer_destroy(mpack_writer_t* writer) {
-    MPACK_WRITER_TRACK(writer, mpack_track_destroy(&writer->track, false));
+
+    // clean up tracking, asserting if we're not already in an error state
+    MPACK_WRITER_TRACK(writer, mpack_track_destroy(&writer->track, writer->error != mpack_ok));
 
     // flush any outstanding data
     if (mpack_writer_error(writer) == mpack_ok && writer->used != 0 && writer->flush != NULL) {

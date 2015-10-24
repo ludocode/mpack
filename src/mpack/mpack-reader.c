@@ -101,6 +101,9 @@ void mpack_reader_init_file(mpack_reader_t* reader, const char* filename) {
 #endif
 
 static mpack_error_t mpack_reader_destroy_impl(mpack_reader_t* reader, bool cancel) {
+
+    // clean up tracking, asserting if we're not already in an error state
+    cancel |= reader->error != mpack_ok;
     MPACK_UNUSED(cancel);
     MPACK_UNUSED(MPACK_READER_TRACK(reader, mpack_track_destroy(&reader->track, cancel)));
 

@@ -179,7 +179,7 @@ double mpack_expect_double_strict(mpack_reader_t* reader) {
 
 // Ranged Number Functions
 //
-// All ranged number functions are identical other than the type, so we
+// All ranged functions are identical other than the type, so we
 // define their content with a macro. The prototypes are still written
 // out in full to support ctags/IDE tools.
 
@@ -215,6 +215,9 @@ int64_t mpack_expect_i64_range(mpack_reader_t* reader, int64_t min_value, int64_
 
 float mpack_expect_float_range(mpack_reader_t* reader, float min_value, float max_value) {MPACK_EXPECT_RANGE_IMPL(float, float)}
 double mpack_expect_double_range(mpack_reader_t* reader, double min_value, double max_value) {MPACK_EXPECT_RANGE_IMPL(double, double)}
+
+uint32_t mpack_expect_map_range(mpack_reader_t* reader, uint32_t min_value, uint32_t max_value) {MPACK_EXPECT_RANGE_IMPL(map, uint32_t)}
+uint32_t mpack_expect_array_range(mpack_reader_t* reader, uint32_t min_value, uint32_t max_value) {MPACK_EXPECT_RANGE_IMPL(array, uint32_t)}
 
 
 // Matching Number Functions
@@ -303,26 +306,6 @@ uint32_t mpack_expect_array(mpack_reader_t* reader) {
 void mpack_expect_array_match(mpack_reader_t* reader, uint32_t count) {
     if (mpack_expect_array(reader) != count)
         mpack_reader_flag_error(reader, mpack_error_type);
-}
-
-uint32_t mpack_expect_array_range(mpack_reader_t* reader, uint32_t min_count, uint32_t max_count) {
-
-    // make sure the range is sensible
-    mpack_assert(min_count <= max_count, "min_count %u must be less than or equal to max_count %u",
-            min_count, max_count);
-
-    // read the count
-    uint32_t count = mpack_expect_array(reader);
-    if (mpack_reader_error(reader) != mpack_ok)
-        return min_count;
-
-    // make sure it fits
-    if (count < min_count || count > max_count) {
-        mpack_reader_flag_error(reader, mpack_error_type);
-        return min_count;
-    }
-
-    return count;
 }
 
 #ifdef MPACK_MALLOC
