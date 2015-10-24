@@ -100,9 +100,6 @@
 #ifndef MPACK_INTERNAL
 #define MPACK_INTERNAL 0
 #endif
-#ifndef MPACK_NO_PRINT
-#define MPACK_NO_PRINT 0
-#endif
 
 
 

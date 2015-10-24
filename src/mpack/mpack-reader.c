@@ -661,32 +661,32 @@ void mpack_done_type(mpack_reader_t* reader, mpack_type_t type) {
 }
 #endif
 
-#if MPACK_DEBUG && MPACK_STDIO && !MPACK_NO_PRINT
-static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
+#if MPACK_STDIO
+static void mpack_print_element(mpack_reader_t* reader, size_t depth, FILE* file) {
     mpack_tag_t val = mpack_read_tag(reader);
     if (mpack_reader_error(reader) != mpack_ok)
         return;
     switch (val.type) {
 
         case mpack_type_nil:
-            printf("null");
+            fprintf(file, "null");
             break;
         case mpack_type_bool:
-            printf(val.v.b ? "true" : "false");
+            fprintf(file, val.v.b ? "true" : "false");
             break;
 
         case mpack_type_float:
-            printf("%f", val.v.f);
+            fprintf(file, "%f", val.v.f);
             break;
         case mpack_type_double:
-            printf("%f", val.v.d);
+            fprintf(file, "%f", val.v.d);
             break;
 
         case mpack_type_int:
-            printf("%" PRIi64, val.v.i);
+            fprintf(file, "%" PRIi64, val.v.i);
             break;
         case mpack_type_uint:
-            printf("%" PRIu64, val.v.u);
+            fprintf(file, "%" PRIu64, val.v.u);
             break;
 
         case mpack_type_bin:
@@ -695,7 +695,7 @@ static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
                 mpack_read_native_u8(reader);
             if (mpack_reader_error(reader) != mpack_ok)
                 return;
-            printf("<binary data>");
+            fprintf(file, "<binary data>");
             mpack_done_bin(reader);
             break;
 
@@ -705,7 +705,7 @@ static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
                 mpack_read_native_u8(reader);
             if (mpack_reader_error(reader) != mpack_ok)
                 return;
-            printf("<ext data of type %i>", val.exttype);
+            fprintf(file, "<ext data of type %i>", val.exttype);
             mpack_done_ext(reader);
             break;
 
@@ -717,9 +717,9 @@ static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
                 if (mpack_reader_error(reader) != mpack_ok)
                     return;
                 switch (c) {
-                    case '\n': printf("\\n"); break;
-                    case '\\': printf("\\\\"); break;
-                    case '"': printf("\\\""); break;
+                    case '\n': fprintf(file, "\\n"); break;
+                    case '\\': fprintf(file, "\\\\"); break;
+                    case '"': fprintf(file, "\\\""); break;
                     default: putchar(c); break;
                 }
             }
@@ -728,13 +728,13 @@ static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
             break;
 
         case mpack_type_array:
-            printf("[\n");
+            fprintf(file, "[\n");
             for (size_t i = 0; i < val.v.n; ++i) {
                 if (mpack_reader_error(reader) != mpack_ok)
                     return;
                 for (size_t j = 0; j < depth + 1; ++j)
-                    printf("    ");
-                mpack_debug_print_element(reader, depth + 1);
+                    fprintf(file, "    ");
+                mpack_print_element(reader, depth + 1, file);
                 if (mpack_reader_error(reader) != mpack_ok)
                     return;
                 if (i != val.v.n - 1)
@@ -742,21 +742,21 @@ static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
                 putchar('\n');
             }
             for (size_t i = 0; i < depth; ++i)
-                printf("    ");
+                fprintf(file, "    ");
             putchar(']');
             mpack_done_array(reader);
             break;
 
         case mpack_type_map:
-            printf("{\n");
+            fprintf(file, "{\n");
             for (size_t i = 0; i < val.v.n; ++i) {
                 for (size_t j = 0; j < depth + 1; ++j)
-                    printf("    ");
-                mpack_debug_print_element(reader, depth + 1);
+                    fprintf(file, "    ");
+                mpack_print_element(reader, depth + 1, file);
                 if (mpack_reader_error(reader) != mpack_ok)
                     return;
-                printf(": ");
-                mpack_debug_print_element(reader, depth + 1);
+                fprintf(file, ": ");
+                mpack_print_element(reader, depth + 1, file);
                 if (mpack_reader_error(reader) != mpack_ok)
                     return;
                 if (i != val.v.n - 1)
@@ -764,27 +764,27 @@ static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
                 putchar('\n');
             }
             for (size_t i = 0; i < depth; ++i)
-                printf("    ");
+                fprintf(file, "    ");
             putchar('}');
             mpack_done_map(reader);
             break;
     }
 }
 
-void mpack_debug_print(const char* data, int len) {
+void mpack_print_file(const char* data, int len, FILE* file) {
     mpack_reader_t reader;
     mpack_reader_init_data(&reader, data, len);
 
     int depth = 2;
     for (int i = 0; i < depth; ++i)
-        printf("    ");
-    mpack_debug_print_element(&reader, depth);
+        fprintf(file, "    ");
+    mpack_print_element(&reader, depth, file);
     putchar('\n');
 
     if (mpack_reader_error(&reader) != mpack_ok)
-        printf("<mpack parsing error %s>\n", mpack_error_to_string(mpack_reader_error(&reader)));
+        fprintf(file, "<mpack parsing error %s>\n", mpack_error_to_string(mpack_reader_error(&reader)));
     else if (mpack_reader_remaining(&reader, NULL) > 0)
-        printf("<%i extra bytes at end of mpack>\n", (int)mpack_reader_remaining(&reader, NULL));
+        fprintf(file, "<%i extra bytes at end of mpack>\n", (int)mpack_reader_remaining(&reader, NULL));
 }
 #endif
 

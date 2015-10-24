@@ -865,8 +865,8 @@ mpack_tag_t mpack_node_tag(mpack_node_t node) {
     return tag;
 }
 
-#if MPACK_DEBUG && MPACK_STDIO && !MPACK_NO_PRINT
-static void mpack_node_print_element(mpack_node_t node, size_t depth) {
+#if MPACK_STDIO
+static void mpack_node_print_element(mpack_node_t node, size_t depth, FILE* file) {
     mpack_node_data_t* data = node.data;
     switch (data->type) {
 
@@ -921,7 +921,7 @@ static void mpack_node_print_element(mpack_node_t node, size_t depth) {
             for (size_t i = 0; i < data->value.content.n; ++i) {
                 for (size_t j = 0; j < depth + 1; ++j)
                     printf("    ");
-                mpack_node_print_element(mpack_node_array_at(node, i), depth + 1);
+                mpack_node_print_element(mpack_node_array_at(node, i), depth + 1, file);
                 if (i != data->value.content.n - 1)
                     putchar(',');
                 putchar('\n');
@@ -936,9 +936,9 @@ static void mpack_node_print_element(mpack_node_t node, size_t depth) {
             for (size_t i = 0; i < data->value.content.n; ++i) {
                 for (size_t j = 0; j < depth + 1; ++j)
                     printf("    ");
-                mpack_node_print_element(mpack_node_map_key_at(node, i), depth + 1);
+                mpack_node_print_element(mpack_node_map_key_at(node, i), depth + 1, file);
                 printf(": ");
-                mpack_node_print_element(mpack_node_map_value_at(node, i), depth + 1);
+                mpack_node_print_element(mpack_node_map_value_at(node, i), depth + 1, file);
                 if (i != data->value.content.n - 1)
                     putchar(',');
                 putchar('\n');
@@ -950,11 +950,11 @@ static void mpack_node_print_element(mpack_node_t node, size_t depth) {
     }
 }
 
-void mpack_node_print(mpack_node_t node) {
+void mpack_node_print_file(mpack_node_t node, FILE* file) {
     int depth = 2;
     for (int i = 0; i < depth; ++i)
         printf("    ");
-    mpack_node_print_element(node, depth);
+    mpack_node_print_element(node, depth, file);
     putchar('\n');
 }
 #endif

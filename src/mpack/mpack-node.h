@@ -351,13 +351,20 @@ MPACK_INLINE mpack_error_t mpack_node_error(mpack_node_t node) {
  */
 mpack_tag_t mpack_node_tag(mpack_node_t node);
 
-#if MPACK_DEBUG && MPACK_STDIO && !MPACK_NO_PRINT
+#if MPACK_STDIO
 /**
- * Converts a node to JSON and pretty-prints it to stdout.
- *
- * This function is only available in debugging mode.
+ * Converts a node to pseudo-JSON for debugging purposes
+ * and pretty-prints it to the given file.
  */
-void mpack_node_print(mpack_node_t node);
+void mpack_node_print_file(mpack_node_t node, FILE* file);
+
+/**
+ * Converts a node to pseudo-JSON for debugging purposes
+ * and pretty-prints it to stdout.
+ */
+MPACK_INLINE void mpack_node_print(mpack_node_t node) {
+    mpack_node_print_file(node, stdout);
+}
 #endif
 
 /**

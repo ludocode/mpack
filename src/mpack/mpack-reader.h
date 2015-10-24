@@ -464,9 +464,20 @@ MPACK_INLINE void mpack_done_type(mpack_reader_t* reader, mpack_type_t type) {MP
  */
 void mpack_discard(mpack_reader_t* reader);
 
-#if MPACK_DEBUG && MPACK_STDIO && !MPACK_NO_PRINT
-/*! Converts a chunk of messagepack to JSON and pretty-prints it to stdout. */
-void mpack_debug_print(const char* data, int len);
+#if MPACK_STDIO
+/**
+ * Converts a blob of MessagePack to pseudo-JSON for debugging purposes
+ * and pretty-prints it to the given file.
+ */
+void mpack_print_file(const char* data, int len, FILE* file);
+
+/**
+ * Converts a blob of MessagePack to pseudo-JSON for debugging purposes
+ * and pretty-prints it to stdout.
+ */
+MPACK_INLINE void mpack_print(const char* data, int len) {
+    mpack_print_file(data, len, stdout);
+}
 #endif
 
 /**
