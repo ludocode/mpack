@@ -19,8 +19,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef MPACK_TEST_TAG_H
-#define MPACK_TEST_TAG_H 1
+#ifndef MPACK_TEST_COMMON_H
+#define MPACK_TEST_COMMON_H 1
 
 #include "test.h"
 
@@ -28,7 +28,7 @@
 extern "C" {
 #endif
 
-void test_tags(void);
+void test_common(void);
 
 #ifdef __cplusplus
 }

@@ -27,7 +27,7 @@
 #include "test-expect.h"
 #include "test-write.h"
 #include "test-buffer.h"
-#include "test-tag.h"
+#include "test-common.h"
 #include "test-node.h"
 #include "test-file.h"
 
@@ -69,7 +69,7 @@ void test_assert_impl(bool result, const char* file, int line, const char* forma
 int main(void) {
     printf("\n\n");
 
-    test_tags();
+    test_common();
 
     #if MPACK_EXPECT
     test_expect();

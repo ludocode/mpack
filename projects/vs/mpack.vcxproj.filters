@@ -47,7 +47,7 @@
     <ClCompile Include="..\..\test\test-expect.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test\test-tag.c">
+    <ClCompile Include="..\..\test\test-common.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\test\test-write.c">
@@ -94,7 +94,7 @@
     <ClInclude Include="..\..\test\test-expect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test\test-tag.h">
+    <ClInclude Include="..\..\test\test-common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\test\test-write.h">

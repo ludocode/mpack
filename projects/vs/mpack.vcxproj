@@ -87,7 +87,7 @@
     <ClCompile Include="..\..\test\test-malloc.c" />
     <ClCompile Include="..\..\test\test-node.c" />
     <ClCompile Include="..\..\test\test-expect.c" />
-    <ClCompile Include="..\..\test\test-tag.c" />
+    <ClCompile Include="..\..\test\test-common.c" />
     <ClCompile Include="..\..\test\test-write.c" />
   </ItemGroup>
   <ItemGroup>
@@ -104,7 +104,7 @@
     <ClInclude Include="..\..\test\test-malloc.h" />
     <ClInclude Include="..\..\test\test-node.h" />
     <ClInclude Include="..\..\test\test-expect.h" />
-    <ClInclude Include="..\..\test\test-tag.h" />
+    <ClInclude Include="..\..\test\test-common.h" />
     <ClInclude Include="..\..\test\test-write.h" />
     <ClInclude Include="..\..\test\test.h" />
   </ItemGroup>

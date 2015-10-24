@@ -19,15 +19,15 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "test-tag.h"
+#include "test-common.h"
 
 #include <math.h>
 #include "test.h"
 
 static void test_tags_special(void) {
 
-    // ensure there is only one inline definition (the other
-    // address here is in main)
+    // ensure there is only one inline definition (the global
+    // address is in test.c)
     test_assert(fn_mpack_tag_nil == &mpack_tag_nil);
 
 }
@@ -202,7 +202,7 @@ static void test_tags_compound() {
     test_assert(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_bin(0)));
 }
 
-void test_tags() {
+void test_common() {
     test_tags_special();
     test_tags_simple();
     test_tags_reals();
