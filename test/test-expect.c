@@ -425,6 +425,31 @@ static void test_expect_misc() {
     test_simple_read("\xc3", (mpack_expect_true(&reader), true));
 }
 
+static void test_expect_tracking() {
+
+    // test tracking depth growth
+    static const char test[] = "\x91\x91\x91\x91\x91\x91\x90";
+    mpack_reader_t reader;
+    mpack_reader_init_data(&reader, test, sizeof(test) - 1);
+
+    test_assert(1 == mpack_expect_array(&reader));
+    test_assert(1 == mpack_expect_array(&reader));
+    test_assert(1 == mpack_expect_array(&reader));
+    test_assert(1 == mpack_expect_array(&reader));
+    test_assert(1 == mpack_expect_array(&reader));
+    test_assert(1 == mpack_expect_array(&reader));
+    test_assert(0 == mpack_expect_array(&reader));
+    mpack_done_array(&reader);
+    mpack_done_array(&reader);
+    mpack_done_array(&reader);
+    mpack_done_array(&reader);
+    mpack_done_array(&reader);
+    mpack_done_array(&reader);
+    mpack_done_array(&reader);
+
+    test_reader_destroy_noerror(&reader);
+}
+
 static void test_expect_reals() {
     // these are some very simple floats that don't really test IEEE 742 conformance;
     // this section could use some improvement
@@ -585,6 +610,7 @@ void test_expect() {
 
     // other
     test_expect_misc();
+    test_expect_tracking();
     test_expect_reals();
     test_expect_reals_range();
     test_expect_bad_type();
