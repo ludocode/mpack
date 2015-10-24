@@ -30,6 +30,14 @@ static void test_tags_special(void) {
     // address is in test.c)
     test_assert(fn_mpack_tag_nil == &mpack_tag_nil);
 
+    // test comparison with invalid tags
+    // (invalid enum values are not allowed in C++)
+    #ifndef __cplusplus
+    mpack_tag_t invalid = mpack_tag_nil();
+    invalid.type = (mpack_type_t)-1;
+    test_expecting_assert(mpack_tag_cmp(invalid, invalid));
+    #endif
+
 }
 
 static void test_tags_simple(void) {
@@ -88,6 +96,28 @@ static void test_tags_simple(void) {
     test_assert(true == mpack_tag_equal(mpack_tag_int(1), mpack_tag_uint(1)));
     test_assert(false == mpack_tag_equal(mpack_tag_int(0), mpack_tag_uint(1)));
     test_assert(false == mpack_tag_equal(mpack_tag_int(0), mpack_tag_uint(1)));
+
+    // ordering
+
+    test_assert(-1 == mpack_tag_cmp(mpack_tag_uint(0), mpack_tag_uint(1)));
+    test_assert(1 == mpack_tag_cmp(mpack_tag_uint(1), mpack_tag_uint(0)));
+    test_assert(-1 == mpack_tag_cmp(mpack_tag_int(-2), mpack_tag_int(-1)));
+    test_assert(1 == mpack_tag_cmp(mpack_tag_int(-1), mpack_tag_int(-2)));
+
+    test_assert(-1 == mpack_tag_cmp(mpack_tag_str(0), mpack_tag_str(1)));
+    test_assert(1 == mpack_tag_cmp(mpack_tag_str(1), mpack_tag_str(0)));
+    test_assert(-1 == mpack_tag_cmp(mpack_tag_bin(0), mpack_tag_bin(1)));
+    test_assert(1 == mpack_tag_cmp(mpack_tag_bin(1), mpack_tag_bin(0)));
+
+    test_assert(-1 == mpack_tag_cmp(mpack_tag_array(0), mpack_tag_array(1)));
+    test_assert(1 == mpack_tag_cmp(mpack_tag_array(1), mpack_tag_array(0)));
+    test_assert(-1 == mpack_tag_cmp(mpack_tag_map(0), mpack_tag_map(1)));
+    test_assert(1 == mpack_tag_cmp(mpack_tag_map(1), mpack_tag_map(0)));
+
+    test_assert(-1 == mpack_tag_cmp(mpack_tag_ext(1, 1), mpack_tag_ext(2, 0)));
+    test_assert(-1 == mpack_tag_cmp(mpack_tag_ext(1, 1), mpack_tag_ext(1, 2)));
+    test_assert(1 == mpack_tag_cmp(mpack_tag_ext(2, 0), mpack_tag_ext(1, 1)));
+    test_assert(1 == mpack_tag_cmp(mpack_tag_ext(1, 2), mpack_tag_ext(1, 1)));
 
 }
 
@@ -238,6 +268,13 @@ static void test_strings() {
     TEST_ERROR_TYPE(array);
     TEST_ERROR_TYPE(map);
     #undef TEST_ERROR_TYPE
+
+    // test strings for invalid enum values
+    // (invalid enum values are not allowed in C++)
+    #ifndef __cplusplus
+    test_expecting_assert(mpack_error_to_string((mpack_error_t)-1));
+    test_expecting_assert(mpack_type_to_string((mpack_type_t)-1));
+    #endif
 }
 
 void test_common() {
