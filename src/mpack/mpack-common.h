@@ -262,7 +262,7 @@ MPACK_INLINE mpack_tag_t mpack_tag_bin(int32_t length) {
 }
 
 /** Generates an ext tag. */
-MPACK_INLINE mpack_tag_t mpack_tag_ext(int32_t length, int8_t exttype) {
+MPACK_INLINE mpack_tag_t mpack_tag_ext(int8_t exttype, int32_t length) {
     mpack_tag_t ret;
     mpack_memset(&ret, 0, sizeof(ret));
     ret.type = mpack_type_ext;

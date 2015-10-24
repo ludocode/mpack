@@ -167,14 +167,14 @@ static void test_tags_compound() {
     test_assert(1 == mpack_tag_cmp(mpack_tag_bin(1), mpack_tag_bin(0)));
 
     test_assert(true == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_ext(0, 0)));
-    test_assert(true == mpack_tag_equal(mpack_tag_ext(1, 0), mpack_tag_ext(1, 0)));
-    test_assert(true == mpack_tag_equal(mpack_tag_ext(0, 127), mpack_tag_ext(0, 127)));
-    test_assert(true == mpack_tag_equal(mpack_tag_ext(1, 127), mpack_tag_ext(1, 127)));
-    test_assert(true == mpack_tag_equal(mpack_tag_ext(0, -128), mpack_tag_ext(0, -128)));
-    test_assert(true == mpack_tag_equal(mpack_tag_ext(1, -128), mpack_tag_ext(1, -128)));
-    test_assert(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_ext(0, 127)));
-    test_assert(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_ext(0, -128)));
-    test_assert(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_ext(1, 0)));
+    test_assert(true == mpack_tag_equal(mpack_tag_ext(0, 1), mpack_tag_ext(0, 1)));
+    test_assert(true == mpack_tag_equal(mpack_tag_ext(127, 0), mpack_tag_ext(127, 0)));
+    test_assert(true == mpack_tag_equal(mpack_tag_ext(127, 1), mpack_tag_ext(127, 1)));
+    test_assert(true == mpack_tag_equal(mpack_tag_ext(-128, 0), mpack_tag_ext(-128, 0)));
+    test_assert(true == mpack_tag_equal(mpack_tag_ext(-128, 1), mpack_tag_ext(-128, 1)));
+    test_assert(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_ext(127, 0)));
+    test_assert(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_ext(-128, 0)));
+    test_assert(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_ext(0, 1)));
 
     test_assert(false == mpack_tag_equal(mpack_tag_array(0), mpack_tag_map(0)));
     test_assert(false == mpack_tag_equal(mpack_tag_array(0), mpack_tag_str(0)));
