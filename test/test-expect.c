@@ -337,7 +337,9 @@ static void test_expect_uint_bounds() {
     test_simple_read("\x01", 1 == mpack_expect_##name##_range(&reader, 1, 3));                             \
     test_simple_read("\x02", 2 == mpack_expect_##name##_range(&reader, 1, 3));                             \
     test_simple_read("\x03", 3 == mpack_expect_##name##_range(&reader, 1, 3));                             \
-    test_simple_read_error("\x04", 1 == mpack_expect_##name##_range(&reader, 1, 3), mpack_error_type);
+    test_simple_read_error("\x04", 1 == mpack_expect_##name##_range(&reader, 1, 3), mpack_error_type);     \
+                                                                                                           \
+    test_simple_read_assert("\x00", mpack_expect_##name##_range(reader, 1, 0));
 
 #define TEST_EXPECT_INT_RANGE(name) \
     test_simple_read("\x00", 0 == mpack_expect_##name##_max(&reader, 0));                                  \
@@ -348,7 +350,9 @@ static void test_expect_uint_bounds() {
     test_simple_read("\xff", -1 == mpack_expect_##name##_range(&reader, -1, 1));                           \
     test_simple_read("\x00", 0 == mpack_expect_##name##_range(&reader, -1, 1));                            \
     test_simple_read("\x01", 1 == mpack_expect_##name##_range(&reader, -1, 1));                            \
-    test_simple_read_error("\x02", -1 == mpack_expect_##name##_range(&reader, -1, 1), mpack_error_type);
+    test_simple_read_error("\x02", -1 == mpack_expect_##name##_range(&reader, -1, 1), mpack_error_type);   \
+                                                                                                           \
+    test_simple_read_assert("\x00", mpack_expect_##name##_range(reader, 1, -1));
 
 static void test_expect_int_range() {
     // these currently don't test anything involving the limits of

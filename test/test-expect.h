@@ -65,6 +65,30 @@ extern "C" {
     test_reader_destroy_error(&reader, (error)); \
 } while (0)
 
+#if MPACK_CUSTOM_ASSERT
+// runs a simple reader test, ensuring it causes an assert or break. the
+// reader needs to be marked volatile since non-volatile stack variables
+// that are written to after setjmp are undefined after longjmp.
+#define test_simple_read_assert(data, read_expr) do { \
+    volatile mpack_reader_t v_reader; \
+    mpack_reader_t* reader = (mpack_reader_t*)&v_reader; \
+    mpack_reader_init_data(reader, data, sizeof(data) - 1); \
+    \
+    bool jumped = false; \
+    if (TEST_ASSERT_SETJMP()) { \
+        jumped = true; \
+    } else { \
+        (read_expr); \
+    } \
+    TEST_ASSERT_CLEARJMP(); \
+    \
+    test_assert(jumped, "simple read assert did not assert: " #read_expr); \
+    mpack_reader_destroy(reader); \
+} while (0)
+#else
+#define test_simple_read_assert(data, read_expr) /* skip assert tests if custom assert is not enabled */
+#endif
+
 // performs an operation on a reader, ensuring no error occurs
 #define test_read_noerror(reader, read_expr) do { \
     test_assert((read_expr), "read did not pass: " #read_expr); \

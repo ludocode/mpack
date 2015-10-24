@@ -34,6 +34,12 @@
     #endif
 #endif
 
+// We use a custom assert function which longjmps, allowing
+// us to test assertions in debug mode
+#ifdef MPACK_DEBUG
+#define MPACK_CUSTOM_ASSERT 1
+#endif
+
 #ifdef MPACK_MALLOC
 #include "test-malloc.h"
 #endif

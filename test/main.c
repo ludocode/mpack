@@ -22,6 +22,7 @@
 #include "test.h"
 
 #include <string.h>
+#include <stdarg.h>
 
 #include "test-expect.h"
 #include "test-write.h"
@@ -34,6 +35,36 @@ mpack_tag_t (*fn_mpack_tag_nil)(void) = &mpack_tag_nil;
 
 int passes;
 int tests;
+
+#if MPACK_CUSTOM_ASSERT
+bool test_assert_jmp_set = false;
+jmp_buf test_assert_jmp;
+
+void mpack_assert_fail(const char* message) {
+    if (test_assert_jmp_set)
+        longjmp(test_assert_jmp, 1);
+    test_assert(false, "assertion hit! %s", message);
+    abort();
+}
+#endif
+
+void test_assert_impl(bool result, const char* file, int line, const char* format, ...) {
+    ++tests;
+    if (result) {
+        ++passes;
+    } else {
+        printf("TEST FAILED AT %s:%i --", file, line);
+
+        va_list args;
+        va_start(args, format);
+        vprintf(format, args);
+        va_end(args);
+
+        printf("\n");
+        if (TEST_EARLY_EXIT)
+            abort();
+    }
+}
 
 int main(void) {
     printf("\n\n");
