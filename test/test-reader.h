@@ -33,6 +33,10 @@ extern "C" {
 // these setup and destroy test readers and check them for errors.
 // they are generally macros so that the asserts are on the line of the test.
 
+
+
+// destroy wrappers expecting error or no error
+
 // tears down a reader, ensuring it has no errors and no extra data
 #define test_reader_destroy_noerror(reader) do { \
     test_assert(mpack_reader_error(reader) == mpack_ok, \
@@ -40,14 +44,6 @@ extern "C" {
     test_assert(mpack_reader_remaining(reader, NULL) == 0, \
             "reader has %i extra bytes", (int)mpack_reader_remaining(reader, NULL)); \
     mpack_reader_destroy(reader); \
-} while (0)
-
-// runs a simple reader test, ensuring it matches the given data
-#define test_simple_read(data, read_expr) do { \
-    mpack_reader_t reader; \
-    mpack_reader_init_data(&reader, data, sizeof(data) - 1); \
-    test_assert((read_expr), "simple read test did not pass: " #read_expr); \
-    test_reader_destroy_noerror(&reader); \
 } while (0)
 
 // tears down a reader, ensuring it is in the given error state
@@ -59,13 +55,40 @@ extern "C" {
     mpack_reader_destroy(reader); \
 } while (0)
 
-// runs a simple reader test, ensuring it causes the given error
+
+
+// reader helpers
+
+// performs an operation on a reader, ensuring no error occurs
+#define test_read_noerror(reader, read_expr) do { \
+    test_assert((read_expr), "read did not pass: " #read_expr); \
+    test_assert(mpack_reader_error(reader) == mpack_ok, \
+            "reader flagged error %i", (int)mpack_reader_error(reader)); \
+} while (0)
+
+
+
+// simple read tests
+
+// runs a simple reader test, ensuring the expression is true and no errors occur
+#define test_simple_read(data, read_expr) do { \
+    mpack_reader_t reader; \
+    mpack_reader_init_data(&reader, data, sizeof(data) - 1); \
+    test_assert((read_expr), "simple read test did not pass: " #read_expr); \
+    test_reader_destroy_noerror(&reader); \
+} while (0)
+
+// runs a simple reader test, ensuring the expression is true and the given error is raised
 #define test_simple_read_error(data, read_expr, error) do { \
     mpack_reader_t reader; \
     mpack_reader_init_data(&reader, data, sizeof(data) - 1); \
     test_assert((read_expr), "simple read error test did not pass: " #read_expr); \
     test_reader_destroy_error(&reader, (error)); \
 } while (0)
+
+
+
+// simple read assertion test
 
 #if MPACK_CUSTOM_ASSERT
 // runs a simple reader test, ensuring it causes an assert or break. the
@@ -91,12 +114,7 @@ extern "C" {
 #define test_simple_read_assert(data, read_expr) /* skip assert tests if custom assert is not enabled */
 #endif
 
-// performs an operation on a reader, ensuring no error occurs
-#define test_read_noerror(reader, read_expr) do { \
-    test_assert((read_expr), "read did not pass: " #read_expr); \
-    test_assert(mpack_reader_error(reader) == mpack_ok, \
-            "reader flagged error %i", (int)mpack_reader_error(reader)); \
-} while (0)
+
 
 void test_reader(void);
 
