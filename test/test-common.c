@@ -202,10 +202,50 @@ static void test_tags_compound() {
     test_assert(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_bin(0)));
 }
 
+static void test_string(const char* str, const char* content) {
+    #if MPACK_DEBUG
+    // in debug mode, the string should contain the expected content
+    test_assert(strstr(str, content), "string \"%s\" does not contain \"%s\"", str, content);
+    #else
+    // in release mode, strings should be blank
+    MPACK_UNUSED(content);
+    test_assert(strcmp(str, "") == 0, "string is not empty: %s", str);
+    #endif
+}
+
+static void test_strings() {
+    test_string(mpack_error_to_string(mpack_ok), "ok");
+    #define TEST_ERROR_STRING(error) test_string(mpack_error_to_string(mpack_error_##error), #error)
+    TEST_ERROR_STRING(io);
+    TEST_ERROR_STRING(invalid);
+    TEST_ERROR_STRING(type);
+    TEST_ERROR_STRING(too_big);
+    TEST_ERROR_STRING(memory);
+    TEST_ERROR_STRING(bug);
+    TEST_ERROR_STRING(data);
+    #undef TEST_ERROR_STRING
+
+    #define TEST_ERROR_TYPE(type) test_string(mpack_type_to_string(mpack_type_##type), #type)
+    TEST_ERROR_TYPE(nil);
+    TEST_ERROR_TYPE(bool);
+    TEST_ERROR_TYPE(float);
+    TEST_ERROR_TYPE(double);
+    TEST_ERROR_TYPE(int);
+    TEST_ERROR_TYPE(uint);
+    TEST_ERROR_TYPE(str);
+    TEST_ERROR_TYPE(bin);
+    TEST_ERROR_TYPE(ext);
+    TEST_ERROR_TYPE(array);
+    TEST_ERROR_TYPE(map);
+    #undef TEST_ERROR_TYPE
+}
+
 void test_common() {
     test_tags_special();
     test_tags_simple();
     test_tags_reals();
     test_tags_compound();
+
+    test_strings();
 }
 
