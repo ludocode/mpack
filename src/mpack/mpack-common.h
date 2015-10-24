@@ -225,6 +225,52 @@ MPACK_INLINE mpack_tag_t mpack_tag_double(double value) {
     return ret;
 }
 
+/** Generates an array tag. */
+MPACK_INLINE mpack_tag_t mpack_tag_array(int32_t count) {
+    mpack_tag_t ret;
+    mpack_memset(&ret, 0, sizeof(ret));
+    ret.type = mpack_type_array;
+    ret.v.n = count;
+    return ret;
+}
+
+/** Generates a map tag. */
+MPACK_INLINE mpack_tag_t mpack_tag_map(int32_t count) {
+    mpack_tag_t ret;
+    mpack_memset(&ret, 0, sizeof(ret));
+    ret.type = mpack_type_map;
+    ret.v.n = count;
+    return ret;
+}
+
+/** Generates a str tag. */
+MPACK_INLINE mpack_tag_t mpack_tag_str(int32_t length) {
+    mpack_tag_t ret;
+    mpack_memset(&ret, 0, sizeof(ret));
+    ret.type = mpack_type_str;
+    ret.v.l = length;
+    return ret;
+}
+
+/** Generates a bin tag. */
+MPACK_INLINE mpack_tag_t mpack_tag_bin(int32_t length) {
+    mpack_tag_t ret;
+    mpack_memset(&ret, 0, sizeof(ret));
+    ret.type = mpack_type_bin;
+    ret.v.l = length;
+    return ret;
+}
+
+/** Generates an ext tag. */
+MPACK_INLINE mpack_tag_t mpack_tag_ext(int32_t length, int8_t exttype) {
+    mpack_tag_t ret;
+    mpack_memset(&ret, 0, sizeof(ret));
+    ret.type = mpack_type_ext;
+    ret.exttype = exttype;
+    ret.v.l = length;
+    return ret;
+}
+
 /**
  * Compares two tags with an arbitrary fixed ordering. Returns 0 if the tags are
  * equal, a negative integer if left comes before right, or a positive integer

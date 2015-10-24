@@ -24,11 +24,21 @@
 #include <math.h>
 #include "test.h"
 
-void test_tags() {
+static void test_tags_special(void) {
 
     // ensure there is only one inline definition (the other
     // address here is in main)
     test_assert(fn_mpack_tag_nil == &mpack_tag_nil);
+
+}
+
+static void test_tags_simple(void) {
+
+    // ensure tag types are correct
+    test_assert(mpack_tag_nil().type == mpack_type_nil);
+    test_assert(mpack_tag_bool(false).type == mpack_type_bool);
+    test_assert(mpack_tag_int(0).type == mpack_type_int);
+    test_assert(mpack_tag_uint(0).type == mpack_type_uint);
 
     // uints
     test_assert(mpack_tag_uint(0).v.u == 0);
@@ -79,6 +89,16 @@ void test_tags() {
     test_assert(false == mpack_tag_equal(mpack_tag_int(0), mpack_tag_uint(1)));
     test_assert(false == mpack_tag_equal(mpack_tag_int(0), mpack_tag_uint(1)));
 
+}
+
+static void test_tags_reals(void) {
+
+    // types
+    test_assert(mpack_tag_float(0.0f).type == mpack_type_float);
+    test_assert(mpack_tag_double(0.0).type == mpack_type_double);
+    test_assert(mpack_tag_float((float)NAN).type == mpack_type_float);
+    test_assert(mpack_tag_double((double)NAN).type == mpack_type_double);
+
     // float comparisons
     test_assert(true == mpack_tag_equal(mpack_tag_float(0), mpack_tag_float(0)));
     test_assert(true == mpack_tag_equal(mpack_tag_float(1), mpack_tag_float(1)));
@@ -112,5 +132,80 @@ void test_tags() {
     test_assert(true == mpack_tag_equal(mpack_tag_float(NAN), mpack_tag_float(NAN)));
     test_assert(true == mpack_tag_equal(mpack_tag_double(NAN), mpack_tag_double(NAN)));
     test_assert(false == mpack_tag_equal(mpack_tag_float(NAN), mpack_tag_double(NAN)));
+
+}
+
+static void test_tags_compound() {
+    test_assert(mpack_tag_array(0).type == mpack_type_array);
+    test_assert(mpack_tag_map(0).type == mpack_type_map);
+    test_assert(mpack_tag_str(0).type == mpack_type_str);
+    test_assert(mpack_tag_bin(0).type == mpack_type_bin);
+    test_assert(mpack_tag_ext(0, 0).type == mpack_type_ext);
+
+    test_assert(true == mpack_tag_equal(mpack_tag_array(0), mpack_tag_array(0)));
+    test_assert(false == mpack_tag_equal(mpack_tag_array(0), mpack_tag_array(1)));
+    test_assert(0 == mpack_tag_cmp(mpack_tag_array(0), mpack_tag_array(0)));
+    test_assert(-1 == mpack_tag_cmp(mpack_tag_array(0), mpack_tag_array(1)));
+    test_assert(1 == mpack_tag_cmp(mpack_tag_array(1), mpack_tag_array(0)));
+
+    test_assert(true == mpack_tag_equal(mpack_tag_map(0), mpack_tag_map(0)));
+    test_assert(false == mpack_tag_equal(mpack_tag_map(0), mpack_tag_map(1)));
+    test_assert(0 == mpack_tag_cmp(mpack_tag_map(0), mpack_tag_map(0)));
+    test_assert(-1 == mpack_tag_cmp(mpack_tag_map(0), mpack_tag_map(1)));
+    test_assert(1 == mpack_tag_cmp(mpack_tag_map(1), mpack_tag_map(0)));
+
+    test_assert(true == mpack_tag_equal(mpack_tag_str(0), mpack_tag_str(0)));
+    test_assert(false == mpack_tag_equal(mpack_tag_str(0), mpack_tag_str(1)));
+    test_assert(0 == mpack_tag_cmp(mpack_tag_str(0), mpack_tag_str(0)));
+    test_assert(-1 == mpack_tag_cmp(mpack_tag_str(0), mpack_tag_str(1)));
+    test_assert(1 == mpack_tag_cmp(mpack_tag_str(1), mpack_tag_str(0)));
+
+    test_assert(true == mpack_tag_equal(mpack_tag_bin(0), mpack_tag_bin(0)));
+    test_assert(false == mpack_tag_equal(mpack_tag_bin(0), mpack_tag_bin(1)));
+    test_assert(0 == mpack_tag_cmp(mpack_tag_bin(0), mpack_tag_bin(0)));
+    test_assert(-1 == mpack_tag_cmp(mpack_tag_bin(0), mpack_tag_bin(1)));
+    test_assert(1 == mpack_tag_cmp(mpack_tag_bin(1), mpack_tag_bin(0)));
+
+    test_assert(true == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_ext(0, 0)));
+    test_assert(true == mpack_tag_equal(mpack_tag_ext(1, 0), mpack_tag_ext(1, 0)));
+    test_assert(true == mpack_tag_equal(mpack_tag_ext(0, 127), mpack_tag_ext(0, 127)));
+    test_assert(true == mpack_tag_equal(mpack_tag_ext(1, 127), mpack_tag_ext(1, 127)));
+    test_assert(true == mpack_tag_equal(mpack_tag_ext(0, -128), mpack_tag_ext(0, -128)));
+    test_assert(true == mpack_tag_equal(mpack_tag_ext(1, -128), mpack_tag_ext(1, -128)));
+    test_assert(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_ext(0, 127)));
+    test_assert(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_ext(0, -128)));
+    test_assert(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_ext(1, 0)));
+
+    test_assert(false == mpack_tag_equal(mpack_tag_array(0), mpack_tag_map(0)));
+    test_assert(false == mpack_tag_equal(mpack_tag_array(0), mpack_tag_str(0)));
+    test_assert(false == mpack_tag_equal(mpack_tag_array(0), mpack_tag_bin(0)));
+    test_assert(false == mpack_tag_equal(mpack_tag_array(0), mpack_tag_ext(0, 0)));
+
+    test_assert(false == mpack_tag_equal(mpack_tag_map(0), mpack_tag_array(0)));
+    test_assert(false == mpack_tag_equal(mpack_tag_map(0), mpack_tag_str(0)));
+    test_assert(false == mpack_tag_equal(mpack_tag_map(0), mpack_tag_bin(0)));
+    test_assert(false == mpack_tag_equal(mpack_tag_map(0), mpack_tag_ext(0, 0)));
+
+    test_assert(false == mpack_tag_equal(mpack_tag_str(0), mpack_tag_array(0)));
+    test_assert(false == mpack_tag_equal(mpack_tag_str(0), mpack_tag_map(0)));
+    test_assert(false == mpack_tag_equal(mpack_tag_str(0), mpack_tag_bin(0)));
+    test_assert(false == mpack_tag_equal(mpack_tag_str(0), mpack_tag_ext(0, 0)));
+
+    test_assert(false == mpack_tag_equal(mpack_tag_bin(0), mpack_tag_array(0)));
+    test_assert(false == mpack_tag_equal(mpack_tag_bin(0), mpack_tag_map(0)));
+    test_assert(false == mpack_tag_equal(mpack_tag_bin(0), mpack_tag_str(0)));
+    test_assert(false == mpack_tag_equal(mpack_tag_bin(0), mpack_tag_ext(0, 0)));
+
+    test_assert(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_array(0)));
+    test_assert(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_map(0)));
+    test_assert(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_str(0)));
+    test_assert(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_bin(0)));
+}
+
+void test_tags() {
+    test_tags_special();
+    test_tags_simple();
+    test_tags_reals();
+    test_tags_compound();
 }
 
