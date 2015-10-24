@@ -760,7 +760,8 @@ bool mpack_expect_array_max_or_nil(mpack_reader_t* reader, uint32_t max_count, u
  * You should not check the return value for NULL to check for errors; only
  * check the reader's error state.
  *
- * The allocated array must be freed with MPACK_FREE().
+ * The allocated array must be freed with MPACK_FREE() (or simply free()
+ * if MPack's allocator hasn't been customized.)
  *
  * @throws mpack_error_type if the value is not an array or if its size is
  * greater than max_count.
@@ -783,7 +784,8 @@ bool mpack_expect_array_max_or_nil(mpack_reader_t* reader, uint32_t max_count, u
  * do not indicate error. You should not check the return value for NULL
  * to check for errors; only check the reader's error state.
  *
- * The allocated array should be freed with MPACK_FREE().
+ * The allocated array must be freed with MPACK_FREE() (or simply free()
+ * if MPack's allocator hasn't been customized.)
  *
  * @warning You must call @ref mpack_done_array() if and only if a non-zero
  * element count is read. This function does not differentiate between nil

@@ -294,11 +294,14 @@ MPACK_INLINE mpack_tag_t mpack_tag_ext(int8_t exttype, int32_t length) {
  * equal, a negative integer if left comes before right, or a positive integer
  * otherwise.
  *
- * See mpack_tag_equal() for information on when tags are considered
- * to be equal.
+ * \warning The ordering is not guaranteed to be preserved across mpack versions; do
+ * not rely on it in persistent data.
  *
- * The ordering is not guaranteed to be preserved across mpack versions; do not
- * rely on it in serialized data.
+ * \warning Floating point numbers are compared bit-for-bit, not using the language's
+ * operator==. This means that NaNs with matching representation will compare equal.
+ * This behaviour is up for debate; see comments in the definition of mpack_tag_cmp().
+ *
+ * See mpack_tag_equal() for more information on when tags are considered equal.
  */
 int mpack_tag_cmp(mpack_tag_t left, mpack_tag_t right);
 
@@ -314,7 +317,9 @@ int mpack_tag_cmp(mpack_tag_t left, mpack_tag_t right);
  * The "extension type" of an extension object is considered part of the value
  * and much match exactly.
  *
- * Floating point numbers are compared bit-for-bit, not using the language's operator==.
+ * \warning Floating point numbers are compared bit-for-bit, not using the language's
+ * operator==. This means that NaNs with matching representation will compare equal.
+ * This behaviour is up for debate; see comments in the definition of mpack_tag_cmp().
  */
 MPACK_INLINE bool mpack_tag_equal(mpack_tag_t left, mpack_tag_t right) {
     return mpack_tag_cmp(left, right) == 0;

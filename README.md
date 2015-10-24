@@ -43,7 +43,7 @@ if (mpack_tree_destroy(tree) != mpack_ok) {
 }
 ```
 
-Note that no additional error handling is needed in the above code. If the file is missing or corrupt, if map keys are missing or if nodes are not in the expected types, special "nil" nodes and false/zero values are returned and the tree is placed in an error state. An error check is only needed before using the data. Alternatively, the tree can be configured to longjmp in such cases if a handler is set.
+Note that no additional error handling is needed in the above code. If the file is missing or corrupt, if map keys are missing or if nodes are not in the expected types, special "nil" nodes and false/zero values are returned and the tree is placed in an error state. An error check is only needed before using the data.
 
 ## The Write API
 
@@ -87,7 +87,7 @@ Conceptually, MessagePack stores data similarly to JSON: they are both composed 
 
 - Compound types such as strings, maps and arrays are delimited, so appropriate storage cannot be allocated upfront. The whole object must be parsed to determine its size.
 
-- Strings are not stored in their native encoding. They cannot contain quotes or special characters, so they must be escaped when written and converted back when read.
+- Strings are not stored in their native encoding. Special characters such as quotes and backslashes must be escaped when written and converted back when read.
 
 - Numbers are particularly inefficient (especially when parsing back floats), making JSON inappropriate as a base format for structured data that contains lots of numbers.
 

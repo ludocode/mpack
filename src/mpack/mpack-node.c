@@ -1001,6 +1001,8 @@ void mpack_node_copy_cstr(mpack_node_t node, char* buffer, size_t size) {
     if (mpack_node_error(node) != mpack_ok)
         return;
 
+    // we can't break here because the error isn't recoverable; we
+    // have to add a null-terminator.
     mpack_assert(size >= 1, "buffer size is zero; you must have room for at least a null-terminator");
 
     if (node.data->type != mpack_type_str) {
