@@ -29,7 +29,7 @@
     <ClCompile Include="..\..\src\mpack\mpack-writer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test\main.c">
+    <ClCompile Include="..\..\test\test.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\test\test-buffer.c">

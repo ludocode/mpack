@@ -81,7 +81,7 @@
     <ClCompile Include="..\..\src\mpack\mpack-platform.c" />
     <ClCompile Include="..\..\src\mpack\mpack-reader.c" />
     <ClCompile Include="..\..\src\mpack\mpack-writer.c" />
-    <ClCompile Include="..\..\test\main.c" />
+    <ClCompile Include="..\..\test\test.c" />
     <ClCompile Include="..\..\test\test-buffer.c" />
     <ClCompile Include="..\..\test\test-file.c" />
     <ClCompile Include="..\..\test\test-malloc.c" />
