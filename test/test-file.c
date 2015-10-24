@@ -101,8 +101,13 @@ static void test_file_write(void) {
     test_file_write_bytes(&writer, mpack_tag_bin(UINT16_MAX + 1));
     mpack_finish_array(&writer);
 
-    mpack_start_array(&writer, 5);
+    mpack_start_array(&writer, 10);
     test_file_write_bytes(&writer, mpack_tag_ext(1, 0));
+    test_file_write_bytes(&writer, mpack_tag_ext(1, 1));
+    test_file_write_bytes(&writer, mpack_tag_ext(1, 2));
+    test_file_write_bytes(&writer, mpack_tag_ext(1, 4));
+    test_file_write_bytes(&writer, mpack_tag_ext(1, 8));
+    test_file_write_bytes(&writer, mpack_tag_ext(1, 16));
     test_file_write_bytes(&writer, mpack_tag_ext(2, INT8_MAX));
     test_file_write_bytes(&writer, mpack_tag_ext(3, UINT8_MAX));
     test_file_write_bytes(&writer, mpack_tag_ext(4, UINT8_MAX + 1));
@@ -237,8 +242,13 @@ static void test_file_read(void) {
     test_file_expect_bytes(&reader, mpack_tag_bin(UINT16_MAX + 1));
     mpack_done_array(&reader);
 
-    test_assert(5 == mpack_expect_array(&reader));
+    test_assert(10 == mpack_expect_array(&reader));
     test_file_expect_bytes(&reader, mpack_tag_ext(1, 0));
+    test_file_expect_bytes(&reader, mpack_tag_ext(1, 1));
+    test_file_expect_bytes(&reader, mpack_tag_ext(1, 2));
+    test_file_expect_bytes(&reader, mpack_tag_ext(1, 4));
+    test_file_expect_bytes(&reader, mpack_tag_ext(1, 8));
+    test_file_expect_bytes(&reader, mpack_tag_ext(1, 16));
     test_file_expect_bytes(&reader, mpack_tag_ext(2, INT8_MAX));
     test_file_expect_bytes(&reader, mpack_tag_ext(3, UINT8_MAX));
     test_file_expect_bytes(&reader, mpack_tag_ext(4, UINT8_MAX + 1));
@@ -314,12 +324,17 @@ static void test_file_node(void) {
     test_file_node_bytes(mpack_node_array_at(node, 4), mpack_tag_bin(UINT16_MAX + 1));
 
     node = mpack_node_array_at(root, 2);
-    test_assert(5 == mpack_node_array_length(node));
+    test_assert(10 == mpack_node_array_length(node));
     test_file_node_bytes(mpack_node_array_at(node, 0), mpack_tag_ext(1, 0));
-    test_file_node_bytes(mpack_node_array_at(node, 1), mpack_tag_ext(2, INT8_MAX));
-    test_file_node_bytes(mpack_node_array_at(node, 2), mpack_tag_ext(3, UINT8_MAX));
-    test_file_node_bytes(mpack_node_array_at(node, 3), mpack_tag_ext(4, UINT8_MAX + 1));
-    test_file_node_bytes(mpack_node_array_at(node, 4), mpack_tag_ext(5, UINT16_MAX + 1));
+    test_file_node_bytes(mpack_node_array_at(node, 1), mpack_tag_ext(1, 1));
+    test_file_node_bytes(mpack_node_array_at(node, 2), mpack_tag_ext(1, 2));
+    test_file_node_bytes(mpack_node_array_at(node, 3), mpack_tag_ext(1, 4));
+    test_file_node_bytes(mpack_node_array_at(node, 4), mpack_tag_ext(1, 8));
+    test_file_node_bytes(mpack_node_array_at(node, 5), mpack_tag_ext(1, 16));
+    test_file_node_bytes(mpack_node_array_at(node, 6), mpack_tag_ext(2, INT8_MAX));
+    test_file_node_bytes(mpack_node_array_at(node, 7), mpack_tag_ext(3, UINT8_MAX));
+    test_file_node_bytes(mpack_node_array_at(node, 8), mpack_tag_ext(4, UINT8_MAX + 1));
+    test_file_node_bytes(mpack_node_array_at(node, 9), mpack_tag_ext(5, UINT16_MAX + 1));
 
     node = mpack_node_array_at(root, 3);
     test_assert(5 == mpack_node_array_length(node));

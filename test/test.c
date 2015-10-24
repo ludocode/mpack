@@ -86,7 +86,7 @@ int main(void) {
 
     test_buffers();
 
-    printf("\n\nUnit testing complete. %i passes out of %i tests.\n\n\n", passes, tests);
+    printf("\n\nUnit testing complete. %i failures in %i checks.\n\n\n", tests - passes, tests);
     return (passes == tests) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 
