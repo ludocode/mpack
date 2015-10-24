@@ -146,10 +146,15 @@
 /* GCC versions from 4.6 to before 5.1 warn about defining a C99
  * non-static inline function before declaring it (see issue #20) */
 #if (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
+#ifdef __cplusplus
 #define MPACK_DECLARED_INLINE_WARNING_START \
     _Pragma ("GCC diagnostic push") \
-    _Pragma ("GCC diagnostic ignored \"-Wmissing-prototypes\"") \
     _Pragma ("GCC diagnostic ignored \"-Wmissing-declarations\"")
+#else
+#define MPACK_DECLARED_INLINE_WARNING_START \
+    _Pragma ("GCC diagnostic push") \
+    _Pragma ("GCC diagnostic ignored \"-Wmissing-prototypes\"")
+#endif
 #define MPACK_DECLARED_INLINE_WARNING_END \
     _Pragma ("GCC diagnostic pop")
 #else

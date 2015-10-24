@@ -16,15 +16,10 @@ env.Append(CPPFLAGS = [
     "-DMPACK_SCONS=1",
     "-g",
     ])
-env.Append(CFLAGS = [
-    "-Wmissing-prototypes"
-    ])
-env.Append(CXXFLAGS = [
-    "-Wmissing-declarations"
-    ])
 env.Append(LINKFLAGS = [
     "-g",
     ])
+# Additional warning flags are passed in SConscript based on the language (C/C++)
 
 if 'TRAVIS' not in env:
     # Travis-CI currently uses Clang 3.4 which does not support this option,
@@ -49,7 +44,7 @@ allconfigs = noioconfigs + ["-DMPACK_STDIO=1"]
 
 debugflags = ["-DDEBUG", "-O0"]
 releaseflags = ["-Os"] # If you change this, also change the MPACK_OPTIMIZE_FOR_SIZE below to test the opposite
-cflags = ["-std=c99", "-Wc++-compat"]
+cflags = ["-std=c99"]
 
 gcovflags = []
 if ARGUMENTS.get('gcov'):
@@ -66,8 +61,6 @@ def AddBuild(variant_dir, cppflags, linkflags):
             exports={
                 'env': env,
                 'CPPFLAGS': cppflags,
-                'CFLAGS': env["CFLAGS"],
-                'CXXFLAGS': env["CXXFLAGS"],
                 'LINKFLAGS': linkflags
                 },
             duplicate=0)
@@ -113,17 +106,17 @@ if ARGUMENTS.get('all'):
     AddBuilds("embed-node", ["-DMPACK_NODE=1"] + cflags, [])
 
     # miscellaneous test builds
-    AddBuilds("cxx", allfeatures + allconfigs + ["-xc++", "-std=c++98"], ["-lstdc++"])
+    AddBuilds("cxx", allfeatures + allconfigs + ["-xc++", "-std=c++98"], [])
     AddBuilds("notrack", ["-DMPACK_NO_TRACKING=1"] + allfeatures + allconfigs + cflags, [])
     AddBuilds("realloc", allfeatures + allconfigs + debugflags + cflags + ["-DMPACK_REALLOC=test_realloc"], [])
 
     # Travis-CI currently only has GCC 4.6 and Clang 3.4, doesn't properly support these options
     if 'TRAVIS' not in env:
-        AddBuilds("c11", allfeatures + allconfigs + ["-std=c11", "-Wc++-compat"], [])
-        AddBuilds("cxx11", allfeatures + allconfigs + ["-xc++", "-std=c++11"], ["-lstdc++"])
-        AddBuilds("cxx14", allfeatures + allconfigs + ["-xc++", "-std=c++14"], ["-lstdc++"])
+        AddBuilds("c11", allfeatures + allconfigs + ["-std=c11"], [])
+        AddBuilds("cxx11", allfeatures + allconfigs + ["-xc++", "-std=c++11"], [])
+        AddBuilds("cxx14", allfeatures + allconfigs + ["-xc++", "-std=c++14"], [])
 
     # 32-bit builds (Travis-CI doesn't support multilib)
     if 'TRAVIS' not in env and '64' in platform.architecture()[0]:
         AddBuilds("32",     allfeatures + allconfigs + cflags + ["-m32"], ["-m32"])
-        AddBuilds("cxx11-32", allfeatures + allconfigs + ["-xc++", "-std=c++11"] + ["-m32"], ["-m32", "-lstdc++"])
+        AddBuilds("cxx11-32", allfeatures + allconfigs + ["-xc++", "-std=c++11"] + ["-m32"], ["-m32"])

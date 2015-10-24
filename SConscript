@@ -2,6 +2,15 @@ import platform
 
 Import('env', 'CPPFLAGS', 'LINKFLAGS')
 
+# we add the C/C++ specific flags here. we can't use CCFLAGS/CXXFLAGS
+# because as far as SCons is concerned, they are all C files; we're
+# passing -xc++ to force the language.
+if "-xc++" in CPPFLAGS:
+    CPPFLAGS += ["-Wmissing-declarations"]
+    LINKFLAGS += ["-lstdc++"]
+else:
+    CPPFLAGS += ["-Wmissing-prototypes", "-Wc++-compat"]
+
 srcs = env.Object(env.Glob('src/mpack/*.c') + env.Glob('test/*.c'),
         CPPFLAGS=env['CPPFLAGS'] + CPPFLAGS)
 
