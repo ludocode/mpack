@@ -360,7 +360,6 @@ static void test_file_node(void) {
 void test_file(void) {
     #if MPACK_READER
     test_print();
-    test_file_discard();
     #endif
     #if MPACK_NODE
     test_node_print();
@@ -368,6 +367,9 @@ void test_file(void) {
 
     test_file_write();
 
+    #if MPACK_READER
+    test_file_discard();
+    #endif
     #if MPACK_EXPECT
     test_file_read();
     #endif
