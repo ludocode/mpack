@@ -58,13 +58,7 @@ void mpack_break_hit_format(const char* format, ...) {
 }
 #endif
 
-#if MPACK_CUSTOM_ASSERT
-void mpack_break_hit(const char* message) {
-    // If we have a custom assert handler, break just wraps it
-    // for simplicity.
-    mpack_assert_fail(message);
-}
-#else
+#if !MPACK_CUSTOM_ASSERT
 void mpack_assert_fail(const char* message) {
     MPACK_UNUSED(message);
 
@@ -86,7 +80,23 @@ void mpack_assert_fail(const char* message) {
 
     MPACK_UNREACHABLE;
 }
+#endif
 
+#if !MPACK_CUSTOM_BREAK
+
+// If we have a custom assert handler, break wraps it by default.
+// This allows users of MPack to only implement mpack_assert_fail() without
+// having to worry about the difference between assert and break.
+//
+// MPACK_CUSTOM_BREAK is available to define a separate break handler
+// (which is needed by the unit test suite), but this is not offered in
+// mpack-config.h for simplicity.
+
+#if MPACK_CUSTOM_ASSERT
+void mpack_break_hit(const char* message) {
+    mpack_assert_fail(message);
+}
+#else
 void mpack_break_hit(const char* message) {
     MPACK_UNUSED(message);
 
@@ -104,6 +114,8 @@ void mpack_break_hit(const char* message) {
     __builtin_abort();
     #endif
 }
+#endif
+
 #endif
 
 #endif

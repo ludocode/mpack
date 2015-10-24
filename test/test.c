@@ -39,12 +39,23 @@ int tests;
 #if MPACK_CUSTOM_ASSERT
 bool test_assert_jmp_set = false;
 jmp_buf test_assert_jmp;
+bool test_break_set = false;
+bool test_break_hit;
 
 void mpack_assert_fail(const char* message) {
-    if (test_assert_jmp_set)
-        longjmp(test_assert_jmp, 1);
-    test_assert(false, "assertion hit! %s", message);
-    abort();
+    if (!test_assert_jmp_set) {
+        test_assert(false, "assertion hit! %s", message);
+        abort();
+    }
+    longjmp(test_assert_jmp, 1);
+}
+
+void mpack_break_hit(const char* message) {
+    if (!test_break_set) {
+        test_assert(false, "break hit! %s", message);
+        abort();
+    }
+    test_break_hit = true;
 }
 #endif
 

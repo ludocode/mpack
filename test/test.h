@@ -85,6 +85,8 @@ extern int passes;
 #if MPACK_CUSTOM_ASSERT
 extern bool test_assert_jmp_set;
 extern jmp_buf test_assert_jmp;
+extern bool test_break_set;
+extern bool test_break_hit;
 
 // calls setjmp to expect an assert from a unit test. an assertion
 // will cause a longjmp to here with a value of 1.
@@ -114,12 +116,19 @@ extern jmp_buf test_assert_jmp;
     test_assert(jumped, "expression should assert, but didn't: " #expr); \
 } while (0)
 
+#define test_expecting_break(expr, ...) do { \
+    test_break_set = true; \
+    test_break_hit = false; \
+    test_assert(expr , ## __VA_ARGS__); \
+    test_assert(test_break_hit, "expression should break, but didn't: " # expr); \
+    test_break_set = false; \
+} while (0);
+
 #else
 
 // in release mode we just run the expr since asserts are compiled out.
-#define test_expecting_assert(expr) do { \
-    (expr); \
-} while (0)
+#define test_expecting_assert(expr) do { (expr); } while (0)
+#define test_expecting_break(expr, ...) do { test_assert(expr , ## __VA_ARGS__); } while (0)
 
 #endif
 

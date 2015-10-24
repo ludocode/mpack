@@ -35,9 +35,10 @@
 #endif
 
 // We use a custom assert function which longjmps, allowing
-// us to test assertions in debug mode
+// us to test assertions in debug mode.
 #ifdef MPACK_DEBUG
 #define MPACK_CUSTOM_ASSERT 1
+#define MPACK_CUSTOM_BREAK 1
 #endif
 
 #ifdef MPACK_MALLOC
