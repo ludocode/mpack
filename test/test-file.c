@@ -3,12 +3,15 @@
 
 #if MPACK_STDIO
 
+// the file tests currently all require the writer, since it
+// is used to write the test data that is read back.
+#if MPACK_WRITER
+
 #ifndef WIN32
 #include <unistd.h>
 #endif
 
-static const char* test_filename = "build/testfile";
-static const char test_data[] = "\x82\xA7""compact\xC3\xA6""schema\x00";
+static const char* test_filename = "build/testfile.mp";
 
 static char* test_file_fetch(const char* filename, size_t* out_size) {
     *out_size = 0;
@@ -55,45 +58,78 @@ static char* test_file_fetch(const char* filename, size_t* out_size) {
     return data;
 }
 
-#if MPACK_WRITER
+static void test_file_write_bytes(mpack_writer_t* writer, mpack_tag_t tag) {
+    mpack_write_tag(writer, tag);
+    for (size_t i = 0; i < tag.v.l; ++i)
+        mpack_write_bytes(writer, "", 1);
+    mpack_finish_type(writer, tag.type);
+}
+
+static void test_file_write_elements(mpack_writer_t* writer, mpack_tag_t tag) {
+    mpack_write_tag(writer, tag);
+    for (size_t i = 0; i < tag.v.n; ++i) {
+        if (tag.type == mpack_type_map)
+            mpack_write_nil(writer);
+        mpack_write_nil(writer);
+    }
+    mpack_finish_type(writer, tag.type);
+}
+
 static void test_file_write(void) {
     mpack_writer_t writer;
     mpack_writer_init_file(&writer, test_filename);
     test_assert(mpack_writer_error(&writer) == mpack_ok, "file open failed with %s",
             mpack_error_to_string(mpack_writer_error(&writer)));
 
-    mpack_start_map(&writer, 2);
-    mpack_write_cstr(&writer, "compact");
-    mpack_write_bool(&writer, true);
-    mpack_write_cstr(&writer, "schema");
-    mpack_write_int(&writer, 0);
-    mpack_finish_map(&writer);
+    mpack_start_array(&writer, 5);
+
+    // test compound types of various sizes
+
+    mpack_start_array(&writer, 5);
+    test_file_write_bytes(&writer, mpack_tag_str(0));
+    test_file_write_bytes(&writer, mpack_tag_str(INT8_MAX));
+    test_file_write_bytes(&writer, mpack_tag_str(UINT8_MAX));
+    test_file_write_bytes(&writer, mpack_tag_str(UINT8_MAX + 1));
+    test_file_write_bytes(&writer, mpack_tag_str(UINT16_MAX + 1));
+    mpack_finish_array(&writer);
+
+    mpack_start_array(&writer, 5);
+    test_file_write_bytes(&writer, mpack_tag_bin(0));
+    test_file_write_bytes(&writer, mpack_tag_bin(INT8_MAX));
+    test_file_write_bytes(&writer, mpack_tag_bin(UINT8_MAX));
+    test_file_write_bytes(&writer, mpack_tag_bin(UINT8_MAX + 1));
+    test_file_write_bytes(&writer, mpack_tag_bin(UINT16_MAX + 1));
+    mpack_finish_array(&writer);
+
+    mpack_start_array(&writer, 5);
+    test_file_write_bytes(&writer, mpack_tag_ext(1, 0));
+    test_file_write_bytes(&writer, mpack_tag_ext(2, INT8_MAX));
+    test_file_write_bytes(&writer, mpack_tag_ext(3, UINT8_MAX));
+    test_file_write_bytes(&writer, mpack_tag_ext(4, UINT8_MAX + 1));
+    test_file_write_bytes(&writer, mpack_tag_ext(5, UINT16_MAX + 1));
+    mpack_finish_array(&writer);
+
+    mpack_start_array(&writer, 5);
+    test_file_write_elements(&writer, mpack_tag_array(0));
+    test_file_write_elements(&writer, mpack_tag_array(INT8_MAX));
+    test_file_write_elements(&writer, mpack_tag_array(UINT8_MAX));
+    test_file_write_elements(&writer, mpack_tag_array(UINT8_MAX + 1));
+    test_file_write_elements(&writer, mpack_tag_array(UINT16_MAX + 1));
+    mpack_finish_array(&writer);
+
+    mpack_start_array(&writer, 5);
+    test_file_write_elements(&writer, mpack_tag_map(0));
+    test_file_write_elements(&writer, mpack_tag_map(INT8_MAX));
+    test_file_write_elements(&writer, mpack_tag_map(UINT8_MAX));
+    test_file_write_elements(&writer, mpack_tag_map(UINT8_MAX + 1));
+    test_file_write_elements(&writer, mpack_tag_map(UINT16_MAX + 1));
+    mpack_finish_array(&writer);
+
+    mpack_finish_array(&writer);
 
     mpack_error_t error = mpack_writer_destroy(&writer);
     test_assert(error == mpack_ok, "write failed with %s", mpack_error_to_string(error));
 }
-
-static void test_file_check(void) {
-    FILE* file = fopen(test_filename, "rb");
-    test_assert(file != NULL, "file open failed");
-    char buffer[1024];
-    size_t count = fread(buffer, 1, sizeof(buffer), file);
-    fclose(file);
-
-    test_assert(count == sizeof(test_data) - 1, "data is incorrect length, read %i expected %i",
-            (int)count, (int)(sizeof(test_data) - 1));
-    test_assert(memcmp(buffer, test_data, count) == 0, "data does not match");
-}
-#else
-static void test_write_file(void) {
-    FILE* file = fopen(test_filename, "wb");
-    test_assert(file != NULL, "file open failed");
-    size_t count = fwrite(test_data, 1, sizeof(test_data) - 1, file);
-    test_assert(count == sizeof(test_data) - 1, "only wrote %i of %i bytes",
-            (int)count, (int)sizeof(test_data) - 1);
-    fclose(file);
-}
-#endif
 
 // compares the test filename to the expected debug output
 static void test_compare_print() {
@@ -149,7 +185,7 @@ static void test_node_print(void) {
 #if MPACK_READER
 static void test_file_discard(void) {
     mpack_reader_t reader;
-    mpack_reader_init_file(&reader, "test/test-file.mp");
+    mpack_reader_init_file(&reader, test_filename);
     mpack_discard(&reader);
     mpack_error_t error = mpack_reader_destroy(&reader);
     test_assert(error == mpack_ok, "read failed with %s", mpack_error_to_string(error));
@@ -157,18 +193,75 @@ static void test_file_discard(void) {
 #endif
 
 #if MPACK_EXPECT
+static void test_file_expect_bytes(mpack_reader_t* reader, mpack_tag_t tag) {
+    mpack_expect_tag(reader, tag);
+    for (size_t i = 0; i < tag.v.l; ++i) {
+        char buf[1];
+        mpack_read_bytes(reader, buf, 1);
+        test_assert(buf[0] == 0);
+    }
+    mpack_done_type(reader, tag.type);
+}
+
+static void test_file_expect_elements(mpack_reader_t* reader, mpack_tag_t tag) {
+    mpack_expect_tag(reader, tag);
+    for (size_t i = 0; i < tag.v.l; ++i) {
+        if (tag.type == mpack_type_map)
+            mpack_expect_nil(reader);
+        mpack_expect_nil(reader);
+    }
+    mpack_done_type(reader, tag.type);
+}
+
 static void test_file_read(void) {
     mpack_reader_t reader;
     mpack_reader_init_file(&reader, test_filename);
     test_assert(mpack_reader_error(&reader) == mpack_ok, "file open failed with %s",
             mpack_error_to_string(mpack_reader_error(&reader)));
 
-    test_assert(2 == mpack_expect_map(&reader));
-    mpack_expect_cstr_match(&reader, "compact");
-    test_assert(true == mpack_expect_bool(&reader));
-    mpack_expect_cstr_match(&reader, "schema");
-    test_assert(0 == mpack_expect_u8(&reader));
-    mpack_done_map(&reader);
+    test_assert(5 == mpack_expect_array(&reader));
+
+    test_assert(5 == mpack_expect_array(&reader));
+    test_file_expect_bytes(&reader, mpack_tag_str(0));
+    test_file_expect_bytes(&reader, mpack_tag_str(INT8_MAX));
+    test_file_expect_bytes(&reader, mpack_tag_str(UINT8_MAX));
+    test_file_expect_bytes(&reader, mpack_tag_str(UINT8_MAX + 1));
+    test_file_expect_bytes(&reader, mpack_tag_str(UINT16_MAX + 1));
+    mpack_done_array(&reader);
+
+    test_assert(5 == mpack_expect_array(&reader));
+    test_file_expect_bytes(&reader, mpack_tag_bin(0));
+    test_file_expect_bytes(&reader, mpack_tag_bin(INT8_MAX));
+    test_file_expect_bytes(&reader, mpack_tag_bin(UINT8_MAX));
+    test_file_expect_bytes(&reader, mpack_tag_bin(UINT8_MAX + 1));
+    test_file_expect_bytes(&reader, mpack_tag_bin(UINT16_MAX + 1));
+    mpack_done_array(&reader);
+
+    test_assert(5 == mpack_expect_array(&reader));
+    test_file_expect_bytes(&reader, mpack_tag_ext(1, 0));
+    test_file_expect_bytes(&reader, mpack_tag_ext(2, INT8_MAX));
+    test_file_expect_bytes(&reader, mpack_tag_ext(3, UINT8_MAX));
+    test_file_expect_bytes(&reader, mpack_tag_ext(4, UINT8_MAX + 1));
+    test_file_expect_bytes(&reader, mpack_tag_ext(5, UINT16_MAX + 1));
+    mpack_done_array(&reader);
+
+    test_assert(5 == mpack_expect_array(&reader));
+    test_file_expect_elements(&reader, mpack_tag_array(0));
+    test_file_expect_elements(&reader, mpack_tag_array(INT8_MAX));
+    test_file_expect_elements(&reader, mpack_tag_array(UINT8_MAX));
+    test_file_expect_elements(&reader, mpack_tag_array(UINT8_MAX + 1));
+    test_file_expect_elements(&reader, mpack_tag_array(UINT16_MAX + 1));
+    mpack_done_array(&reader);
+
+    test_assert(5 == mpack_expect_array(&reader));
+    test_file_expect_elements(&reader, mpack_tag_map(0));
+    test_file_expect_elements(&reader, mpack_tag_map(INT8_MAX));
+    test_file_expect_elements(&reader, mpack_tag_map(UINT8_MAX));
+    test_file_expect_elements(&reader, mpack_tag_map(UINT8_MAX + 1));
+    test_file_expect_elements(&reader, mpack_tag_map(UINT16_MAX + 1));
+    mpack_done_array(&reader);
+
+    mpack_done_array(&reader);
 
     mpack_error_t error = mpack_reader_destroy(&reader);
     test_assert(error == mpack_ok, "read failed with %s", mpack_error_to_string(error));
@@ -176,6 +269,25 @@ static void test_file_read(void) {
 #endif
 
 #if MPACK_NODE
+static void test_file_node_bytes(mpack_node_t node, mpack_tag_t tag) {
+    test_assert(mpack_tag_equal(tag, mpack_node_tag(node)));
+    const char* data = mpack_node_data(node);
+    for (size_t i = 0; i < tag.v.l; ++i)
+        test_assert(data[i] == 0);
+}
+
+static void test_file_node_elements(mpack_node_t node, mpack_tag_t tag) {
+    test_assert(mpack_tag_equal(tag, mpack_node_tag(node)));
+    for (size_t i = 0; i < tag.v.n; ++i) {
+        if (tag.type == mpack_type_map) {
+            mpack_node_nil(mpack_node_map_key_at(node, i));
+            mpack_node_nil(mpack_node_map_value_at(node, i));
+        } else {
+            mpack_node_nil(mpack_node_array_at(node, i));
+        }
+    }
+}
+
 static void test_file_node(void) {
     mpack_tree_t tree;
     mpack_tree_init_file(&tree, test_filename, 0);
@@ -183,9 +295,47 @@ static void test_file_node(void) {
             mpack_error_to_string(mpack_tree_error(&tree)));
 
     mpack_node_t root = mpack_tree_root(&tree);
-    test_assert(mpack_node_map_count(root) == 2, "map contains %i keys", (int)mpack_node_map_count(root));
-    test_assert(mpack_node_i8(mpack_node_map_cstr(root, "schema")) == 0, "checking schema failed");
-    test_assert(mpack_node_bool(mpack_node_map_cstr(root, "compact")) == true, "checking compact failed");
+    test_assert(mpack_node_array_length(root) == 5);
+
+    mpack_node_t node = mpack_node_array_at(root, 0);
+    test_assert(mpack_node_array_length(node) == 5);
+    test_file_node_bytes(mpack_node_array_at(node, 0), mpack_tag_str(0));
+    test_file_node_bytes(mpack_node_array_at(node, 1), mpack_tag_str(INT8_MAX));
+    test_file_node_bytes(mpack_node_array_at(node, 2), mpack_tag_str(UINT8_MAX));
+    test_file_node_bytes(mpack_node_array_at(node, 3), mpack_tag_str(UINT8_MAX + 1));
+    test_file_node_bytes(mpack_node_array_at(node, 4), mpack_tag_str(UINT16_MAX + 1));
+
+    node = mpack_node_array_at(root, 1);
+    test_assert(5 == mpack_node_array_length(node));
+    test_file_node_bytes(mpack_node_array_at(node, 0), mpack_tag_bin(0));
+    test_file_node_bytes(mpack_node_array_at(node, 1), mpack_tag_bin(INT8_MAX));
+    test_file_node_bytes(mpack_node_array_at(node, 2), mpack_tag_bin(UINT8_MAX));
+    test_file_node_bytes(mpack_node_array_at(node, 3), mpack_tag_bin(UINT8_MAX + 1));
+    test_file_node_bytes(mpack_node_array_at(node, 4), mpack_tag_bin(UINT16_MAX + 1));
+
+    node = mpack_node_array_at(root, 2);
+    test_assert(5 == mpack_node_array_length(node));
+    test_file_node_bytes(mpack_node_array_at(node, 0), mpack_tag_ext(1, 0));
+    test_file_node_bytes(mpack_node_array_at(node, 1), mpack_tag_ext(2, INT8_MAX));
+    test_file_node_bytes(mpack_node_array_at(node, 2), mpack_tag_ext(3, UINT8_MAX));
+    test_file_node_bytes(mpack_node_array_at(node, 3), mpack_tag_ext(4, UINT8_MAX + 1));
+    test_file_node_bytes(mpack_node_array_at(node, 4), mpack_tag_ext(5, UINT16_MAX + 1));
+
+    node = mpack_node_array_at(root, 3);
+    test_assert(5 == mpack_node_array_length(node));
+    test_file_node_elements(mpack_node_array_at(node, 0), mpack_tag_array(0));
+    test_file_node_elements(mpack_node_array_at(node, 1), mpack_tag_array(INT8_MAX));
+    test_file_node_elements(mpack_node_array_at(node, 2), mpack_tag_array(UINT8_MAX));
+    test_file_node_elements(mpack_node_array_at(node, 3), mpack_tag_array(UINT8_MAX + 1));
+    test_file_node_elements(mpack_node_array_at(node, 4), mpack_tag_array(UINT16_MAX + 1));
+
+    node = mpack_node_array_at(root, 4);
+    test_assert(5 == mpack_node_array_length(node));
+    test_file_node_elements(mpack_node_array_at(node, 0), mpack_tag_map(0));
+    test_file_node_elements(mpack_node_array_at(node, 1), mpack_tag_map(INT8_MAX));
+    test_file_node_elements(mpack_node_array_at(node, 2), mpack_tag_map(UINT8_MAX));
+    test_file_node_elements(mpack_node_array_at(node, 3), mpack_tag_map(UINT8_MAX + 1));
+    test_file_node_elements(mpack_node_array_at(node, 4), mpack_tag_map(UINT16_MAX + 1));
 
     mpack_error_t error = mpack_tree_destroy(&tree);
     test_assert(error == mpack_ok, "file tree failed with error %s", mpack_error_to_string(error));
@@ -201,12 +351,7 @@ void test_file(void) {
     test_node_print();
     #endif
 
-    #if MPACK_WRITER
     test_file_write();
-    test_file_check();
-    #else
-    test_write_file();
-    #endif
 
     #if MPACK_EXPECT
     test_file_read();
@@ -221,5 +366,12 @@ void test_file(void) {
     (void)test_compare_print;
 }
 
+#else
+
+void test_file(void) {
+    // if we don't have the writer, nothing to do
+}
+
+#endif
 #endif
 

@@ -519,6 +519,11 @@ void mpack_expect_cstr_match(mpack_reader_t* reader, const char* str) {
     mpack_done_str(reader);
 }
 
+void mpack_expect_tag(mpack_reader_t* reader, mpack_tag_t expected) {
+    mpack_tag_t actual = mpack_read_tag(reader);
+    if (!mpack_tag_equal(actual, expected))
+        mpack_reader_flag_error(reader, mpack_error_type);
+}
 
 #endif
 
