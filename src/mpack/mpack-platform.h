@@ -266,7 +266,7 @@ MPACK_HEADER_START
     #define MPACK_NORETURN(fn) fn __attribute__((noreturn))
 
     // gcov gets confused with always_inline, so we disable it under the unit tests
-    #ifndef MPACK_UNIT_TESTS
+    #ifndef MPACK_GCOV
         #define MPACK_ALWAYS_INLINE __attribute__((always_inline)) MPACK_INLINE
         #define MPACK_STATIC_ALWAYS_INLINE static __attribute__((always_inline)) inline
     #endif

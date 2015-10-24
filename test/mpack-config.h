@@ -4,10 +4,6 @@
 
 // This is the configuration for the MPack test harness.
 
-// Some minor workarounds are needed in the unit test suite, so we
-// define this. This should affect as little of MPack as possible.
-#define MPACK_UNIT_TESTS 1
-
 #if defined(DEBUG) || defined(_DEBUG)
 #define MPACK_DEBUG 1
 #endif

@@ -161,11 +161,7 @@ static void test_print(void) {
     fclose(out);
 
     MPACK_FREE(input_data);
-
     test_compare_print();
-
-    // we print this to ensure the stdout wrapper is covered
-    mpack_print("\xb1testing stdout...", 18);
 }
 #endif
 
@@ -178,12 +174,8 @@ static void test_node_print(void) {
     mpack_node_print_file(mpack_tree_root(&tree), out);
     fclose(out);
 
-    test_compare_print();
-
-    // we print this to ensure the stdout wrapper is covered
-    mpack_node_print(mpack_node_array_at(mpack_tree_root(&tree), 0));
-
     test_assert(mpack_ok == mpack_tree_destroy(&tree));
+    test_compare_print();
 }
 #endif
 

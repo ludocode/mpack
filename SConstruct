@@ -48,7 +48,7 @@ cflags = ["-std=c99"]
 
 gcovflags = []
 if ARGUMENTS.get('gcov'):
-    gcovflags = ["-fprofile-arcs", "-ftest-coverage"]
+    gcovflags = ["-DMPACK_GCOV=1", "-fprofile-arcs", "-ftest-coverage"]
 
 
 # Functions to add a variant build. One variant build will build and run the

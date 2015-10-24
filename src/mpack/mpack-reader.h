@@ -471,6 +471,7 @@ void mpack_discard(mpack_reader_t* reader);
  */
 void mpack_print_file(const char* data, size_t len, FILE* file);
 
+#ifndef MPACK_GCOV
 /**
  * Converts a blob of MessagePack to pseudo-JSON for debugging purposes
  * and pretty-prints it to stdout.
@@ -478,6 +479,7 @@ void mpack_print_file(const char* data, size_t len, FILE* file);
 MPACK_INLINE void mpack_print(const char* data, size_t len) {
     mpack_print_file(data, len, stdout);
 }
+#endif
 #endif
 
 /**
