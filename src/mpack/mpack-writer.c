@@ -37,7 +37,7 @@ MPACK_STATIC_INLINE_SPEED void mpack_writer_flag_if_error(mpack_writer_t* writer
 #endif
 
 MPACK_STATIC_INLINE_SPEED void mpack_writer_track_element(mpack_writer_t* writer) {
-    MPACK_WRITER_TRACK(writer, mpack_track_element(&writer->track, true));
+    MPACK_WRITER_TRACK(writer, mpack_track_element(&writer->track, false));
 }
 
 void mpack_writer_init(mpack_writer_t* writer, char* buffer, size_t size) {
@@ -407,17 +407,14 @@ void mpack_writer_destroy_cancel(mpack_writer_t* writer) {
 }
 
 void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t value) {
-    mpack_writer_track_element(writer);
 
     switch (value.type) {
-
-        case mpack_type_nil:    mpack_write_nil   (writer);          break;
-
-        case mpack_type_bool:   mpack_write_bool  (writer, value.v.b); break;
-        case mpack_type_float:  mpack_write_float (writer, value.v.f); break;
-        case mpack_type_double: mpack_write_double(writer, value.v.d); break;
-        case mpack_type_int:    mpack_write_int   (writer, value.v.i); break;
-        case mpack_type_uint:   mpack_write_uint  (writer, value.v.u); break;
+        case mpack_type_nil:    mpack_writer_track_element(writer); mpack_write_nil   (writer);            break;
+        case mpack_type_bool:   mpack_writer_track_element(writer); mpack_write_bool  (writer, value.v.b); break;
+        case mpack_type_float:  mpack_writer_track_element(writer); mpack_write_float (writer, value.v.f); break;
+        case mpack_type_double: mpack_writer_track_element(writer); mpack_write_double(writer, value.v.d); break;
+        case mpack_type_int:    mpack_writer_track_element(writer); mpack_write_int   (writer, value.v.i); break;
+        case mpack_type_uint:   mpack_writer_track_element(writer); mpack_write_uint  (writer, value.v.u); break;
 
         case mpack_type_str: mpack_start_str(writer, value.v.l); break;
         case mpack_type_bin: mpack_start_bin(writer, value.v.l); break;

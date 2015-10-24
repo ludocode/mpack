@@ -378,6 +378,7 @@ MPACK_INLINE_SPEED mpack_error_t mpack_track_destroy(mpack_track_t* track, bool 
 #if MPACK_DEFINE_INLINE_SPEED
 MPACK_INLINE_SPEED mpack_error_t mpack_track_push(mpack_track_t* track, mpack_type_t type, uint64_t count) {
     mpack_assert(track->elements, "null track elements!");
+    mpack_log("track pushing %s count %i\n", mpack_type_to_string(type), (int)count);
 
     // maps have twice the number of elements (key/value pairs)
     if (type == mpack_type_map)
@@ -399,6 +400,7 @@ MPACK_INLINE_SPEED mpack_error_t mpack_track_push(mpack_track_t* track, mpack_ty
 
 MPACK_INLINE_SPEED mpack_error_t mpack_track_pop(mpack_track_t* track, mpack_type_t type) {
     mpack_assert(track->elements, "null track elements!");
+    mpack_log("track popping %s\n", mpack_type_to_string(type));
 
     if (track->count == 0) {
         mpack_break("attempting to close a %s but nothing was opened!", mpack_type_to_string(type));
