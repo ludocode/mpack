@@ -450,7 +450,7 @@ MPACK_INLINE uint32_t mpack_expect_array_max(mpack_reader_t* reader, uint32_t ma
  * @ref mpack_done_array() must be called once all elements have been read.
  *
  * @throws mpack_error_type if the value is not an array or if its size does
- * not fall within the given range.
+ * not match the given count.
  */
 void mpack_expect_array_match(mpack_reader_t* reader, uint32_t count);
 
@@ -461,6 +461,18 @@ void mpack_expect_array_match(mpack_reader_t* reader, uint32_t count);
  * Reads the start of an array and allocates storage for it, placing its
  * size in count. A number of objects follow equal to the element count
  * of the array.
+ *
+ * If an error occurs, NULL is returned and the reader is placed in an
+ * error state.
+ *
+ * If the count is zero, NULL is returned. This does not indicate error.
+ * You should not check the return value for NULL to check for errors; only
+ * check the reader's error state.
+ *
+ * The allocated array should be freed with MPACK_FREE().
+ *
+ * @throws mpack_error_type if the value is not an array or if its size is
+ * greater than max_count.
  */
 #define mpack_expect_array_alloc(reader, Type, max_count, count) \
     ((Type*)mpack_expect_array_alloc_impl(reader, sizeof(Type), max_count, count))

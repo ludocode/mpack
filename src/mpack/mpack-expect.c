@@ -433,16 +433,28 @@ uint32_t mpack_expect_array_range(mpack_reader_t* reader, uint32_t min_count, ui
 
 #ifdef MPACK_MALLOC
 void* mpack_expect_array_alloc_impl(mpack_reader_t* reader, size_t element_size, uint32_t max_count, size_t* out_count) {
-    size_t count = *out_count = mpack_expect_array(reader);
+    *out_count = 0;
+
+    size_t count = mpack_expect_array(reader);
     if (mpack_reader_error(reader))
         return NULL;
+
+    // size 0 is not an error; we return NULL for no elements.
+    if (count == 0)
+        return NULL;
+
     if (count > max_count) {
         mpack_reader_flag_error(reader, mpack_error_type);
         return NULL;
     }
+
     void* p = MPACK_MALLOC(element_size * count);
-    if (p == NULL)
+    if (p == NULL) {
         mpack_reader_flag_error(reader, mpack_error_memory);
+        return NULL;
+    }
+
+    *out_count = count;
     return p;
 }
 #endif
