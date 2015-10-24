@@ -264,17 +264,30 @@ MPACK_HEADER_START
 #if defined(__GNUC__) || defined(__clang__)
     #define MPACK_UNREACHABLE __builtin_unreachable()
     #define MPACK_NORETURN(fn) fn __attribute__((noreturn))
-    #define MPACK_ALWAYS_INLINE __attribute__((always_inline)) MPACK_INLINE
-    #define MPACK_STATIC_ALWAYS_INLINE static __attribute__((always_inline)) inline
+
+    // gcov gets confused with always_inline, so we disable it under the unit tests
+    #ifndef MPACK_UNIT_TESTS
+        #define MPACK_ALWAYS_INLINE __attribute__((always_inline)) MPACK_INLINE
+        #define MPACK_STATIC_ALWAYS_INLINE static __attribute__((always_inline)) inline
+    #endif
+
 #elif defined(_MSC_VER)
     #define MPACK_UNREACHABLE __assume(0)
     #define MPACK_NORETURN(fn) __declspec(noreturn) fn
     #define MPACK_ALWAYS_INLINE __forceinline
     #define MPACK_STATIC_ALWAYS_INLINE static __forceinline
-#else
+#endif
+
+#ifndef MPACK_UNREACHABLE
     #define MPACK_UNREACHABLE ((void)0)
+#endif
+#ifndef MPACK_NORETURN
     #define MPACK_NORETURN(fn) fn
+#endif
+#ifndef MPACK_ALWAYS_INLINE
     #define MPACK_ALWAYS_INLINE MPACK_INLINE
+#endif
+#ifndef MPACK_STATIC_ALWAYS_INLINE
     #define MPACK_STATIC_ALWAYS_INLINE static inline
 #endif
 
