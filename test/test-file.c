@@ -7,8 +7,53 @@
 #include <unistd.h>
 #endif
 
-static const char* test_filename = "testfile.mp";
+static const char* test_filename = "build/testfile";
 static const char test_data[] = "\x82\xA7""compact\xC3\xA6""schema\x00";
+
+static char* test_file_fetch(const char* filename, size_t* out_size) {
+    *out_size = 0;
+
+    // open the file
+    FILE* file = fopen(filename, "rb");
+    if (!file) {
+        test_assert(false, "missing file %s", filename);
+        return NULL;
+    }
+
+    // get the file size
+    fseek(file, 0, SEEK_END);
+    long size = ftell(file);
+    fseek(file, 0, SEEK_SET);
+    if (size < 0) {
+        test_assert(false, "invalid file size %i for %s", (int)size, filename);
+        fclose(file);
+        return NULL;
+    }
+
+    // allocate the data
+    if (size == 0) {
+        fclose(file);
+        return (char*)MPACK_MALLOC(1);
+    }
+    char* data = (char*)MPACK_MALLOC(size);
+
+    // read the file
+    long total = 0;
+    while (total < size) {
+        size_t read = fread(data + total, 1, (size_t)(size - total), file);
+        if (read <= 0) {
+            test_assert(false, "failed to read from file %s", filename);
+            fclose(file);
+            MPACK_FREE(data);
+            return NULL;
+        }
+        total += read;
+    }
+
+    fclose(file);
+    *out_size = (size_t)size;
+    return data;
+}
 
 #if MPACK_WRITER
 static void test_file_write(void) {
@@ -50,6 +95,57 @@ static void test_write_file(void) {
 }
 #endif
 
+// compares the test filename to the expected debug output
+static void test_compare_print() {
+    size_t expected_size;
+    char* expected_data = test_file_fetch("test/test-file.debug", &expected_size);
+    size_t actual_size;
+    char* actual_data = test_file_fetch(test_filename, &actual_size);
+
+    test_assert(actual_size == expected_size, "print length %i does not match expected length %i",
+            (int)actual_size, (int)expected_size);
+    test_assert(0 == memcmp(actual_data, expected_data, actual_size), "print does not match expected");
+
+    MPACK_FREE(expected_data);
+    MPACK_FREE(actual_data);
+}
+
+#if MPACK_READER
+static void test_print(void) {
+    size_t input_size;
+    char* input_data = test_file_fetch("test/test-file.mp", &input_size);
+
+    FILE* out = fopen(test_filename, "wb");
+    mpack_print_file(input_data, input_size, out);
+    fclose(out);
+
+    MPACK_FREE(input_data);
+
+    test_compare_print();
+
+    // we print this to ensure the stdout wrapper is covered
+    mpack_print("\xb1testing stdout...", 18);
+}
+#endif
+
+#if MPACK_NODE
+static void test_node_print(void) {
+    mpack_tree_t tree;
+    mpack_tree_init_file(&tree, "test/test-file.mp", 0);
+
+    FILE* out = fopen(test_filename, "wb");
+    mpack_node_print_file(mpack_tree_root(&tree), out);
+    fclose(out);
+
+    test_compare_print();
+
+    // we print this to ensure the stdout wrapper is covered
+    mpack_node_print(mpack_node_array_at(mpack_tree_root(&tree), 0));
+
+    test_assert(mpack_ok == mpack_tree_destroy(&tree));
+}
+#endif
+
 #if MPACK_EXPECT
 static void test_file_read(void) {
     mpack_reader_t reader;
@@ -87,6 +183,13 @@ static void test_file_node(void) {
 #endif
 
 void test_file(void) {
+    #if MPACK_READER
+    test_print();
+    #endif
+    #if MPACK_NODE
+    test_node_print();
+    #endif
+
     #if MPACK_WRITER
     test_file_write();
     test_file_check();
@@ -103,6 +206,8 @@ void test_file(void) {
 
     // TODO: use remove(), not unlink()
     test_assert(unlink(test_filename) == 0, "failed to delete %s", test_filename);
+
+    (void)test_compare_print;
 }
 
 #endif

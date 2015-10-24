@@ -1,0 +1,25 @@
+        [
+            null,
+            false,
+            true,
+            [
+                0,
+                1,
+                -1,
+                -32768,
+                65535,
+                -2147483648,
+                4294967295,
+                -9223372036854775808.000000,
+                18446744073709551616.000000
+            ],
+            {
+                "a": "1",
+                "b": "2",
+                "c": "3",
+                "d": "4"
+            },
+            "The quick brown fox jumps over the lazy dog.",
+            <binary data of length 37>,
+            <ext data of type 1 and length 37>
+        ]

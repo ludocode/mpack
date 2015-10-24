@@ -871,81 +871,81 @@ static void mpack_node_print_element(mpack_node_t node, size_t depth, FILE* file
     switch (data->type) {
 
         case mpack_type_nil:
-            printf("null");
+            fprintf(file, "null");
             break;
         case mpack_type_bool:
-            printf(data->value.b ? "true" : "false");
+            fprintf(file, data->value.b ? "true" : "false");
             break;
 
         case mpack_type_float:
-            printf("%f", data->value.f);
+            fprintf(file, "%f", data->value.f);
             break;
         case mpack_type_double:
-            printf("%f", data->value.d);
+            fprintf(file, "%f", data->value.d);
             break;
 
         case mpack_type_int:
-            printf("%" PRIi64, data->value.i);
+            fprintf(file, "%" PRIi64, data->value.i);
             break;
         case mpack_type_uint:
-            printf("%" PRIu64, data->value.u);
+            fprintf(file, "%" PRIu64, data->value.u);
             break;
 
         case mpack_type_bin:
-            printf("<binary data of length %u>", data->value.data.l);
+            fprintf(file, "<binary data of length %u>", data->value.data.l);
             break;
 
         case mpack_type_ext:
-            printf("<ext data of type %i and length %u>", data->exttype, data->value.data.l);
+            fprintf(file, "<ext data of type %i and length %u>", data->exttype, data->value.data.l);
             break;
 
         case mpack_type_str:
             {
-                putchar('"');
+                putc('"', file);
                 const char* bytes = mpack_node_data(node);
                 for (size_t i = 0; i < data->value.data.l; ++i) {
                     char c = bytes[i];
                     switch (c) {
-                        case '\n': printf("\\n"); break;
-                        case '\\': printf("\\\\"); break;
-                        case '"': printf("\\\""); break;
-                        default: putchar(c); break;
+                        case '\n': fprintf(file, "\\n"); break;
+                        case '\\': fprintf(file, "\\\\"); break;
+                        case '"': fprintf(file, "\\\""); break;
+                        default: putc(c, file); break;
                     }
                 }
-                putchar('"');
+                putc('"', file);
             }
             break;
 
         case mpack_type_array:
-            printf("[\n");
+            fprintf(file, "[\n");
             for (size_t i = 0; i < data->value.content.n; ++i) {
                 for (size_t j = 0; j < depth + 1; ++j)
-                    printf("    ");
+                    fprintf(file, "    ");
                 mpack_node_print_element(mpack_node_array_at(node, i), depth + 1, file);
                 if (i != data->value.content.n - 1)
-                    putchar(',');
-                putchar('\n');
+                    putc(',', file);
+                putc('\n', file);
             }
             for (size_t i = 0; i < depth; ++i)
-                printf("    ");
-            putchar(']');
+                fprintf(file, "    ");
+            putc(']', file);
             break;
 
         case mpack_type_map:
-            printf("{\n");
+            fprintf(file, "{\n");
             for (size_t i = 0; i < data->value.content.n; ++i) {
                 for (size_t j = 0; j < depth + 1; ++j)
-                    printf("    ");
+                    fprintf(file, "    ");
                 mpack_node_print_element(mpack_node_map_key_at(node, i), depth + 1, file);
-                printf(": ");
+                fprintf(file, ": ");
                 mpack_node_print_element(mpack_node_map_value_at(node, i), depth + 1, file);
                 if (i != data->value.content.n - 1)
-                    putchar(',');
-                putchar('\n');
+                    putc(',', file);
+                putc('\n', file);
             }
             for (size_t i = 0; i < depth; ++i)
-                printf("    ");
-            putchar('}');
+                fprintf(file, "    ");
+            putc('}', file);
             break;
     }
 }
@@ -953,9 +953,9 @@ static void mpack_node_print_element(mpack_node_t node, size_t depth, FILE* file
 void mpack_node_print_file(mpack_node_t node, FILE* file) {
     int depth = 2;
     for (int i = 0; i < depth; ++i)
-        printf("    ");
+        fprintf(file, "    ");
     mpack_node_print_element(node, depth, file);
-    putchar('\n');
+    putc('\n', file);
 }
 #endif
 

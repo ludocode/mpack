@@ -690,27 +690,23 @@ static void mpack_print_element(mpack_reader_t* reader, size_t depth, FILE* file
             break;
 
         case mpack_type_bin:
-            // skip data
-            for (size_t i = 0; i < val.v.l; ++i)
-                mpack_read_native_u8(reader);
+            mpack_skip_bytes(reader, val.v.l);
             if (mpack_reader_error(reader) != mpack_ok)
                 return;
-            fprintf(file, "<binary data>");
+            fprintf(file, "<binary data of length %u>", val.v.l);
             mpack_done_bin(reader);
             break;
 
         case mpack_type_ext:
-            // skip data
-            for (size_t i = 0; i < val.v.l; ++i)
-                mpack_read_native_u8(reader);
+            mpack_skip_bytes(reader, val.v.l);
             if (mpack_reader_error(reader) != mpack_ok)
                 return;
-            fprintf(file, "<ext data of type %i>", val.exttype);
+            fprintf(file, "<ext data of type %i and length %u>", val.exttype, val.v.l);
             mpack_done_ext(reader);
             break;
 
         case mpack_type_str:
-            putchar('"');
+            putc('"', file);
             for (size_t i = 0; i < val.v.l; ++i) {
                 char c;
                 mpack_read_bytes(reader, &c, 1);
@@ -720,10 +716,10 @@ static void mpack_print_element(mpack_reader_t* reader, size_t depth, FILE* file
                     case '\n': fprintf(file, "\\n"); break;
                     case '\\': fprintf(file, "\\\\"); break;
                     case '"': fprintf(file, "\\\""); break;
-                    default: putchar(c); break;
+                    default: putc(c, file); break;
                 }
             }
-            putchar('"');
+            putc('"', file);
             mpack_done_str(reader);
             break;
 
@@ -738,12 +734,12 @@ static void mpack_print_element(mpack_reader_t* reader, size_t depth, FILE* file
                 if (mpack_reader_error(reader) != mpack_ok)
                     return;
                 if (i != val.v.n - 1)
-                    putchar(',');
-                putchar('\n');
+                    putc(',', file);
+                putc('\n', file);
             }
             for (size_t i = 0; i < depth; ++i)
                 fprintf(file, "    ");
-            putchar(']');
+            putc(']', file);
             mpack_done_array(reader);
             break;
 
@@ -760,18 +756,18 @@ static void mpack_print_element(mpack_reader_t* reader, size_t depth, FILE* file
                 if (mpack_reader_error(reader) != mpack_ok)
                     return;
                 if (i != val.v.n - 1)
-                    putchar(',');
-                putchar('\n');
+                    putc(',', file);
+                putc('\n', file);
             }
             for (size_t i = 0; i < depth; ++i)
                 fprintf(file, "    ");
-            putchar('}');
+            putc('}', file);
             mpack_done_map(reader);
             break;
     }
 }
 
-void mpack_print_file(const char* data, int len, FILE* file) {
+void mpack_print_file(const char* data, size_t len, FILE* file) {
     mpack_reader_t reader;
     mpack_reader_init_data(&reader, data, len);
 
@@ -779,12 +775,14 @@ void mpack_print_file(const char* data, int len, FILE* file) {
     for (int i = 0; i < depth; ++i)
         fprintf(file, "    ");
     mpack_print_element(&reader, depth, file);
-    putchar('\n');
+    putc('\n', file);
 
-    if (mpack_reader_error(&reader) != mpack_ok)
+    size_t remaining = mpack_reader_remaining(&reader, NULL);
+
+    if (mpack_reader_destroy(&reader) != mpack_ok)
         fprintf(file, "<mpack parsing error %s>\n", mpack_error_to_string(mpack_reader_error(&reader)));
-    else if (mpack_reader_remaining(&reader, NULL) > 0)
-        fprintf(file, "<%i extra bytes at end of mpack>\n", (int)mpack_reader_remaining(&reader, NULL));
+    else if (remaining > 0)
+        fprintf(file, "<%i extra bytes at end of mpack>\n", (int)remaining);
 }
 #endif
 

@@ -19,22 +19,14 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#ifndef MPACK_TEST_EXPECT_H
-#define MPACK_TEST_EXPECT_H 1
+#include "test-expect.h"
 
-#include "test-reader.h"
+#if MPACK_READER
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#ifdef MPACK_EXPECT
-void test_expect(void);
-#endif
-
-#ifdef __cplusplus
+void test_reader() {
+    // most reader functions are tested by the expect tests.
+    // some tag reading tests could eventually be added here.
 }
-#endif
 
 #endif
 
