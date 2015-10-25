@@ -635,7 +635,7 @@ static void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length
     // This seems like a bug / performance flaw in GCC. In release the
     // below assert would compile to:
     //
-    //     (!(possible_nodes_left == remaining) ? __builtin_unreachable() : ((void)0))
+    //     (!(mpack_tree_error(parser.tree) != mpack_ok || possible_nodes_left == remaining) ? __builtin_unreachable() : ((void)0))
     //
     // This produces identical assembly with GCC 5.1 on ARM64 under -O3, but
     // with -O3 -flto, node parsing is over 4% slower. This should be a no-op
@@ -645,7 +645,7 @@ static void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length
     // Leaving a TODO: here to explore this further. In the meantime we preproc it
     // under MPACK_DEBUG.
     #if MPACK_DEBUG
-    mpack_assert(parser.possible_nodes_left == parser.left,
+    mpack_assert(mpack_tree_error(parser.tree) != mpack_ok || parser.possible_nodes_left == parser.left,
             "incorrect calculation of possible nodes! %i possible nodes, but %i bytes remaining",
             (int)parser.possible_nodes_left, (int)parser.left);
     #endif

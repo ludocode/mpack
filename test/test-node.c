@@ -362,6 +362,13 @@ static void test_node_read_misc() {
     #else
     test_tree_destroy_noerror(&tree);
     #endif
+
+    // test pool too small
+    mpack_node_data_t small_pool[1];
+    mpack_tree_init_pool(&tree, "\x91\xc0", 2, small_pool, 1);
+    test_tree_destroy_error(&tree, mpack_error_too_big);
+    test_expecting_break((mpack_tree_init_pool(&tree, "\xc0", 1, small_pool, 0), true));
+    test_tree_destroy_error(&tree, mpack_error_bug);
 }
 
 static void test_node_read_floats() {
