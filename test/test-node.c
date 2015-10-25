@@ -346,6 +346,18 @@ static void test_node_read_misc() {
 
     test_simple_tree_read_error("\xc2", (mpack_node_true(node), true), mpack_error_type);
     test_simple_tree_read_error("\xc3", (mpack_node_false(node), true), mpack_error_type);
+
+    // test missing space for cstr null-terminator
+    char buf[1];
+    mpack_tree_t tree;
+    mpack_tree_init_pool(&tree, "\xa0", 1, pool, sizeof(pool) / sizeof(*pool));
+    test_expecting_assert(mpack_node_copy_cstr(mpack_tree_root(&tree), buf, 0));
+    #ifdef MPACK_MALLOC
+    test_expecting_break(NULL == mpack_node_cstr_alloc(mpack_tree_root(&tree), 0));
+    test_tree_destroy_error(&tree, mpack_error_bug);
+    #else
+    test_tree_destroy_noerror(&tree);
+    #endif
 }
 
 static void test_node_read_floats() {
