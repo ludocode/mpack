@@ -212,8 +212,13 @@ MPACK_INLINE void mpack_reader_set_context(mpack_reader_t* reader, void* context
 /**
  * Sets the fill function to refill the data buffer when it runs out of data.
  *
- * If no fill function is used, trying to read past the end of the
- * buffer will result in mpack_error_io.
+ * If no fill function is used, truncated MessagePack data results in
+ * mpack_error_invalid (since the buffer is assumed to contain a
+ * complete MessagePack object.)
+ *
+ * If a fill function is used, truncated MessagePack data usually
+ * results in mpack_error_io (since the fill function fails to get
+ * the missing data.)
  *
  * This should normally be used with mpack_reader_set_context() to register
  * a custom pointer to pass to the fill function.

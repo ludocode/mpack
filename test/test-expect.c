@@ -467,13 +467,13 @@ static void test_expect_tracking() {
     // reading elements in a string
     test_reader_init_str(&reader, "\xa2""xx");
     mpack_expect_str(&reader);
-    test_expecting_break((mpack_expect_nil(&reader), true));
+    test_expecting_break((mpack_read_tag(&reader), true));
     test_reader_destroy_error(&reader, mpack_error_bug);
 
     // reading too many elements
     test_reader_init_str(&reader, "\x90");
     mpack_expect_array(&reader);
-    test_expecting_break((mpack_expect_nil(&reader), true));
+    test_expecting_break((mpack_read_tag(&reader), true));
     test_reader_destroy_error(&reader, mpack_error_bug);
 
     // reading bytes with nothing open
@@ -568,21 +568,21 @@ static void test_expect_bad_type() {
 }
 
 static void test_expect_pre_error() {
-    // test that all reader functions correctly handle pre-existing errors
-    test_simple_read_error("", (mpack_expect_nil(&reader), true), mpack_error_io);
-    test_simple_read_error("", false == mpack_expect_bool(&reader), mpack_error_io);
-    test_simple_read_error("", 0 == mpack_expect_u8(&reader), mpack_error_io);
-    test_simple_read_error("", 0 == mpack_expect_u16(&reader), mpack_error_io);
-    test_simple_read_error("", 0 == mpack_expect_u32(&reader), mpack_error_io);
-    test_simple_read_error("", 0 == mpack_expect_u64(&reader), mpack_error_io);
-    test_simple_read_error("", 0 == mpack_expect_i8(&reader), mpack_error_io);
-    test_simple_read_error("", 0 == mpack_expect_i16(&reader), mpack_error_io);
-    test_simple_read_error("", 0 == mpack_expect_i32(&reader), mpack_error_io);
-    test_simple_read_error("", 0 == mpack_expect_i64(&reader), mpack_error_io);
-    test_simple_read_error("", 0.0f == mpack_expect_float(&reader), mpack_error_io);
-    test_simple_read_error("", 0.0 == mpack_expect_double(&reader), mpack_error_io);
-    test_simple_read_error("", 0.0f == mpack_expect_float_strict(&reader), mpack_error_io);
-    test_simple_read_error("", 0.0 == mpack_expect_double_strict(&reader), mpack_error_io);
+    // test that all reader functinvalidns correctly handle pre-existing errors
+    test_simple_read_error("", (mpack_expect_nil(&reader), true), mpack_error_invalid);
+    test_simple_read_error("", false == mpack_expect_bool(&reader), mpack_error_invalid);
+    test_simple_read_error("", 0 == mpack_expect_u8(&reader), mpack_error_invalid);
+    test_simple_read_error("", 0 == mpack_expect_u16(&reader), mpack_error_invalid);
+    test_simple_read_error("", 0 == mpack_expect_u32(&reader), mpack_error_invalid);
+    test_simple_read_error("", 0 == mpack_expect_u64(&reader), mpack_error_invalid);
+    test_simple_read_error("", 0 == mpack_expect_i8(&reader), mpack_error_invalid);
+    test_simple_read_error("", 0 == mpack_expect_i16(&reader), mpack_error_invalid);
+    test_simple_read_error("", 0 == mpack_expect_i32(&reader), mpack_error_invalid);
+    test_simple_read_error("", 0 == mpack_expect_i64(&reader), mpack_error_invalid);
+    test_simple_read_error("", 0.0f == mpack_expect_float(&reader), mpack_error_invalid);
+    test_simple_read_error("", 0.0 == mpack_expect_double(&reader), mpack_error_invalid);
+    test_simple_read_error("", 0.0f == mpack_expect_float_strict(&reader), mpack_error_invalid);
+    test_simple_read_error("", 0.0 == mpack_expect_double_strict(&reader), mpack_error_invalid);
 }
 
 static void test_expect_data() {

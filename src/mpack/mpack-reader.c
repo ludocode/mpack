@@ -144,11 +144,12 @@ void mpack_reader_flag_error(mpack_reader_t* reader, mpack_error_t error) {
 // A helper to call the reader fill function. This makes sure it's
 // implemented and guards against overflow in case it returns -1.
 MPACK_STATIC_INLINE_SPEED size_t mpack_fill(mpack_reader_t* reader, char* p, size_t count) {
-    if (!reader->fill)
-        return 0;
+    mpack_assert(reader->fill != NULL, "mpack_fill() called with no fill function?");
+
     size_t ret = reader->fill(reader, p, count);
     if (ret == ((size_t)(-1)))
         return 0;
+
     return ret;
 }
 
@@ -169,6 +170,16 @@ void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count) {
                 "left in buffer. call mpack_read_native() instead",
                 (int)count, (int)reader->left);
         mpack_reader_flag_error(reader, mpack_error_bug);
+        mpack_memset(p, 0, count);
+        return;
+    }
+
+    // we'll need a fill function to get more data. if there's no
+    // fill function, the buffer should contain an entire MessagePack
+    // object, so we raise mpack_error_invalid instead of mpack_error_io
+    // on truncated data.
+    if (reader->fill == NULL) {
+        mpack_reader_flag_error(reader, mpack_error_invalid);
         mpack_memset(p, 0, count);
         return;
     }
@@ -253,9 +264,12 @@ static const char* mpack_read_bytes_inplace_big(mpack_reader_t* reader, size_t c
             mpack_error_to_string(mpack_reader_error(reader)));
     mpack_assert(reader->left < count, "already enough bytes in buffer: %i left, %i count", (int)reader->left, (int)count);
 
-    // we'll need a fill function to get more data
-    if (!reader->fill) {
-        mpack_reader_flag_error(reader, mpack_error_io);
+    // we'll need a fill function to get more data. if there's no
+    // fill function, the buffer should contain an entire MessagePack
+    // object, so we raise mpack_error_invalid instead of mpack_error_io
+    // on truncated data.
+    if (reader->fill == NULL) {
+        mpack_reader_flag_error(reader, mpack_error_invalid);
         return NULL;
     }
 
@@ -297,11 +311,13 @@ const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count) {
 mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
     mpack_tag_t var = mpack_tag_nil();
 
+    // make sure we can read a tag
+    if (mpack_reader_track_element(reader) != mpack_ok)
+        return mpack_tag_nil();
+
     // get the type
     uint8_t type = mpack_read_native_u8(reader);
     if (mpack_reader_error(reader))
-        return mpack_tag_nil();
-    if (mpack_reader_track_element(reader) != mpack_ok)
         return mpack_tag_nil();
 
     // unfortunately, by far the fastest way to parse a tag is to switch

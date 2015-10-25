@@ -24,6 +24,7 @@
 #include <string.h>
 #include <stdarg.h>
 
+#include "test-reader.h"
 #include "test-expect.h"
 #include "test-write.h"
 #include "test-buffer.h"
@@ -82,6 +83,9 @@ int main(void) {
 
     test_common();
 
+    #if MPACK_READER
+    test_reader();
+    #endif
     #if MPACK_EXPECT
     test_expect();
     #endif

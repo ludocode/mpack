@@ -24,8 +24,15 @@
 #if MPACK_READER
 
 void test_reader() {
-    // most reader functions are tested by the expect tests.
-    // some tag reading tests could eventually be added here.
+    // almost all reader functions are tested by the expect tests.
+    // minor miscellaneous read tests are added here.
+
+    // 0xc1 is reserved; it should always raise mpack_error_invalid
+    test_simple_read_error("\xc1", mpack_tag_equal(mpack_read_tag(&reader), mpack_tag_nil()), mpack_error_invalid);
+
+    // truncated discard errors
+    test_simple_read_error("\x91", (mpack_discard(&reader), true), mpack_error_invalid); // array
+    test_simple_read_error("\x81", (mpack_discard(&reader), true), mpack_error_invalid); // map
 }
 
 #endif
