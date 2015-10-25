@@ -207,7 +207,7 @@ static void mpack_tree_parse_children(mpack_tree_parser_t* parser, mpack_node_da
         // to allocate its nodes so it gets freed later in case of allocation failure.
         mpack_tree_link_t* link = (mpack_tree_link_t*)MPACK_MALLOC(sizeof(mpack_tree_link_t));
         if (link == NULL) {
-            mpack_tree_flag_error(parser->tree, mpack_error_invalid);
+            mpack_tree_flag_error(parser->tree, mpack_error_memory);
             parser->level = 0;
             return;
         }
@@ -221,7 +221,7 @@ static void mpack_tree_parse_children(mpack_tree_parser_t* parser, mpack_node_da
             parser->tree->page.next = link;
             link->nodes = (mpack_node_data_t*)MPACK_MALLOC(sizeof(mpack_node_data_t) * total);
             if (link->nodes == NULL) {
-                mpack_tree_flag_error(parser->tree, mpack_error_invalid);
+                mpack_tree_flag_error(parser->tree, mpack_error_memory);
                 parser->level = 0;
                 return;
             }
@@ -238,7 +238,7 @@ static void mpack_tree_parse_children(mpack_tree_parser_t* parser, mpack_node_da
             parser->tree->page.next = link;
             parser->tree->page.nodes = (mpack_node_data_t*)MPACK_MALLOC(sizeof(mpack_node_data_t) * MPACK_NODE_PAGE_SIZE);
             if (parser->tree->page.nodes == NULL) {
-                mpack_tree_flag_error(parser->tree, mpack_error_invalid);
+                mpack_tree_flag_error(parser->tree, mpack_error_memory);
                 parser->level = 0;
                 return;
             }
