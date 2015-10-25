@@ -180,6 +180,33 @@ MPACK_INLINE mpack_tag_t mpack_tag_nil(void) {
     return ret;
 }
 
+/** Generates a bool tag. */
+MPACK_INLINE mpack_tag_t mpack_tag_bool(bool value) {
+    mpack_tag_t ret;
+    mpack_memset(&ret, 0, sizeof(ret));
+    ret.type = mpack_type_bool;
+    ret.v.b = value;
+    return ret;
+}
+
+/** Generates a bool tag with value true. */
+MPACK_INLINE mpack_tag_t mpack_tag_true(void) {
+    mpack_tag_t ret;
+    mpack_memset(&ret, 0, sizeof(ret));
+    ret.type = mpack_type_bool;
+    ret.v.b = true;
+    return ret;
+}
+
+/** Generates a bool tag with value false. */
+MPACK_INLINE mpack_tag_t mpack_tag_false(void) {
+    mpack_tag_t ret;
+    mpack_memset(&ret, 0, sizeof(ret));
+    ret.type = mpack_type_bool;
+    ret.v.b = false;
+    return ret;
+}
+
 /** Generates a signed int tag. */
 MPACK_INLINE mpack_tag_t mpack_tag_int(int64_t value) {
     mpack_tag_t ret;
@@ -195,15 +222,6 @@ MPACK_INLINE mpack_tag_t mpack_tag_uint(uint64_t value) {
     mpack_memset(&ret, 0, sizeof(ret));
     ret.type = mpack_type_uint;
     ret.v.u = value;
-    return ret;
-}
-
-/** Generates a bool tag. */
-MPACK_INLINE mpack_tag_t mpack_tag_bool(bool value) {
-    mpack_tag_t ret;
-    mpack_memset(&ret, 0, sizeof(ret));
-    ret.type = mpack_type_bool;
-    ret.v.b = value;
     return ret;
 }
 

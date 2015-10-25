@@ -347,6 +347,10 @@ static void test_node_read_misc() {
     test_simple_tree_read_error("\xc2", (mpack_node_true(node), true), mpack_error_type);
     test_simple_tree_read_error("\xc3", (mpack_node_false(node), true), mpack_error_type);
 
+    test_simple_tree_read("\xc0", mpack_tag_equal(mpack_tag_nil(), mpack_node_tag(node)));
+    test_simple_tree_read("\xc2", mpack_tag_equal(mpack_tag_false(), mpack_node_tag(node)));
+    test_simple_tree_read("\xc3", mpack_tag_equal(mpack_tag_true(), mpack_node_tag(node)));
+
     // test missing space for cstr null-terminator
     char buf[1];
     mpack_tree_t tree;
@@ -382,8 +386,9 @@ static void test_node_read_floats() {
     test_simple_tree_read("\xcb\xff\xff\xff\xff\xff\xff\xff\xff", isnan(mpack_node_double(node)));
 
     test_simple_tree_read("\xca\x00\x00\x00\x00", 0.0f == mpack_node_float_strict(node));
+    test_simple_tree_read("\xca\x00\x00\x00\x00", mpack_tag_equal(mpack_tag_float(0.0f), mpack_node_tag(node)));
     test_simple_tree_read("\xca\x00\x00\x00\x00", 0.0 == mpack_node_double_strict(node));
-    test_simple_tree_read("\xcb\x00\x00\x00\x00\x00\x00\x00\x00", 0.0 == mpack_node_double_strict(node));
+    test_simple_tree_read("\xcb\x00\x00\x00\x00\x00\x00\x00\x00", mpack_tag_equal(mpack_tag_double(0.0), mpack_node_tag(node)));
     test_simple_tree_read("\xca\xff\xff\xff\xff", isnanf(mpack_node_float_strict(node)));
     test_simple_tree_read("\xca\xff\xff\xff\xff", isnan(mpack_node_double_strict(node)));
     test_simple_tree_read("\xcb\xff\xff\xff\xff\xff\xff\xff\xff", isnan(mpack_node_double_strict(node)));
