@@ -115,7 +115,7 @@ typedef enum mpack_error_t {
 } mpack_error_t;
 
 /**
- * Converts an mpack error to a string. This function returns an empty
+ * Converts an MPack error to a string. This function returns an empty
  * string when MPACK_DEBUG is not set.
  */
 const char* mpack_error_to_string(mpack_error_t error);
@@ -138,7 +138,7 @@ typedef enum mpack_type_t {
 } mpack_type_t;
 
 /**
- * Converts an mpack type to a string. This function returns an empty
+ * Converts an MPack type to a string. This function returns an empty
  * string when MPACK_DEBUG is not set.
  */
 const char* mpack_type_to_string(mpack_type_t type);
@@ -294,7 +294,7 @@ MPACK_INLINE mpack_tag_t mpack_tag_ext(int8_t exttype, int32_t length) {
  * equal, a negative integer if left comes before right, or a positive integer
  * otherwise.
  *
- * \warning The ordering is not guaranteed to be preserved across mpack versions; do
+ * \warning The ordering is not guaranteed to be preserved across MPack versions; do
  * not rely on it in persistent data.
  *
  * \warning Floating point numbers are compared bit-for-bit, not using the language's

@@ -64,7 +64,7 @@ struct mpack_track_t;
 typedef struct mpack_reader_t mpack_reader_t;
 
 /**
- * The mpack reader's fill function. It should fill the buffer as
+ * The MPack reader's fill function. It should fill the buffer as
  * much as possible, returning the number of bytes put into the buffer.
  *
  * In case of error, it should flag an appropriate error on the reader.
@@ -120,25 +120,25 @@ struct mpack_reader_t {
 };
 
 /**
- * Initializes an mpack reader with the given buffer. The reader does
+ * Initializes an MPack reader with the given buffer. The reader does
  * not assume ownership of the buffer, but the buffer must be writeable
  * if a fill function will be used to refill it.
  *
  * @param reader The MPack reader.
- * @param buffer The buffer with which to read mpack data.
+ * @param buffer The buffer with which to read MessagePack data.
  * @param size The size of the buffer.
  * @param count The number of bytes already in the buffer.
  */
 void mpack_reader_init(mpack_reader_t* reader, char* buffer, size_t size, size_t count);
 
 /**
- * Initializes an mpack reader directly into an error state. Use this if you
+ * Initializes an MPack reader directly into an error state. Use this if you
  * are writing a wrapper to mpack_reader_init() which can fail its setup.
  */
 void mpack_reader_init_error(mpack_reader_t* reader, mpack_error_t error);
 
 /**
- * Initializes an mpack reader to parse a pre-loaded contiguous chunk of data. The
+ * Initializes an MPack reader to parse a pre-loaded contiguous chunk of data. The
  * reader does not assume ownership of the data.
  *
  * @param reader The MPack reader.
@@ -149,7 +149,7 @@ void mpack_reader_init_data(mpack_reader_t* reader, const char* data, size_t cou
 
 #if MPACK_STDIO
 /**
- * Initializes an mpack reader that reads from a file.
+ * Initializes an MPack reader that reads from a file.
  */
 void mpack_reader_init_file(mpack_reader_t* reader, const char* filename);
 #endif
@@ -158,7 +158,7 @@ void mpack_reader_init_file(mpack_reader_t* reader, const char* filename);
  * @def mpack_reader_init_stack(reader)
  * @hideinitializer
  *
- * Initializes an mpack reader using stack space as a buffer. A fill function
+ * Initializes an MPack reader using stack space as a buffer. A fill function
  * should be added to the reader to fill the buffer.
  *
  * @see mpack_reader_set_fill
@@ -177,7 +177,7 @@ void mpack_reader_init_file(mpack_reader_t* reader, const char* filename);
     mpack_reader_init_stack_line(__LINE__, (reader))
 
 /**
- * Cleans up the mpack reader, ensuring that all compound elements
+ * Cleans up the MPack reader, ensuring that all compound elements
  * have been completely read. Returns the final error state of the
  * reader.
  *
@@ -191,7 +191,7 @@ void mpack_reader_init_file(mpack_reader_t* reader, const char* filename);
 mpack_error_t mpack_reader_destroy(mpack_reader_t* reader);
 
 /**
- * Cleans up the mpack reader, discarding any open reads.
+ * Cleans up the MPack reader, discarding any open reads.
  *
  * This should be used if you decide to cancel reading in the middle
  * of the document.
@@ -310,7 +310,7 @@ MPACK_INLINE_SPEED mpack_error_t mpack_reader_flag_if_error(mpack_reader_t* read
  * remaining in the buffer and a pointer to the position of those bytes can be
  * queried here.
  *
- * If you know the length of the mpack chunk beforehand, it's better to instead
+ * If you know the length of the MPack chunk beforehand, it's better to instead
  * have your fill function limit the data it reads so that the reader does not
  * have extra data. In this case you can simply check that this returns zero.
  *
@@ -513,7 +513,7 @@ MPACK_INLINE_SPEED void mpack_read_native(mpack_reader_t* reader, char* p, size_
 }
 #endif
 
-// Reads native bytes with error callback disabled. This allows mpack reader functions
+// Reads native bytes with error callback disabled. This allows MPack reader functions
 // to hold an allocated buffer and read native data into it without leaking it in
 // case of a non-local jump out of an error handler.
 MPACK_INLINE_SPEED void mpack_read_native_nojump(mpack_reader_t* reader, char* p, size_t count);

@@ -58,7 +58,7 @@ struct mpack_track_t;
 typedef struct mpack_writer_t mpack_writer_t;
 
 /**
- * The mpack writer's flush function to flush the buffer to the output stream.
+ * The MPack writer's flush function to flush the buffer to the output stream.
  * It should flag an appropriate error on the writer if flushing fails (usually
  * mpack_error_io.)
  *
@@ -119,7 +119,7 @@ struct mpack_writer_t {
  */
 
 /**
- * Initializes an mpack writer with the given buffer. The writer
+ * Initializes an MPack writer with the given buffer. The writer
  * does not assume ownership of the buffer.
  *
  * Trying to write past the end of the buffer will result in mpack_error_io unless
@@ -128,14 +128,14 @@ struct mpack_writer_t {
  * written.
  *
  * @param writer The MPack writer.
- * @param buffer The buffer into which to write mpack data.
+ * @param buffer The buffer into which to write MessagePack data.
  * @param size The size of the buffer.
  */
 void mpack_writer_init(mpack_writer_t* writer, char* buffer, size_t size);
 
 #ifdef MPACK_MALLOC
 /**
- * Initializes an mpack writer using a growable buffer.
+ * Initializes an MPack writer using a growable buffer.
  *
  * The data is placed in the given data pointer if and when the writer
  * is destroyed without error. The data should be freed with MPACK_FREE()
@@ -155,14 +155,14 @@ void mpack_writer_init_growable(mpack_writer_t* writer, char** data, size_t* siz
 #endif
 
 /**
- * Initializes an mpack writer directly into an error state. Use this if you
+ * Initializes an MPack writer directly into an error state. Use this if you
  * are writing a wrapper to mpack_writer_init() which can fail its setup.
  */
 void mpack_writer_init_error(mpack_writer_t* writer, mpack_error_t error);
 
 #if MPACK_STDIO
 /**
- * Initializes an mpack writer that writes to a file.
+ * Initializes an MPack writer that writes to a file.
  *
  * @throws mpack_error_memory if allocation fails
  * @throws mpack_error_io if the file cannot be opened
@@ -174,7 +174,7 @@ void mpack_writer_init_file(mpack_writer_t* writer, const char* filename);
  * @def mpack_writer_init_stack(writer, flush, context)
  * @hideinitializer
  *
- * Initializes an mpack writer using stack space as a buffer. A flush function
+ * Initializes an MPack writer using stack space as a buffer. A flush function
  * should be added to the writer to flush the buffer.
  */
 
@@ -189,7 +189,7 @@ void mpack_writer_init_file(mpack_writer_t* writer, const char* filename);
     mpack_writer_init_stack_line(__LINE__, (writer))
 
 /**
- * Cleans up the mpack writer, flushing any buffered bytes to the
+ * Cleans up the MPack writer, flushing any buffered bytes to the
  * underlying stream, if any. Returns the final error state of the
  * writer in case an error occurred flushing. Causes an assert if
  * there are any unclosed compound types in tracking mode.
@@ -202,7 +202,7 @@ void mpack_writer_init_file(mpack_writer_t* writer, const char* filename);
 mpack_error_t mpack_writer_destroy(mpack_writer_t* writer);
 
 /**
- * Cleans up the mpack writer, discarding any open writes and unflushed data.
+ * Cleans up the MPack writer, discarding any open writes and unflushed data.
  *
  * Use this to cancel writing in the middle of writing a document (for example
  * in case an error occurred.) This should be used instead of mpack_writer_destroy()
@@ -291,7 +291,7 @@ void mpack_writer_flag_error(mpack_writer_t* writer, mpack_error_t error);
 
 
 /**
- * Queries the error state of the mpack writer.
+ * Queries the error state of the MPack writer.
  *
  * If a writer is in an error state, you should discard all data since the
  * last time the error flag was checked. The error flag cannot be cleared.

@@ -221,7 +221,7 @@ void mpack_tree_init(mpack_tree_t* tree, const char* data, size_t length);
 void mpack_tree_init_pool(mpack_tree_t* tree, const char* data, size_t length, mpack_node_data_t* node_pool, size_t node_pool_count);
 
 /**
- * Initializes an mpack tree directly into an error state. Use this if you
+ * Initializes an MPack tree directly into an error state. Use this if you
  * are writing a wrapper to mpack_tree_init() which can fail its setup.
  */
 void mpack_tree_init_error(mpack_tree_t* tree, mpack_error_t error);
