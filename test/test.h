@@ -45,7 +45,11 @@
 #endif
 
 #ifdef WIN32
-#define unlink _unlink
+#define mkdir _mkdir
+#define rmdir _rmdir
+#else
+#include <sys/stat.h>
+#include <sys/types.h>
 #endif
 
 #ifdef __cplusplus

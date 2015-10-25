@@ -4,6 +4,8 @@
 *.swp
 *.gcov
 /.sconsign.dblite
+/mpack-test-file.mp
+/mpack-test-dir/
 
 # folders
 /tags

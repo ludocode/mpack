@@ -598,9 +598,10 @@ MPACK_ALWAYS_INLINE double mpack_read_native_double(mpack_reader_t* reader) {
 }
 
 #if MPACK_READ_TRACKING
-#define MPACK_READER_TRACK(reader, error) mpack_reader_flag_if_error((reader), (error))
+#define MPACK_READER_TRACK(reader, error_expr) \
+    (((reader)->error == mpack_ok) ? mpack_reader_flag_if_error((reader), (error_expr)) : (reader)->error)
 #else
-#define MPACK_READER_TRACK(reader, error) (MPACK_UNUSED(reader), mpack_ok)
+#define MPACK_READER_TRACK(reader, error_expr) (MPACK_UNUSED(reader), mpack_ok)
 #endif
 
 MPACK_INLINE_SPEED mpack_error_t mpack_reader_track_element(mpack_reader_t* reader);

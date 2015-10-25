@@ -38,6 +38,14 @@ extern "C" {
     test_assert(mpack_writer_destroy(writer) == mpack_ok, \
             "writer is in error state %i", (int)mpack_writer_error(writer)); \
 
+// tears down a writer, ensuring the given error occurred
+#define test_writer_destroy_error(writer, error) do { \
+    mpack_error_t expected = (error); \
+    mpack_error_t actual = mpack_writer_destroy(writer); \
+    test_assert(actual == expected, "writer is in error state %i instead of %i", \
+            (int)actual, (int)expected); \
+} while (0)
+
 // performs an operation on a writer, ensuring no error occurs
 #define test_write_noerror(writer, write_expr) do { \
     (write_expr); \

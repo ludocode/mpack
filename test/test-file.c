@@ -1,5 +1,8 @@
 
 #include "test-file.h"
+#include "test-write.h"
+#include "test-reader.h"
+#include "test-node.h"
 
 #if MPACK_STDIO
 
@@ -11,7 +14,8 @@
 #include <unistd.h>
 #endif
 
-static const char* test_filename = "build/testfile.mp";
+static const char* test_filename = "mpack-test-file.mp";
+static const char* test_dir = "mpack-test-dir";
 
 static char* test_file_fetch(const char* filename, size_t* out_size) {
     *out_size = 0;
@@ -134,6 +138,27 @@ static void test_file_write(void) {
 
     mpack_error_t error = mpack_writer_destroy(&writer);
     test_assert(error == mpack_ok, "write failed with %s", mpack_error_to_string(error));
+
+    // test invalid filename
+    mkdir(test_dir, 0700);
+    mpack_writer_init_file(&writer, test_dir);
+    test_writer_destroy_error(&writer, mpack_error_io);
+
+    // test close and flush failure
+    // (if we write more than libc's internal FILE buffer size, fwrite()
+    // fails, otherwise fclose() fails. we test both here.)
+
+    mpack_writer_init_file(&writer, "/dev/full");
+    mpack_write_cstr(&writer, "The quick brown fox jumps over the lazy dog.");
+    test_writer_destroy_error(&writer, mpack_error_io);
+
+    int count = UINT16_MAX / 20;
+    mpack_writer_init_file(&writer, "/dev/full");
+    mpack_start_array(&writer, count);
+    for (int i = 0; i < count; ++i)
+        mpack_write_cstr(&writer, "The quick brown fox jumps over the lazy dog.");
+    mpack_finish_array(&writer);
+    test_writer_destroy_error(&writer, mpack_error_io);
 }
 
 // compares the test filename to the expected debug output
@@ -267,6 +292,10 @@ static void test_file_read(void) {
 
     mpack_error_t error = mpack_reader_destroy(&reader);
     test_assert(error == mpack_ok, "read failed with %s", mpack_error_to_string(error));
+
+    // test missing file
+    mpack_reader_init_file(&reader, "invalid-filename");
+    test_reader_destroy_error(&reader, mpack_error_io);
 }
 #endif
 
@@ -346,6 +375,20 @@ static void test_file_node(void) {
 
     mpack_error_t error = mpack_tree_destroy(&tree);
     test_assert(error == mpack_ok, "file tree failed with error %s", mpack_error_to_string(error));
+
+    // test file size out of bounds
+    if (sizeof(size_t) >= sizeof(long)) {
+        test_expecting_break((mpack_tree_init_file(&tree, "invalid-filename", ((size_t)LONG_MAX) + 1), true));
+        test_tree_destroy_error(&tree, mpack_error_bug);
+    }
+
+    // test unseekable stream
+    mpack_tree_init_file(&tree, "/dev/zero", 0);
+    test_tree_destroy_error(&tree, mpack_error_invalid);
+
+    // test missing file
+    mpack_tree_init_file(&tree, "invalid-filename", 0);
+    test_tree_destroy_error(&tree, mpack_error_io);
 }
 #endif
 
@@ -369,8 +412,8 @@ void test_file(void) {
     test_file_node();
     #endif
 
-    // TODO: use remove(), not unlink()
-    test_assert(unlink(test_filename) == 0, "failed to delete %s", test_filename);
+    test_assert(remove(test_filename) == 0, "failed to delete %s", test_filename);
+    test_assert(rmdir(test_dir) == 0, "failed to delete %s", test_dir);
 
     (void)test_compare_print;
 }

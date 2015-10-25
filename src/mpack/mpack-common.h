@@ -507,8 +507,10 @@ MPACK_INLINE_SPEED mpack_error_t mpack_track_check_empty(mpack_track_t* track) {
 
 MPACK_INLINE_SPEED mpack_error_t mpack_track_destroy(mpack_track_t* track, bool cancel) {
     mpack_error_t error = cancel ? mpack_ok : mpack_track_check_empty(track);
-    MPACK_FREE(track->elements);
-    track->elements = NULL;
+    if (track->elements) {
+        MPACK_FREE(track->elements);
+        track->elements = NULL;
+    }
     return error;
 }
 #endif

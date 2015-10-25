@@ -130,6 +130,7 @@
 #endif
 #if MPACK_STDIO
 #include <stdio.h>
+#include <errno.h>
 #endif
 
 

@@ -725,10 +725,17 @@ static bool mpack_file_tree_read(mpack_tree_t* tree, mpack_file_tree_t* file_tre
     }
 
     // get the file size
+    errno = 0;
+    int error = 0;
     fseek(file, 0, SEEK_END);
+    error |= errno;
     long size = ftell(file);
+    error |= errno;
     fseek(file, 0, SEEK_SET);
-    if (size < 0) {
+    error |= errno;
+
+    // check for errors
+    if (error != 0 || size < 0) {
         fclose(file);
         mpack_tree_init_error(tree, mpack_error_io);
         return false;

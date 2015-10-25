@@ -105,7 +105,9 @@ static mpack_error_t mpack_reader_destroy_impl(mpack_reader_t* reader, bool canc
     // clean up tracking, asserting if we're not already in an error state
     cancel |= reader->error != mpack_ok;
     MPACK_UNUSED(cancel);
-    MPACK_UNUSED(MPACK_READER_TRACK(reader, mpack_track_destroy(&reader->track, cancel)));
+    #if MPACK_READ_TRACKING
+    mpack_track_destroy(&reader->track, cancel);
+    #endif
 
     if (reader->teardown)
         reader->teardown(reader);

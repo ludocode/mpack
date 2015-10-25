@@ -369,14 +369,6 @@ static void test_node_read_misc() {
     test_tree_destroy_error(&tree, mpack_error_too_big);
     test_expecting_break((mpack_tree_init_pool(&tree, "\xc0", 1, small_pool, 0), true));
     test_tree_destroy_error(&tree, mpack_error_bug);
-
-    #if MPACK_STDIO
-    // test file size out of bounds
-    if (sizeof(size_t) >= sizeof(long)) {
-        test_expecting_break((mpack_tree_init_file(&tree, "invalid-filename", ((size_t)LONG_MAX) + 1), true));
-        test_tree_destroy_error(&tree, mpack_error_bug);
-    }
-    #endif
 }
 
 static void test_node_read_floats() {
