@@ -633,7 +633,40 @@ MPACK_INLINE uint32_t mpack_expect_map_max(mpack_reader_t* reader, uint32_t max_
  */
 void mpack_expect_map_match(mpack_reader_t* reader, uint32_t count);
 
+/**
+ * Reads a nil node or the start of a map, returning whether a map was
+ * read and placing its number of key/value pairs in count.
+ *
+ * If a map was read, a number of values follow equal to twice the element count
+ * of the map, alternating between keys and values. @ref mpack_done_map() should
+ * also be called once all elements have been read (only if a map was read.)
+ *
+ * Note that maps in JSON are unordered, so it is recommended not to expect
+ * a specific ordering for your map values in case your data is converted
+ * to/from JSON.
+ *
+ * @returns true if a map was read successfully; false if nil was read or an error occured.
+ * @throws mpack_error_type if the value is not a nil or map.
+ */
 bool mpack_expect_map_or_nil(mpack_reader_t* reader, uint32_t* count);
+
+/**
+ * Reads a nil node or the start of a map with a number of elements at most
+ * max_count, returning whether a map was read and placing its number of
+ * key/value pairs in count.
+ *
+ * If a map was read, a number of values follow equal to twice the element count
+ * of the map, alternating between keys and values. @ref mpack_done_map() should
+ * anlso be called once all elements have been read (only if a map was read.)
+ *
+ * Note that maps in JSON are unordered, so it is recommended not to expect
+ * a specific ordering for your map values in case your data is converted
+ * to/from JSON.
+ *
+ * @returns true if a map was read successfully; false if nil was read or an error occured.
+ * @throws mpack_error_type if the value is not a nil or map.
+ */
+bool mpack_expect_map_max_or_nil(mpack_reader_t* reader, uint32_t max_count, uint32_t* count);
 
 /**
  * Reads the start of an array, returning its element count.
@@ -684,13 +717,41 @@ MPACK_INLINE uint32_t mpack_expect_array_max(mpack_reader_t* reader, uint32_t ma
  */
 void mpack_expect_array_match(mpack_reader_t* reader, uint32_t count);
 
+/**
+ * Reads a nil node or the start of an array, returning whether an array was
+ * read and placing its number of elements in count.
+ *
+ * If an array was read, a number of values follow equal to the element count
+ * of the array. @ref mpack_done_array() should also be called once all elements
+ * have been read (only if an array was read.)
+ *
+ * @returns true if an array was read successfully; false if nil was read or an error occured.
+ * @throws mpack_error_type if the value is not a nil or array.
+ */
+bool mpack_expect_array_or_nil(mpack_reader_t* reader, uint32_t* count);
+
+/**
+ * Reads a nil node or the start of an array with a number of elements at most
+ * max_count, returning whether an array was read and placing its number of
+ * key/value pairs in count.
+ *
+ * If an array was read, a number of values follow equal to the element count
+ * of the array. @ref mpack_done_array() should also be called once all elements
+ * have been read (only if an array was read.)
+ *
+ * @returns true if an array was read successfully; false if nil was read or an error occured.
+ * @throws mpack_error_type if the value is not a nil or array.
+ */
+bool mpack_expect_array_max_or_nil(mpack_reader_t* reader, uint32_t max_count, uint32_t* count);
+
 #ifdef MPACK_MALLOC
 /**
  * @hideinitializer
  *
  * Reads the start of an array and allocates storage for it, placing its
- * size in count. A number of objects follow equal to the element count
- * of the array.
+ * size in out_count. A number of objects follow equal to the element count
+ * of the array. You must call @ref mpack_done_array() when done (even
+ * if the element count is zero.)
  *
  * If an error occurs, NULL is returned and the reader is placed in an
  * error state.
@@ -699,13 +760,40 @@ void mpack_expect_array_match(mpack_reader_t* reader, uint32_t count);
  * You should not check the return value for NULL to check for errors; only
  * check the reader's error state.
  *
- * The allocated array should be freed with MPACK_FREE().
+ * The allocated array must be freed with MPACK_FREE().
  *
  * @throws mpack_error_type if the value is not an array or if its size is
  * greater than max_count.
  */
-#define mpack_expect_array_alloc(reader, Type, max_count, count) \
-    ((Type*)mpack_expect_array_alloc_impl(reader, sizeof(Type), max_count, count))
+#define mpack_expect_array_alloc(reader, Type, max_count, out_count) \
+    ((Type*)mpack_expect_array_alloc_impl(reader, sizeof(Type), max_count, out_count, false))
+
+/**
+ * @hideinitializer
+ *
+ * Reads a nil node or the start of an array and allocates storage for it,
+ * placing its size in out_count. A number of objects follow equal to the element
+ * count of the array if a non-empty array was read.
+ *
+ * If an error occurs, NULL is returned and the reader is placed in an
+ * error state.
+ *
+ * If a nil node was read, NULL is returned. If an empty array was read,
+ * mpack_done_array() is called automatically and NULL is returned. These
+ * do not indicate error. You should not check the return value for NULL
+ * to check for errors; only check the reader's error state.
+ *
+ * The allocated array should be freed with MPACK_FREE().
+ *
+ * @warning You must call @ref mpack_done_array() if and only if a non-zero
+ * element count is read. This function does not differentiate between nil
+ * and an empty array.
+ *
+ * @throws mpack_error_type if the value is not an array or if its size is
+ * greater than max_count.
+ */
+#define mpack_expect_array_or_nil_alloc(reader, Type, max_count, out_count) \
+    ((Type*)mpack_expect_array_alloc_impl(reader, sizeof(Type), max_count, out_count, true))
 #endif
 
 /**
@@ -715,7 +803,7 @@ void mpack_expect_array_match(mpack_reader_t* reader, uint32_t count);
 /** @cond */
 #ifdef MPACK_MALLOC
 void* mpack_expect_array_alloc_impl(mpack_reader_t* reader,
-        size_t element_size, uint32_t max_count, size_t* count);
+        size_t element_size, uint32_t max_count, uint32_t* out_count, bool allow_nil);
 #endif
 /** @endcond */
 

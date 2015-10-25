@@ -418,6 +418,8 @@ static void test_expect_int_match() {
 
 static void test_expect_misc() {
     test_simple_read("\xc0", (mpack_expect_nil(&reader), true));
+    test_simple_read("\xc0", (mpack_expect_tag(&reader, mpack_tag_nil()), true));
+    test_simple_read_error("\x90", (mpack_expect_tag(&reader, mpack_tag_nil()), true), mpack_error_type);
 
     test_simple_read("\xc2", false == mpack_expect_bool(&reader));
     test_simple_read("\xc3", true == mpack_expect_bool(&reader));
@@ -591,9 +593,11 @@ static void test_expect_data() {
 
 }
 
-static void test_expect_compound() {
+static void test_expect_arrays() {
+    uint32_t count;
 
     // arrays
+
     test_simple_read_cancel("\x90", 0 == mpack_expect_array(&reader));
     test_simple_read_cancel("\x91", 1 == mpack_expect_array(&reader));
     test_simple_read_cancel("\x9f", 15 == mpack_expect_array(&reader));
@@ -604,6 +608,9 @@ static void test_expect_compound() {
     test_simple_read_cancel("\xdd\x00\x00\x01\x00", 0x100 == mpack_expect_array(&reader));
     test_simple_read_cancel("\xdd\x00\x01\x00\x00", 0x10000 == mpack_expect_array(&reader));
     test_simple_read_cancel("\xdd\xff\xff\xff\xff", UINT32_MAX == mpack_expect_array(&reader));
+    test_simple_read_error("\x00", 0 == mpack_expect_array(&reader), mpack_error_type);
+
+    // array ranges
 
     test_simple_read_cancel("\x91", 1 == mpack_expect_array_range(&reader, 0, 1));
     test_simple_read_cancel("\x91", 1 == mpack_expect_array_range(&reader, 1, 1));
@@ -612,12 +619,71 @@ static void test_expect_compound() {
     test_simple_read_cancel("\x91", 1 == mpack_expect_array_max(&reader, 1));
     test_simple_read_error("\x91", 0 == mpack_expect_array_max(&reader, 0), mpack_error_type);
 
-    test_simple_read_cancel("\x90", (mpack_expect_array_match(&reader, 0), true));
+    test_simple_read("\x90", (mpack_expect_array_match(&reader, 0), mpack_done_array(&reader), true));
     test_simple_read_cancel("\x9f", (mpack_expect_array_match(&reader, 15), true));
     test_simple_read_cancel("\xdc\xff\xff", (mpack_expect_array_match(&reader, 0xffff), true));
     test_simple_read_cancel("\xdd\xff\xff\xff\xff", (mpack_expect_array_match(&reader, UINT32_MAX), true));
+    test_simple_read_error("\x91", (mpack_expect_array_match(&reader, 2), true), mpack_error_type);
+
+    test_simple_read_cancel("\x91", true == mpack_expect_array_or_nil(&reader, &count));
+    test_assert(count == 1);
+    test_simple_read_cancel("\xc0", false == mpack_expect_array_or_nil(&reader, &count));
+    test_assert(count == 0);
+    test_simple_read_error("\x81", false == mpack_expect_array_or_nil(&reader, &count), mpack_error_type);
+    test_assert(count == 0);
+
+    test_simple_read_cancel("\x91", true == mpack_expect_array_max_or_nil(&reader, 1, &count));
+    test_assert(count == 1);
+    test_simple_read_cancel("\xc0", false == mpack_expect_array_max_or_nil(&reader, 0, &count));
+    test_assert(count == 0);
+    test_simple_read_error("\x92", false == mpack_expect_array_max_or_nil(&reader, 1, &count), mpack_error_type);
+    test_assert(count == 0);
+    test_simple_read_error("\x81", false == mpack_expect_array_max_or_nil(&reader, 1, &count), mpack_error_type);
+    test_assert(count == 0);
+
+    // array allocs
+
+    #ifdef MPACK_MALLOC
+    int* elements;
+
+    test_simple_read("\x90", (elements = mpack_expect_array_alloc(&reader, int, 1, &count), mpack_done_array(&reader), true));
+    test_assert(elements == NULL);
+    test_simple_read_cancel("\x91", elements = mpack_expect_array_alloc(&reader, int, 1, &count));
+    elements[0] = 0;
+    MPACK_FREE(elements);
+    test_simple_read_cancel("\x92", elements = mpack_expect_array_alloc(&reader, int, 2, &count));
+    elements[0] = 0;
+    elements[1] = 1;
+    MPACK_FREE(elements);
+
+    test_simple_read_error("\x92", (elements = mpack_expect_array_alloc(&reader, int, 1, &count), true), mpack_error_type);
+    test_assert(elements == NULL);
+    test_simple_read_error("\xc0", (elements = mpack_expect_array_alloc(&reader, int, 1, &count), true), mpack_error_type);
+    test_assert(elements == NULL);
+
+    test_simple_read("\x90", (elements = mpack_expect_array_or_nil_alloc(&reader, int, 1, &count), true));
+    test_assert(elements == NULL);
+    test_simple_read_cancel("\x91", elements = mpack_expect_array_or_nil_alloc(&reader, int, 1, &count));
+    elements[0] = 0;
+    MPACK_FREE(elements);
+    test_simple_read_cancel("\x92", elements = mpack_expect_array_or_nil_alloc(&reader, int, 2, &count));
+    elements[0] = 0;
+    elements[1] = 1;
+    MPACK_FREE(elements);
+
+    test_simple_read_error("\x92", (elements = mpack_expect_array_or_nil_alloc(&reader, int, 1, &count), true), mpack_error_type);
+    test_assert(elements == NULL);
+    test_simple_read("\xc0", (elements = mpack_expect_array_or_nil_alloc(&reader, int, 1, &count), true));
+    test_assert(elements == NULL);
+    #endif
+
+}
+
+static void test_expect_maps() {
+    uint32_t count;
 
     // maps
+
     test_simple_read_cancel("\x80", 0 == mpack_expect_map(&reader));
     test_simple_read_cancel("\x81", 1 == mpack_expect_map(&reader));
     test_simple_read_cancel("\x8f", 15 == mpack_expect_map(&reader));
@@ -628,6 +694,9 @@ static void test_expect_compound() {
     test_simple_read_cancel("\xdf\x00\x00\x01\x00", 0x100 == mpack_expect_map(&reader));
     test_simple_read_cancel("\xdf\x00\x01\x00\x00", 0x10000 == mpack_expect_map(&reader));
     test_simple_read_cancel("\xdf\xff\xff\xff\xff", UINT32_MAX == mpack_expect_map(&reader));
+    test_simple_read_error("\x00", 0 == mpack_expect_map(&reader), mpack_error_type);
+
+    // map ranges
 
     test_simple_read_cancel("\x81", 1 == mpack_expect_map_range(&reader, 0, 1));
     test_simple_read_cancel("\x81", 1 == mpack_expect_map_range(&reader, 1, 1));
@@ -636,10 +705,27 @@ static void test_expect_compound() {
     test_simple_read_cancel("\x81", 1 == mpack_expect_map_max(&reader, 1));
     test_simple_read_error("\x81", 0 == mpack_expect_map_max(&reader, 0), mpack_error_type);
 
-    test_simple_read_cancel("\x80", (mpack_expect_map_match(&reader, 0), true));
+    test_simple_read("\x80", (mpack_expect_map_match(&reader, 0), mpack_done_map(&reader), true));
     test_simple_read_cancel("\x8f", (mpack_expect_map_match(&reader, 15), true));
     test_simple_read_cancel("\xde\xff\xff", (mpack_expect_map_match(&reader, 0xffff), true));
     test_simple_read_cancel("\xdf\xff\xff\xff\xff", (mpack_expect_map_match(&reader, UINT32_MAX), true));
+    test_simple_read_error("\x81", (mpack_expect_map_match(&reader, 2), true), mpack_error_type);
+
+    test_simple_read_cancel("\x81", true == mpack_expect_map_or_nil(&reader, &count));
+    test_assert(count == 1);
+    test_simple_read_cancel("\xc0", false == mpack_expect_map_or_nil(&reader, &count));
+    test_assert(count == 0);
+    test_simple_read_error("\x91", false == mpack_expect_map_or_nil(&reader, &count), mpack_error_type);
+    test_assert(count == 0);
+
+    test_simple_read_cancel("\x81", true == mpack_expect_map_max_or_nil(&reader, 1, &count));
+    test_assert(count == 1);
+    test_simple_read_cancel("\xc0", false == mpack_expect_map_max_or_nil(&reader, 0, &count));
+    test_assert(count == 0);
+    test_simple_read_error("\x82", false == mpack_expect_map_max_or_nil(&reader, 1, &count), mpack_error_type);
+    test_assert(count == 0);
+    test_simple_read_error("\x91", false == mpack_expect_map_max_or_nil(&reader, 1, &count), mpack_error_type);
+    test_assert(count == 0);
 
 }
 
@@ -671,7 +757,8 @@ void test_expect() {
 
     // compound types
     test_expect_data();
-    test_expect_compound();
+    test_expect_arrays();
+    test_expect_maps();
 }
 
 #endif

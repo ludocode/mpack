@@ -295,6 +295,16 @@ bool mpack_expect_map_or_nil(mpack_reader_t* reader, uint32_t* count) {
     return false;
 }
 
+bool mpack_expect_map_max_or_nil(mpack_reader_t* reader, uint32_t max_count, uint32_t* count) {
+    bool has_map = mpack_expect_map_or_nil(reader, count);
+    if (has_map && *count > max_count) {
+        *count = 0;
+        mpack_reader_flag_error(reader, mpack_error_type);
+        return false;
+    }
+    return has_map;
+}
+
 uint32_t mpack_expect_array(mpack_reader_t* reader) {
     mpack_tag_t var = mpack_read_tag(reader);
     if (var.type == mpack_type_array)
@@ -308,20 +318,51 @@ void mpack_expect_array_match(mpack_reader_t* reader, uint32_t count) {
         mpack_reader_flag_error(reader, mpack_error_type);
 }
 
+bool mpack_expect_array_or_nil(mpack_reader_t* reader, uint32_t* count) {
+    mpack_tag_t var = mpack_read_tag(reader);
+    if (var.type == mpack_type_nil) {
+        *count = 0;
+        return false;
+    }
+    if (var.type == mpack_type_array) {
+        *count = var.v.n;
+        return true;
+    }
+    mpack_reader_flag_error(reader, mpack_error_type);
+    *count = 0;
+    return false;
+}
+
+bool mpack_expect_array_max_or_nil(mpack_reader_t* reader, uint32_t max_count, uint32_t* count) {
+    bool has_array = mpack_expect_array_or_nil(reader, count);
+    if (has_array && *count > max_count) {
+        *count = 0;
+        mpack_reader_flag_error(reader, mpack_error_type);
+        return false;
+    }
+    return has_array;
+}
+
 #ifdef MPACK_MALLOC
-void* mpack_expect_array_alloc_impl(mpack_reader_t* reader, size_t element_size, uint32_t max_count, size_t* out_count) {
+void* mpack_expect_array_alloc_impl(mpack_reader_t* reader, size_t element_size, uint32_t max_count, uint32_t* out_count, bool allow_nil) {
     *out_count = 0;
 
-    size_t count = mpack_expect_array(reader);
+    uint32_t count;
+    bool has_array = true;
+    if (allow_nil)
+        has_array = mpack_expect_array_max_or_nil(reader, max_count, &count);
+    else
+        count = mpack_expect_array_max(reader, max_count);
     if (mpack_reader_error(reader))
         return NULL;
 
     // size 0 is not an error; we return NULL for no elements.
-    if (count == 0)
-        return NULL;
-
-    if (count > max_count) {
-        mpack_reader_flag_error(reader, mpack_error_type);
+    if (count == 0) {
+        // we call mpack_done_array() automatically ONLY if we are using
+        // the _or_nil variant. this is the only way to allow nil and empty
+        // to work the same way.
+        if (allow_nil && has_array)
+            mpack_done_array(reader);
         return NULL;
     }
 
