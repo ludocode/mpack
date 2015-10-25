@@ -778,7 +778,7 @@ void mpack_tree_init_file(mpack_tree_t* tree, const char* filename, size_t max_s
     // the C STDIO family of file functions use long (e.g. ftell)
     if (max_size > LONG_MAX) {
         mpack_break("max_size of %" PRIu64 " is invalid, maximum is LONG_MAX", (uint64_t)max_size);
-        mpack_tree_init_error(tree, mpack_error_too_big);
+        mpack_tree_init_error(tree, mpack_error_bug);
         return;
     }
 
