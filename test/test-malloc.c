@@ -26,7 +26,8 @@
 #ifdef MPACK_MALLOC
 
 static bool test_malloc_fail = false;
-static size_t test_malloc_left;
+static size_t test_malloc_left = 0;
+static size_t test_malloc_active = 0;
 
 void* test_malloc(size_t size) {
     if (test_malloc_fail) {
@@ -34,6 +35,7 @@ void* test_malloc(size_t size) {
             return NULL;
         --test_malloc_left;
     }
+    ++test_malloc_active;
     return malloc(size);
 }
 
@@ -43,6 +45,8 @@ void* test_realloc(void* p, size_t size) {
             return NULL;
         --test_malloc_left;
     }
+    if (!p)
+        ++test_malloc_active;
     return realloc(p, size);
 }
 
@@ -51,7 +55,7 @@ void test_free(void* p) {
     // may handle this, so we don't free NULL.
     test_assert(p != NULL, "attempting to free NULL");
 
-    // TODO: track malloc/free
+    --test_malloc_active;
     free(p);
 }
 
@@ -62,6 +66,10 @@ void test_malloc_fail_after(size_t count) {
 
 void test_malloc_reset(void) {
     test_malloc_fail = false;
+}
+
+size_t test_malloc_count(void) {
+    return test_malloc_active;
 }
 
 #endif

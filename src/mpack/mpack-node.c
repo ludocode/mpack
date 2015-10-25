@@ -50,7 +50,7 @@ typedef struct mpack_tree_parser_t {
 
 MPACK_STATIC_INLINE_SPEED uint8_t mpack_tree_u8(mpack_tree_parser_t* parser) {
     if (parser->possible_nodes_left < sizeof(uint8_t)) {
-        mpack_tree_flag_error(parser->tree, mpack_error_io);
+        mpack_tree_flag_error(parser->tree, mpack_error_invalid);
         return 0;
     }
     uint8_t val = mpack_load_native_u8(parser->data);
@@ -62,7 +62,7 @@ MPACK_STATIC_INLINE_SPEED uint8_t mpack_tree_u8(mpack_tree_parser_t* parser) {
 
 MPACK_STATIC_INLINE_SPEED uint16_t mpack_tree_u16(mpack_tree_parser_t* parser) {
     if (parser->possible_nodes_left < sizeof(uint16_t)) {
-        mpack_tree_flag_error(parser->tree, mpack_error_io);
+        mpack_tree_flag_error(parser->tree, mpack_error_invalid);
         return 0;
     }
     uint16_t val = mpack_load_native_u16(parser->data);
@@ -74,7 +74,7 @@ MPACK_STATIC_INLINE_SPEED uint16_t mpack_tree_u16(mpack_tree_parser_t* parser) {
 
 MPACK_STATIC_INLINE_SPEED uint32_t mpack_tree_u32(mpack_tree_parser_t* parser) {
     if (parser->possible_nodes_left < sizeof(uint32_t)) {
-        mpack_tree_flag_error(parser->tree, mpack_error_io);
+        mpack_tree_flag_error(parser->tree, mpack_error_invalid);
         return 0;
     }
     uint32_t val = mpack_load_native_u32(parser->data);
@@ -86,7 +86,7 @@ MPACK_STATIC_INLINE_SPEED uint32_t mpack_tree_u32(mpack_tree_parser_t* parser) {
 
 MPACK_STATIC_INLINE_SPEED uint64_t mpack_tree_u64(mpack_tree_parser_t* parser) {
     if (parser->possible_nodes_left < sizeof(uint64_t)) {
-        mpack_tree_flag_error(parser->tree, mpack_error_io);
+        mpack_tree_flag_error(parser->tree, mpack_error_invalid);
         return 0;
     }
     uint64_t val = mpack_load_native_u64(parser->data);
@@ -284,7 +284,7 @@ static void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length
     // well-commented to try to make up for it.
 
     if (length == 0) {
-        mpack_tree_init_error(tree, mpack_error_io);
+        mpack_tree_init_error(tree, mpack_error_invalid);
         return;
     }
     if (tree->page.left == 0) {

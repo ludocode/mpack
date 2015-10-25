@@ -428,51 +428,105 @@ static void test_node_read_bad_type() {
     test_simple_tree_read_error("\xc0", 0.0 == mpack_node_double_strict(node), mpack_error_type);
 }
 
+static void test_node_read_possible() {
+    mpack_node_data_t pool[128];
+
+    // test early exit for data that contains impossible node numbers
+
+    #ifdef MPACK_MALLOC
+    // this is an example of a potential denial-of-service attack against
+    // MessagePack implementations that allocate storage up-front. this
+    // should be handled safely without allocating huge amounts of memory.
+    const char* attack =
+            "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff"
+            "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff"
+            "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff"
+            "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff"
+            "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff"
+            "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff"
+            "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff"
+            "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff"
+            "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff"
+            "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff"
+            "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff"
+            "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff"
+            "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff"
+            "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff"
+            "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff"
+            "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff"
+            "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff"
+            "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff"
+            "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff"
+            "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff"
+            "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff"
+            "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff"
+            "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff"
+            "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff"
+            "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff"
+            "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff"
+            "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff"
+            "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff"
+            "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff"
+            "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff";
+    size_t allocation_count = test_malloc_count();
+    mpack_tree_t tree;
+    mpack_tree_init(&tree, attack, strlen(attack));
+    allocation_count = test_malloc_count() - allocation_count;
+    test_assert(allocation_count <= 2, "too many allocations! %i calls to malloc()", (int)allocation_count);
+    test_tree_destroy_error(&tree, mpack_error_invalid);
+    #endif
+
+    test_simple_tree_read_error("\xcc", (MPACK_UNUSED(node), true), mpack_error_invalid); // truncated u8
+    test_simple_tree_read_error("\xcd", (MPACK_UNUSED(node), true), mpack_error_invalid); // truncated u16
+    test_simple_tree_read_error("\xce", (MPACK_UNUSED(node), true), mpack_error_invalid); // truncated u32
+    test_simple_tree_read_error("\xcf", (MPACK_UNUSED(node), true), mpack_error_invalid); // truncated u64
+}
+
 static void test_node_read_pre_error() {
     mpack_node_data_t pool[128];
 
     // test that all node functions correctly handle pre-existing errors
 
-    test_simple_tree_read_error("", (mpack_node_nil(node), true), mpack_error_io);
-    test_simple_tree_read_error("", false == mpack_node_bool(node), mpack_error_io);
+    test_simple_tree_read_error("", (mpack_node_nil(node), true), mpack_error_invalid);
+    test_simple_tree_read_error("", false == mpack_node_bool(node), mpack_error_invalid);
 
-    test_simple_tree_read_error("", 0 == mpack_node_u8(node), mpack_error_io);
-    test_simple_tree_read_error("", 0 == mpack_node_u16(node), mpack_error_io);
-    test_simple_tree_read_error("", 0 == mpack_node_u32(node), mpack_error_io);
-    test_simple_tree_read_error("", 0 == mpack_node_u64(node), mpack_error_io);
-    test_simple_tree_read_error("", 0 == mpack_node_i8(node), mpack_error_io);
-    test_simple_tree_read_error("", 0 == mpack_node_i16(node), mpack_error_io);
-    test_simple_tree_read_error("", 0 == mpack_node_i32(node), mpack_error_io);
-    test_simple_tree_read_error("", 0 == mpack_node_i64(node), mpack_error_io);
+    test_simple_tree_read_error("", 0 == mpack_node_u8(node), mpack_error_invalid);
+    test_simple_tree_read_error("", 0 == mpack_node_u16(node), mpack_error_invalid);
+    test_simple_tree_read_error("", 0 == mpack_node_u32(node), mpack_error_invalid);
+    test_simple_tree_read_error("", 0 == mpack_node_u64(node), mpack_error_invalid);
+    test_simple_tree_read_error("", 0 == mpack_node_i8(node), mpack_error_invalid);
+    test_simple_tree_read_error("", 0 == mpack_node_i16(node), mpack_error_invalid);
+    test_simple_tree_read_error("", 0 == mpack_node_i32(node), mpack_error_invalid);
+    test_simple_tree_read_error("", 0 == mpack_node_i64(node), mpack_error_invalid);
 
-    test_simple_tree_read_error("", 0.0f == mpack_node_float(node), mpack_error_io);
-    test_simple_tree_read_error("", 0.0 == mpack_node_double(node), mpack_error_io);
-    test_simple_tree_read_error("", 0.0f == mpack_node_float_strict(node), mpack_error_io);
-    test_simple_tree_read_error("", 0.0 == mpack_node_double_strict(node), mpack_error_io);
+    test_simple_tree_read_error("", 0.0f == mpack_node_float(node), mpack_error_invalid);
+    test_simple_tree_read_error("", 0.0 == mpack_node_double(node), mpack_error_invalid);
+    test_simple_tree_read_error("", 0.0f == mpack_node_float_strict(node), mpack_error_invalid);
+    test_simple_tree_read_error("", 0.0 == mpack_node_double_strict(node), mpack_error_invalid);
 
-    test_simple_tree_read_error("", 0 == mpack_node_array_length(node), mpack_error_io);
-    test_simple_tree_read_error("", &tree.nil_node == mpack_node_array_at(node, 0).data, mpack_error_io);
+    test_simple_tree_read_error("", 0 == mpack_node_array_length(node), mpack_error_invalid);
+    test_simple_tree_read_error("", &tree.nil_node == mpack_node_array_at(node, 0).data, mpack_error_invalid);
 
-    test_simple_tree_read_error("", 0 == mpack_node_map_count(node), mpack_error_io);
-    test_simple_tree_read_error("", &tree.nil_node == mpack_node_map_key_at(node, 0).data, mpack_error_io);
-    test_simple_tree_read_error("", &tree.nil_node == mpack_node_map_value_at(node, 0).data, mpack_error_io);
+    test_simple_tree_read_error("", 0 == mpack_node_map_count(node), mpack_error_invalid);
+    test_simple_tree_read_error("", &tree.nil_node == mpack_node_map_key_at(node, 0).data, mpack_error_invalid);
+    test_simple_tree_read_error("", &tree.nil_node == mpack_node_map_value_at(node, 0).data, mpack_error_invalid);
 
-    test_simple_tree_read_error("", &tree.nil_node == mpack_node_map_uint(node, 1).data, mpack_error_io);
-    test_simple_tree_read_error("", &tree.nil_node == mpack_node_map_int(node, -1).data, mpack_error_io);
-    test_simple_tree_read_error("", &tree.nil_node == mpack_node_map_str(node, "test", 4).data, mpack_error_io);
-    test_simple_tree_read_error("", &tree.nil_node == mpack_node_map_cstr(node, "test").data, mpack_error_io);
-    test_simple_tree_read_error("", false == mpack_node_map_contains_str(node, "test", 4), mpack_error_io);
-    test_simple_tree_read_error("", false == mpack_node_map_contains_cstr(node, "test"), mpack_error_io);
+    test_simple_tree_read_error("", &tree.nil_node == mpack_node_map_uint(node, 1).data, mpack_error_invalid);
+    test_simple_tree_read_error("", &tree.nil_node == mpack_node_map_int(node, -1).data, mpack_error_invalid);
+    test_simple_tree_read_error("", &tree.nil_node == mpack_node_map_str(node, "test", 4).data, mpack_error_invalid);
+    test_simple_tree_read_error("", &tree.nil_node == mpack_node_map_cstr(node, "test").data, mpack_error_invalid);
+    test_simple_tree_read_error("", false == mpack_node_map_contains_str(node, "test", 4), mpack_error_invalid);
+    test_simple_tree_read_error("", false == mpack_node_map_contains_cstr(node, "test"), mpack_error_invalid);
 
-    test_simple_tree_read_error("", 0 == mpack_node_exttype(node), mpack_error_io);
-    test_simple_tree_read_error("", 0 == mpack_node_data_len(node), mpack_error_io);
-    test_simple_tree_read_error("", 0 == mpack_node_strlen(node), mpack_error_io);
-    test_simple_tree_read_error("", NULL == mpack_node_data(node), mpack_error_io);
-    test_simple_tree_read_error("", 0 == mpack_node_copy_data(node, NULL, 0), mpack_error_io);
-    test_simple_tree_read_error("", (mpack_node_copy_cstr(node, NULL, 0), true), mpack_error_io);
+    test_simple_tree_read_error("", 0 == mpack_node_exttype(node), mpack_error_invalid);
+    test_simple_tree_read_error("", 0 == mpack_node_data_len(node), mpack_error_invalid);
+    test_simple_tree_read_error("", 0 == mpack_node_strlen(node), mpack_error_invalid);
+    test_simple_tree_read_error("", NULL == mpack_node_data(node), mpack_error_invalid);
+    test_simple_tree_read_error("", 0 == mpack_node_copy_data(node, NULL, 0), mpack_error_invalid);
+    test_simple_tree_read_error("", (mpack_node_copy_cstr(node, NULL, 0), true), mpack_error_invalid);
     #ifdef MPACK_MALLOC
-    test_simple_tree_read_error("", NULL == mpack_node_data_alloc(node, 0), mpack_error_io);
-    test_simple_tree_read_error("", NULL == mpack_node_cstr_alloc(node, 0), mpack_error_io);
+    test_simple_tree_read_error("", NULL == mpack_node_data_alloc(node, 0), mpack_error_invalid);
+    test_simple_tree_read_error("", NULL == mpack_node_cstr_alloc(node, 0), mpack_error_invalid);
     #endif
 }
 
@@ -702,6 +756,7 @@ void test_node(void) {
     test_node_read_misc();
     test_node_read_floats();
     test_node_read_bad_type();
+    test_node_read_possible();
     test_node_read_pre_error();
 
     // compound types
