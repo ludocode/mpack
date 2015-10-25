@@ -178,10 +178,25 @@ static void test_compare_print() {
 
 #if MPACK_READER
 static void test_print(void) {
+
+    // miscellaneous print tests
+    FILE* out = fopen(test_filename, "wb");
+    mpack_print_file("\x91", 1, out); // truncated file
+    mpack_print_file("\xa1", 1, out); // truncated str
+    mpack_print_file("\x92\x00", 2, out); // truncated array
+    mpack_print_file("\x81", 1, out); // truncated map key
+    mpack_print_file("\x81\x00", 2, out); // truncated map value
+    mpack_print_file("\x90\xc0", 2, out); // extra bytes
+    mpack_print_file("\xca\x00\x00\x00\x00", 5, out); // float
+    fclose(out);
+
+
+    // dump MessagePack to debug file
+
     size_t input_size;
     char* input_data = test_file_fetch("test/test-file.mp", &input_size);
 
-    FILE* out = fopen(test_filename, "wb");
+    out = fopen(test_filename, "wb");
     mpack_print_file(input_data, input_size, out);
     fclose(out);
 
@@ -193,9 +208,20 @@ static void test_print(void) {
 #if MPACK_NODE
 static void test_node_print(void) {
     mpack_tree_t tree;
+
+    // miscellaneous node print tests
+    FILE* out = fopen(test_filename, "wb");
+    mpack_tree_init(&tree, "\xca\x00\x00\x00\x00", 5); // float
+    mpack_node_print_file(mpack_tree_root(&tree), out);
+    mpack_tree_destroy(&tree);
+    fclose(out);
+
+
+    // dump MessagePack to debug file
+
     mpack_tree_init_file(&tree, "test/test-file.mp", 0);
 
-    FILE* out = fopen(test_filename, "wb");
+    out = fopen(test_filename, "wb");
     mpack_node_print_file(mpack_tree_root(&tree), out);
     fclose(out);
 

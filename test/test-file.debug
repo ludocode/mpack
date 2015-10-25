@@ -22,6 +22,6 @@
             },
             "\"\n\\",
             "The quick brown fox jumps over the lazy dog.",
-            "base64:VGhlIGZpdmUgYm94aW5nIHdpemFyZHMganVtcCBxdWlja2x5Lg==",
-            "ext:1:base64:U3BoaW54IG9mIGJsYWNrIHF1YXJ0eiwganVkZ2UgbXkgdm93Lg=="
+            <binary data of length 37>,
+            <ext data of type 1 and length 37>
         ]

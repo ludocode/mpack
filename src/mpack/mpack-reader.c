@@ -713,18 +713,14 @@ static void mpack_print_element(mpack_reader_t* reader, size_t depth, FILE* file
             break;
 
         case mpack_type_bin:
-            mpack_skip_bytes(reader, val.v.l);
-            if (mpack_reader_error(reader) != mpack_ok)
-                return;
             fprintf(file, "<binary data of length %u>", val.v.l);
+            mpack_skip_bytes(reader, val.v.l);
             mpack_done_bin(reader);
             break;
 
         case mpack_type_ext:
-            mpack_skip_bytes(reader, val.v.l);
-            if (mpack_reader_error(reader) != mpack_ok)
-                return;
             fprintf(file, "<ext data of type %i and length %u>", val.exttype, val.v.l);
+            mpack_skip_bytes(reader, val.v.l);
             mpack_done_ext(reader);
             break;
 
@@ -749,8 +745,6 @@ static void mpack_print_element(mpack_reader_t* reader, size_t depth, FILE* file
         case mpack_type_array:
             fprintf(file, "[\n");
             for (size_t i = 0; i < val.v.n; ++i) {
-                if (mpack_reader_error(reader) != mpack_ok)
-                    return;
                 for (size_t j = 0; j < depth + 1; ++j)
                     fprintf(file, "    ");
                 mpack_print_element(reader, depth + 1, file);
