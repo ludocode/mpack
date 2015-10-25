@@ -448,7 +448,7 @@ MPACK_INLINE_SPEED mpack_error_t mpack_track_element(mpack_track_t* track, bool 
     MPACK_UNUSED(read);
     mpack_assert(track->elements, "null track elements!");
 
-    // if there are no open elements, that's fine, we can read elements at will
+    // if there are no open elements, that's fine, we can read/write elements at will
     if (track->count == 0)
         return mpack_ok;
 
@@ -499,7 +499,7 @@ MPACK_INLINE_SPEED mpack_error_t mpack_track_bytes(mpack_track_t* track, bool re
 
 MPACK_INLINE_SPEED mpack_error_t mpack_track_check_empty(mpack_track_t* track) {
     if (track->count != 0) {
-        mpack_assert(0, "unclosed %s", mpack_type_to_string(track->elements[0].type));
+        mpack_break("unclosed %s", mpack_type_to_string(track->elements[0].type));
         return mpack_error_bug;
     }
     return mpack_ok;

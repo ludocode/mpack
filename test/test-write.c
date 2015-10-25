@@ -636,17 +636,55 @@ static void test_write_small_structure_trees() {
 #endif
 
 #if MPACK_WRITE_TRACKING
-static void test_write_tracking_errors() {
-
-    // test that cancel works
+static void test_write_tracking() {
     char buf[4096];
     mpack_writer_t writer;
+
+    // cancel
     mpack_writer_init(&writer, buf, sizeof(buf));
     mpack_start_map(&writer, 5);
     mpack_start_array(&writer, 5);
     mpack_writer_destroy_cancel(&writer);
 
-    // TODO: test that errors are flagged
+    // finishing type when nothing was open
+    mpack_writer_init(&writer, buf, sizeof(buf));
+    test_expecting_break((mpack_finish_map(&writer), true));
+    test_writer_destroy_error(&writer, mpack_error_bug);
+
+    // closing unfinished type
+    mpack_writer_init(&writer, buf, sizeof(buf));
+    mpack_start_array(&writer, 1);
+    test_expecting_break((mpack_finish_array(&writer), true));
+    test_writer_destroy_error(&writer, mpack_error_bug);
+
+    // writing elements in a string
+    mpack_writer_init(&writer, buf, sizeof(buf));
+    mpack_start_str(&writer, 50);
+    test_expecting_break((mpack_write_nil(&writer), true));
+    test_writer_destroy_error(&writer, mpack_error_bug);
+
+    // writing too many elements
+    mpack_writer_init(&writer, buf, sizeof(buf));
+    mpack_start_array(&writer, 0);
+    test_expecting_break((mpack_write_nil(&writer), true));
+    test_writer_destroy_error(&writer, mpack_error_bug);
+
+    // writing bytes with nothing open
+    mpack_writer_init(&writer, buf, sizeof(buf));
+    test_expecting_break((mpack_write_bytes(&writer, "test", 4), true));
+    test_writer_destroy_error(&writer, mpack_error_bug);
+
+    // writing bytes in an array
+    mpack_writer_init(&writer, buf, sizeof(buf));
+    mpack_start_array(&writer, 50);
+    test_expecting_break((mpack_write_bytes(&writer, "test", 4), true));
+    test_writer_destroy_error(&writer, mpack_error_bug);
+
+    // writing too many bytes
+    mpack_writer_init(&writer, buf, sizeof(buf));
+    mpack_start_str(&writer, 2);
+    test_expecting_break((mpack_write_bytes(&writer, "test", 4), true));
+    test_writer_destroy_error(&writer, mpack_error_bug);
 
 }
 #endif
@@ -673,7 +711,7 @@ void test_writes() {
     #endif
 
     #if MPACK_WRITE_TRACKING
-    test_write_tracking_errors();
+    test_write_tracking();
     #endif
 }
 

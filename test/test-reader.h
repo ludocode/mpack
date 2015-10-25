@@ -77,10 +77,14 @@ extern "C" {
 
 // simple read tests
 
+// initializes a reader from a literal string
+#define test_reader_init_str(reader, data) \
+    mpack_reader_init_data(reader, data, sizeof(data) - 1)
+
 // runs a simple reader test, ensuring the expression is true and no errors occur
 #define test_simple_read(data, read_expr) do { \
     mpack_reader_t reader; \
-    mpack_reader_init_data(&reader, data, sizeof(data) - 1); \
+    test_reader_init_str(&reader, data); \
     test_assert((read_expr), "simple read test did not pass: " #read_expr); \
     test_reader_destroy_noerror(&reader); \
 } while (0)
@@ -88,7 +92,7 @@ extern "C" {
 // runs a simple reader test, ensuring the expression is true and no errors occur, cancelling to ignore tracking info
 #define test_simple_read_cancel(data, read_expr) do { \
     mpack_reader_t reader; \
-    mpack_reader_init_data(&reader, data, sizeof(data) - 1); \
+    test_reader_init_str(&reader, data); \
     test_assert((read_expr), "simple read test did not pass: " #read_expr); \
     test_reader_destroy_cancel_noerror(&reader); \
 } while (0)
@@ -96,7 +100,7 @@ extern "C" {
 // runs a simple reader test, ensuring the expression is true and the given error is raised
 #define test_simple_read_error(data, read_expr, error) do { \
     mpack_reader_t reader; \
-    mpack_reader_init_data(&reader, data, sizeof(data) - 1); \
+    test_reader_init_str(&reader, data); \
     test_assert((read_expr), "simple read error test did not pass: " #read_expr); \
     test_reader_destroy_error(&reader, (error)); \
 } while (0)

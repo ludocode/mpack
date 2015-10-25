@@ -425,13 +425,13 @@ static void test_expect_misc() {
     test_simple_read("\xc3", (mpack_expect_true(&reader), true));
 }
 
+#if MPACK_READ_TRACKING
 static void test_expect_tracking() {
-
-    // test tracking depth growth
-    static const char test[] = "\x91\x91\x91\x91\x91\x91\x90";
+    char buf[4];
     mpack_reader_t reader;
-    mpack_reader_init_data(&reader, test, sizeof(test) - 1);
 
+    // tracking depth growth
+    test_reader_init_str(&reader, "\x91\x91\x91\x91\x91\x91\x90");
     test_assert(1 == mpack_expect_array(&reader));
     test_assert(1 == mpack_expect_array(&reader));
     test_assert(1 == mpack_expect_array(&reader));
@@ -446,9 +446,60 @@ static void test_expect_tracking() {
     mpack_done_array(&reader);
     mpack_done_array(&reader);
     mpack_done_array(&reader);
-
     test_reader_destroy_noerror(&reader);
+
+    // cancel
+    test_reader_init_str(&reader, "\x90");
+    mpack_expect_array(&reader);
+    mpack_reader_destroy_cancel(&reader);
+
+    // done type when nothing was open
+    test_reader_init_str(&reader, "\x90");
+    test_expecting_break((mpack_done_map(&reader), true));
+    test_reader_destroy_error(&reader, mpack_error_bug);
+
+    // closing incomplete type
+    test_reader_init_str(&reader, "\x91\xc0");
+    mpack_expect_array(&reader);
+    test_expecting_break((mpack_done_array(&reader), true));
+    test_reader_destroy_error(&reader, mpack_error_bug);
+
+    // reading elements in a string
+    test_reader_init_str(&reader, "\xa2""xx");
+    mpack_expect_str(&reader);
+    test_expecting_break((mpack_expect_nil(&reader), true));
+    test_reader_destroy_error(&reader, mpack_error_bug);
+
+    // reading too many elements
+    test_reader_init_str(&reader, "\x90");
+    mpack_expect_array(&reader);
+    test_expecting_break((mpack_expect_nil(&reader), true));
+    test_reader_destroy_error(&reader, mpack_error_bug);
+
+    // reading bytes with nothing open
+    test_reader_init_str(&reader, "\x90");
+    test_expecting_break((mpack_read_bytes(&reader, buf, sizeof(buf)), true));
+    test_reader_destroy_error(&reader, mpack_error_bug);
+
+    // reading bytes in an array
+    test_reader_init_str(&reader, "\x90");
+    mpack_expect_array(&reader);
+    test_expecting_break((mpack_read_bytes(&reader, buf, sizeof(buf)), true));
+    test_reader_destroy_error(&reader, mpack_error_bug);
+
+    // reading too many bytes
+    test_reader_init_str(&reader, "\xa2""xx");
+    mpack_expect_str(&reader);
+    test_expecting_break((mpack_read_bytes(&reader, buf, sizeof(buf)), true));
+    test_reader_destroy_error(&reader, mpack_error_bug);
+
+    // checking remaining bytes with unclosed type
+    test_reader_init_str(&reader, "\xa2""xx");
+    mpack_expect_str(&reader);
+    test_expecting_break((mpack_reader_remaining(&reader, NULL), true));
+    test_reader_destroy_error(&reader, mpack_error_bug);
 }
+#endif
 
 static void test_expect_reals() {
     // these are some very simple floats that don't really test IEEE 742 conformance;
@@ -610,7 +661,9 @@ void test_expect() {
 
     // other
     test_expect_misc();
+    #if MPACK_READ_TRACKING
     test_expect_tracking();
+    #endif
     test_expect_reals();
     test_expect_reals_range();
     test_expect_bad_type();
