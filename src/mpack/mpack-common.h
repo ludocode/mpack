@@ -537,12 +537,12 @@ MPACK_INLINE_SPEED mpack_error_t mpack_track_destroy(mpack_track_t* track, bool 
 #define MPACK_UTF8_ACCEPT 0
 #define MPACK_UTF8_REJECT 12
 
-MPACK_INLINE_SPEED uint32_t mpack_utf8_decode(uint32_t* state, uint32_t* codep, uint32_t byte);
+MPACK_INLINE_SPEED uint32_t mpack_utf8_decode(uint32_t* state, uint32_t* codep, uint8_t byte);
 
 #if MPACK_DEFINE_INLINE_SPEED
 extern const uint8_t mpack_utf8d[];
 
-MPACK_INLINE_SPEED uint32_t mpack_utf8_decode(uint32_t* state, uint32_t* codep, uint32_t byte) {
+MPACK_INLINE_SPEED uint32_t mpack_utf8_decode(uint32_t* state, uint32_t* codep, uint8_t byte) {
   uint32_t type = mpack_utf8d[byte];
 
   *codep = (*state != MPACK_UTF8_ACCEPT) ?

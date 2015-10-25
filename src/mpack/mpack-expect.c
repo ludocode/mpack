@@ -479,6 +479,40 @@ void mpack_expect_utf8_cstr(mpack_reader_t* reader, char* buf, size_t bufsize) {
 }
 
 #ifdef MPACK_MALLOC
+char* mpack_expect_str_alloc(mpack_reader_t* reader, size_t maxsize, size_t* size) {
+    *size = 0;
+
+    // read size
+    size_t length = mpack_expect_str(reader); // TODO: use expect str max? create expect str max...
+    if (mpack_reader_error(reader))
+        return NULL;
+    if (length > maxsize) {
+        mpack_reader_flag_error(reader, mpack_error_type);
+        return NULL;
+    }
+
+    // allocate
+    char* str = (char*)MPACK_MALLOC(length);
+    if (str == NULL) {
+        mpack_reader_flag_error(reader, mpack_error_memory);
+        return NULL;
+    }
+
+    // read with jump disabled so we don't leak our buffer
+    mpack_reader_track_bytes(reader, length);
+    mpack_read_native_nojump(reader, str, length);
+
+    // check for errors
+    if (mpack_reader_error(reader)) {
+        MPACK_FREE(str);
+        reader->error_fn(reader, mpack_reader_error(reader));
+        return NULL;
+    }
+    mpack_done_str(reader);
+    *size = length;
+    return str;
+}
+
 char* mpack_expect_cstr_alloc(mpack_reader_t* reader, size_t maxsize) {
 
     // make sure argument makes sense
@@ -508,6 +542,7 @@ char* mpack_expect_cstr_alloc(mpack_reader_t* reader, size_t maxsize) {
     mpack_reader_track_bytes(reader, length);
     mpack_read_native_nojump(reader, str, length);
 
+    // check for errors
     if (mpack_reader_error(reader)) {
         MPACK_FREE(str);
         reader->error_fn(reader, mpack_reader_error(reader));

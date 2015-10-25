@@ -587,10 +587,90 @@ static void test_expect_pre_error() {
     test_simple_read_error("", 0.0 == mpack_expect_double_strict(&reader), mpack_error_invalid);
 }
 
-static void test_expect_data() {
+static void test_expect_str() {
+    char buf[256];
 
-    test_simple_read_cancel("\xa0", 0 == mpack_expect_str(&reader));
+    // the first byte of each of these is the MessagePack object header
+    const char utf8_valid[]           = "\xac \xCF\x80 \xe4\xb8\xad \xf0\xa0\x80\xb6";
+    const char utf8_trimmed[]         = "\xa4\xf0\xa0\x80\xb6";
+    const char utf8_invalid[]         = "\xa3 \x80 ";
+    const char utf8_invalid_trimmed[] = "\xa1\xa0";
+    const char utf8_modified[]        = "\xa4 \xc0\x80 ";
+    const char utf8_cesu8[]           = "\xa8 \xED\xA0\x81\xED\xB0\x80 ";
+    const char utf8_wobbly[]          = "\xa5 \xED\xA0\x81 ";
 
+    MPACK_UNUSED(utf8_valid);
+    MPACK_UNUSED(utf8_trimmed);
+    MPACK_UNUSED(utf8_invalid);
+    MPACK_UNUSED(utf8_invalid_trimmed);
+    MPACK_UNUSED(utf8_modified);
+    MPACK_UNUSED(utf8_cesu8);
+    MPACK_UNUSED(utf8_wobbly);
+
+    // str
+
+    test_simple_read("\xa0", 0 == mpack_expect_str(&reader) && (mpack_done_str(&reader), true));
+    test_simple_read_cancel("\xbf", 31 == mpack_expect_str(&reader));
+    test_simple_read_cancel("\xd9\x80", 128 == mpack_expect_str(&reader)); // TODO: test str8 compatibility
+    test_simple_read_cancel("\xda\x80\x80", 0x8080 == mpack_expect_str(&reader));
+    test_simple_read_cancel("\xdb\xff\xff\xff\xff", 0xffffffff == mpack_expect_str(&reader));
+
+    // bin is never allowed to be read as str
+    test_simple_read_error("\xc4\x10", 0 == mpack_expect_str(&reader), mpack_error_type);
+
+    test_simple_read("\xa0", 0 == mpack_expect_str_buf(&reader, buf, 0));
+    test_simple_read("\xa0", 0 == mpack_expect_str_buf(&reader, buf, 4));
+    test_simple_read("\xa4test", 4 == mpack_expect_str_buf(&reader, buf, 4));
+    test_simple_read_error("\xa5hello", 0 == mpack_expect_str_buf(&reader, buf, 4), mpack_error_too_big);
+
+    test_simple_read("\xa0", (mpack_expect_str_length(&reader, 0), mpack_done_str(&reader), true));
+    test_simple_read_error("\xa0", (mpack_expect_str_length(&reader, 4), true), mpack_error_type);
+    test_simple_read_cancel("\xa4", (mpack_expect_str_length(&reader, 4), true));
+    test_simple_read_error("\xa5", (mpack_expect_str_length(&reader, 4), true), mpack_error_type);
+
+    // str alloc
+
+    #ifdef MPACK_MALLOC
+    size_t length;
+    char* test = NULL;
+
+    test_simple_read("\xa0", (test = mpack_expect_str_alloc(&reader, 0, &length)));
+    test_assert(length == 0);
+    MPACK_FREE(test);
+    test_simple_read("\xa0", (test = mpack_expect_str_alloc(&reader, 4, &length)));
+    test_assert(length == 0);
+    MPACK_FREE(test);
+    test_simple_read("\xa4test", (test = mpack_expect_str_alloc(&reader, 4, &length)));
+    test_assert(length == 4);
+    test_assert(memcmp(test, "test", 4) == 0);
+    MPACK_FREE(test);
+    test_simple_read_error("\xa4test", NULL == mpack_expect_str_alloc(&reader, 3, &length), mpack_error_type);
+    test_simple_read_error("\x01", NULL == mpack_expect_str_alloc(&reader, 3, &length), mpack_error_type);
+    #endif
+
+    // cstr
+
+    // utf-8
+
+    test_simple_read(utf8_valid, (mpack_expect_utf8_cstr(&reader, buf, sizeof(buf)), true));
+    test_simple_read_error(utf8_invalid, (mpack_expect_utf8_cstr(&reader, buf, sizeof(buf)), true), mpack_error_type);
+
+}
+
+static void test_expect_bin() {
+
+    test_simple_read_cancel("\xc4\x80", 128 == mpack_expect_bin(&reader));
+    test_simple_read_cancel("\xc5\x80\x80", 0x8080 == mpack_expect_bin(&reader));
+    test_simple_read_cancel("\xc6\xff\xff\xff\xff", 0xffffffff == mpack_expect_bin(&reader));
+
+    // TODO: test strict/compatibility modes. currently, we do not
+    // support old MessagePack version compatibility; bin will not
+    // accept str types.
+    test_simple_read_error("\xbf", 0 == mpack_expect_bin(&reader), mpack_error_type);
+
+}
+
+static void test_expect_ext() {
 }
 
 static void test_expect_arrays() {
@@ -756,7 +836,9 @@ void test_expect() {
     test_expect_pre_error();
 
     // compound types
-    test_expect_data();
+    test_expect_str();
+    test_expect_bin();
+    test_expect_ext();
     test_expect_arrays();
     test_expect_maps();
 }

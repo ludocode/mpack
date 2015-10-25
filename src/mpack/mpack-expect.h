@@ -877,10 +877,18 @@ MPACK_INLINE_SPEED void mpack_expect_str_length(mpack_reader_t* reader, uint32_t
 #endif
 
 
+#ifdef MPACK_MALLOC
 /**
  * Reads a string with the given total maximum size, allocating storage for it.
- * A null-terminator will be added to the string. The length in bytes of the string,
- * not including the null-terminator, will be written to size.
+ *
+ * The length in bytes of the string will be written to size if reading is
+ * successful; otherwise size will be zero.
+ *
+ * No null-terminator will be added to the string. Use @ref mpack_expect_cstr_alloc()
+ * if you want a null-terminator.
+ *
+ * @see mpack_expect_cstr_alloc
+ * @see mpack_expect_utf8_alloc
  */
 char* mpack_expect_str_alloc(mpack_reader_t* reader, size_t maxsize, size_t* size);
 
@@ -891,6 +899,7 @@ char* mpack_expect_str_alloc(mpack_reader_t* reader, size_t maxsize, size_t* siz
  * will be written to size.
  */
 char* mpack_expect_utf8_alloc(mpack_reader_t* reader, size_t maxsize, size_t* size);
+#endif
 
 /**
  * Reads a string into the given buffer, ensures it has no null-bytes,
