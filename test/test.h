@@ -110,7 +110,7 @@ extern bool test_break_hit;
 // since non-volatile stack variables that are written to after setjmp are
 // undefined after longjmp.)
 #define test_expecting_assert(expr) do { \
-    bool jumped = false; \
+    volatile bool jumped = false; \
     if (TEST_ASSERT_SETJMP()) { \
         jumped = true; \
     } else { \

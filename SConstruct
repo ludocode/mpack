@@ -1,9 +1,31 @@
 import platform, os
 
+ltoflags = ["-O3", "-flto"]
+
+def CheckFlags(context, cppflags, linkflags):
+    env.Prepend(CPPFLAGS = cppflags, LINKFLAGS = linkflags)
+    result = context.TryLink("int main(void){return 0;}\n", '.c')
+    env.Replace(CPPFLAGS = env["CPPFLAGS"][len(cppflags):], LINKFLAGS = env["LINKFLAGS"][len(linkflags):])
+    return result
+
+def Check_Og(context):
+    context.Message('Checking for -Og support... ')
+    result = CheckFlags(context, ["-Og"], [])
+    context.Result(result)
+    return result
+
+def Check_flto(context):
+    context.Message('Checking for -flto support... ')
+    result = CheckFlags(context, ltoflags, ltoflags)
+    context.Result(result)
+    return result
+
 
 # Common environment setup
 
 env = Environment()
+conf = Configure(env, custom_tests = {'Check_Og': Check_Og, 'Check_flto': Check_flto})
+
 for x in os.environ.keys():
     if x in ["CC", "CXX", "PATH", "TRAVIS", "TERM"] or x.startswith("CLANG_") or x.startswith("CCC_"):
         env[x] = os.environ[x]
@@ -42,7 +64,11 @@ noioconfigs = [
 ]
 allconfigs = noioconfigs + ["-DMPACK_STDIO=1"]
 
-debugflags = ["-DDEBUG", "-O0"]
+hasOg = conf.Check_Og()
+if hasOg:
+    debugflags = ["-DDEBUG", "-Og"]
+else:
+    debugflags = ["-DDEBUG", "-O0"]
 releaseflags = ["-Os"] # If you change this, also change the MPACK_OPTIMIZE_FOR_SIZE below to test the opposite
 cflags = ["-std=c99"]
 
@@ -83,6 +109,10 @@ if ARGUMENTS.get('all'):
     AddBuild("release", allfeatures + allconfigs + releaseflags + cflags, [])
     AddBuild("release-speed", ["-DMPACK_OPTIMIZE_FOR_SIZE=0"] +
             allfeatures + allconfigs + releaseflags + cflags, [])
+    if conf.Check_flto():
+        AddBuild("release-lto", allfeatures + allconfigs + ltoflags + cflags, ltoflags)
+    if hasOg:
+        AddBuild("debug-O0", allfeatures + allconfigs + ["-DDEBUG", "-O0"] + cflags + gcovflags, gcovflags)
 
     # feature subsets with default configuration
     AddBuilds("empty", allconfigs + cflags, [])

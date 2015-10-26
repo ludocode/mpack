@@ -4,6 +4,8 @@
 *.swp
 *.gcov
 /.sconsign.dblite
+/.sconf_temp/
+/config.log
 /mpack-test-file.mp
 /mpack-test-dir/
 
