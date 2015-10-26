@@ -64,8 +64,11 @@ static char* test_file_fetch(const char* filename, size_t* out_size) {
 
 static void test_file_write_bytes(mpack_writer_t* writer, mpack_tag_t tag) {
     mpack_write_tag(writer, tag);
-    for (size_t i = 0; i < tag.v.l; ++i)
-        mpack_write_bytes(writer, "", 1);
+    char buf[1024];
+    memset(buf, 0, sizeof(buf));
+    for (; tag.v.l > sizeof(buf); tag.v.l -= (uint32_t)sizeof(buf))
+        mpack_write_bytes(writer, buf, sizeof(buf));
+    mpack_write_bytes(writer, buf, tag.v.l);
     mpack_finish_type(writer, tag.type);
 }
 
@@ -243,11 +246,18 @@ static void test_file_discard(void) {
 #if MPACK_EXPECT
 static void test_file_expect_bytes(mpack_reader_t* reader, mpack_tag_t tag) {
     mpack_expect_tag(reader, tag);
-    for (size_t i = 0; i < tag.v.l; ++i) {
-        char buf[1];
-        mpack_read_bytes(reader, buf, 1);
-        test_assert(buf[0] == 0);
+
+    char expected[1024];
+    memset(expected, 0, sizeof(expected));
+    char buf[sizeof(expected)];
+    while (tag.v.l > 0) {
+        uint32_t read = (tag.v.l < (uint32_t)sizeof(buf)) ? tag.v.l : (uint32_t)sizeof(buf);
+        mpack_read_bytes(reader, buf, read);
+        test_assert(mpack_reader_error(reader) == mpack_ok);
+        test_assert(memcmp(buf, expected, read) == 0);
+        tag.v.l -= read;
     }
+
     mpack_done_type(reader, tag.type);
 }
 
@@ -329,8 +339,17 @@ static void test_file_read(void) {
 static void test_file_node_bytes(mpack_node_t node, mpack_tag_t tag) {
     test_assert(mpack_tag_equal(tag, mpack_node_tag(node)));
     const char* data = mpack_node_data(node);
-    for (size_t i = 0; i < tag.v.l; ++i)
-        test_assert(data[i] == 0);
+    uint32_t length = mpack_node_data_len(node);
+    test_assert(mpack_node_error(node) == mpack_ok);
+
+    char expected[1024];
+    memset(expected, 0, sizeof(expected));
+    while (length > 0) {
+        uint32_t count = (length < (uint32_t)sizeof(expected)) ? length : (uint32_t)sizeof(expected);
+        test_assert(memcmp(data, expected, count) == 0);
+        length -= count;
+        data += count;
+    }
 }
 
 static void test_file_node_elements(mpack_node_t node, mpack_tag_t tag) {

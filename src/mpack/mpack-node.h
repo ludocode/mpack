@@ -782,16 +782,16 @@ MPACK_INLINE_SPEED int8_t mpack_node_exttype(mpack_node_t node) {
 /**
  * Returns the length of the given str, bin or ext node.
  */
-MPACK_INLINE_SPEED size_t mpack_node_data_len(mpack_node_t node);
+MPACK_INLINE_SPEED uint32_t mpack_node_data_len(mpack_node_t node);
 
 #if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED size_t mpack_node_data_len(mpack_node_t node) {
+MPACK_INLINE_SPEED uint32_t mpack_node_data_len(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
     mpack_type_t type = node.data->type;
     if (type == mpack_type_str || type == mpack_type_bin || type == mpack_type_ext)
-        return (size_t)node.data->value.data.l;
+        return (uint32_t)node.data->value.data.l;
 
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
