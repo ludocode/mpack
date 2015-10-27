@@ -187,6 +187,125 @@ mpack_error_t mpack_track_grow(mpack_track_t* track) {
     return mpack_ok;
 }
 
+mpack_error_t mpack_track_push(mpack_track_t* track, mpack_type_t type, uint64_t count) {
+    mpack_assert(track->elements, "null track elements!");
+    mpack_log("track pushing %s count %i\n", mpack_type_to_string(type), (int)count);
+
+    // maps have twice the number of elements (key/value pairs)
+    if (type == mpack_type_map)
+        count *= 2;
+
+    // grow if needed
+    if (track->count == track->capacity) {
+        mpack_error_t error = mpack_track_grow(track);
+        if (error != mpack_ok)
+            return error;
+    }
+
+    // insert new track
+    track->elements[track->count].type = type;
+    track->elements[track->count].left = count;
+    ++track->count;
+    return mpack_ok;
+}
+
+mpack_error_t mpack_track_pop(mpack_track_t* track, mpack_type_t type) {
+    mpack_assert(track->elements, "null track elements!");
+    mpack_log("track popping %s\n", mpack_type_to_string(type));
+
+    if (track->count == 0) {
+        mpack_break("attempting to close a %s but nothing was opened!", mpack_type_to_string(type));
+        return mpack_error_bug;
+    }
+
+    mpack_track_element_t* element = &track->elements[track->count - 1];
+
+    if (element->type != type) {
+        mpack_break("attempting to close a %s but the open element is a %s!",
+                mpack_type_to_string(type), mpack_type_to_string(element->type));
+        return mpack_error_bug;
+    }
+
+    if (element->left != 0) {
+        mpack_break("attempting to close a %s but there are %" PRIu64 " %s left",
+                mpack_type_to_string(type), element->left,
+                (type == mpack_type_map || type == mpack_type_array) ? "elements" : "bytes");
+        return mpack_error_bug;
+    }
+
+    --track->count;
+    return mpack_ok;
+}
+
+mpack_error_t mpack_track_element(mpack_track_t* track, bool read) {
+    MPACK_UNUSED(read);
+    mpack_assert(track->elements, "null track elements!");
+
+    // if there are no open elements, that's fine, we can read/write elements at will
+    if (track->count == 0)
+        return mpack_ok;
+
+    mpack_track_element_t* element = &track->elements[track->count - 1];
+
+    if (element->type != mpack_type_map && element->type != mpack_type_array) {
+        mpack_break("elements cannot be %s within an %s", read ? "read" : "written",
+                mpack_type_to_string(element->type));
+        return mpack_error_bug;
+    }
+
+    if (element->left == 0) {
+        mpack_break("too many elements %s for %s", read ? "read" : "written",
+                mpack_type_to_string(element->type));
+        return mpack_error_bug;
+    }
+
+    --element->left;
+    return mpack_ok;
+}
+
+mpack_error_t mpack_track_bytes(mpack_track_t* track, bool read, uint64_t count) {
+    MPACK_UNUSED(read);
+    mpack_assert(track->elements, "null track elements!");
+
+    if (track->count == 0) {
+        mpack_break("bytes cannot be %s with no open bin, str or ext", read ? "read" : "written");
+        return mpack_error_bug;
+    }
+
+    mpack_track_element_t* element = &track->elements[track->count - 1];
+
+    if (element->type == mpack_type_map || element->type == mpack_type_array) {
+        mpack_break("bytes cannot be %s within an %s", read ? "read" : "written",
+                mpack_type_to_string(element->type));
+        return mpack_error_bug;
+    }
+
+    if (element->left < count) {
+        mpack_break("too many bytes %s for %s", read ? "read" : "written",
+                mpack_type_to_string(element->type));
+        return mpack_error_bug;
+    }
+
+    element->left -= count;
+    return mpack_ok;
+}
+
+mpack_error_t mpack_track_check_empty(mpack_track_t* track) {
+    if (track->count != 0) {
+        mpack_break("unclosed %s", mpack_type_to_string(track->elements[0].type));
+        return mpack_error_bug;
+    }
+    return mpack_ok;
+}
+
+mpack_error_t mpack_track_destroy(mpack_track_t* track, bool cancel) {
+    mpack_error_t error = cancel ? mpack_ok : mpack_track_check_empty(track);
+    if (track->elements) {
+        MPACK_FREE(track->elements);
+        track->elements = NULL;
+    }
+    return error;
+}
 #endif
 
 
