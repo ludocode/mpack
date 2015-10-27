@@ -1055,19 +1055,6 @@ const char* mpack_expect_bin_inplace(mpack_reader_t* reader, size_t maxsize, siz
 char* mpack_expect_bin_alloc(mpack_reader_t* reader, size_t maxsize, size_t* size);
 
 /**
- * Reads an extension object with the given total maximum size, allocating storage
- * for it. The extension type will be written to exttype, and the size will be
- * written to size.
- */
-char* mpack_expect_ext_alloc(mpack_reader_t* reader, size_t maxsize, uint8_t* exttype, size_t* size);
-
-/**
- * Reads an extension object of the given type with the given total maximum size,
- * allocating storage for it. The size will be written to size.
- */
-char* mpack_expect_ext_type_alloc(mpack_reader_t* reader, uint8_t exttype, size_t maxsize, size_t* size);
-
-/**
  * @}
  */
 
