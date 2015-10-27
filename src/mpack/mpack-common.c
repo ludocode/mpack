@@ -197,7 +197,7 @@ mpack_error_t mpack_track_grow(mpack_track_t* track) {
 /* Copyright (c) 2008-2010 Bjoern Hoehrmann <bjoern@hoehrmann.de> */
 /* See http://bjoern.hoehrmann.de/utf-8/decoder/dfa/ for details. */
 
-const uint8_t mpack_utf8d[] = {
+static const uint8_t mpack_utf8d[] = {
   /* The first part of the table maps bytes to character classes that */
   /* to reduce the size of the transition table and create bitmasks. */
    0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
@@ -217,4 +217,37 @@ const uint8_t mpack_utf8d[] = {
   12,12,12,12,12,12,12,36,12,36,12,12, 12,36,12,12,12,12,12,36,12,36,12,12,
   12,36,12,12,12,12,12,12,12,12,12,12,
 };
+
+uint32_t mpack_utf8_decode(uint32_t* state, uint32_t* codep, uint8_t byte) {
+  uint32_t type = mpack_utf8d[byte];
+
+  *codep = (*state != MPACK_UTF8_ACCEPT) ?
+    (byte & 0x3fu) | (*codep << 6) :
+    (0xff >> type) & (byte);
+
+  *state = mpack_utf8d[256 + *state + type];
+  return *state;
+}
+
+/* End of UTF-8 decoder code */
+
+
+
+bool mpack_utf8_check(char* str, size_t bytes) {
+    uint32_t state = MPACK_UTF8_ACCEPT;
+    uint32_t codepoint;
+    for (size_t i = 0; i < bytes; ++i)
+        if (mpack_utf8_decode(&state, &codepoint, str[i]) == MPACK_UTF8_REJECT)
+            return false;
+    return state == MPACK_UTF8_ACCEPT;
+}
+
+bool mpack_utf8_check_no_null(char* str, size_t bytes) {
+    uint32_t state = MPACK_UTF8_ACCEPT;
+    uint32_t codepoint;
+    for (size_t i = 0; i < bytes; ++i)
+        if (str[i] == '\0' || mpack_utf8_decode(&state, &codepoint, str[i]) == MPACK_UTF8_REJECT)
+            return false;
+    return state == MPACK_UTF8_ACCEPT;
+}
 

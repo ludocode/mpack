@@ -537,22 +537,39 @@ MPACK_INLINE_SPEED mpack_error_t mpack_track_destroy(mpack_track_t* track, bool 
 #define MPACK_UTF8_ACCEPT 0
 #define MPACK_UTF8_REJECT 12
 
-MPACK_INLINE_SPEED uint32_t mpack_utf8_decode(uint32_t* state, uint32_t* codep, uint8_t byte);
+/**
+ * Parses one byte from a UTF-8 stream.
+ *
+ * Returns and sets state to:
+ *   - MPACK_UTF8_ACCEPT if the byte completes a valid unicode code point, placing it in codep
+ *   - MPACK_UTF8_REJECT if the byte is invalid UTF-8
+ *   - something else if more bytes are needed to form a valid character
+ *
+ * If more bytes are needed, this should be called again with the next byte
+ * in the string. state and codep should not be modified, since they will
+ * contain the partially read code point.
+ *
+ * The initial state should be set to MPACK_UTF8_ACCEPT before parsing a string.
+ *
+ * This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or
+ * WTF-8. Overlong sequences and UTF-16 surrogates will be rejected. Only
+ * pure UTF-8 is accepted.
+ */
+uint32_t mpack_utf8_decode(uint32_t* state, uint32_t* codep, uint8_t byte);
 
-#if MPACK_DEFINE_INLINE_SPEED
-extern const uint8_t mpack_utf8d[];
+/* End of UTF-8 decoder code */
 
-MPACK_INLINE_SPEED uint32_t mpack_utf8_decode(uint32_t* state, uint32_t* codep, uint8_t byte) {
-  uint32_t type = mpack_utf8d[byte];
 
-  *codep = (*state != MPACK_UTF8_ACCEPT) ?
-    (byte & 0x3fu) | (*codep << 6) :
-    (0xff >> type) & (byte);
 
-  *state = mpack_utf8d[256 + *state + type];
-  return *state;
-}
-#endif
+/**
+ * Returns true if the given UTF-8 string is valid.
+ */
+bool mpack_utf8_check(char* str, size_t bytes);
+
+/**
+ * Returns true if the given UTF-8 string is valid and contains no null characters.
+ */
+bool mpack_utf8_check_no_null(char* str, size_t bytes);
 
 #endif
 

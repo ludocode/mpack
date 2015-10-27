@@ -837,6 +837,18 @@ uint32_t mpack_expect_str(mpack_reader_t* reader);
 size_t mpack_expect_str_buf(mpack_reader_t* reader, char* buf, size_t bufsize);
 
 /**
+ * Reads a string into the given buffer, ensuring it is a valid UTF-8 string
+ * and returning its size in bytes.
+ *
+ * This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or
+ * WTF-8. Only pure UTF-8 is allowed.
+ *
+ * Raises mpack_error_too_big if there is not enough room for the string.
+ * Raises mpack_error_type if the value is not a string or is not a valid UTF-8 string.
+ */
+size_t mpack_expect_utf8(mpack_reader_t* reader, char* buf, size_t bufsize);
+
+/**
  * Reads the start of a string, raising an error if its length is not
  * at most the given number of bytes (not including any null-terminator.)
  *
@@ -897,13 +909,16 @@ char* mpack_expect_str_alloc(mpack_reader_t* reader, size_t maxsize, size_t* siz
  * and ensuring it is valid UTF-8. A null-terminator will be added to the string.
  * The length in bytes of the string, not including the null-terminator,
  * will be written to size.
+ *
+ * This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or
+ * WTF-8. Only pure UTF-8 is allowed.
  */
 char* mpack_expect_utf8_alloc(mpack_reader_t* reader, size_t maxsize, size_t* size);
 #endif
 
 /**
- * Reads a string into the given buffer, ensures it has no null-bytes,
- * and adds null-terminator at the end.
+ * Reads a string into the given buffer, ensures it has no null bytes,
+ * and adds a null-terminator at the end.
  *
  * Raises mpack_error_too_big if there is not enough room for the string and null-terminator.
  * Raises mpack_error_type if the value is not a string or contains a null byte.
@@ -911,8 +926,12 @@ char* mpack_expect_utf8_alloc(mpack_reader_t* reader, size_t maxsize, size_t* si
 void mpack_expect_cstr(mpack_reader_t* reader, char* buf, size_t size);
 
 /**
- * Reads a string into the given buffer, ensures it is a valid UTF-8 string,
- * and adds null-terminator at the end.
+ * Reads a string into the given buffer, ensures it is a valid UTF-8 string
+ * without null characters, and adds a null-terminator at the end.
+ *
+ * This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or
+ * WTF-8. Only pure UTF-8 is allowed, but without the null character, since
+ * it cannot be represented in a null-terminated string.
  *
  * Raises mpack_error_too_big if there is not enough room for the string and null-terminator.
  * Raises mpack_error_type if the value is not a string or is not a valid UTF-8 string.
@@ -922,7 +941,7 @@ void mpack_expect_utf8_cstr(mpack_reader_t* reader, char* buf, size_t size);
 #ifdef MPACK_MALLOC
 /**
  * Reads a string, allocates storage for it, ensures it has no null-bytes,
- * and adds null-terminator at the end. You assume ownership of the
+ * and adds a null-terminator at the end. You assume ownership of the
  * returned pointer if reading succeeds.
  *
  * Raises mpack_error_too_big if the string plus null-terminator is larger than the given maxsize.

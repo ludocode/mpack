@@ -378,7 +378,7 @@ void* mpack_expect_array_alloc_impl(mpack_reader_t* reader, size_t element_size,
 #endif
 
 
-// String Functions
+// Str, Bin and Ext Functions
 
 uint32_t mpack_expect_str(mpack_reader_t* reader) {
     mpack_tag_t var = mpack_read_tag(reader);
@@ -389,22 +389,33 @@ uint32_t mpack_expect_str(mpack_reader_t* reader) {
 }
 
 size_t mpack_expect_str_buf(mpack_reader_t* reader, char* buf, size_t bufsize) {
-    size_t strsize = mpack_expect_str(reader);
+    size_t length = mpack_expect_str(reader);
     if (mpack_reader_error(reader))
         return 0;
-    if (strsize > bufsize) {
+
+    if (length > bufsize) {
         mpack_reader_flag_error(reader, mpack_error_too_big);
         return 0;
     }
-    mpack_read_bytes(reader, buf, strsize);
+
+    mpack_read_bytes(reader, buf, length);
     if (mpack_reader_error(reader))
         return 0;
+
     mpack_done_str(reader);
-    return strsize;
+    return length;
 }
 
+size_t mpack_expect_utf8(mpack_reader_t* reader, char* buf, size_t size) {
+    size_t length = mpack_expect_str_buf(reader, buf, size);
 
-// Binary Blob Functions
+    if (!mpack_utf8_check(buf, length)) {
+        mpack_reader_flag_error(reader, mpack_error_type);
+        return 0;
+    }
+
+    return length;
+}
 
 uint32_t mpack_expect_bin(mpack_reader_t* reader) {
     mpack_tag_t var = mpack_read_tag(reader);
@@ -429,21 +440,27 @@ size_t mpack_expect_bin_buf(mpack_reader_t* reader, char* buf, size_t bufsize) {
     return binsize;
 }
 
-void mpack_expect_cstr(mpack_reader_t* reader, char* buf, size_t bufsize) {
+static size_t mpack_expect_cstr_unchecked(mpack_reader_t* reader, char* buf, size_t bufsize) {
 
     // make sure buffer makes sense
     mpack_assert(bufsize >= 1, "buffer size is zero; you must have room for at least a null-terminator");
 
     // expect a str
-    size_t rawsize = mpack_expect_str_buf(reader, buf, bufsize - 1);
+    size_t length = mpack_expect_str_buf(reader, buf, bufsize - 1);
     if (mpack_reader_error(reader)) {
         buf[0] = 0;
-        return;
+        return 0;
     }
-    buf[rawsize] = 0;
+
+    buf[length] = 0;
+    return length;
+}
+
+void mpack_expect_cstr(mpack_reader_t* reader, char* buf, size_t bufsize) {
+    size_t length = mpack_expect_cstr_unchecked(reader, buf, bufsize);
 
     // check it for null bytes
-    for (size_t i = 0; i < rawsize; ++i) {
+    for (size_t i = 0; i < length; ++i) {
         if (buf[i] == 0) {
             buf[0] = 0;
             mpack_reader_flag_error(reader, mpack_error_type);
@@ -453,29 +470,13 @@ void mpack_expect_cstr(mpack_reader_t* reader, char* buf, size_t bufsize) {
 }
 
 void mpack_expect_utf8_cstr(mpack_reader_t* reader, char* buf, size_t bufsize) {
-
-    // make sure buffer makes sense
-    mpack_assert(bufsize >= 1, "buffer size is zero; you must have room for at least a null-terminator");
-
-    // expect a raw
-    size_t rawsize = mpack_expect_str_buf(reader, buf, bufsize - 1);
-    if (mpack_reader_error(reader)) {
-        buf[0] = 0;
-        return;
-    }
-    buf[rawsize] = 0;
+    size_t length = mpack_expect_cstr_unchecked(reader, buf, bufsize);
 
     // check encoding
-    uint32_t state = 0;
-    uint32_t codepoint = 0;
-    for (size_t i = 0; i < rawsize; ++i) {
-        if (mpack_utf8_decode(&state, &codepoint, buf[i]) == MPACK_UTF8_REJECT) {
-            buf[0] = 0;
-            mpack_reader_flag_error(reader, mpack_error_type);
-            return;
-        }
+    if (!mpack_utf8_check_no_null(buf, length)) {
+        buf[0] = 0;
+        mpack_reader_flag_error(reader, mpack_error_type);
     }
-
 }
 
 #ifdef MPACK_MALLOC

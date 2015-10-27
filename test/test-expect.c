@@ -590,22 +590,6 @@ static void test_expect_pre_error() {
 static void test_expect_str() {
     char buf[256];
 
-    // the first byte of each of these is the MessagePack object header
-    const char utf8_valid[]           = "\xac \xCF\x80 \xe4\xb8\xad \xf0\xa0\x80\xb6";
-    const char utf8_trimmed[]         = "\xa4\xf0\xa0\x80\xb6";
-    const char utf8_invalid[]         = "\xa3 \x80 ";
-    const char utf8_invalid_trimmed[] = "\xa1\xa0";
-    const char utf8_modified[]        = "\xa4 \xc0\x80 ";
-    const char utf8_cesu8[]           = "\xa8 \xED\xA0\x81\xED\xB0\x80 ";
-    const char utf8_wobbly[]          = "\xa5 \xED\xA0\x81 ";
-
-    MPACK_UNUSED(utf8_valid);
-    MPACK_UNUSED(utf8_trimmed);
-    MPACK_UNUSED(utf8_invalid);
-    MPACK_UNUSED(utf8_invalid_trimmed);
-    MPACK_UNUSED(utf8_modified);
-    MPACK_UNUSED(utf8_cesu8);
-    MPACK_UNUSED(utf8_wobbly);
 
     // str
 
@@ -648,12 +632,37 @@ static void test_expect_str() {
     test_simple_read_error("\x01", NULL == mpack_expect_str_alloc(&reader, 3, &length), mpack_error_type);
     #endif
 
+
     // cstr
+
 
     // utf-8
 
+    // the first byte of each of these is the MessagePack object header
+    const char utf8_valid[]           = "\xac \xCF\x80 \xe4\xb8\xad \xf0\xa0\x80\xb6";
+    const char utf8_trimmed[]         = "\xa4\xf0\xa0\x80\xb6";
+    const char utf8_invalid[]         = "\xa3 \x80 ";
+    const char utf8_invalid_trimmed[] = "\xa1\xa0";
+    const char utf8_truncated[]       = "\xa2\xf0\xa0";
+    const char utf8_modified[]        = "\xa4 \xc0\x80 ";
+    const char utf8_cesu8[]           = "\xa8 \xED\xA0\x81\xED\xB0\x80 ";
+    const char utf8_wobbly[]          = "\xa5 \xED\xA0\x81 ";
+
+    test_simple_read("\xa0", 0 == mpack_expect_utf8(&reader, buf, 0));
+    test_simple_read("\xa0", 0 == mpack_expect_utf8(&reader, buf, 4));
+    test_simple_read("\xa4test", 4 == mpack_expect_utf8(&reader, buf, 4));
+    test_simple_read_error("\xa5hello", 0 == mpack_expect_utf8(&reader, buf, 4), mpack_error_too_big);
+
     test_simple_read(utf8_valid, (mpack_expect_utf8_cstr(&reader, buf, sizeof(buf)), true));
+    test_simple_read(utf8_trimmed, (mpack_expect_utf8_cstr(&reader, buf, sizeof(buf)), true));
     test_simple_read_error(utf8_invalid, (mpack_expect_utf8_cstr(&reader, buf, sizeof(buf)), true), mpack_error_type);
+    test_simple_read_error(utf8_invalid_trimmed, (mpack_expect_utf8_cstr(&reader, buf, sizeof(buf)), true), mpack_error_type);
+    test_simple_read_error(utf8_truncated, (mpack_expect_utf8_cstr(&reader, buf, sizeof(buf)), true), mpack_error_type);
+
+    // we don't accept any of these UTF-8 variants; only pure UTF-8 is allowed.
+    test_simple_read_error(utf8_modified, (mpack_expect_utf8_cstr(&reader, buf, sizeof(buf)), true), mpack_error_type);
+    test_simple_read_error(utf8_cesu8, (mpack_expect_utf8_cstr(&reader, buf, sizeof(buf)), true), mpack_error_type);
+    test_simple_read_error(utf8_wobbly, (mpack_expect_utf8_cstr(&reader, buf, sizeof(buf)), true), mpack_error_type);
 
 }
 
