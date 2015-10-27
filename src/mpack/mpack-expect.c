@@ -556,14 +556,11 @@ char* mpack_expect_utf8_cstr_alloc(mpack_reader_t* reader, size_t maxsize) {
 }
 #endif
 
-void mpack_expect_cstr_match(mpack_reader_t* reader, const char* str) {
-    if (reader->error != mpack_ok)
-        return;
+void mpack_expect_str_match(mpack_reader_t* reader, const char* str, size_t len) {
 
     // expect a str the correct length
-    size_t len = mpack_strlen(str);
     if (len > UINT32_MAX)
-        mpack_reader_flag_error(reader, mpack_error_invalid);
+        mpack_reader_flag_error(reader, mpack_error_type);
     mpack_expect_str_length(reader, (uint32_t)len);
     if (mpack_reader_error(reader))
         return;

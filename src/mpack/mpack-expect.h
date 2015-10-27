@@ -930,6 +930,14 @@ char* mpack_expect_utf8_alloc(mpack_reader_t* reader, size_t maxsize, size_t* si
 #endif
 
 /**
+ * Reads a string, ensuring it exactly matches the given string.
+ *
+ * Remember that maps are unordered in JSON. Don't use this for map keys
+ * unless the map has only a single key!
+ */
+void mpack_expect_str_match(mpack_reader_t* reader, const char* str, size_t length);
+
+/**
  * Reads a string into the given buffer, ensures it has no null bytes,
  * and adds a null-terminator at the end.
  *
@@ -976,7 +984,17 @@ char* mpack_expect_utf8_cstr_alloc(mpack_reader_t* reader, size_t maxsize);
  * Remember that maps are unordered in JSON. Don't use this for map keys
  * unless the map has only a single key!
  */
-void mpack_expect_cstr_match(mpack_reader_t* reader, const char* str);
+MPACK_INLINE_SPEED void mpack_expect_cstr_match(mpack_reader_t* reader, const char* str);
+
+#if MPACK_DEFINE_INLINE_SPEED
+MPACK_INLINE_SPEED void mpack_expect_cstr_match(mpack_reader_t* reader, const char* str) {
+    if (mpack_strlen(str) > UINT32_MAX) {
+        mpack_reader_flag_error(reader, mpack_error_type);
+        return;
+    }
+    mpack_expect_str_match(reader, str, mpack_strlen(str));
+}
+#endif
 
 /**
  * @}
