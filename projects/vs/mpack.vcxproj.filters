@@ -38,7 +38,7 @@
     <ClCompile Include="..\..\test\test-file.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test\test-malloc.c">
+    <ClCompile Include="..\..\test\test-system.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\test\test-node.c">
@@ -85,7 +85,7 @@
     <ClInclude Include="..\..\test\test-file.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test\test-malloc.h">
+    <ClInclude Include="..\..\test\test-system.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\test\test-node.h">

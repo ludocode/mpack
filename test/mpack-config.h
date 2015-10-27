@@ -41,9 +41,7 @@
 #define MPACK_CUSTOM_BREAK 1
 #endif
 
-#ifdef MPACK_MALLOC
-#include "test-malloc.h"
-#endif
+#include "test-system.h"
 
 // we use small buffer sizes to test flushing, growing, and malloc failures
 #define MPACK_TRACKING_INITIAL_CAPACITY 3

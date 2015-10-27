@@ -19,7 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-// We need to include test.h here instead of test-malloc.h because
+// We need to include test.h here instead of test-system.h because
 // otherwise MPACK_MALLOC will not be defined yet.
 #include "test.h"
 

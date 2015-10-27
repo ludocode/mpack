@@ -19,16 +19,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-/*
- * test-malloc.h
- *
- * Implements a malloc that tracks allocs and frees to ensure they
- * match, and to count outstanding allocated blocks. It can also be
- * configured to fail to test correct out-of-memory handling.
- */
-
-#ifndef MPACK_TEST_MALLOC_H
-#define MPACK_TEST_MALLOC_H 1
+#ifndef MPACK_TEST_SYSTEM_H
+#define MPACK_TEST_SYSTEM_H 1
 
 #include <stddef.h>
 
@@ -37,6 +29,11 @@ extern "C" {
 #endif
 
 #ifdef MPACK_MALLOC
+/*
+ * Implements a malloc that tracks allocs and frees to ensure they
+ * match, and to count outstanding allocated blocks. It can also be
+ * configured to fail to test correct out-of-memory handling.
+ */
 void* test_malloc(size_t size);
 
 void* test_realloc(void* p, size_t size);

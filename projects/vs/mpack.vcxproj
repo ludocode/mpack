@@ -84,7 +84,7 @@
     <ClCompile Include="..\..\test\test.c" />
     <ClCompile Include="..\..\test\test-buffer.c" />
     <ClCompile Include="..\..\test\test-file.c" />
-    <ClCompile Include="..\..\test\test-malloc.c" />
+    <ClCompile Include="..\..\test\test-system.c" />
     <ClCompile Include="..\..\test\test-node.c" />
     <ClCompile Include="..\..\test\test-expect.c" />
     <ClCompile Include="..\..\test\test-common.c" />
@@ -101,7 +101,7 @@
     <ClInclude Include="..\..\test\mpack-config.h" />
     <ClInclude Include="..\..\test\test-buffer.h" />
     <ClInclude Include="..\..\test\test-file.h" />
-    <ClInclude Include="..\..\test\test-malloc.h" />
+    <ClInclude Include="..\..\test\test-system.h" />
     <ClInclude Include="..\..\test\test-node.h" />
     <ClInclude Include="..\..\test\test-expect.h" />
     <ClInclude Include="..\..\test\test-common.h" />
