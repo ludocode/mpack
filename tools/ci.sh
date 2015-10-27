@@ -18,7 +18,7 @@ elif [[ "$CC" == "gcc" ]] && [[ "$STANDARD" == "1" ]]; then
     # GCC non-amalgamated build.
     scons gcov=1 all=1 || exit $?
     tools/gcov.sh || exit $?
-    coveralls --no-gcov --exclude test || exit $?
+    coveralls --no-gcov --include src || exit $?
 else
     scons all=1 || exit $?
 fi
