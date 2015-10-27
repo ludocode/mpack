@@ -31,6 +31,9 @@ static size_t test_malloc_active = 0;
 
 void* test_malloc(size_t size) {
     test_assert(size != 0, "cannot allocate zero bytes!");
+    if (size == 0)
+        return NULL;
+
     if (test_malloc_fail) {
         if (test_malloc_left == 0)
             return NULL;
@@ -42,6 +45,12 @@ void* test_malloc(size_t size) {
 
 void* test_realloc(void* p, size_t size) {
     test_assert(size != 0, "cannot allocate zero bytes!");
+    if (size == 0) {
+        if (p)
+            free(p);
+        return NULL;
+    }
+
     if (test_malloc_fail) {
         if (test_malloc_left == 0)
             return NULL;
