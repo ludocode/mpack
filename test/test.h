@@ -123,7 +123,7 @@ extern bool test_break_hit;
 #define test_expecting_break(expr, ...) do { \
     test_break_set = true; \
     test_break_hit = false; \
-    test_assert(expr , ## __VA_ARGS__); \
+    test_assert(expr , ## __VA_ARGS__, "expression is not true: " # expr); \
     test_assert(test_break_hit, "expression should break, but didn't: " # expr); \
     test_break_set = false; \
 } while (0);

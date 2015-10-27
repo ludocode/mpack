@@ -251,3 +251,10 @@ bool mpack_utf8_check_no_null(char* str, size_t bytes) {
     return state == MPACK_UTF8_ACCEPT;
 }
 
+bool mpack_str_check_no_null(char* str, size_t bytes) {
+    for (size_t i = 0; i < bytes; ++i)
+        if (str[i] == '\0')
+            return false;
+    return true;
+}
+

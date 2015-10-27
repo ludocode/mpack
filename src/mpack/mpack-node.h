@@ -820,13 +820,17 @@ MPACK_INLINE_SPEED size_t mpack_node_strlen(mpack_node_t node) {
 /**
  * Returns a pointer to the data contained by this node.
  *
- * Note that strings are not null-terminated! Use mpack_node_copy_cstr() or
- * mpack_node_cstr_alloc() to get a null-terminated string.
+ * Note that strings are not null-terminated! Use one of the cstr functions
+ * to get a null-terminated string.
  *
  * The pointer is valid as long as the data backing the tree is valid.
  *
  * If this node is not of a str, bin or map, mpack_error_type is raised, and
  * NULL is returned.
+ *
+ * @see mpack_node_copy_cstr()
+ * @see mpack_node_cstr_alloc()
+ * @see mpack_node_utf8_cstr_alloc()
  */
 MPACK_INLINE_SPEED const char* mpack_node_data(mpack_node_t node);
 
@@ -879,7 +883,10 @@ void mpack_node_copy_cstr(mpack_node_t node, char* buffer, size_t size);
 #ifdef MPACK_MALLOC
 /**
  * Allocates a new chunk of data using MPACK_MALLOC with the bytes
- * contained by this node. The returned string should be freed with MPACK_FREE.
+ * contained by this node.
+ *
+ * The allocated data must be freed with MPACK_FREE() (or simply free()
+ * if MPack's allocator hasn't been customized.)
  *
  * If this node is not a str, bin or ext type, mpack_error_type is raised
  * and the return value should be discarded. If the string and null-terminator
@@ -891,7 +898,10 @@ char* mpack_node_data_alloc(mpack_node_t node, size_t maxlen);
 
 /**
  * Allocates a new null-terminated string using MPACK_MALLOC with the string
- * contained by this node. The returned string should be freed with MPACK_FREE.
+ * contained by this node.
+ *
+ * The allocated string must be freed with MPACK_FREE() (or simply free()
+ * if MPack's allocator hasn't been customized.)
  *
  * If this node is not a string type, mpack_error_type is raised, and the return
  * value should be discarded.

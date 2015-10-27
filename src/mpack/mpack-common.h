@@ -527,6 +527,9 @@ MPACK_INLINE_SPEED mpack_error_t mpack_track_destroy(mpack_track_t* track, bool 
 
 
 #if MPACK_INTERNAL
+/** @cond */
+
+
 
 /* The below code is from Bjoern Hoehrmann's Flexible and Economical */
 /* UTF-8 decoder, modified to support MPack inlining and add the mpack prefix. */
@@ -561,6 +564,8 @@ uint32_t mpack_utf8_decode(uint32_t* state, uint32_t* codep, uint8_t byte);
 
 
 
+/* Miscellaneous string functions */
+
 /**
  * Returns true if the given UTF-8 string is valid.
  */
@@ -571,6 +576,14 @@ bool mpack_utf8_check(char* str, size_t bytes);
  */
 bool mpack_utf8_check_no_null(char* str, size_t bytes);
 
+/**
+ * Returns true if the given string has no null bytes.
+ */
+bool mpack_str_check_no_null(char* str, size_t bytes);
+
+
+
+/** @endcond */
 #endif
 
 

@@ -896,22 +896,29 @@ MPACK_INLINE_SPEED void mpack_expect_str_length(mpack_reader_t* reader, uint32_t
  * The length in bytes of the string will be written to size if reading is
  * successful; otherwise size will be zero.
  *
+ * The allocated string must be freed with MPACK_FREE() (or simply free()
+ * if MPack's allocator hasn't been customized.)
+ *
  * No null-terminator will be added to the string. Use @ref mpack_expect_cstr_alloc()
  * if you want a null-terminator.
- *
- * @see mpack_expect_cstr_alloc
- * @see mpack_expect_utf8_alloc
  */
 char* mpack_expect_str_alloc(mpack_reader_t* reader, size_t maxsize, size_t* size);
 
 /**
  * Reads a string with the given total maximum size, allocating storage for it
- * and ensuring it is valid UTF-8. A null-terminator will be added to the string.
+ * and ensuring it is valid UTF-8.
+ *
  * The length in bytes of the string, not including the null-terminator,
  * will be written to size.
  *
  * This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or
  * WTF-8. Only pure UTF-8 is allowed.
+ *
+ * The allocated string must be freed with MPACK_FREE() (or simply free()
+ * if MPack's allocator hasn't been customized.)
+ *
+ * No null-terminator will be added to the string. Use @ref mpack_expect_cstr_alloc()
+ * if you want a null-terminator.
  */
 char* mpack_expect_utf8_alloc(mpack_reader_t* reader, size_t maxsize, size_t* size);
 #endif
@@ -940,14 +947,20 @@ void mpack_expect_utf8_cstr(mpack_reader_t* reader, char* buf, size_t size);
 
 #ifdef MPACK_MALLOC
 /**
- * Reads a string, allocates storage for it, ensures it has no null-bytes,
+ * Reads a string with the given total maximum size (including space for a
+ * null-terminator), allocates storage for it, ensures it has no null-bytes,
  * and adds a null-terminator at the end. You assume ownership of the
  * returned pointer if reading succeeds.
+ *
+ * The allocated string must be freed with MPACK_FREE() (or simply free()
+ * if MPack's allocator hasn't been customized.)
  *
  * Raises mpack_error_too_big if the string plus null-terminator is larger than the given maxsize.
  * Raises mpack_error_invalid if the value is not a string or contains a null byte.
  */
 char* mpack_expect_cstr_alloc(mpack_reader_t* reader, size_t maxsize);
+
+char* mpack_expect_utf8_cstr_alloc(mpack_reader_t* reader, size_t maxsize);
 #endif
 
 /**

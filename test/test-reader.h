@@ -109,7 +109,7 @@ extern "C" {
 
 // simple read assertion test
 
-// runs a simple reader test, ensuring it causes an assert or break.
+// runs a simple reader test, ensuring it causes an assert.
 // (note about volatile, see test_expecting_assert())
 // (we cancel in case the mpack_error_bug is compiled out in release mode)
 #define test_simple_read_assert(data, read_expr) do { \
@@ -118,6 +118,15 @@ extern "C" {
     mpack_reader_init_data(reader, data, sizeof(data) - 1); \
     test_expecting_assert(read_expr); \
     mpack_reader_destroy_cancel(reader); \
+} while (0)
+
+// runs a simple reader test, ensuring it causes a break.
+// (we cancel in case the mpack_error_bug is compiled out in release mode)
+#define test_simple_read_break(data, read_expr) do { \
+    mpack_reader_t reader; \
+    mpack_reader_init_data(&reader, data, sizeof(data) - 1); \
+    test_expecting_break(read_expr); \
+    mpack_reader_destroy_cancel(&reader); \
 } while (0)
 
 

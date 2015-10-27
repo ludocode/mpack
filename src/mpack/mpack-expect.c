@@ -459,13 +459,10 @@ static size_t mpack_expect_cstr_unchecked(mpack_reader_t* reader, char* buf, siz
 void mpack_expect_cstr(mpack_reader_t* reader, char* buf, size_t bufsize) {
     size_t length = mpack_expect_cstr_unchecked(reader, buf, bufsize);
 
-    // check it for null bytes
-    for (size_t i = 0; i < length; ++i) {
-        if (buf[i] == 0) {
-            buf[0] = 0;
-            mpack_reader_flag_error(reader, mpack_error_type);
-            return;
-        }
+    // check for null bytes
+    if (!mpack_str_check_no_null(buf, length)) {
+        buf[0] = 0;
+        mpack_reader_flag_error(reader, mpack_error_type);
     }
 }
 
@@ -503,18 +500,33 @@ char* mpack_expect_str_alloc(mpack_reader_t* reader, size_t maxsize, size_t* siz
     mpack_reader_track_bytes(reader, length);
     mpack_read_native_nojump(reader, str, length);
 
-    // check for errors
+    // report flagged errors
     if (mpack_reader_error(reader)) {
         MPACK_FREE(str);
         reader->error_fn(reader, mpack_reader_error(reader));
         return NULL;
     }
+
     mpack_done_str(reader);
     *size = length;
     return str;
 }
 
-char* mpack_expect_cstr_alloc(mpack_reader_t* reader, size_t maxsize) {
+char* mpack_expect_utf8_alloc(mpack_reader_t* reader, size_t maxsize, size_t* size) {
+    char* str = mpack_expect_str_alloc(reader, maxsize, size);
+
+    if (str && !mpack_utf8_check(str, *size)) {
+        *size = 0;
+        MPACK_FREE(str);
+        mpack_reader_flag_error(reader, mpack_error_type);
+        return NULL;
+    }
+
+    return str;
+}
+
+static char* mpack_expect_cstr_alloc_unchecked(mpack_reader_t* reader, size_t maxsize, size_t* out_length) {
+    *out_length = 0;
 
     // make sure argument makes sense
     if (maxsize < 1) {
@@ -549,8 +561,36 @@ char* mpack_expect_cstr_alloc(mpack_reader_t* reader, size_t maxsize) {
         reader->error_fn(reader, mpack_reader_error(reader));
         return NULL;
     }
-    str[length] = 0;
+
     mpack_done_str(reader);
+    str[length] = 0;
+    *out_length = length;
+    return str;
+}
+
+char* mpack_expect_cstr_alloc(mpack_reader_t* reader, size_t maxsize) {
+    size_t length;
+    char* str = mpack_expect_cstr_alloc_unchecked(reader, maxsize, &length);
+
+    if (str && !mpack_str_check_no_null(str, length)) {
+        MPACK_FREE(str);
+        mpack_reader_flag_error(reader, mpack_error_type);
+        return NULL;
+    }
+
+    return str;
+}
+
+char* mpack_expect_utf8_cstr_alloc(mpack_reader_t* reader, size_t maxsize) {
+    size_t length;
+    char* str = mpack_expect_cstr_alloc_unchecked(reader, maxsize, &length);
+
+    if (str && !mpack_utf8_check_no_null(str, length)) {
+        MPACK_FREE(str);
+        mpack_reader_flag_error(reader, mpack_error_type);
+        return NULL;
+    }
+
     return str;
 }
 #endif

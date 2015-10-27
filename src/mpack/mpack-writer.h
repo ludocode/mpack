@@ -138,11 +138,11 @@ void mpack_writer_init(mpack_writer_t* writer, char* buffer, size_t size);
  * Initializes an MPack writer using a growable buffer.
  *
  * The data is placed in the given data pointer if and when the writer
- * is destroyed without error. The data should be freed with MPACK_FREE()
- * (or simply free() if MPack's allocator hasn't been customized.)
+ * is destroyed without error. The data pointer is NULL during writing,
+ * and will remain NULL if an error occurs.
  *
- * The data pointer is NULL during writing, and will remain NULL
- * if an error occurs.
+ * The allocated data must be freed with MPACK_FREE() (or simply free()
+ * if MPack's allocator hasn't been customized.)
  *
  * @throws mpack_error_memory if the buffer fails to grow when
  * flushing (not mpack_error_io)
