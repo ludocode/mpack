@@ -39,8 +39,8 @@ extern "C" {
 
 // tears down a reader, ensuring it has no errors and no extra data
 #define test_reader_destroy_noerror(reader) do { \
-    test_assert(mpack_reader_error(reader) == mpack_ok, \
-            "reader is in error state %i", (int)mpack_reader_error(reader)); \
+    test_assert(mpack_reader_error(reader) == mpack_ok, "reader is in error state %i (%s)", \
+            (int)mpack_reader_error(reader), mpack_error_to_string(mpack_reader_error(reader))); \
     test_assert(mpack_reader_remaining(reader, NULL) == 0, \
             "reader has %i extra bytes", (int)mpack_reader_remaining(reader, NULL)); \
     mpack_reader_destroy(reader); \
@@ -48,17 +48,17 @@ extern "C" {
 
 // tears down a reader with tracking cancelling, ensuring it has no errors
 #define test_reader_destroy_cancel_noerror(reader) do { \
-    test_assert(mpack_reader_error(reader) == mpack_ok, \
-            "reader is in error state %i", (int)mpack_reader_error(reader)); \
+    test_assert(mpack_reader_error(reader) == mpack_ok, "reader is in error state %i (%s)", \
+            (int)mpack_reader_error(reader), mpack_error_to_string(mpack_reader_error(reader))); \
     mpack_reader_destroy_cancel(reader); \
 } while (0)
 
 // tears down a reader, ensuring it is in the given error state
 #define test_reader_destroy_error(reader, error) do { \
     mpack_error_t e = (error); \
-    test_assert(mpack_reader_error(reader) == e, \
-            "reader is in error state %i instead of %i", \
-            (int)mpack_reader_error(reader), (int)e); \
+    test_assert(mpack_reader_error(reader) == e, "reader is in error state %i (%s) instead of %i (%s)", \
+            (int)mpack_reader_error(reader), mpack_error_to_string(mpack_reader_error(reader)), \
+            (int)e, mpack_error_to_string(e)); \
     mpack_reader_destroy(reader); \
 } while (0)
 
