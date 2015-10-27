@@ -357,6 +357,23 @@ void mpack_skip_bytes(mpack_reader_t* reader, size_t count);
  */
 void mpack_read_bytes(mpack_reader_t* reader, char* p, size_t count);
 
+#ifdef MPACK_MALLOC
+char* mpack_read_bytes_alloc_size(mpack_reader_t* reader, size_t count, size_t alloc_size);
+
+/**
+ * Reads bytes from a string, binary blob or extension object, allocating
+ * storage for them and returning the allocated pointer.
+ *
+ * The allocated string must be freed with MPACK_FREE() (or simply free()
+ * if MPack's allocator hasn't been customized.)
+ *
+ * Returns NULL if any error occurs, or if count is zero.
+ */
+MPACK_INLINE char* mpack_read_bytes_alloc(mpack_reader_t* reader, size_t count) {
+    return mpack_read_bytes_alloc_size(reader, count, count);
+}
+#endif
+
 /**
  * Reads bytes from a string, binary blob or extension object in-place in
  * the buffer. This can be used to avoid copying the data.

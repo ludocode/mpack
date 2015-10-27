@@ -254,6 +254,35 @@ void mpack_read_bytes(mpack_reader_t* reader, char* p, size_t count) {
     mpack_read_native(reader, p, count);
 }
 
+#ifdef MPACK_MALLOC
+char* mpack_read_bytes_alloc_size(mpack_reader_t* reader, size_t count, size_t alloc_size) {
+    mpack_assert(count <= alloc_size, "count %i is less than alloc_size %i", (int)count, (int)alloc_size);
+    if (alloc_size == 0)
+        return NULL;
+
+    // allocate data
+    char* data = (char*)MPACK_MALLOC(alloc_size);
+    if (data == NULL) {
+        mpack_reader_flag_error(reader, mpack_error_memory);
+        return NULL;
+    }
+
+    // read with jump disabled so we don't leak our buffer
+    mpack_reader_track_bytes(reader, count);
+    mpack_read_native_nojump(reader, data, count);
+
+    // report flagged errors
+    if (mpack_reader_error(reader)) {
+        MPACK_FREE(data);
+        if (reader->error_fn)
+            reader->error_fn(reader, mpack_reader_error(reader));
+        return NULL;
+    }
+
+    return data;
+}
+#endif
+
 // internal inplace reader for when it straddles the end of the buffer
 // this is split out to inline the common case, although this isn't done
 // right now because we can't inline tracking yet

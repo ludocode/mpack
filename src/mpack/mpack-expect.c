@@ -480,35 +480,15 @@ void mpack_expect_utf8_cstr(mpack_reader_t* reader, char* buf, size_t bufsize) {
 char* mpack_expect_str_alloc(mpack_reader_t* reader, size_t maxsize, size_t* size) {
     *size = 0;
 
-    // read size
-    size_t length = mpack_expect_str(reader); // TODO: use expect str max? create expect str max...
-    if (mpack_reader_error(reader))
-        return NULL;
-    if (length > maxsize) {
-        mpack_reader_flag_error(reader, mpack_error_type);
-        return NULL;
-    }
+    if (maxsize > UINT32_MAX)
+        maxsize = UINT32_MAX;
 
-    // allocate
-    char* str = (char*)MPACK_MALLOC(length);
-    if (str == NULL) {
-        mpack_reader_flag_error(reader, mpack_error_memory);
-        return NULL;
-    }
-
-    // read with jump disabled so we don't leak our buffer
-    mpack_reader_track_bytes(reader, length);
-    mpack_read_native_nojump(reader, str, length);
-
-    // report flagged errors
-    if (mpack_reader_error(reader)) {
-        MPACK_FREE(str);
-        reader->error_fn(reader, mpack_reader_error(reader));
-        return NULL;
-    }
-
+    size_t length = mpack_expect_str_max(reader, (uint32_t)maxsize);
+    char* str = mpack_read_bytes_alloc(reader, length);
     mpack_done_str(reader);
-    *size = length;
+
+    if (str)
+        *size = length;
     return str;
 }
 
@@ -535,36 +515,17 @@ static char* mpack_expect_cstr_alloc_unchecked(mpack_reader_t* reader, size_t ma
         return NULL;
     }
 
-    // read size
-    size_t length = mpack_expect_str(reader); // TODO: use expect str max? create expect str max...
-    if (mpack_reader_error(reader))
-        return NULL;
-    if (length > (maxsize - 1)) {
-        mpack_reader_flag_error(reader, mpack_error_type);
-        return NULL;
-    }
+    if (maxsize > UINT32_MAX)
+        maxsize = UINT32_MAX;
 
-    // allocate
-    char* str = (char*)MPACK_MALLOC(length + 1);
-    if (str == NULL) {
-        mpack_reader_flag_error(reader, mpack_error_memory);
-        return NULL;
-    }
-
-    // read with jump disabled so we don't leak our buffer
-    mpack_reader_track_bytes(reader, length);
-    mpack_read_native_nojump(reader, str, length);
-
-    // check for errors
-    if (mpack_reader_error(reader)) {
-        MPACK_FREE(str);
-        reader->error_fn(reader, mpack_reader_error(reader));
-        return NULL;
-    }
-
+    size_t length = mpack_expect_str_max(reader, (uint32_t)maxsize - 1);
+    char* str = mpack_read_bytes_alloc_size(reader, length, length + 1);
     mpack_done_str(reader);
-    str[length] = 0;
-    *out_length = length;
+
+    if (str) {
+        str[length] = 0;
+        *out_length = length;
+    }
     return str;
 }
 

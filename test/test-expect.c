@@ -619,12 +619,10 @@ static void test_expect_str() {
     size_t length;
     char* test = NULL;
 
-    test_simple_read("\xa0", (test = mpack_expect_str_alloc(&reader, 0, &length)));
+    test_simple_read("\xa0", (NULL == mpack_expect_str_alloc(&reader, 0, &length)));
     test_assert(length == 0);
-    MPACK_FREE(test);
-    test_simple_read("\xa0", (test = mpack_expect_str_alloc(&reader, 4, &length)));
+    test_simple_read("\xa0", (NULL == mpack_expect_str_alloc(&reader, 4, &length)));
     test_assert(length == 0);
-    MPACK_FREE(test);
     test_simple_read("\xa4test", (test = mpack_expect_str_alloc(&reader, 4, &length)));
     test_assert(length == 4);
     test_assert(memcmp(test, "test", 4) == 0);
@@ -683,12 +681,10 @@ static void test_expect_str() {
 
     #ifdef MPACK_MALLOC
     // utf8 str alloc
-    test_simple_read("\xa0", (test = mpack_expect_utf8_alloc(&reader, 0, &length)));
+    test_simple_read("\xa0", (NULL == mpack_expect_utf8_alloc(&reader, 0, &length)));
     test_assert(length == 0);
-    MPACK_FREE(test);
-    test_simple_read("\xa0", (test = mpack_expect_utf8_alloc(&reader, 4, &length)));
+    test_simple_read("\xa0", (NULL == mpack_expect_utf8_alloc(&reader, 4, &length)));
     test_assert(length == 0);
-    MPACK_FREE(test);
     test_simple_read("\xa4test", (test = mpack_expect_utf8_alloc(&reader, 4, &length)));
     test_assert(length == 4);
     test_assert(memcmp(test, "test", 4) == 0);
@@ -738,6 +734,7 @@ static void test_expect_str() {
 }
 
 static void test_expect_bin() {
+    char buf[256];
 
     test_simple_read_cancel("\xc4\x80", 128 == mpack_expect_bin(&reader));
     test_simple_read_cancel("\xc5\x80\x80", 0x8080 == mpack_expect_bin(&reader));
@@ -747,6 +744,17 @@ static void test_expect_bin() {
     // support old MessagePack version compatibility; bin will not
     // accept str types.
     test_simple_read_error("\xbf", 0 == mpack_expect_bin(&reader), mpack_error_type);
+
+    test_simple_read("\xc4\x00", 0 == mpack_expect_bin_buf(&reader, buf, 0));
+    test_simple_read("\xc4\x00", 0 == mpack_expect_bin_buf(&reader, buf, 4));
+    test_simple_read("\xc4\x04test", 4 == mpack_expect_bin_buf(&reader, buf, 4));
+    test_simple_read_error("\xc4\x05hello", 0 == mpack_expect_bin_buf(&reader, buf, 4), mpack_error_too_big);
+    test_simple_read("\xc4\x01\x00", 1 == mpack_expect_bin_buf(&reader, buf, 4));
+
+    test_simple_read("\xc4\x00", (mpack_expect_bin_size(&reader, 0), mpack_done_bin(&reader), true));
+    test_simple_read_error("\xc4\x00", (mpack_expect_bin_size(&reader, 4), true), mpack_error_type);
+    test_simple_read_cancel("\xc4\x04", (mpack_expect_bin_size(&reader, 4), true));
+    test_simple_read_error("\xc4\x05", (mpack_expect_bin_size(&reader, 4), true), mpack_error_type);
 
 }
 

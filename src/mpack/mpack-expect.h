@@ -859,12 +859,16 @@ size_t mpack_expect_utf8(mpack_reader_t* reader, char* buf, size_t bufsize);
  * mpack_error_type is raised if the value is not a string or if its
  * length does not match.
  */
-MPACK_INLINE_SPEED void mpack_expect_str_max(mpack_reader_t* reader, uint32_t maxsize);
+MPACK_INLINE_SPEED uint32_t mpack_expect_str_max(mpack_reader_t* reader, uint32_t maxsize);
 
 #if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED void mpack_expect_str_max(mpack_reader_t* reader, uint32_t maxsize) {
-    if (mpack_expect_str(reader) > maxsize)
+MPACK_INLINE_SPEED uint32_t mpack_expect_str_max(mpack_reader_t* reader, uint32_t maxsize) {
+    uint32_t length = mpack_expect_str(reader);
+    if (length > maxsize) {
         mpack_reader_flag_error(reader, mpack_error_type);
+        return 0;
+    }
+    return length;
 }
 #endif
 
@@ -901,6 +905,8 @@ MPACK_INLINE_SPEED void mpack_expect_str_length(mpack_reader_t* reader, uint32_t
  *
  * No null-terminator will be added to the string. Use @ref mpack_expect_cstr_alloc()
  * if you want a null-terminator.
+ *
+ * Returns NULL if any error occurs.
  */
 char* mpack_expect_str_alloc(mpack_reader_t* reader, size_t maxsize, size_t* size);
 
@@ -1027,7 +1033,7 @@ MPACK_INLINE_SPEED void mpack_expect_bin_size(mpack_reader_t* reader, uint32_t c
 
 #if MPACK_DEFINE_INLINE_SPEED
 MPACK_INLINE_SPEED void mpack_expect_bin_size(mpack_reader_t* reader, uint32_t count) {
-    if (mpack_expect_str(reader) != count)
+    if (mpack_expect_bin(reader) != count)
         mpack_reader_flag_error(reader, mpack_error_type);
 }
 #endif
