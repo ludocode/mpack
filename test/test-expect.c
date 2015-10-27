@@ -756,6 +756,22 @@ static void test_expect_bin() {
     test_simple_read_cancel("\xc4\x04", (mpack_expect_bin_size(&reader, 4), true));
     test_simple_read_error("\xc4\x05", (mpack_expect_bin_size(&reader, 4), true), mpack_error_type);
 
+    #ifdef MPACK_MALLOC
+    size_t length;
+    char* test = NULL;
+
+    test_simple_read("\xc4\x00", (NULL == mpack_expect_bin_alloc(&reader, 0, &length)));
+    test_assert(length == 0);
+    test_simple_read("\xc4\x00", (NULL == mpack_expect_bin_alloc(&reader, 4, &length)));
+    test_assert(length == 0);
+    test_simple_read("\xc4\x04test", (test = mpack_expect_bin_alloc(&reader, 4, &length)));
+    test_assert(length == 4);
+    test_assert(memcmp(test, "test", 4) == 0);
+    MPACK_FREE(test);
+    test_simple_read_error("\xc4\x04test", NULL == mpack_expect_bin_alloc(&reader, 3, &length), mpack_error_type);
+    test_simple_read_error("\x01", NULL == mpack_expect_bin_alloc(&reader, 3, &length), mpack_error_type);
+    #endif
+
 }
 
 static void test_expect_ext() {

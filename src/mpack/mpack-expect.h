@@ -1009,12 +1009,16 @@ uint32_t mpack_expect_bin(mpack_reader_t* reader);
  * mpack_error_type is raised if the value is not a binary blob or if its
  * length does not match.
  */
-MPACK_INLINE_SPEED void mpack_expect_bin_max(mpack_reader_t* reader, uint32_t maxsize);
+MPACK_INLINE_SPEED uint32_t mpack_expect_bin_max(mpack_reader_t* reader, uint32_t maxsize);
 
 #if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED void mpack_expect_bin_max(mpack_reader_t* reader, uint32_t maxsize) {
-    if (mpack_expect_str(reader) > maxsize)
+MPACK_INLINE_SPEED uint32_t mpack_expect_bin_max(mpack_reader_t* reader, uint32_t maxsize) {
+    uint32_t length = mpack_expect_bin(reader);
+    if (length > maxsize) {
         mpack_reader_flag_error(reader, mpack_error_type);
+        return 0;
+    }
+    return length;
 }
 #endif
 

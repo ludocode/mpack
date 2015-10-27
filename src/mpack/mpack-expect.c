@@ -586,5 +586,22 @@ void mpack_expect_tag(mpack_reader_t* reader, mpack_tag_t expected) {
         mpack_reader_flag_error(reader, mpack_error_type);
 }
 
+#ifdef MPACK_MALLOC
+char* mpack_expect_bin_alloc(mpack_reader_t* reader, size_t maxsize, size_t* size) {
+    *size = 0;
+
+    if (maxsize > UINT32_MAX)
+        maxsize = UINT32_MAX;
+
+    size_t length = mpack_expect_bin_max(reader, (uint32_t)maxsize);
+    char* data = mpack_read_bytes_alloc(reader, length);
+    mpack_done_bin(reader);
+
+    if (data)
+        *size = length;
+    return data;
+}
+#endif
+
 #endif
 
