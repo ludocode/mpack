@@ -1,22 +1,14 @@
 import platform, os
 
-ltoflags = ["-O3", "-flto"]
+def CheckFlags(context, cppflags, linkflags = [], message = None):
+    if message == None:
+        message = " ".join(cppflags + ((cppflags != linkflags) and linkflags or []))
+    context.Message("Checking for " + message + " support... ")
 
-def CheckFlags(context, cppflags, linkflags):
     env.Prepend(CPPFLAGS = cppflags, LINKFLAGS = linkflags)
     result = context.TryLink("int main(void){return 0;}\n", '.c')
     env.Replace(CPPFLAGS = env["CPPFLAGS"][len(cppflags):], LINKFLAGS = env["LINKFLAGS"][len(linkflags):])
-    return result
 
-def Check_Og(context):
-    context.Message('Checking for -Og support... ')
-    result = CheckFlags(context, ["-Og"], [])
-    context.Result(result)
-    return result
-
-def Check_flto(context):
-    context.Message('Checking for -flto support... ')
-    result = CheckFlags(context, ltoflags, ltoflags)
     context.Result(result)
     return result
 
@@ -24,7 +16,7 @@ def Check_flto(context):
 # Common environment setup
 
 env = Environment()
-conf = Configure(env, custom_tests = {'Check_Og': Check_Og, 'Check_flto': Check_flto})
+conf = Configure(env, custom_tests = {'CheckFlags': CheckFlags})
 
 for x in os.environ.keys():
     if x in ["CC", "CXX", "PATH", "TRAVIS", "TERM"] or x.startswith("CLANG_") or x.startswith("CCC_"):
@@ -64,17 +56,19 @@ noioconfigs = [
 ]
 allconfigs = noioconfigs + ["-DMPACK_STDIO=1"]
 
-hasOg = conf.Check_Og()
+hasOg = conf.CheckFlags(["-Og"])
 if hasOg:
     debugflags = ["-DDEBUG", "-Og"]
 else:
     debugflags = ["-DDEBUG", "-O0"]
-releaseflags = ["-Os"] # If you change this, also change the MPACK_OPTIMIZE_FOR_SIZE below to test the opposite
+releaseflags = ["-Os"]
 cflags = ["-std=c99"]
 
 gcovflags = []
 if ARGUMENTS.get('gcov'):
-    gcovflags = ["-DMPACK_GCOV=1", "-fprofile-arcs", "-ftest-coverage"]
+    gcovflags = ["-DMPACK_GCOV=1", "--coverage"]
+
+ltoflags = ["-O3", "-flto", "-fuse-linker-plugin", "-fno-fat-lto-objects"]
 
 
 # Functions to add a variant build. One variant build will build and run the
@@ -106,10 +100,13 @@ AddBuild("debug", allfeatures + allconfigs + debugflags + cflags + gcovflags, gc
 # build this in a reasonable amount of time.
 
 if ARGUMENTS.get('all'):
+
+    # release flags
     AddBuild("release", allfeatures + allconfigs + releaseflags + cflags, [])
+    AddBuild("release-fastmath", allfeatures + allconfigs + releaseflags + cflags + ["-ffast-math"], [])
     AddBuild("release-speed", ["-DMPACK_OPTIMIZE_FOR_SIZE=0"] +
             allfeatures + allconfigs + releaseflags + cflags, [])
-    if conf.Check_flto():
+    if conf.CheckFlags(ltoflags, ltoflags, "-flto"):
         AddBuild("release-lto", allfeatures + allconfigs + ltoflags + cflags, ltoflags)
     if hasOg:
         AddBuild("debug-O0", allfeatures + allconfigs + ["-DDEBUG", "-O0"] + cflags, [])
@@ -136,17 +133,21 @@ if ARGUMENTS.get('all'):
     AddBuilds("embed-node", ["-DMPACK_NODE=1"] + cflags, [])
 
     # miscellaneous test builds
-    AddBuilds("cxx", allfeatures + allconfigs + ["-xc++", "-std=c++98"], [])
     AddBuilds("notrack", ["-DMPACK_NO_TRACKING=1"] + allfeatures + allconfigs + cflags, [])
     AddBuilds("realloc", allfeatures + allconfigs + debugflags + cflags + ["-DMPACK_REALLOC=test_realloc"], [])
+    if hasOg:
+        AddBuild("debug-O0", allfeatures + allconfigs + ["-DDEBUG", "-O0"] + cflags, [])
 
-    # Travis-CI currently only has GCC 4.6 and Clang 3.4, doesn't properly support these options
-    if 'TRAVIS' not in env:
+    # other language standards (C11, various C++ versions)
+    if conf.CheckFlags(["-std=c11"]):
         AddBuilds("c11", allfeatures + allconfigs + ["-std=c11"], [])
-        AddBuilds("cxx11", allfeatures + allconfigs + ["-xc++", "-std=c++11"], [])
-        AddBuilds("cxx14", allfeatures + allconfigs + ["-xc++", "-std=c++14"], [])
+    AddBuilds("cxx", allfeatures + allconfigs + ["-xc++", "-std=c++98"], ["-lstdc++"])
+    if conf.CheckFlags(["-xc++", "-std=c++11"], [], "-std=c++11"):
+        AddBuilds("cxx11", allfeatures + allconfigs + ["-xc++", "-std=c++11"], ["-lstdc++"])
+    if conf.CheckFlags(["-xc++", "-std=c++14"], [], "-std=c++14"):
+        AddBuilds("cxx14", allfeatures + allconfigs + ["-xc++", "-std=c++14"], ["-lstdc++"])
 
-    # 32-bit builds (Travis-CI doesn't support multilib)
-    if 'TRAVIS' not in env and '64' in platform.architecture()[0]:
+    # 32-bit build
+    if conf.CheckFlags(["-m32"], ["-m32"]):
         AddBuilds("32",     allfeatures + allconfigs + cflags + ["-m32"], ["-m32"])
-        AddBuilds("cxx11-32", allfeatures + allconfigs + ["-xc++", "-std=c++11"] + ["-m32"], ["-m32"])
+        AddBuilds("cxx32",  allfeatures + allconfigs + ["-xc++", "-std=c++98", "-m32"], ["-lstdc++", "-m32"])
