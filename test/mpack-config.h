@@ -23,6 +23,17 @@
     #define MPACK_FREE test_free
 #endif
 
+// We replace the file i/o functions to simulate failures
+#if defined(MPACK_STDIO) && MPACK_STDIO
+#include <stdio.h>
+#define fopen  test_fopen
+#define fclose test_fclose
+#define fread  test_fread
+#define fwrite test_fwrite
+#define fseek  test_fseek
+#define ftell  test_ftell
+#endif
+
 // Tracking matches the default config, except the test suite
 // also supports MPACK_NO_TRACKING to disable it.
 #if defined(MPACK_MALLOC) && !defined(MPACK_NO_TRACKING)

@@ -28,26 +28,34 @@
 extern "C" {
 #endif
 
+
+// Causes the next `count` system calls to succeed, and all
+// subsequent system calls to fail until reset.
+void test_system_fail_after(size_t count);
+
+// Resets the system call failure simulation, allowing all
+void test_system_fail_reset(void);
+
+
 #ifdef MPACK_MALLOC
-/*
- * Implements a malloc that tracks allocs and frees to ensure they
- * match, and to count outstanding allocated blocks. It can also be
- * configured to fail to test correct out-of-memory handling.
- */
 void* test_malloc(size_t size);
-
 void* test_realloc(void* p, size_t size);
-
-// calls to test_malloc() will fail after count mallocs.
-void test_malloc_fail_after(size_t count);
-
-void test_malloc_reset(void);
-
 void test_free(void* p);
 
-// returns the number of mallocs that have not yet been freed.
+// Returns the number of mallocs that have not yet been freed.
 size_t test_malloc_count(void);
 #endif
+
+
+#if defined(MPACK_STDIO) && MPACK_STDIO
+FILE* test_fopen(const char* path, const char* mode);
+int test_fclose(FILE* stream);
+size_t test_fread(void* ptr, size_t size, size_t nmemb, FILE* stream);
+size_t test_fwrite(const void* ptr, size_t size, size_t nmemb, FILE* stream);
+int test_fseek(FILE* stream, long offset, int whence);
+long test_ftell(FILE* stream);
+#endif
+
 
 #ifdef __cplusplus
 }
