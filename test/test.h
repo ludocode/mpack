@@ -79,61 +79,61 @@ extern "C" {
 
 // runs the given expression, causing a unit test failure with the
 // given printf format string if the expression is not true.
-#define test_assert(expr, ...) \
-    test_assert_impl((expr), __FILE__, __LINE__, " " __VA_ARGS__)
+#define TEST_TRUE(expr, ...) \
+    TEST_TRUE_impl((expr), __FILE__, __LINE__, " " __VA_ARGS__)
 
-void test_assert_impl(bool result, const char* file, int line, const char* format, ...);
+void TEST_TRUE_impl(bool result, const char* file, int line, const char* format, ...);
 
 extern int tests;
 extern int passes;
 
 #if MPACK_CUSTOM_ASSERT
-extern bool test_assert_jmp_set;
-extern jmp_buf test_assert_jmp;
+extern bool test_jmp_set;
+extern jmp_buf test_jmp_buf;
 extern bool test_break_set;
 extern bool test_break_hit;
 
 // calls setjmp to expect an assert from a unit test. an assertion
 // will cause a longjmp to here with a value of 1.
-#define TEST_ASSERT_SETJMP() \
-    (test_assert(!test_assert_jmp_set, "an assert jmp is already set!"), \
-        test_assert_jmp_set = true, \
-        setjmp(test_assert_jmp))
+#define TEST_TRUE_SETJMP() \
+    (TEST_TRUE(!test_jmp_set, "an assert jmp is already set!"), \
+        test_jmp_set = true, \
+        setjmp(test_jmp_buf))
 
 // clears the expectation of an assert. a subsequent assert will
 // cause the unit test suite to abort with error.
-#define TEST_ASSERT_CLEARJMP() \
-    (test_assert(test_assert_jmp_set, "an assert jmp is not set!"), \
-        test_assert_jmp_set = false)
+#define TEST_TRUE_CLEARJMP() \
+    (TEST_TRUE(test_jmp_set, "an assert jmp is not set!"), \
+        test_jmp_set = false)
 
 // runs the given expression, causing a unit test failure if an assertion
 // is not triggered. (note that stack variables may need to be marked volatile
 // since non-volatile stack variables that are written to after setjmp are
 // undefined after longjmp.)
-#define test_expecting_assert(expr) do { \
+#define TEST_ASSERT(expr) do { \
     volatile bool jumped = false; \
-    if (TEST_ASSERT_SETJMP()) { \
+    if (TEST_TRUE_SETJMP()) { \
         jumped = true; \
     } else { \
         (expr); \
     } \
-    TEST_ASSERT_CLEARJMP(); \
-    test_assert(jumped, "expression should assert, but didn't: " #expr); \
+    TEST_TRUE_CLEARJMP(); \
+    TEST_TRUE(jumped, "expression should assert, but didn't: " #expr); \
 } while (0)
 
-#define test_expecting_break(expr, ...) do { \
+#define TEST_BREAK(expr, ...) do { \
     test_break_set = true; \
     test_break_hit = false; \
-    test_assert(expr , ## __VA_ARGS__, "expression is not true: " # expr); \
-    test_assert(test_break_hit, "expression should break, but didn't: " # expr); \
+    TEST_TRUE(expr , ## __VA_ARGS__, "expression is not true: " # expr); \
+    TEST_TRUE(test_break_hit, "expression should break, but didn't: " # expr); \
     test_break_set = false; \
 } while (0);
 
 #else
 
 // in release mode we just run the expr since asserts are compiled out.
-#define test_expecting_assert(expr) do { (expr); } while (0)
-#define test_expecting_break(expr, ...) do { test_assert(expr , ## __VA_ARGS__); } while (0)
+#define TEST_ASSERT(expr) do { (expr); } while (0)
+#define TEST_BREAK(expr, ...) do { TEST_TRUE(expr , ## __VA_ARGS__); } while (0)
 
 #endif
 

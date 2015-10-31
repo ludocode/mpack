@@ -38,29 +38,29 @@ int passes;
 int tests;
 
 #if MPACK_CUSTOM_ASSERT
-bool test_assert_jmp_set = false;
-jmp_buf test_assert_jmp;
+bool test_jmp_set = false;
+jmp_buf test_jmp_buf;
 bool test_break_set = false;
 bool test_break_hit;
 
 void mpack_assert_fail(const char* message) {
-    if (!test_assert_jmp_set) {
-        test_assert(false, "assertion hit! %s", message);
+    if (!test_jmp_set) {
+        TEST_TRUE(false, "assertion hit! %s", message);
         abort();
     }
-    longjmp(test_assert_jmp, 1);
+    longjmp(test_jmp_buf, 1);
 }
 
 void mpack_break_hit(const char* message) {
     if (!test_break_set) {
-        test_assert(false, "break hit! %s", message);
+        TEST_TRUE(false, "break hit! %s", message);
         abort();
     }
     test_break_hit = true;
 }
 #endif
 
-void test_assert_impl(bool result, const char* file, int line, const char* format, ...) {
+void TEST_TRUE_impl(bool result, const char* file, int line, const char* format, ...) {
     ++tests;
     if (result) {
         ++passes;

@@ -53,10 +53,10 @@ static bool test_system_should_fail(void) {
 
 void test_system_fail_until_ok(bool (*test)(void)) {
     #ifdef MPACK_MALLOC
-    test_assert(test_malloc_count() == 0, "allocations exist before starting failure test");
+    TEST_TRUE(test_malloc_count() == 0, "allocations exist before starting failure test");
     #endif
     #if MPACK_STDIO
-    test_assert(test_files_count() == 0, "files are open before starting failure test");
+    TEST_TRUE(test_files_count() == 0, "files are open before starting failure test");
     #endif
 
     for (int i = 0; i < test_system_fail_until_max; ++i) {
@@ -64,10 +64,10 @@ void test_system_fail_until_ok(bool (*test)(void)) {
         bool ok = test();
 
         #ifdef MPACK_MALLOC
-        test_assert(test_malloc_count() == 0, "test leaked memory on iteration %i!", i);
+        TEST_TRUE(test_malloc_count() == 0, "test leaked memory on iteration %i!", i);
         #endif
         #if MPACK_STDIO
-        test_assert(test_files_count() == 0, "test leaked file on iteration %i!", i);
+        TEST_TRUE(test_files_count() == 0, "test leaked file on iteration %i!", i);
         #endif
 
         if (ok) {
@@ -76,7 +76,7 @@ void test_system_fail_until_ok(bool (*test)(void)) {
         }
     }
 
-    test_assert(false, "hit maximum number of system calls in a system fail test");
+    TEST_TRUE(false, "hit maximum number of system calls in a system fail test");
     test_system_fail_reset();
 }
 
@@ -90,7 +90,7 @@ size_t test_malloc_count(void) {
 }
 
 void* test_malloc(size_t size) {
-    test_assert(size != 0, "cannot allocate zero bytes!");
+    TEST_TRUE(size != 0, "cannot allocate zero bytes!");
     if (size == 0)
         return NULL;
 
@@ -102,7 +102,7 @@ void* test_malloc(size_t size) {
 }
 
 void* test_realloc(void* p, size_t size) {
-    test_assert(size != 0, "cannot allocate zero bytes!");
+    TEST_TRUE(size != 0, "cannot allocate zero bytes!");
     if (size == 0) {
         if (p) {
             free(p);
@@ -122,7 +122,7 @@ void* test_realloc(void* p, size_t size) {
 void test_free(void* p) {
     // while free() is supposed to allow NULL, not all custom allocators
     // may handle this, so we don't free NULL.
-    test_assert(p != NULL, "attempting to free NULL");
+    TEST_TRUE(p != NULL, "attempting to free NULL");
 
     if (p)
         --test_malloc_active;
@@ -160,7 +160,7 @@ FILE* test_fopen(const char* path, const char* mode) {
 }
 
 int test_fclose(FILE* stream) {
-    test_assert(stream != NULL);
+    TEST_TRUE(stream != NULL);
 
     --test_files_active;
 
@@ -177,7 +177,7 @@ int test_fclose(FILE* stream) {
 }
 
 size_t test_fread(void* ptr, size_t size, size_t nmemb, FILE* stream) {
-    test_assert(stream != NULL);
+    TEST_TRUE(stream != NULL);
 
     if (test_system_should_fail()) {
         errno = EACCES;
@@ -188,7 +188,7 @@ size_t test_fread(void* ptr, size_t size, size_t nmemb, FILE* stream) {
 }
 
 size_t test_fwrite(const void* ptr, size_t size, size_t nmemb, FILE* stream) {
-    test_assert(stream != NULL);
+    TEST_TRUE(stream != NULL);
 
     if (test_system_should_fail()) {
         errno = EACCES;
@@ -199,7 +199,7 @@ size_t test_fwrite(const void* ptr, size_t size, size_t nmemb, FILE* stream) {
 }
 
 int test_fseek(FILE* stream, long offset, int whence) {
-    test_assert(stream != NULL);
+    TEST_TRUE(stream != NULL);
 
     if (test_system_should_fail()) {
         errno = EACCES;
@@ -210,7 +210,7 @@ int test_fseek(FILE* stream, long offset, int whence) {
 }
 
 long test_ftell(FILE* stream) {
-    test_assert(stream != NULL);
+    TEST_TRUE(stream != NULL);
 
     if (test_system_should_fail()) {
         errno = EACCES;

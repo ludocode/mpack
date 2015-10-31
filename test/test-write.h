@@ -34,46 +34,46 @@ extern "C" {
 // they are generally macros so that the asserts are on the line of the test.
 
 // tears down a writer, ensuring it didn't fail
-#define test_writer_destroy_noerror(writer) \
-    test_assert(mpack_writer_destroy(writer) == mpack_ok, \
+#define TEST_WRITER_DESTROY_NOERROR(writer) \
+    TEST_TRUE(mpack_writer_destroy(writer) == mpack_ok, \
             "writer is in error state %i", (int)mpack_writer_error(writer)); \
 
 // tears down a writer, ensuring the given error occurred
-#define test_writer_destroy_error(writer, error) do { \
+#define TEST_WRITER_DESTROY_ERROR(writer, error) do { \
     mpack_error_t expected = (error); \
     mpack_error_t actual = mpack_writer_destroy(writer); \
-    test_assert(actual == expected, "writer is in error state %i instead of %i", \
+    TEST_TRUE(actual == expected, "writer is in error state %i instead of %i", \
             (int)actual, (int)expected); \
 } while (0)
 
 // performs an operation on a writer, ensuring no error occurs
-#define test_write_noerror(writer, write_expr) do { \
+#define TEST_WRITE_NOERROR(writer, write_expr) do { \
     (write_expr); \
-    test_assert(mpack_writer_error(writer) == mpack_ok, \
+    TEST_TRUE(mpack_writer_error(writer) == mpack_ok, \
             "writer is in error state %i", (int)mpack_writer_error(writer)); \
 } while (0)
 
-#define test_destroy_match_size(expect, size) do { \
+#define TEST_DESTROY_MATCH_SIZE(expect, size) do { \
     static const char data[] = expect; \
-    test_writer_destroy_noerror(&writer); \
-    test_assert(sizeof(data)-1 == size, \
+    TEST_WRITER_DESTROY_NOERROR(&writer); \
+    TEST_TRUE(sizeof(data)-1 == size, \
             "written data length %i does not match length %i of expected", \
             (int)size, (int)(sizeof(data)-1)); \
-    test_assert(memcmp((data), buf, size) == 0, \
+    TEST_TRUE(memcmp((data), buf, size) == 0, \
             "written data does not match expected"); \
 } while (0)
 
-#define test_destroy_match(expect) do { \
-    test_destroy_match_size(expect, size); \
+#define TEST_DESTROY_MATCH(expect) do { \
+    TEST_DESTROY_MATCH_SIZE(expect, size); \
     if (buf) MPACK_FREE(buf); \
 } while (0)
 
 // runs a simple writer test, ensuring it matches the given data
-#define test_simple_write(expect, write_op) do { \
+#define TEST_SIMPLE_WRITE(expect, write_op) do { \
     mpack_writer_t writer; \
     mpack_writer_init(&writer, buf, sizeof(buf)); \
     (write_op); \
-    test_destroy_match_size(expect, mpack_writer_buffer_used(&writer)); \
+    TEST_DESTROY_MATCH_SIZE(expect, mpack_writer_buffer_used(&writer)); \
 } while (0)
 
 void test_writes(void);

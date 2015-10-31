@@ -28,14 +28,14 @@ static void test_tags_special(void) {
 
     // ensure there is only one inline definition (the global
     // address is in test.c)
-    test_assert(fn_mpack_tag_nil == &mpack_tag_nil);
+    TEST_TRUE(fn_mpack_tag_nil == &mpack_tag_nil);
 
     // test comparison with invalid tags
     // (invalid enum values are not allowed in C++)
     #ifndef __cplusplus
     mpack_tag_t invalid = mpack_tag_nil();
     invalid.type = (mpack_type_t)-1;
-    test_expecting_assert(mpack_tag_cmp(invalid, invalid));
+    TEST_ASSERT(mpack_tag_cmp(invalid, invalid));
     #endif
 
 }
@@ -43,203 +43,203 @@ static void test_tags_special(void) {
 static void test_tags_simple(void) {
 
     // ensure tag types are correct
-    test_assert(mpack_tag_nil().type == mpack_type_nil);
-    test_assert(mpack_tag_bool(false).type == mpack_type_bool);
-    test_assert(mpack_tag_int(0).type == mpack_type_int);
-    test_assert(mpack_tag_uint(0).type == mpack_type_uint);
+    TEST_TRUE(mpack_tag_nil().type == mpack_type_nil);
+    TEST_TRUE(mpack_tag_bool(false).type == mpack_type_bool);
+    TEST_TRUE(mpack_tag_int(0).type == mpack_type_int);
+    TEST_TRUE(mpack_tag_uint(0).type == mpack_type_uint);
 
     // uints
-    test_assert(mpack_tag_uint(0).v.u == 0);
-    test_assert(mpack_tag_uint(1).v.u == 1);
-    test_assert(mpack_tag_uint(INT32_MAX).v.u == INT32_MAX);
-    test_assert(mpack_tag_uint(INT64_MAX).v.u == INT64_MAX);
+    TEST_TRUE(mpack_tag_uint(0).v.u == 0);
+    TEST_TRUE(mpack_tag_uint(1).v.u == 1);
+    TEST_TRUE(mpack_tag_uint(INT32_MAX).v.u == INT32_MAX);
+    TEST_TRUE(mpack_tag_uint(INT64_MAX).v.u == INT64_MAX);
 
     // ints
-    test_assert(mpack_tag_int(0).v.i == 0);
-    test_assert(mpack_tag_int(1).v.i == 1);
+    TEST_TRUE(mpack_tag_int(0).v.i == 0);
+    TEST_TRUE(mpack_tag_int(1).v.i == 1);
     // when using INT32_C() and compiling the test suite as c++, gcc complains:
     // error: this decimal constant is unsigned only in ISO C90 [-Werror]
-    test_assert(mpack_tag_int(INT64_C(-2147483648)).v.i == INT64_C(-2147483648));
-    test_assert(mpack_tag_int(INT64_MIN).v.i == INT64_MIN);
+    TEST_TRUE(mpack_tag_int(INT64_C(-2147483648)).v.i == INT64_C(-2147483648));
+    TEST_TRUE(mpack_tag_int(INT64_MIN).v.i == INT64_MIN);
 
     // bools
-    test_assert(mpack_tag_bool(true).v.b == true);
-    test_assert(mpack_tag_bool(false).v.b == false);
-    test_assert(mpack_tag_bool(1).v.b == true);
-    test_assert(mpack_tag_bool(0).v.b == false);
+    TEST_TRUE(mpack_tag_bool(true).v.b == true);
+    TEST_TRUE(mpack_tag_bool(false).v.b == false);
+    TEST_TRUE(mpack_tag_bool(1).v.b == true);
+    TEST_TRUE(mpack_tag_bool(0).v.b == false);
 
     // comparisons of simple types
-    test_assert(true == mpack_tag_equal(mpack_tag_nil(), mpack_tag_nil()));
-    test_assert(false == mpack_tag_equal(mpack_tag_nil(), mpack_tag_bool(false)));
-    test_assert(false == mpack_tag_equal(mpack_tag_nil(), mpack_tag_uint(0)));
-    test_assert(false == mpack_tag_equal(mpack_tag_bool(false), mpack_tag_int(0)));
-    test_assert(true == mpack_tag_equal(mpack_tag_bool(false), mpack_tag_bool(false)));
-    test_assert(true == mpack_tag_equal(mpack_tag_bool(true), mpack_tag_bool(true)));
-    test_assert(false == mpack_tag_equal(mpack_tag_bool(false), mpack_tag_bool(true)));
+    TEST_TRUE(true == mpack_tag_equal(mpack_tag_nil(), mpack_tag_nil()));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_nil(), mpack_tag_bool(false)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_nil(), mpack_tag_uint(0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_bool(false), mpack_tag_int(0)));
+    TEST_TRUE(true == mpack_tag_equal(mpack_tag_bool(false), mpack_tag_bool(false)));
+    TEST_TRUE(true == mpack_tag_equal(mpack_tag_bool(true), mpack_tag_bool(true)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_bool(false), mpack_tag_bool(true)));
 
     // uint/int comparisons
-    test_assert(true == mpack_tag_equal(mpack_tag_uint(0), mpack_tag_uint(0)));
-    test_assert(false == mpack_tag_equal(mpack_tag_uint(0), mpack_tag_uint(1)));
-    test_assert(false == mpack_tag_equal(mpack_tag_uint(0), mpack_tag_uint(1)));
-    test_assert(true == mpack_tag_equal(mpack_tag_uint(1), mpack_tag_uint(1)));
-    test_assert(true == mpack_tag_equal(mpack_tag_int(0), mpack_tag_int(0)));
-    test_assert(false == mpack_tag_equal(mpack_tag_int(0), mpack_tag_int(-1)));
-    test_assert(false == mpack_tag_equal(mpack_tag_int(0), mpack_tag_int(-1)));
-    test_assert(true == mpack_tag_equal(mpack_tag_int(-1), mpack_tag_int(-1)));
+    TEST_TRUE(true == mpack_tag_equal(mpack_tag_uint(0), mpack_tag_uint(0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_uint(0), mpack_tag_uint(1)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_uint(0), mpack_tag_uint(1)));
+    TEST_TRUE(true == mpack_tag_equal(mpack_tag_uint(1), mpack_tag_uint(1)));
+    TEST_TRUE(true == mpack_tag_equal(mpack_tag_int(0), mpack_tag_int(0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_int(0), mpack_tag_int(-1)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_int(0), mpack_tag_int(-1)));
+    TEST_TRUE(true == mpack_tag_equal(mpack_tag_int(-1), mpack_tag_int(-1)));
 
     // int to uint comparisons
-    test_assert(true == mpack_tag_equal(mpack_tag_uint(0), mpack_tag_int(0)));
-    test_assert(true == mpack_tag_equal(mpack_tag_uint(1), mpack_tag_int(1)));
-    test_assert(false == mpack_tag_equal(mpack_tag_uint(0), mpack_tag_int(1)));
-    test_assert(false == mpack_tag_equal(mpack_tag_uint(0), mpack_tag_int(1)));
-    test_assert(true == mpack_tag_equal(mpack_tag_int(0), mpack_tag_uint(0)));
-    test_assert(true == mpack_tag_equal(mpack_tag_int(1), mpack_tag_uint(1)));
-    test_assert(false == mpack_tag_equal(mpack_tag_int(0), mpack_tag_uint(1)));
-    test_assert(false == mpack_tag_equal(mpack_tag_int(0), mpack_tag_uint(1)));
+    TEST_TRUE(true == mpack_tag_equal(mpack_tag_uint(0), mpack_tag_int(0)));
+    TEST_TRUE(true == mpack_tag_equal(mpack_tag_uint(1), mpack_tag_int(1)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_uint(0), mpack_tag_int(1)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_uint(0), mpack_tag_int(1)));
+    TEST_TRUE(true == mpack_tag_equal(mpack_tag_int(0), mpack_tag_uint(0)));
+    TEST_TRUE(true == mpack_tag_equal(mpack_tag_int(1), mpack_tag_uint(1)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_int(0), mpack_tag_uint(1)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_int(0), mpack_tag_uint(1)));
 
     // ordering
 
-    test_assert(-1 == mpack_tag_cmp(mpack_tag_uint(0), mpack_tag_uint(1)));
-    test_assert(1 == mpack_tag_cmp(mpack_tag_uint(1), mpack_tag_uint(0)));
-    test_assert(-1 == mpack_tag_cmp(mpack_tag_int(-2), mpack_tag_int(-1)));
-    test_assert(1 == mpack_tag_cmp(mpack_tag_int(-1), mpack_tag_int(-2)));
+    TEST_TRUE(-1 == mpack_tag_cmp(mpack_tag_uint(0), mpack_tag_uint(1)));
+    TEST_TRUE(1 == mpack_tag_cmp(mpack_tag_uint(1), mpack_tag_uint(0)));
+    TEST_TRUE(-1 == mpack_tag_cmp(mpack_tag_int(-2), mpack_tag_int(-1)));
+    TEST_TRUE(1 == mpack_tag_cmp(mpack_tag_int(-1), mpack_tag_int(-2)));
 
-    test_assert(-1 == mpack_tag_cmp(mpack_tag_str(0), mpack_tag_str(1)));
-    test_assert(1 == mpack_tag_cmp(mpack_tag_str(1), mpack_tag_str(0)));
-    test_assert(-1 == mpack_tag_cmp(mpack_tag_bin(0), mpack_tag_bin(1)));
-    test_assert(1 == mpack_tag_cmp(mpack_tag_bin(1), mpack_tag_bin(0)));
+    TEST_TRUE(-1 == mpack_tag_cmp(mpack_tag_str(0), mpack_tag_str(1)));
+    TEST_TRUE(1 == mpack_tag_cmp(mpack_tag_str(1), mpack_tag_str(0)));
+    TEST_TRUE(-1 == mpack_tag_cmp(mpack_tag_bin(0), mpack_tag_bin(1)));
+    TEST_TRUE(1 == mpack_tag_cmp(mpack_tag_bin(1), mpack_tag_bin(0)));
 
-    test_assert(-1 == mpack_tag_cmp(mpack_tag_array(0), mpack_tag_array(1)));
-    test_assert(1 == mpack_tag_cmp(mpack_tag_array(1), mpack_tag_array(0)));
-    test_assert(-1 == mpack_tag_cmp(mpack_tag_map(0), mpack_tag_map(1)));
-    test_assert(1 == mpack_tag_cmp(mpack_tag_map(1), mpack_tag_map(0)));
+    TEST_TRUE(-1 == mpack_tag_cmp(mpack_tag_array(0), mpack_tag_array(1)));
+    TEST_TRUE(1 == mpack_tag_cmp(mpack_tag_array(1), mpack_tag_array(0)));
+    TEST_TRUE(-1 == mpack_tag_cmp(mpack_tag_map(0), mpack_tag_map(1)));
+    TEST_TRUE(1 == mpack_tag_cmp(mpack_tag_map(1), mpack_tag_map(0)));
 
-    test_assert(-1 == mpack_tag_cmp(mpack_tag_ext(1, 1), mpack_tag_ext(2, 0)));
-    test_assert(-1 == mpack_tag_cmp(mpack_tag_ext(1, 1), mpack_tag_ext(1, 2)));
-    test_assert(1 == mpack_tag_cmp(mpack_tag_ext(2, 0), mpack_tag_ext(1, 1)));
-    test_assert(1 == mpack_tag_cmp(mpack_tag_ext(1, 2), mpack_tag_ext(1, 1)));
+    TEST_TRUE(-1 == mpack_tag_cmp(mpack_tag_ext(1, 1), mpack_tag_ext(2, 0)));
+    TEST_TRUE(-1 == mpack_tag_cmp(mpack_tag_ext(1, 1), mpack_tag_ext(1, 2)));
+    TEST_TRUE(1 == mpack_tag_cmp(mpack_tag_ext(2, 0), mpack_tag_ext(1, 1)));
+    TEST_TRUE(1 == mpack_tag_cmp(mpack_tag_ext(1, 2), mpack_tag_ext(1, 1)));
 
 }
 
 static void test_tags_reals(void) {
 
     // types
-    test_assert(mpack_tag_float(0.0f).type == mpack_type_float);
-    test_assert(mpack_tag_double(0.0).type == mpack_type_double);
-    test_assert(mpack_tag_float((float)NAN).type == mpack_type_float);
-    test_assert(mpack_tag_double((double)NAN).type == mpack_type_double);
+    TEST_TRUE(mpack_tag_float(0.0f).type == mpack_type_float);
+    TEST_TRUE(mpack_tag_double(0.0).type == mpack_type_double);
+    TEST_TRUE(mpack_tag_float((float)NAN).type == mpack_type_float);
+    TEST_TRUE(mpack_tag_double((double)NAN).type == mpack_type_double);
 
     // float comparisons
-    test_assert(true == mpack_tag_equal(mpack_tag_float(0), mpack_tag_float(0)));
-    test_assert(true == mpack_tag_equal(mpack_tag_float(1), mpack_tag_float(1)));
-    test_assert(true == mpack_tag_equal(mpack_tag_float(MPACK_INFINITY), mpack_tag_float(MPACK_INFINITY)));
-    test_assert(true == mpack_tag_equal(mpack_tag_float(-MPACK_INFINITY), mpack_tag_float(-MPACK_INFINITY)));
-    test_assert(false == mpack_tag_equal(mpack_tag_float(0), mpack_tag_float(1)));
-    test_assert(false == mpack_tag_equal(mpack_tag_float(1), mpack_tag_float(MPACK_INFINITY)));
-    test_assert(false == mpack_tag_equal(mpack_tag_float(MPACK_INFINITY), mpack_tag_float(-MPACK_INFINITY)));
-    test_assert(false == mpack_tag_equal(mpack_tag_float(0), mpack_tag_float(NAN)));
-    test_assert(false == mpack_tag_equal(mpack_tag_float(MPACK_INFINITY), mpack_tag_float(NAN)));
+    TEST_TRUE(true == mpack_tag_equal(mpack_tag_float(0), mpack_tag_float(0)));
+    TEST_TRUE(true == mpack_tag_equal(mpack_tag_float(1), mpack_tag_float(1)));
+    TEST_TRUE(true == mpack_tag_equal(mpack_tag_float(MPACK_INFINITY), mpack_tag_float(MPACK_INFINITY)));
+    TEST_TRUE(true == mpack_tag_equal(mpack_tag_float(-MPACK_INFINITY), mpack_tag_float(-MPACK_INFINITY)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_float(0), mpack_tag_float(1)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_float(1), mpack_tag_float(MPACK_INFINITY)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_float(MPACK_INFINITY), mpack_tag_float(-MPACK_INFINITY)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_float(0), mpack_tag_float(NAN)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_float(MPACK_INFINITY), mpack_tag_float(NAN)));
 
     // double comparisons
-    test_assert(true == mpack_tag_equal(mpack_tag_double(0), mpack_tag_double(0)));
-    test_assert(true == mpack_tag_equal(mpack_tag_double(1), mpack_tag_double(1)));
-    test_assert(true == mpack_tag_equal(mpack_tag_double(MPACK_INFINITY), mpack_tag_double(MPACK_INFINITY)));
-    test_assert(true == mpack_tag_equal(mpack_tag_double(-MPACK_INFINITY), mpack_tag_double(-MPACK_INFINITY)));
-    test_assert(false == mpack_tag_equal(mpack_tag_double(0), mpack_tag_double(1)));
-    test_assert(false == mpack_tag_equal(mpack_tag_double(1), mpack_tag_double(MPACK_INFINITY)));
-    test_assert(false == mpack_tag_equal(mpack_tag_double(MPACK_INFINITY), mpack_tag_double(-MPACK_INFINITY)));
-    test_assert(false == mpack_tag_equal(mpack_tag_double(0), mpack_tag_double(NAN)));
-    test_assert(false == mpack_tag_equal(mpack_tag_double(MPACK_INFINITY), mpack_tag_double(NAN)));
+    TEST_TRUE(true == mpack_tag_equal(mpack_tag_double(0), mpack_tag_double(0)));
+    TEST_TRUE(true == mpack_tag_equal(mpack_tag_double(1), mpack_tag_double(1)));
+    TEST_TRUE(true == mpack_tag_equal(mpack_tag_double(MPACK_INFINITY), mpack_tag_double(MPACK_INFINITY)));
+    TEST_TRUE(true == mpack_tag_equal(mpack_tag_double(-MPACK_INFINITY), mpack_tag_double(-MPACK_INFINITY)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_double(0), mpack_tag_double(1)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_double(1), mpack_tag_double(MPACK_INFINITY)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_double(MPACK_INFINITY), mpack_tag_double(-MPACK_INFINITY)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_double(0), mpack_tag_double(NAN)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_double(MPACK_INFINITY), mpack_tag_double(NAN)));
 
     // float/double comparisons
-    test_assert(false == mpack_tag_equal(mpack_tag_double(0), mpack_tag_float(0)));
-    test_assert(false == mpack_tag_equal(mpack_tag_double(1), mpack_tag_float(1)));
-    test_assert(false == mpack_tag_equal(mpack_tag_double(MPACK_INFINITY), mpack_tag_float(MPACK_INFINITY)));
-    test_assert(false == mpack_tag_equal(mpack_tag_double(-MPACK_INFINITY), mpack_tag_float(-MPACK_INFINITY)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_double(0), mpack_tag_float(0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_double(1), mpack_tag_float(1)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_double(MPACK_INFINITY), mpack_tag_float(MPACK_INFINITY)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_double(-MPACK_INFINITY), mpack_tag_float(-MPACK_INFINITY)));
 
     // here we're comparing NaNs and we expect true. this is because we compare
     // floats bit-for-bit, not using operator==
-    test_assert(true == mpack_tag_equal(mpack_tag_float(NAN), mpack_tag_float(NAN)));
-    test_assert(true == mpack_tag_equal(mpack_tag_double(NAN), mpack_tag_double(NAN)));
-    test_assert(false == mpack_tag_equal(mpack_tag_float(NAN), mpack_tag_double(NAN)));
+    TEST_TRUE(true == mpack_tag_equal(mpack_tag_float(NAN), mpack_tag_float(NAN)));
+    TEST_TRUE(true == mpack_tag_equal(mpack_tag_double(NAN), mpack_tag_double(NAN)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_float(NAN), mpack_tag_double(NAN)));
 
 }
 
 static void test_tags_compound() {
-    test_assert(mpack_tag_array(0).type == mpack_type_array);
-    test_assert(mpack_tag_map(0).type == mpack_type_map);
-    test_assert(mpack_tag_str(0).type == mpack_type_str);
-    test_assert(mpack_tag_bin(0).type == mpack_type_bin);
-    test_assert(mpack_tag_ext(0, 0).type == mpack_type_ext);
+    TEST_TRUE(mpack_tag_array(0).type == mpack_type_array);
+    TEST_TRUE(mpack_tag_map(0).type == mpack_type_map);
+    TEST_TRUE(mpack_tag_str(0).type == mpack_type_str);
+    TEST_TRUE(mpack_tag_bin(0).type == mpack_type_bin);
+    TEST_TRUE(mpack_tag_ext(0, 0).type == mpack_type_ext);
 
-    test_assert(true == mpack_tag_equal(mpack_tag_array(0), mpack_tag_array(0)));
-    test_assert(false == mpack_tag_equal(mpack_tag_array(0), mpack_tag_array(1)));
-    test_assert(0 == mpack_tag_cmp(mpack_tag_array(0), mpack_tag_array(0)));
-    test_assert(-1 == mpack_tag_cmp(mpack_tag_array(0), mpack_tag_array(1)));
-    test_assert(1 == mpack_tag_cmp(mpack_tag_array(1), mpack_tag_array(0)));
+    TEST_TRUE(true == mpack_tag_equal(mpack_tag_array(0), mpack_tag_array(0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_array(0), mpack_tag_array(1)));
+    TEST_TRUE(0 == mpack_tag_cmp(mpack_tag_array(0), mpack_tag_array(0)));
+    TEST_TRUE(-1 == mpack_tag_cmp(mpack_tag_array(0), mpack_tag_array(1)));
+    TEST_TRUE(1 == mpack_tag_cmp(mpack_tag_array(1), mpack_tag_array(0)));
 
-    test_assert(true == mpack_tag_equal(mpack_tag_map(0), mpack_tag_map(0)));
-    test_assert(false == mpack_tag_equal(mpack_tag_map(0), mpack_tag_map(1)));
-    test_assert(0 == mpack_tag_cmp(mpack_tag_map(0), mpack_tag_map(0)));
-    test_assert(-1 == mpack_tag_cmp(mpack_tag_map(0), mpack_tag_map(1)));
-    test_assert(1 == mpack_tag_cmp(mpack_tag_map(1), mpack_tag_map(0)));
+    TEST_TRUE(true == mpack_tag_equal(mpack_tag_map(0), mpack_tag_map(0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_map(0), mpack_tag_map(1)));
+    TEST_TRUE(0 == mpack_tag_cmp(mpack_tag_map(0), mpack_tag_map(0)));
+    TEST_TRUE(-1 == mpack_tag_cmp(mpack_tag_map(0), mpack_tag_map(1)));
+    TEST_TRUE(1 == mpack_tag_cmp(mpack_tag_map(1), mpack_tag_map(0)));
 
-    test_assert(true == mpack_tag_equal(mpack_tag_str(0), mpack_tag_str(0)));
-    test_assert(false == mpack_tag_equal(mpack_tag_str(0), mpack_tag_str(1)));
-    test_assert(0 == mpack_tag_cmp(mpack_tag_str(0), mpack_tag_str(0)));
-    test_assert(-1 == mpack_tag_cmp(mpack_tag_str(0), mpack_tag_str(1)));
-    test_assert(1 == mpack_tag_cmp(mpack_tag_str(1), mpack_tag_str(0)));
+    TEST_TRUE(true == mpack_tag_equal(mpack_tag_str(0), mpack_tag_str(0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_str(0), mpack_tag_str(1)));
+    TEST_TRUE(0 == mpack_tag_cmp(mpack_tag_str(0), mpack_tag_str(0)));
+    TEST_TRUE(-1 == mpack_tag_cmp(mpack_tag_str(0), mpack_tag_str(1)));
+    TEST_TRUE(1 == mpack_tag_cmp(mpack_tag_str(1), mpack_tag_str(0)));
 
-    test_assert(true == mpack_tag_equal(mpack_tag_bin(0), mpack_tag_bin(0)));
-    test_assert(false == mpack_tag_equal(mpack_tag_bin(0), mpack_tag_bin(1)));
-    test_assert(0 == mpack_tag_cmp(mpack_tag_bin(0), mpack_tag_bin(0)));
-    test_assert(-1 == mpack_tag_cmp(mpack_tag_bin(0), mpack_tag_bin(1)));
-    test_assert(1 == mpack_tag_cmp(mpack_tag_bin(1), mpack_tag_bin(0)));
+    TEST_TRUE(true == mpack_tag_equal(mpack_tag_bin(0), mpack_tag_bin(0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_bin(0), mpack_tag_bin(1)));
+    TEST_TRUE(0 == mpack_tag_cmp(mpack_tag_bin(0), mpack_tag_bin(0)));
+    TEST_TRUE(-1 == mpack_tag_cmp(mpack_tag_bin(0), mpack_tag_bin(1)));
+    TEST_TRUE(1 == mpack_tag_cmp(mpack_tag_bin(1), mpack_tag_bin(0)));
 
-    test_assert(true == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_ext(0, 0)));
-    test_assert(true == mpack_tag_equal(mpack_tag_ext(0, 1), mpack_tag_ext(0, 1)));
-    test_assert(true == mpack_tag_equal(mpack_tag_ext(127, 0), mpack_tag_ext(127, 0)));
-    test_assert(true == mpack_tag_equal(mpack_tag_ext(127, 1), mpack_tag_ext(127, 1)));
-    test_assert(true == mpack_tag_equal(mpack_tag_ext(-128, 0), mpack_tag_ext(-128, 0)));
-    test_assert(true == mpack_tag_equal(mpack_tag_ext(-128, 1), mpack_tag_ext(-128, 1)));
-    test_assert(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_ext(127, 0)));
-    test_assert(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_ext(-128, 0)));
-    test_assert(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_ext(0, 1)));
+    TEST_TRUE(true == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_ext(0, 0)));
+    TEST_TRUE(true == mpack_tag_equal(mpack_tag_ext(0, 1), mpack_tag_ext(0, 1)));
+    TEST_TRUE(true == mpack_tag_equal(mpack_tag_ext(127, 0), mpack_tag_ext(127, 0)));
+    TEST_TRUE(true == mpack_tag_equal(mpack_tag_ext(127, 1), mpack_tag_ext(127, 1)));
+    TEST_TRUE(true == mpack_tag_equal(mpack_tag_ext(-128, 0), mpack_tag_ext(-128, 0)));
+    TEST_TRUE(true == mpack_tag_equal(mpack_tag_ext(-128, 1), mpack_tag_ext(-128, 1)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_ext(127, 0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_ext(-128, 0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_ext(0, 1)));
 
-    test_assert(false == mpack_tag_equal(mpack_tag_array(0), mpack_tag_map(0)));
-    test_assert(false == mpack_tag_equal(mpack_tag_array(0), mpack_tag_str(0)));
-    test_assert(false == mpack_tag_equal(mpack_tag_array(0), mpack_tag_bin(0)));
-    test_assert(false == mpack_tag_equal(mpack_tag_array(0), mpack_tag_ext(0, 0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_array(0), mpack_tag_map(0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_array(0), mpack_tag_str(0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_array(0), mpack_tag_bin(0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_array(0), mpack_tag_ext(0, 0)));
 
-    test_assert(false == mpack_tag_equal(mpack_tag_map(0), mpack_tag_array(0)));
-    test_assert(false == mpack_tag_equal(mpack_tag_map(0), mpack_tag_str(0)));
-    test_assert(false == mpack_tag_equal(mpack_tag_map(0), mpack_tag_bin(0)));
-    test_assert(false == mpack_tag_equal(mpack_tag_map(0), mpack_tag_ext(0, 0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_map(0), mpack_tag_array(0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_map(0), mpack_tag_str(0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_map(0), mpack_tag_bin(0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_map(0), mpack_tag_ext(0, 0)));
 
-    test_assert(false == mpack_tag_equal(mpack_tag_str(0), mpack_tag_array(0)));
-    test_assert(false == mpack_tag_equal(mpack_tag_str(0), mpack_tag_map(0)));
-    test_assert(false == mpack_tag_equal(mpack_tag_str(0), mpack_tag_bin(0)));
-    test_assert(false == mpack_tag_equal(mpack_tag_str(0), mpack_tag_ext(0, 0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_str(0), mpack_tag_array(0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_str(0), mpack_tag_map(0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_str(0), mpack_tag_bin(0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_str(0), mpack_tag_ext(0, 0)));
 
-    test_assert(false == mpack_tag_equal(mpack_tag_bin(0), mpack_tag_array(0)));
-    test_assert(false == mpack_tag_equal(mpack_tag_bin(0), mpack_tag_map(0)));
-    test_assert(false == mpack_tag_equal(mpack_tag_bin(0), mpack_tag_str(0)));
-    test_assert(false == mpack_tag_equal(mpack_tag_bin(0), mpack_tag_ext(0, 0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_bin(0), mpack_tag_array(0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_bin(0), mpack_tag_map(0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_bin(0), mpack_tag_str(0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_bin(0), mpack_tag_ext(0, 0)));
 
-    test_assert(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_array(0)));
-    test_assert(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_map(0)));
-    test_assert(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_str(0)));
-    test_assert(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_bin(0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_array(0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_map(0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_str(0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_bin(0)));
 }
 
 static void test_string(const char* str, const char* content) {
     #if MPACK_DEBUG
     // in debug mode, the string should contain the expected content
-    test_assert(strstr(str, content) != NULL, "string \"%s\" does not contain \"%s\"", str, content);
+    TEST_TRUE(strstr(str, content) != NULL, "string \"%s\" does not contain \"%s\"", str, content);
     #else
     // in release mode, strings should be blank
     MPACK_UNUSED(content);
-    test_assert(strcmp(str, "") == 0, "string is not empty: %s", str);
+    TEST_TRUE(strcmp(str, "") == 0, "string is not empty: %s", str);
     #endif
 }
 
@@ -272,8 +272,8 @@ static void test_strings() {
     // test strings for invalid enum values
     // (invalid enum values are not allowed in C++)
     #ifndef __cplusplus
-    test_expecting_assert(mpack_error_to_string((mpack_error_t)-1));
-    test_expecting_assert(mpack_type_to_string((mpack_type_t)-1));
+    TEST_ASSERT(mpack_error_to_string((mpack_error_t)-1));
+    TEST_ASSERT(mpack_type_to_string((mpack_type_t)-1));
     #endif
 }
 

@@ -38,25 +38,25 @@ extern "C" {
 // destroy wrappers expecting error or no error
 
 // tears down a reader, ensuring it has no errors and no extra data
-#define test_reader_destroy_noerror(reader) do { \
-    test_assert(mpack_reader_error(reader) == mpack_ok, "reader is in error state %i (%s)", \
+#define TEST_READER_DESTROY_NOERROR(reader) do { \
+    TEST_TRUE(mpack_reader_error(reader) == mpack_ok, "reader is in error state %i (%s)", \
             (int)mpack_reader_error(reader), mpack_error_to_string(mpack_reader_error(reader))); \
-    test_assert(mpack_reader_remaining(reader, NULL) == 0, \
+    TEST_TRUE(mpack_reader_remaining(reader, NULL) == 0, \
             "reader has %i extra bytes", (int)mpack_reader_remaining(reader, NULL)); \
     mpack_reader_destroy(reader); \
 } while (0)
 
 // tears down a reader with tracking cancelling, ensuring it has no errors
-#define test_reader_destroy_cancel_noerror(reader) do { \
-    test_assert(mpack_reader_error(reader) == mpack_ok, "reader is in error state %i (%s)", \
+#define TEST_READER_DESTROY_CANCEL_NOERROR(reader) do { \
+    TEST_TRUE(mpack_reader_error(reader) == mpack_ok, "reader is in error state %i (%s)", \
             (int)mpack_reader_error(reader), mpack_error_to_string(mpack_reader_error(reader))); \
     mpack_reader_destroy_cancel(reader); \
 } while (0)
 
 // tears down a reader, ensuring it is in the given error state
-#define test_reader_destroy_error(reader, error) do { \
+#define TEST_READER_DESTROY_ERROR(reader, error) do { \
     mpack_error_t e = (error); \
-    test_assert(mpack_reader_error(reader) == e, "reader is in error state %i (%s) instead of %i (%s)", \
+    TEST_TRUE(mpack_reader_error(reader) == e, "reader is in error state %i (%s) instead of %i (%s)", \
             (int)mpack_reader_error(reader), mpack_error_to_string(mpack_reader_error(reader)), \
             (int)e, mpack_error_to_string(e)); \
     mpack_reader_destroy(reader); \
@@ -67,9 +67,9 @@ extern "C" {
 // reader helpers
 
 // performs an operation on a reader, ensuring no error occurs
-#define test_read_noerror(reader, read_expr) do { \
-    test_assert((read_expr), "read did not pass: " #read_expr); \
-    test_assert(mpack_reader_error(reader) == mpack_ok, \
+#define TEST_READ_NOERROR(reader, read_expr) do { \
+    TEST_TRUE((read_expr), "read did not pass: " #read_expr); \
+    TEST_TRUE(mpack_reader_error(reader) == mpack_ok, \
             "reader flagged error %i", (int)mpack_reader_error(reader)); \
 } while (0)
 
@@ -78,31 +78,31 @@ extern "C" {
 // simple read tests
 
 // initializes a reader from a literal string
-#define test_reader_init_str(reader, data) \
+#define TEST_READER_INIT_STR(reader, data) \
     mpack_reader_init_data(reader, data, sizeof(data) - 1)
 
 // runs a simple reader test, ensuring the expression is true and no errors occur
-#define test_simple_read(data, read_expr) do { \
+#define TEST_SIMPLE_READ(data, read_expr) do { \
     mpack_reader_t reader; \
-    test_reader_init_str(&reader, data); \
-    test_assert((read_expr), "simple read test did not pass: " #read_expr); \
-    test_reader_destroy_noerror(&reader); \
+    TEST_READER_INIT_STR(&reader, data); \
+    TEST_TRUE((read_expr), "simple read test did not pass: " #read_expr); \
+    TEST_READER_DESTROY_NOERROR(&reader); \
 } while (0)
 
 // runs a simple reader test, ensuring the expression is true and no errors occur, cancelling to ignore tracking info
-#define test_simple_read_cancel(data, read_expr) do { \
+#define TEST_SIMPLE_READ_CANCEL(data, read_expr) do { \
     mpack_reader_t reader; \
-    test_reader_init_str(&reader, data); \
-    test_assert((read_expr), "simple read test did not pass: " #read_expr); \
-    test_reader_destroy_cancel_noerror(&reader); \
+    TEST_READER_INIT_STR(&reader, data); \
+    TEST_TRUE((read_expr), "simple read test did not pass: " #read_expr); \
+    TEST_READER_DESTROY_CANCEL_NOERROR(&reader); \
 } while (0)
 
 // runs a simple reader test, ensuring the expression is true and the given error is raised
-#define test_simple_read_error(data, read_expr, error) do { \
+#define TEST_SIMPLE_READ_ERROR(data, read_expr, error) do { \
     mpack_reader_t reader; \
-    test_reader_init_str(&reader, data); \
-    test_assert((read_expr), "simple read error test did not pass: " #read_expr); \
-    test_reader_destroy_error(&reader, (error)); \
+    TEST_READER_INIT_STR(&reader, data); \
+    TEST_TRUE((read_expr), "simple read error test did not pass: " #read_expr); \
+    TEST_READER_DESTROY_ERROR(&reader, (error)); \
 } while (0)
 
 
@@ -110,22 +110,22 @@ extern "C" {
 // simple read assertion test
 
 // runs a simple reader test, ensuring it causes an assert.
-// (note about volatile, see test_expecting_assert())
+// (note about volatile, see TEST_ASSERT())
 // (we cancel in case the mpack_error_bug is compiled out in release mode)
-#define test_simple_read_assert(data, read_expr) do { \
+#define TEST_SIMPLE_READ_ASSERT(data, read_expr) do { \
     volatile mpack_reader_t v_reader; \
     mpack_reader_t* reader = (mpack_reader_t*)&v_reader; \
     mpack_reader_init_data(reader, data, sizeof(data) - 1); \
-    test_expecting_assert(read_expr); \
+    TEST_ASSERT(read_expr); \
     mpack_reader_destroy_cancel(reader); \
 } while (0)
 
 // runs a simple reader test, ensuring it causes a break.
 // (we cancel in case the mpack_error_bug is compiled out in release mode)
-#define test_simple_read_break(data, read_expr) do { \
+#define TEST_SIMPLE_READ_BREAK(data, read_expr) do { \
     mpack_reader_t reader; \
     mpack_reader_init_data(&reader, data, sizeof(data) - 1); \
-    test_expecting_break(read_expr); \
+    TEST_BREAK(read_expr); \
     mpack_reader_destroy_cancel(&reader); \
 } while (0)
 
