@@ -42,6 +42,7 @@ MPACK_STATIC_INLINE_SPEED void mpack_writer_track_element(mpack_writer_t* writer
 }
 
 void mpack_writer_init(mpack_writer_t* writer, char* buffer, size_t size) {
+    mpack_assert(buffer != NULL, "cannot initialize writer with empty buffer");
     mpack_memset(writer, 0, sizeof(*writer));
     writer->buffer = buffer;
     writer->size = size;
@@ -154,6 +155,11 @@ void mpack_writer_init_growable(mpack_writer_t* writer, char** target_data, size
 
     size_t capacity = MPACK_BUFFER_SIZE;
     char* buffer = (char*)MPACK_MALLOC(capacity);
+    if (buffer == NULL) {
+        MPACK_FREE(growable_writer);
+        mpack_writer_init_error(writer, mpack_error_memory);
+        return;
+    }
 
     mpack_writer_init(writer, buffer, capacity);
     mpack_writer_set_context(writer, growable_writer);
