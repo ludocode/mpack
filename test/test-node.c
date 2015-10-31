@@ -23,6 +23,15 @@
 
 #if MPACK_NODE
 
+mpack_error_t test_tree_error = mpack_ok;
+
+void test_tree_error_handler(mpack_tree_t* tree, mpack_error_t error) {
+    TEST_TRUE(test_tree_error == mpack_ok, "error handler was called multiple times");
+    TEST_TRUE(error != mpack_ok, "error handler was called with mpack_ok");
+    TEST_TRUE(mpack_tree_error(tree) == error, "tree error does not match given error");
+    test_tree_error = error;
+}
+
 // tests the example on the messagepack homepage
 static void test_example_node() {
     static const char test[] = "\x82\xA7""compact\xC3\xA6""schema\x00";

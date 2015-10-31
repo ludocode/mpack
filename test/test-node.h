@@ -30,6 +30,10 @@ extern "C" {
 
 #if MPACK_NODE
 
+extern mpack_error_t test_tree_error;
+void test_tree_error_handler(mpack_tree_t* tree, mpack_error_t error);
+
+
 #define TEST_TREE_DESTROY_NOERROR(tree) do { \
     mpack_error_t error = mpack_tree_destroy(tree); \
     TEST_TRUE(error == mpack_ok, \
@@ -44,11 +48,14 @@ extern "C" {
 } while (0)
 
 #define TEST_SIMPLE_TREE_READ(data, read_expr) do { \
-  mpack_tree_t tree; \
-  mpack_tree_init_pool(&tree, data, sizeof(data) - 1, pool, sizeof(pool) / sizeof(*pool)); \
-  mpack_node_t node = mpack_tree_root(&tree); \
-  TEST_TRUE((read_expr), "simple tree test did not pass: " #read_expr); \
-  TEST_TREE_DESTROY_NOERROR(&tree); \
+    mpack_tree_t tree; \
+    mpack_tree_init_pool(&tree, data, sizeof(data) - 1, pool, sizeof(pool) / sizeof(*pool)); \
+    mpack_tree_set_error_handler(&tree, test_tree_error_handler); \
+    mpack_node_t node = mpack_tree_root(&tree); \
+    TEST_TRUE((read_expr), "simple tree test did not pass: " #read_expr); \
+    TEST_TREE_DESTROY_NOERROR(&tree); \
+    TEST_TRUE(test_tree_error == mpack_ok); \
+    test_tree_error = mpack_ok; \
 } while (0)
 
 #ifdef MPACK_MALLOC
@@ -56,15 +63,22 @@ extern "C" {
 #else
 #define TEST_TREE_INIT(tree, data, data_size) \
     mpack_node_data_t pool[128]; \
-    mpack_tree_init_pool((tree), (data), (data_size), pool, sizeof(pool) / sizeof(*pool));
+mpack_tree_init_pool((tree), (data), (data_size), pool, sizeof(pool) / sizeof(*pool));
 #endif
 
+// the error handler is only called if the tree is not already in an
+// error state, so we call it ourselves if the tree init failed.
 #define TEST_SIMPLE_TREE_READ_ERROR(data, read_expr, error) do { \
-  mpack_tree_t tree; \
-  mpack_tree_init_pool(&tree, data, sizeof(data) - 1, pool, sizeof(pool) / sizeof(*pool)); \
-  mpack_node_t node = mpack_tree_root(&tree); \
-  TEST_TRUE((read_expr), "simple read error test did not pass: " #read_expr); \
-  TEST_TREE_DESTROY_ERROR(&tree, (error)); \
+    mpack_tree_t tree; \
+    mpack_tree_init_pool(&tree, data, sizeof(data) - 1, pool, sizeof(pool) / sizeof(*pool)); \
+    if (mpack_tree_error(&tree) != mpack_ok) \
+        test_tree_error_handler(&tree, error); \
+    mpack_tree_set_error_handler(&tree, test_tree_error_handler); \
+    mpack_node_t node = mpack_tree_root(&tree); \
+    TEST_TRUE((read_expr), "simple read error test did not pass: " #read_expr); \
+    TEST_TREE_DESTROY_ERROR(&tree, (error)); \
+    TEST_TRUE(test_tree_error == (error)); \
+    test_tree_error = mpack_ok; \
 } while (0)
 
 void test_node(void);
