@@ -30,8 +30,13 @@ extern "C" {
 
 #if MPACK_WRITER
 
+extern mpack_error_t test_write_error;
+void test_write_error_handler(mpack_writer_t* writer, mpack_error_t error);
+
+
 // these setup and destroy test writers and check them for errors.
 // they are generally macros so that the asserts are on the line of the test.
+
 
 // tears down a writer, ensuring it didn't fail
 #define TEST_WRITER_DESTROY_NOERROR(writer) \
@@ -72,8 +77,11 @@ extern "C" {
 #define TEST_SIMPLE_WRITE(expect, write_op) do { \
     mpack_writer_t writer; \
     mpack_writer_init(&writer, buf, sizeof(buf)); \
+    mpack_writer_set_error_handler(&writer, test_write_error_handler); \
     (write_op); \
     TEST_DESTROY_MATCH_SIZE(expect, mpack_writer_buffer_used(&writer)); \
+    TEST_TRUE(test_write_error == mpack_ok); \
+    test_write_error = mpack_ok; \
 } while (0)
 
 void test_writes(void);

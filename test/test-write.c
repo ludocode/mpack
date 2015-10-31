@@ -24,6 +24,15 @@
 
 #if MPACK_WRITER
 
+mpack_error_t test_write_error = mpack_ok;
+
+void test_write_error_handler(mpack_writer_t* writer, mpack_error_t error) {
+    TEST_TRUE(test_write_error == mpack_ok, "error handler was called multiple times");
+    TEST_TRUE(error != mpack_ok, "error handler was called with mpack_ok");
+    TEST_TRUE(mpack_writer_error(writer) == error, "writer error does not match given error");
+    test_write_error = error;
+}
+
 // writes ints using the auto int()/uint() functions
 static void test_write_simple_auto_int() {
     char buf[4096];
@@ -647,6 +656,8 @@ static bool test_write_deep_growth() {
 
     #define TEST_POSSIBLE_FAILURE() do { \
         if (mpack_writer_error(&writer) == mpack_error_memory) { \
+            TEST_TRUE(test_write_error == mpack_error_memory, "writer error handler was not called?"); \
+            test_write_error = mpack_ok; \
             mpack_writer_destroy(&writer); \
             TEST_TRUE(buf == NULL); \
             return false; \
@@ -654,7 +665,14 @@ static bool test_write_deep_growth() {
     } while (0)
 
     mpack_writer_init_growable(&writer, &buf, &size);
-    TEST_POSSIBLE_FAILURE();
+    if (mpack_writer_error(&writer) == mpack_error_memory) {
+        mpack_writer_destroy(&writer);
+        TEST_TRUE(buf == NULL);
+        return false;
+    }
+
+    TEST_TRUE(test_write_error == mpack_ok);
+    mpack_writer_set_error_handler(&writer, test_write_error_handler);
 
     const int depth = 40;
     const int nums = 1000;
