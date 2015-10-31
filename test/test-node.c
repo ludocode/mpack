@@ -387,10 +387,10 @@ static void test_node_read_floats() {
     test_simple_tree_read("\xca\x00\x00\x00\x00", 0.0 == mpack_node_double(node));
     test_simple_tree_read("\xcb\x00\x00\x00\x00\x00\x00\x00\x00", 0.0 == mpack_node_double(node));
 
-    test_simple_tree_read("\xca\xff\xff\xff\xff", isnanf(mpack_node_float(node)));
-    test_simple_tree_read("\xcb\xff\xff\xff\xff\xff\xff\xff\xff", isnanf(mpack_node_float(node)));
-    test_simple_tree_read("\xca\xff\xff\xff\xff", isnan(mpack_node_double(node)));
-    test_simple_tree_read("\xcb\xff\xff\xff\xff\xff\xff\xff\xff", isnan(mpack_node_double(node)));
+    test_simple_tree_read("\xca\xff\xff\xff\xff", isnanf(mpack_node_float(node)) != 0);
+    test_simple_tree_read("\xcb\xff\xff\xff\xff\xff\xff\xff\xff", isnanf(mpack_node_float(node)) != 0);
+    test_simple_tree_read("\xca\xff\xff\xff\xff", isnan(mpack_node_double(node)) != 0);
+    test_simple_tree_read("\xcb\xff\xff\xff\xff\xff\xff\xff\xff", isnan(mpack_node_double(node)) != 0);
 
     test_simple_tree_read("\xca\x00\x00\x00\x00", 0.0f == mpack_node_float_strict(node));
     test_simple_tree_read("\xca\x00\x00\x00\x00", mpack_tag_equal(mpack_tag_float(0.0f), mpack_node_tag(node)));

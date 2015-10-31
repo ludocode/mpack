@@ -45,7 +45,8 @@
 #endif
 
 #ifdef WIN32
-#define mkdir _mkdir
+#include <direct.h>
+#define mkdir(path, mode) ((void)(mode), _mkdir(path))
 #define rmdir _rmdir
 #else
 #include <sys/stat.h>

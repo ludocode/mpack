@@ -10,11 +10,14 @@
 // is used to write the test data that is read back.
 #if MPACK_WRITER
 
-#ifndef WIN32
+#ifdef WIN32
+#define TEST_PATH "..\\..\\test\\"
+#else
 #include <unistd.h>
+#define TEST_PATH "test/"
 #endif
 
-static const char* test_filename = "mpack-test-file.mp";
+static const char* test_filename = "mpack-test-file";
 static const char* test_dir = "mpack-test-dir";
 
 static char* test_file_fetch(const char* filename, size_t* out_size) {
@@ -167,7 +170,7 @@ static void test_file_write(void) {
 // compares the test filename to the expected debug output
 static void test_compare_print() {
     size_t expected_size;
-    char* expected_data = test_file_fetch("test/test-file.debug", &expected_size);
+    char* expected_data = test_file_fetch(TEST_PATH "test-file.debug", &expected_size);
     size_t actual_size;
     char* actual_data = test_file_fetch(test_filename, &actual_size);
 
@@ -183,6 +186,8 @@ static void test_compare_print() {
 static void test_print(void) {
 
     // miscellaneous print tests
+    // (we're not actually checking the output; we just want to make
+    // sure it doesn't crash under the below errors.)
     FILE* out = fopen(test_filename, "wb");
     mpack_print_file("\x91", 1, out); // truncated file
     mpack_print_file("\xa1", 1, out); // truncated str
@@ -197,7 +202,7 @@ static void test_print(void) {
     // dump MessagePack to debug file
 
     size_t input_size;
-    char* input_data = test_file_fetch("test/test-file.mp", &input_size);
+    char* input_data = test_file_fetch(TEST_PATH "test-file.mp", &input_size);
 
     out = fopen(test_filename, "wb");
     mpack_print_file(input_data, input_size, out);
@@ -222,7 +227,7 @@ static void test_node_print(void) {
 
     // dump MessagePack to debug file
 
-    mpack_tree_init_file(&tree, "test/test-file.mp", 0);
+    mpack_tree_init_file(&tree, TEST_PATH "test-file.mp", 0);
 
     out = fopen(test_filename, "wb");
     mpack_node_print_file(mpack_tree_root(&tree), out);
@@ -427,10 +432,6 @@ static void test_file_node(void) {
         test_tree_destroy_error(&tree, mpack_error_bug);
     }
 
-    // test unseekable stream
-    mpack_tree_init_file(&tree, "/dev/zero", 0);
-    test_tree_destroy_error(&tree, mpack_error_invalid);
-
     // test missing file
     mpack_tree_init_file(&tree, "invalid-filename", 0);
     test_tree_destroy_error(&tree, mpack_error_io);
@@ -460,7 +461,7 @@ void test_file(void) {
     test_assert(remove(test_filename) == 0, "failed to delete %s", test_filename);
     test_assert(rmdir(test_dir) == 0, "failed to delete %s", test_dir);
 
-    (void)test_compare_print;
+    (void)&test_compare_print;
 }
 
 #else

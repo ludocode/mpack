@@ -53,6 +53,9 @@
     <ClCompile Include="..\..\test\test-write.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\test\test-reader.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\src\mpack\mpack-common.h">
@@ -101,6 +104,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\test\test.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\test\test-reader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

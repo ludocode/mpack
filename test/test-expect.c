@@ -521,16 +521,16 @@ static void test_expect_reals() {
     test_simple_read("\xca\x00\x00\x00\x00", 0.0 == mpack_expect_double(&reader));
     test_simple_read("\xcb\x00\x00\x00\x00\x00\x00\x00\x00", 0.0 == mpack_expect_double(&reader));
 
-    test_simple_read("\xca\xff\xff\xff\xff", isnanf(mpack_expect_float(&reader)));
-    test_simple_read("\xcb\xff\xff\xff\xff\xff\xff\xff\xff", isnanf(mpack_expect_float(&reader)));
-    test_simple_read("\xca\xff\xff\xff\xff", isnan(mpack_expect_double(&reader)));
-    test_simple_read("\xcb\xff\xff\xff\xff\xff\xff\xff\xff", isnan(mpack_expect_double(&reader)));
+    test_simple_read("\xca\xff\xff\xff\xff", isnanf(mpack_expect_float(&reader)) != 0);
+    test_simple_read("\xcb\xff\xff\xff\xff\xff\xff\xff\xff", isnanf(mpack_expect_float(&reader)) != 0);
+    test_simple_read("\xca\xff\xff\xff\xff", isnan(mpack_expect_double(&reader)) != 0);
+    test_simple_read("\xcb\xff\xff\xff\xff\xff\xff\xff\xff", isnan(mpack_expect_double(&reader)) != 0);
 
     test_simple_read("\xca\x00\x00\x00\x00", 0.0f == mpack_expect_float_strict(&reader));
     test_simple_read("\xca\x00\x00\x00\x00", 0.0 == mpack_expect_double_strict(&reader));
     test_simple_read("\xcb\x00\x00\x00\x00\x00\x00\x00\x00", 0.0 == mpack_expect_double_strict(&reader));
-    test_simple_read("\xca\xff\xff\xff\xff", isnanf(mpack_expect_float_strict(&reader)));
-    test_simple_read("\xca\xff\xff\xff\xff", isnan(mpack_expect_double_strict(&reader)));
+    test_simple_read("\xca\xff\xff\xff\xff", 0 != isnanf(mpack_expect_float_strict(&reader)));
+    test_simple_read("\xca\xff\xff\xff\xff", 0 != isnan(mpack_expect_double_strict(&reader)));
     test_simple_read("\xcb\xff\xff\xff\xff\xff\xff\xff\xff", isnan(mpack_expect_double_strict(&reader)));
 
     test_simple_read_error("\x00", 0.0f == mpack_expect_float_strict(&reader), mpack_error_type);
@@ -624,11 +624,11 @@ static void test_expect_str() {
     test_assert(length == 0);
     test_simple_read("\xa0", (NULL == mpack_expect_str_alloc(&reader, 4, &length)));
     test_assert(length == 0);
-    test_simple_read("\xa4test", (test = mpack_expect_str_alloc(&reader, 4, &length)));
+    test_simple_read("\xa4test", NULL != (test = mpack_expect_str_alloc(&reader, 4, &length)));
     test_assert(length == 4);
     test_assert(memcmp(test, "test", 4) == 0);
     MPACK_FREE(test);
-    test_simple_read("\xa4test", (test = mpack_expect_str_alloc(&reader, SIZE_MAX, &length)));
+    test_simple_read("\xa4test", NULL != (test = mpack_expect_str_alloc(&reader, SIZE_MAX, &length)));
     test_assert(length == 4);
     test_assert(memcmp(test, "test", 4) == 0);
     MPACK_FREE(test);
@@ -652,15 +652,15 @@ static void test_expect_str() {
     #ifdef MPACK_MALLOC
     // cstr alloc
     test_simple_read_break("\xa0", NULL == mpack_expect_cstr_alloc(&reader, 0));
-    test_simple_read("\xa0", (test = mpack_expect_cstr_alloc(&reader, 4)));
+    test_simple_read("\xa0", NULL != (test = mpack_expect_cstr_alloc(&reader, 4)));
     test_assert(strlen(test) == 0);
     MPACK_FREE(test);
     test_simple_read_error("\xa4test", NULL == mpack_expect_cstr_alloc(&reader, 4), mpack_error_type);
-    test_simple_read("\xa4test", (test = mpack_expect_cstr_alloc(&reader, 5)));
+    test_simple_read("\xa4test", NULL != (test = mpack_expect_cstr_alloc(&reader, 5)));
     test_assert(strlen(test) == 4);
     test_assert(memcmp(test, "test", 4) == 0);
     MPACK_FREE(test);
-    test_simple_read("\xa4test", (test = mpack_expect_cstr_alloc(&reader, SIZE_MAX)));
+    test_simple_read("\xa4test", NULL != (test = mpack_expect_cstr_alloc(&reader, SIZE_MAX)));
     test_assert(strlen(test) == 4);
     test_assert(memcmp(test, "test", 4) == 0);
     MPACK_FREE(test);
@@ -742,7 +742,7 @@ static void test_expect_str() {
     test_assert(length == 0);
     test_simple_read("\xa0", (NULL == mpack_expect_utf8_alloc(&reader, 4, &length)));
     test_assert(length == 0);
-    test_simple_read("\xa4test", (test = mpack_expect_utf8_alloc(&reader, 4, &length)));
+    test_simple_read("\xa4test", NULL != (test = mpack_expect_utf8_alloc(&reader, 4, &length)));
     test_assert(length == 4);
     test_assert(memcmp(test, "test", 4) == 0);
     MPACK_FREE(test);
@@ -764,15 +764,15 @@ static void test_expect_str() {
 
     // utf8 cstr alloc
     test_simple_read_break("\xa0", NULL == mpack_expect_utf8_cstr_alloc(&reader, 0));
-    test_simple_read("\xa0", (test = mpack_expect_utf8_cstr_alloc(&reader, 4)));
+    test_simple_read("\xa0", NULL != (test = mpack_expect_utf8_cstr_alloc(&reader, 4)));
     test_assert(strlen(test) == 0);
     MPACK_FREE(test);
     test_simple_read_error("\xa4test", NULL == mpack_expect_utf8_cstr_alloc(&reader, 4), mpack_error_type);
-    test_simple_read("\xa4test", (test = mpack_expect_utf8_cstr_alloc(&reader, 5)));
+    test_simple_read("\xa4test", NULL != (test = mpack_expect_utf8_cstr_alloc(&reader, 5)));
     test_assert(strlen(test) == 4);
     test_assert(memcmp(test, "test", 4) == 0);
     MPACK_FREE(test);
-    test_simple_read("\xa4test", (test = mpack_expect_utf8_cstr_alloc(&reader, SIZE_MAX)));
+    test_simple_read("\xa4test", NULL != (test = mpack_expect_utf8_cstr_alloc(&reader, SIZE_MAX)));
     test_assert(strlen(test) == 4);
     test_assert(memcmp(test, "test", 4) == 0);
     MPACK_FREE(test);
@@ -827,7 +827,7 @@ static void test_expect_bin() {
     test_assert(length == 0);
     test_simple_read("\xc4\x00", (NULL == mpack_expect_bin_alloc(&reader, 4, &length)));
     test_assert(length == 0);
-    test_simple_read("\xc4\x04test", (test = mpack_expect_bin_alloc(&reader, 4, &length)));
+    test_simple_read("\xc4\x04test", NULL != (test = mpack_expect_bin_alloc(&reader, 4, &length)));
     test_assert(length == 4);
     test_assert(memcmp(test, "test", 4) == 0);
     MPACK_FREE(test);
@@ -895,10 +895,10 @@ static void test_expect_arrays() {
 
     test_simple_read("\x90", (elements = mpack_expect_array_alloc(&reader, int, 1, &count), mpack_done_array(&reader), true));
     test_assert(elements == NULL);
-    test_simple_read_cancel("\x91", elements = mpack_expect_array_alloc(&reader, int, 1, &count));
+    test_simple_read_cancel("\x91", NULL != (elements = mpack_expect_array_alloc(&reader, int, 1, &count)));
     elements[0] = 0;
     MPACK_FREE(elements);
-    test_simple_read_cancel("\x92", elements = mpack_expect_array_alloc(&reader, int, 2, &count));
+    test_simple_read_cancel("\x92", NULL != (elements = mpack_expect_array_alloc(&reader, int, 2, &count)));
     elements[0] = 0;
     elements[1] = 1;
     MPACK_FREE(elements);
@@ -910,10 +910,10 @@ static void test_expect_arrays() {
 
     test_simple_read("\x90", (elements = mpack_expect_array_or_nil_alloc(&reader, int, 1, &count), true));
     test_assert(elements == NULL);
-    test_simple_read_cancel("\x91", elements = mpack_expect_array_or_nil_alloc(&reader, int, 1, &count));
+    test_simple_read_cancel("\x91", NULL != (elements = mpack_expect_array_or_nil_alloc(&reader, int, 1, &count)));
     elements[0] = 0;
     MPACK_FREE(elements);
-    test_simple_read_cancel("\x92", elements = mpack_expect_array_or_nil_alloc(&reader, int, 2, &count));
+    test_simple_read_cancel("\x92", NULL != (elements = mpack_expect_array_or_nil_alloc(&reader, int, 2, &count)));
     elements[0] = 0;
     elements[1] = 1;
     MPACK_FREE(elements);
