@@ -76,7 +76,7 @@ cxxflags = ["-x", "c++"]
 # Functions to add a variant build. One variant build will build and run the
 # entire library and test suite in a given configuration.
 
-def AddBuild(variant_dir, cppflags, linkflags):
+def AddBuild(variant_dir, cppflags, linkflags = []):
     env.SConscript("SConscript",
             variant_dir="build/" + variant_dir,
             src="../..",
@@ -87,7 +87,7 @@ def AddBuild(variant_dir, cppflags, linkflags):
                 },
             duplicate=0)
 
-def AddBuilds(variant_dir, cppflags, linkflags):
+def AddBuilds(variant_dir, cppflags, linkflags = []):
     AddBuild("debug-" + variant_dir, debugflags + cppflags, debugflags + linkflags)
     AddBuild("release-" + variant_dir, releaseflags + cppflags, releaseflags + linkflags)
 
@@ -104,50 +104,50 @@ AddBuild("debug", allfeatures + allconfigs + debugflags + cflags + gcovflags, gc
 if ARGUMENTS.get('all'):
 
     # release flags
-    AddBuild("release", allfeatures + allconfigs + releaseflags + cflags, [])
-    AddBuild("release-fastmath", allfeatures + allconfigs + releaseflags + cflags + ["-ffast-math"], [])
+    AddBuild("release", allfeatures + allconfigs + releaseflags + cflags)
+    AddBuild("release-fastmath", allfeatures + allconfigs + releaseflags + cflags + ["-ffast-math"])
     AddBuild("release-speed", ["-DMPACK_OPTIMIZE_FOR_SIZE=0"] +
-            allfeatures + allconfigs + releaseflags + cflags, [])
+            allfeatures + allconfigs + releaseflags + cflags)
     if conf.CheckFlags(ltoflags, ltoflags, "-flto"):
         AddBuild("release-lto", allfeatures + allconfigs + ltoflags + cflags, ltoflags)
     if hasOg:
-        AddBuild("debug-O0", allfeatures + allconfigs + ["-DDEBUG", "-O0"] + cflags, [])
+        AddBuild("debug-O0", allfeatures + allconfigs + ["-DDEBUG", "-O0"] + cflags)
 
     # feature subsets with default configuration
-    AddBuilds("empty", allconfigs + cflags, [])
-    AddBuilds("writer", ["-DMPACK_WRITER=1"] + allconfigs + cflags, [])
-    AddBuilds("reader", ["-DMPACK_READER=1"] + allconfigs + cflags, [])
-    AddBuilds("expect", ["-DMPACK_READER=1", "-DMPACK_EXPECT=1"] + allconfigs + cflags, [])
-    AddBuilds("node", ["-DMPACK_NODE=1"] + allconfigs + cflags, [])
+    AddBuilds("empty", allconfigs + cflags)
+    AddBuilds("writer", ["-DMPACK_WRITER=1"] + allconfigs + cflags)
+    AddBuilds("reader", ["-DMPACK_READER=1"] + allconfigs + cflags)
+    AddBuilds("expect", ["-DMPACK_READER=1", "-DMPACK_EXPECT=1"] + allconfigs + cflags)
+    AddBuilds("node", ["-DMPACK_NODE=1"] + allconfigs + cflags)
 
     # no i/o
-    AddBuilds("noio", allfeatures + noioconfigs + cflags, [])
-    AddBuilds("noio-writer", ["-DMPACK_WRITER=1"] + noioconfigs + cflags, [])
-    AddBuilds("noio-reader", ["-DMPACK_READER=1"] + noioconfigs + cflags, [])
-    AddBuilds("noio-expect", ["-DMPACK_READER=1", "-DMPACK_EXPECT=1"] + noioconfigs + cflags, [])
-    AddBuilds("noio-node", ["-DMPACK_NODE=1"] + noioconfigs + cflags, [])
+    AddBuilds("noio", allfeatures + noioconfigs + cflags)
+    AddBuilds("noio-writer", ["-DMPACK_WRITER=1"] + noioconfigs + cflags)
+    AddBuilds("noio-reader", ["-DMPACK_READER=1"] + noioconfigs + cflags)
+    AddBuilds("noio-expect", ["-DMPACK_READER=1", "-DMPACK_EXPECT=1"] + noioconfigs + cflags)
+    AddBuilds("noio-node", ["-DMPACK_NODE=1"] + noioconfigs + cflags)
 
     # embedded builds without libc
-    AddBuilds("embed", allfeatures + cflags, [])
-    AddBuilds("embed-writer", ["-DMPACK_WRITER=1"] + cflags, [])
-    AddBuilds("embed-reader", ["-DMPACK_READER=1"] + cflags, [])
-    AddBuilds("embed-expect", ["-DMPACK_READER=1", "-DMPACK_EXPECT=1"] + cflags, [])
-    AddBuilds("embed-node", ["-DMPACK_NODE=1"] + cflags, [])
+    AddBuilds("embed", allfeatures + cflags)
+    AddBuilds("embed-writer", ["-DMPACK_WRITER=1"] + cflags)
+    AddBuilds("embed-reader", ["-DMPACK_READER=1"] + cflags)
+    AddBuilds("embed-expect", ["-DMPACK_READER=1", "-DMPACK_EXPECT=1"] + cflags)
+    AddBuilds("embed-node", ["-DMPACK_NODE=1"] + cflags)
 
     # miscellaneous test builds
-    AddBuilds("notrack", ["-DMPACK_NO_TRACKING=1"] + allfeatures + allconfigs + cflags, [])
-    AddBuilds("realloc", allfeatures + allconfigs + debugflags + cflags + ["-DMPACK_REALLOC=test_realloc"], [])
+    AddBuilds("notrack", ["-DMPACK_NO_TRACKING=1"] + allfeatures + allconfigs + cflags)
+    AddBuilds("realloc", allfeatures + allconfigs + debugflags + cflags + ["-DMPACK_REALLOC=test_realloc"])
     if hasOg:
-        AddBuild("debug-O0", allfeatures + allconfigs + ["-DDEBUG", "-O0"] + cflags, [])
+        AddBuild("debug-O0", allfeatures + allconfigs + ["-DDEBUG", "-O0"] + cflags)
 
     # other language standards (C11, various C++ versions)
     if conf.CheckFlags(["-std=c11"]):
-        AddBuilds("c11", allfeatures + allconfigs + ["-std=c11"], [])
-    AddBuilds("cxx", allfeatures + allconfigs + cxxflags + ["-std=c++98"], [])
+        AddBuilds("c11", allfeatures + allconfigs + ["-std=c11"])
+    AddBuilds("cxx", allfeatures + allconfigs + cxxflags + ["-std=c++98"])
     if conf.CheckFlags(cxxflags + ["-std=c++11"], [], "-std=c++11"):
-        AddBuilds("cxx11", allfeatures + allconfigs + cxxflags + ["-std=c++11"], [])
+        AddBuilds("cxx11", allfeatures + allconfigs + cxxflags + ["-std=c++11"])
     if conf.CheckFlags(cxxflags + ["-std=c++14"], [], "-std=c++14"):
-        AddBuilds("cxx14", allfeatures + allconfigs + cxxflags + ["-std=c++14"], [])
+        AddBuilds("cxx14", allfeatures + allconfigs + cxxflags + ["-std=c++14"])
 
     # 32-bit build
     if conf.CheckFlags(["-m32"], ["-m32"]):
