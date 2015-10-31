@@ -24,7 +24,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">MPack
-   &#160;<span id="projectnumber">0.6</span>
+   &#160;<span id="projectnumber">0.7</span>
    </div>
    <div id="projectbrief">A C encoding/decoding library for the MessagePack serialization format.</div>
   </td>
@@ -100,7 +100,7 @@ Typedefs</h2></td></tr>
 <tr class="memdesc:ga65d410be0305a59ec15cfe700f8b036a"><td class="mdescLeft">&#160;</td><td class="mdescRight">An error handler function to be called when an error is flagged on the writer.  <a href="#ga65d410be0305a59ec15cfe700f8b036a">More...</a><br /></td></tr>
 <tr class="separator:ga65d410be0305a59ec15cfe700f8b036a"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gad5749babfacaa707cbaff06bcbc790a5"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#gad5749babfacaa707cbaff06bcbc790a5">mpack_writer_flush_t</a>) (<a class="el" href="group__writer.html#structmpack__writer__t">mpack_writer_t</a> *writer, const char *buffer, size_t count)</td></tr>
-<tr class="memdesc:gad5749babfacaa707cbaff06bcbc790a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">The mpack writer's flush function to flush the buffer to the output stream.  <a href="#gad5749babfacaa707cbaff06bcbc790a5">More...</a><br /></td></tr>
+<tr class="memdesc:gad5749babfacaa707cbaff06bcbc790a5"><td class="mdescLeft">&#160;</td><td class="mdescRight">The MPack writer's flush function to flush the buffer to the output stream.  <a href="#gad5749babfacaa707cbaff06bcbc790a5">More...</a><br /></td></tr>
 <tr class="separator:gad5749babfacaa707cbaff06bcbc790a5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga97ccab59b332d882d386c10b241eb888"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#ga97ccab59b332d882d386c10b241eb888">mpack_writer_teardown_t</a>) (<a class="el" href="group__writer.html#structmpack__writer__t">mpack_writer_t</a> *writer)</td></tr>
 <tr class="memdesc:ga97ccab59b332d882d386c10b241eb888"><td class="mdescLeft">&#160;</td><td class="mdescRight">A teardown function to be called when the writer is destroyed.  <a href="#ga97ccab59b332d882d386c10b241eb888">More...</a><br /></td></tr>
@@ -109,22 +109,22 @@ Typedefs</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
 Core Writer Functions</h2></td></tr>
 <tr class="memitem:gabf46d5fd103d44d03c412cb7bb52e2d0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#gabf46d5fd103d44d03c412cb7bb52e2d0">mpack_writer_init</a> (<a class="el" href="group__writer.html#structmpack__writer__t">mpack_writer_t</a> *writer, char *buffer, size_t size)</td></tr>
-<tr class="memdesc:gabf46d5fd103d44d03c412cb7bb52e2d0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an mpack writer with the given buffer.  <a href="#gabf46d5fd103d44d03c412cb7bb52e2d0">More...</a><br /></td></tr>
+<tr class="memdesc:gabf46d5fd103d44d03c412cb7bb52e2d0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an MPack writer with the given buffer.  <a href="#gabf46d5fd103d44d03c412cb7bb52e2d0">More...</a><br /></td></tr>
 <tr class="separator:gabf46d5fd103d44d03c412cb7bb52e2d0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga0aa3b265fb5ece9c4cba0f2b1bfbdb53"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#ga0aa3b265fb5ece9c4cba0f2b1bfbdb53">mpack_writer_init_growable</a> (<a class="el" href="group__writer.html#structmpack__writer__t">mpack_writer_t</a> *writer, char **data, size_t *size)</td></tr>
-<tr class="memdesc:ga0aa3b265fb5ece9c4cba0f2b1bfbdb53"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an mpack writer using a growable buffer.  <a href="#ga0aa3b265fb5ece9c4cba0f2b1bfbdb53">More...</a><br /></td></tr>
+<tr class="memdesc:ga0aa3b265fb5ece9c4cba0f2b1bfbdb53"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an MPack writer using a growable buffer.  <a href="#ga0aa3b265fb5ece9c4cba0f2b1bfbdb53">More...</a><br /></td></tr>
 <tr class="separator:ga0aa3b265fb5ece9c4cba0f2b1bfbdb53"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gab3c8d9ebe78513a17a38af28f387d169"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#gab3c8d9ebe78513a17a38af28f387d169">mpack_writer_init_error</a> (<a class="el" href="group__writer.html#structmpack__writer__t">mpack_writer_t</a> *writer, <a class="el" href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a> error)</td></tr>
-<tr class="memdesc:gab3c8d9ebe78513a17a38af28f387d169"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an mpack writer directly into an error state.  <a href="#gab3c8d9ebe78513a17a38af28f387d169">More...</a><br /></td></tr>
+<tr class="memdesc:gab3c8d9ebe78513a17a38af28f387d169"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an MPack writer directly into an error state.  <a href="#gab3c8d9ebe78513a17a38af28f387d169">More...</a><br /></td></tr>
 <tr class="separator:gab3c8d9ebe78513a17a38af28f387d169"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gafb05fb381c28a36b8917a1697e5ab611"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#gafb05fb381c28a36b8917a1697e5ab611">mpack_writer_init_file</a> (<a class="el" href="group__writer.html#structmpack__writer__t">mpack_writer_t</a> *writer, const char *filename)</td></tr>
-<tr class="memdesc:gafb05fb381c28a36b8917a1697e5ab611"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an mpack writer that writes to a file.  <a href="#gafb05fb381c28a36b8917a1697e5ab611">More...</a><br /></td></tr>
+<tr class="memdesc:gafb05fb381c28a36b8917a1697e5ab611"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an MPack writer that writes to a file.  <a href="#gafb05fb381c28a36b8917a1697e5ab611">More...</a><br /></td></tr>
 <tr class="separator:gafb05fb381c28a36b8917a1697e5ab611"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga1cf5a2d9b687d94f637a36123ef7cec0"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#ga1cf5a2d9b687d94f637a36123ef7cec0">mpack_writer_destroy</a> (<a class="el" href="group__writer.html#structmpack__writer__t">mpack_writer_t</a> *writer)</td></tr>
-<tr class="memdesc:ga1cf5a2d9b687d94f637a36123ef7cec0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cleans up the mpack writer, flushing any buffered bytes to the underlying stream, if any.  <a href="#ga1cf5a2d9b687d94f637a36123ef7cec0">More...</a><br /></td></tr>
+<tr class="memdesc:ga1cf5a2d9b687d94f637a36123ef7cec0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cleans up the MPack writer, flushing any buffered bytes to the underlying stream, if any.  <a href="#ga1cf5a2d9b687d94f637a36123ef7cec0">More...</a><br /></td></tr>
 <tr class="separator:ga1cf5a2d9b687d94f637a36123ef7cec0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gacf654c5df6118ee87e9eaca4abacbf80"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#gacf654c5df6118ee87e9eaca4abacbf80">mpack_writer_destroy_cancel</a> (<a class="el" href="group__writer.html#structmpack__writer__t">mpack_writer_t</a> *writer)</td></tr>
-<tr class="memdesc:gacf654c5df6118ee87e9eaca4abacbf80"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cleans up the mpack writer, discarding any open writes and unflushed data.  <a href="#gacf654c5df6118ee87e9eaca4abacbf80">More...</a><br /></td></tr>
+<tr class="memdesc:gacf654c5df6118ee87e9eaca4abacbf80"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cleans up the MPack writer, discarding any open writes and unflushed data.  <a href="#gacf654c5df6118ee87e9eaca4abacbf80">More...</a><br /></td></tr>
 <tr class="separator:gacf654c5df6118ee87e9eaca4abacbf80"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga64b403d4370a99e063052f7b9188ad0b"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#ga64b403d4370a99e063052f7b9188ad0b">mpack_writer_set_context</a> (<a class="el" href="group__writer.html#structmpack__writer__t">mpack_writer_t</a> *writer, void *context)</td></tr>
 <tr class="memdesc:ga64b403d4370a99e063052f7b9188ad0b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the custom pointer to pass to the writer callbacks, such as flush or teardown.  <a href="#ga64b403d4370a99e063052f7b9188ad0b">More...</a><br /></td></tr>
@@ -145,13 +145,13 @@ Core Writer Functions</h2></td></tr>
 <tr class="memdesc:gaf90e598304c7e8a423c534a5d554075e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Places the writer in the given error state, jumping if a jump target is set.  <a href="#gaf90e598304c7e8a423c534a5d554075e">More...</a><br /></td></tr>
 <tr class="separator:gaf90e598304c7e8a423c534a5d554075e"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga3adcd5dc4478fbd25b5b48a1c93f0597"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#ga3adcd5dc4478fbd25b5b48a1c93f0597">mpack_writer_error</a> (<a class="el" href="group__writer.html#structmpack__writer__t">mpack_writer_t</a> *writer)</td></tr>
-<tr class="memdesc:ga3adcd5dc4478fbd25b5b48a1c93f0597"><td class="mdescLeft">&#160;</td><td class="mdescRight">Queries the error state of the mpack writer.  <a href="#ga3adcd5dc4478fbd25b5b48a1c93f0597">More...</a><br /></td></tr>
+<tr class="memdesc:ga3adcd5dc4478fbd25b5b48a1c93f0597"><td class="mdescLeft">&#160;</td><td class="mdescRight">Queries the error state of the MPack writer.  <a href="#ga3adcd5dc4478fbd25b5b48a1c93f0597">More...</a><br /></td></tr>
 <tr class="separator:ga3adcd5dc4478fbd25b5b48a1c93f0597"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga17155afc35912817c13802d502f14e80"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#ga17155afc35912817c13802d502f14e80">mpack_write_tag</a> (<a class="el" href="group__writer.html#structmpack__writer__t">mpack_writer_t</a> *writer, <a class="el" href="group__common.html#structmpack__tag__t">mpack_tag_t</a> tag)</td></tr>
 <tr class="memdesc:ga17155afc35912817c13802d502f14e80"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes a MessagePack object header (an MPack Tag.)  <a href="#ga17155afc35912817c13802d502f14e80">More...</a><br /></td></tr>
 <tr class="separator:ga17155afc35912817c13802d502f14e80"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaf687c771a910e13c0bc66889f214b422"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#gaf687c771a910e13c0bc66889f214b422">mpack_writer_init_stack</a>(writer)</td></tr>
-<tr class="memdesc:gaf687c771a910e13c0bc66889f214b422"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an mpack writer using stack space as a buffer.  <a href="#gaf687c771a910e13c0bc66889f214b422">More...</a><br /></td></tr>
+<tr class="memdesc:gaf687c771a910e13c0bc66889f214b422"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an MPack writer using stack space as a buffer.  <a href="#gaf687c771a910e13c0bc66889f214b422">More...</a><br /></td></tr>
 <tr class="separator:gaf687c771a910e13c0bc66889f214b422"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gabd0dd45e57fae5e859532c71ef39dd62"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_writer_init_stack_line_ex</b>(line,  writer)</td></tr>
 <tr class="separator:gabd0dd45e57fae5e859532c71ef39dd62"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -332,7 +332,7 @@ used</td>
       </table>
 </div><div class="memdoc">
 
-<p>Initializes an mpack writer using stack space as a buffer. </p>
+<p>Initializes an MPack writer using stack space as a buffer. </p>
 <p>A flush function should be added to the writer to flush the buffer. </p>
 
 </div>
@@ -394,7 +394,7 @@ used</td>
       </table>
 </div><div class="memdoc">
 
-<p>The mpack writer's flush function to flush the buffer to the output stream. </p>
+<p>The MPack writer's flush function to flush the buffer to the output stream. </p>
 <p>It should flag an appropriate error on the writer if flushing fails (usually mpack_error_io.)</p>
 <p>The specified context for callbacks is at writer-&gt;context. </p>
 
@@ -1354,7 +1354,7 @@ used</td>
       </table>
 </div><div class="memdoc">
 
-<p>Cleans up the mpack writer, flushing any buffered bytes to the underlying stream, if any. </p>
+<p>Cleans up the MPack writer, flushing any buffered bytes to the underlying stream, if any. </p>
 <p>Returns the final error state of the writer in case an error occurred flushing. Causes an assert if there are any unclosed compound types in tracking mode.</p>
 <p>Note that if a jump handler is set, a writer may jump during destroy if it fails to flush any remaining data. In this case the writer will not be fully destroyed; you can still get the error state, and you must call destroy as usual in the jump handler. </p>
 
@@ -1374,8 +1374,8 @@ used</td>
       </table>
 </div><div class="memdoc">
 
-<p>Cleans up the mpack writer, discarding any open writes and unflushed data. </p>
-<p>Use this to cancel writing in the middle of writing a document (for example in case an error occurred.) This should be used instead of <a class="el" href="group__writer.html#ga1cf5a2d9b687d94f637a36123ef7cec0" title="Cleans up the mpack writer, flushing any buffered bytes to the underlying stream, if any...">mpack_writer_destroy()</a> because the former will assert in tracking mode if there are any unclosed compound types. </p>
+<p>Cleans up the MPack writer, discarding any open writes and unflushed data. </p>
+<p>Use this to cancel writing in the middle of writing a document (for example in case an error occurred.) This should be used instead of <a class="el" href="group__writer.html#ga1cf5a2d9b687d94f637a36123ef7cec0" title="Cleans up the MPack writer, flushing any buffered bytes to the underlying stream, if any...">mpack_writer_destroy()</a> because the former will assert in tracking mode if there are any unclosed compound types. </p>
 
 </div>
 </div>
@@ -1393,7 +1393,7 @@ used</td>
       </table>
 </div><div class="memdoc">
 
-<p>Queries the error state of the mpack writer. </p>
+<p>Queries the error state of the MPack writer. </p>
 <p>If a writer is in an error state, you should discard all data since the last time the error flag was checked. The error flag cannot be cleared. </p>
 
 </div>
@@ -1458,13 +1458,13 @@ used</td>
       </table>
 </div><div class="memdoc">
 
-<p>Initializes an mpack writer with the given buffer. </p>
+<p>Initializes an MPack writer with the given buffer. </p>
 <p>The writer does not assume ownership of the buffer.</p>
 <p>Trying to write past the end of the buffer will result in mpack_error_io unless a flush function is set with <a class="el" href="group__writer.html#ga1337e25984152198814d94b8ddf2e1e1" title="Sets the flush function to write out the data when the buffer is full. ">mpack_writer_set_flush()</a>. To use the data without flushing, call <a class="el" href="group__writer.html#ga52d9c903ac8d34d9b789551d83f09a87" title="Returns the number of bytes currently stored in the buffer. ">mpack_writer_buffer_used()</a> to determine the number of bytes written.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">writer</td><td>The MPack writer. </td></tr>
-    <tr><td class="paramname">buffer</td><td>The buffer into which to write mpack data. </td></tr>
+    <tr><td class="paramname">buffer</td><td>The buffer into which to write MessagePack data. </td></tr>
     <tr><td class="paramname">size</td><td>The size of the buffer. </td></tr>
   </table>
   </dd>
@@ -1496,8 +1496,8 @@ used</td>
       </table>
 </div><div class="memdoc">
 
-<p>Initializes an mpack writer directly into an error state. </p>
-<p>Use this if you are writing a wrapper to <a class="el" href="group__writer.html#gabf46d5fd103d44d03c412cb7bb52e2d0" title="Initializes an mpack writer with the given buffer. ">mpack_writer_init()</a> which can fail its setup. </p>
+<p>Initializes an MPack writer directly into an error state. </p>
+<p>Use this if you are writing a wrapper to <a class="el" href="group__writer.html#gabf46d5fd103d44d03c412cb7bb52e2d0" title="Initializes an MPack writer with the given buffer. ">mpack_writer_init()</a> which can fail its setup. </p>
 
 </div>
 </div>
@@ -1525,7 +1525,14 @@ used</td>
       </table>
 </div><div class="memdoc">
 
-<p>Initializes an mpack writer that writes to a file. </p>
+<p>Initializes an MPack writer that writes to a file. </p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_memory</td><td>if allocation fails </td></tr>
+    <tr><td class="paramname">mpack_error_io</td><td>if the file cannot be opened </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -1559,9 +1566,15 @@ used</td>
       </table>
 </div><div class="memdoc">
 
-<p>Initializes an mpack writer using a growable buffer. </p>
-<p>The data is placed in the given data pointer if and when the writer is destroyed without error. The data should be freed with MPACK_FREE(). The data pointer is NULL during writing, and will remain NULL if an error occurs.</p>
-<p>mpack_error_memory is raised if the buffer fails to grow.</p>
+<p>Initializes an MPack writer using a growable buffer. </p>
+<p>The data is placed in the given data pointer if and when the writer is destroyed without error. The data pointer is NULL during writing, and will remain NULL if an error occurs.</p>
+<p>The allocated data must be freed with MPACK_FREE() (or simply free() if MPack's allocator hasn't been customized.)</p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_memory</td><td>if the buffer fails to grow when flushing (not mpack_error_io)</td></tr>
+  </table>
+  </dd>
+</dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">writer</td><td>The MPack writer. </td></tr>

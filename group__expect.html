@@ -24,7 +24,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">MPack
-   &#160;<span id="projectnumber">0.6</span>
+   &#160;<span id="projectnumber">0.7</span>
    </div>
    <div id="projectbrief">A C encoding/decoding library for the MessagePack serialization format.</div>
   </td>
@@ -123,6 +123,12 @@ Basic Number Functions</h2></td></tr>
 <tr class="memitem:gad676ff64ce7933cade0c85da8a83799f"><td class="memItemLeft" align="right" valign="top">double&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#gad676ff64ce7933cade0c85da8a83799f">mpack_expect_double_strict</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader)</td></tr>
 <tr class="memdesc:gad676ff64ce7933cade0c85da8a83799f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a double.  <a href="#gad676ff64ce7933cade0c85da8a83799f">More...</a><br /></td></tr>
 <tr class="separator:gad676ff64ce7933cade0c85da8a83799f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gab217c0e2062b87129f948c6359c3825a"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#gab217c0e2062b87129f948c6359c3825a">mpack_expect_uint</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader)</td></tr>
+<tr class="memdesc:gab217c0e2062b87129f948c6359c3825a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads an unsigned int.  <a href="#gab217c0e2062b87129f948c6359c3825a">More...</a><br /></td></tr>
+<tr class="separator:gab217c0e2062b87129f948c6359c3825a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae81b9d03f80e49501c9b9a695489315f"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#gae81b9d03f80e49501c9b9a695489315f">mpack_expect_int</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader)</td></tr>
+<tr class="memdesc:gae81b9d03f80e49501c9b9a695489315f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a signed int.  <a href="#gae81b9d03f80e49501c9b9a695489315f">More...</a><br /></td></tr>
+<tr class="separator:gae81b9d03f80e49501c9b9a695489315f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
 Ranged Number Functions</h2></td></tr>
@@ -138,18 +144,24 @@ Ranged Number Functions</h2></td></tr>
 <tr class="memitem:ga7110dc658b713b292e9cafee3ccb7424"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga7110dc658b713b292e9cafee3ccb7424">mpack_expect_u64_range</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint64_t min_value, uint64_t max_value)</td></tr>
 <tr class="memdesc:ga7110dc658b713b292e9cafee3ccb7424"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a 64-bit unsigned integer, ensuring that it falls within the given range.  <a href="#ga7110dc658b713b292e9cafee3ccb7424">More...</a><br /></td></tr>
 <tr class="separator:ga7110dc658b713b292e9cafee3ccb7424"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga61459cbdd02c5b3db5292f9753a03ced"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga61459cbdd02c5b3db5292f9753a03ced"></a>
-uint8_t&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_u8_max</b> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint8_t max_value)</td></tr>
+<tr class="memitem:gaa42508b6153a3531961eb69c38d48bbc"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#gaa42508b6153a3531961eb69c38d48bbc">mpack_expect_uint_range</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, unsigned int min_value, unsigned int max_value)</td></tr>
+<tr class="memdesc:gaa42508b6153a3531961eb69c38d48bbc"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads an unsigned integer, ensuring that it falls within the given range.  <a href="#gaa42508b6153a3531961eb69c38d48bbc">More...</a><br /></td></tr>
+<tr class="separator:gaa42508b6153a3531961eb69c38d48bbc"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga61459cbdd02c5b3db5292f9753a03ced"><td class="memItemLeft" align="right" valign="top">uint8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga61459cbdd02c5b3db5292f9753a03ced">mpack_expect_u8_max</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint8_t max_value)</td></tr>
+<tr class="memdesc:ga61459cbdd02c5b3db5292f9753a03ced"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads an 8-bit unsigned integer, ensuring that it is at most max_value.  <a href="#ga61459cbdd02c5b3db5292f9753a03ced">More...</a><br /></td></tr>
 <tr class="separator:ga61459cbdd02c5b3db5292f9753a03ced"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga34cfd4d43ba388ff4f983b35c65c669a"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga34cfd4d43ba388ff4f983b35c65c669a"></a>
-uint16_t&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_u16_max</b> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint16_t max_value)</td></tr>
+<tr class="memitem:ga34cfd4d43ba388ff4f983b35c65c669a"><td class="memItemLeft" align="right" valign="top">uint16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga34cfd4d43ba388ff4f983b35c65c669a">mpack_expect_u16_max</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint16_t max_value)</td></tr>
+<tr class="memdesc:ga34cfd4d43ba388ff4f983b35c65c669a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a 16-bit unsigned integer, ensuring that it is at most max_value.  <a href="#ga34cfd4d43ba388ff4f983b35c65c669a">More...</a><br /></td></tr>
 <tr class="separator:ga34cfd4d43ba388ff4f983b35c65c669a"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga4781e89d1712ae950b768362b8e98065"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga4781e89d1712ae950b768362b8e98065"></a>
-uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_u32_max</b> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t max_value)</td></tr>
+<tr class="memitem:ga4781e89d1712ae950b768362b8e98065"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga4781e89d1712ae950b768362b8e98065">mpack_expect_u32_max</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t max_value)</td></tr>
+<tr class="memdesc:ga4781e89d1712ae950b768362b8e98065"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a 32-bit unsigned integer, ensuring that it is at most max_value.  <a href="#ga4781e89d1712ae950b768362b8e98065">More...</a><br /></td></tr>
 <tr class="separator:ga4781e89d1712ae950b768362b8e98065"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gac5babd6ebf912abb4ed67ca8808f3ad0"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gac5babd6ebf912abb4ed67ca8808f3ad0"></a>
-uint64_t&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_u64_max</b> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint64_t max_value)</td></tr>
+<tr class="memitem:gac5babd6ebf912abb4ed67ca8808f3ad0"><td class="memItemLeft" align="right" valign="top">uint64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#gac5babd6ebf912abb4ed67ca8808f3ad0">mpack_expect_u64_max</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint64_t max_value)</td></tr>
+<tr class="memdesc:gac5babd6ebf912abb4ed67ca8808f3ad0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a 64-bit unsigned integer, ensuring that it is at most max_value.  <a href="#gac5babd6ebf912abb4ed67ca8808f3ad0">More...</a><br /></td></tr>
 <tr class="separator:gac5babd6ebf912abb4ed67ca8808f3ad0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga279a98fc2bb44cbf837fafc70df35bef"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga279a98fc2bb44cbf837fafc70df35bef">mpack_expect_uint_max</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, unsigned int max_value)</td></tr>
+<tr class="memdesc:ga279a98fc2bb44cbf837fafc70df35bef"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads an unsigned integer, ensuring that it is at most max_value.  <a href="#ga279a98fc2bb44cbf837fafc70df35bef">More...</a><br /></td></tr>
+<tr class="separator:ga279a98fc2bb44cbf837fafc70df35bef"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaa553c386f7ad6d05423835d31a439461"><td class="memItemLeft" align="right" valign="top">int8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#gaa553c386f7ad6d05423835d31a439461">mpack_expect_i8_range</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, int8_t min_value, int8_t max_value)</td></tr>
 <tr class="memdesc:gaa553c386f7ad6d05423835d31a439461"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads an 8-bit signed integer, ensuring that it falls within the given range.  <a href="#gaa553c386f7ad6d05423835d31a439461">More...</a><br /></td></tr>
 <tr class="separator:gaa553c386f7ad6d05423835d31a439461"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -162,6 +174,24 @@ uint64_t&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_u64_
 <tr class="memitem:ga7f7356f1e0638a076fac1a8db87f4f53"><td class="memItemLeft" align="right" valign="top">int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga7f7356f1e0638a076fac1a8db87f4f53">mpack_expect_i64_range</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, int64_t min_value, int64_t max_value)</td></tr>
 <tr class="memdesc:ga7f7356f1e0638a076fac1a8db87f4f53"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a 64-bit signed integer, ensuring that it falls within the given range.  <a href="#ga7f7356f1e0638a076fac1a8db87f4f53">More...</a><br /></td></tr>
 <tr class="separator:ga7f7356f1e0638a076fac1a8db87f4f53"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga749d58ee5e884bce54b9767e7ee56c39"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga749d58ee5e884bce54b9767e7ee56c39">mpack_expect_int_range</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, int min_value, int max_value)</td></tr>
+<tr class="memdesc:ga749d58ee5e884bce54b9767e7ee56c39"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a signed integer, ensuring that it falls within the given range.  <a href="#ga749d58ee5e884bce54b9767e7ee56c39">More...</a><br /></td></tr>
+<tr class="separator:ga749d58ee5e884bce54b9767e7ee56c39"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1436e08a6cb710bf11dabff20188f67b"><td class="memItemLeft" align="right" valign="top">int8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga1436e08a6cb710bf11dabff20188f67b">mpack_expect_i8_max</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, int8_t max_value)</td></tr>
+<tr class="memdesc:ga1436e08a6cb710bf11dabff20188f67b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads an 8-bit signed integer, ensuring that it is at least zero and at most max_value.  <a href="#ga1436e08a6cb710bf11dabff20188f67b">More...</a><br /></td></tr>
+<tr class="separator:ga1436e08a6cb710bf11dabff20188f67b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga4ac3f09e7eb21aec1926aaff0ca37128"><td class="memItemLeft" align="right" valign="top">int16_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga4ac3f09e7eb21aec1926aaff0ca37128">mpack_expect_i16_max</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, int16_t max_value)</td></tr>
+<tr class="memdesc:ga4ac3f09e7eb21aec1926aaff0ca37128"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a 16-bit signed integer, ensuring that it is at least zero and at most max_value.  <a href="#ga4ac3f09e7eb21aec1926aaff0ca37128">More...</a><br /></td></tr>
+<tr class="separator:ga4ac3f09e7eb21aec1926aaff0ca37128"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gacb9b77aa647947a1e47ab851c715cf6a"><td class="memItemLeft" align="right" valign="top">int32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#gacb9b77aa647947a1e47ab851c715cf6a">mpack_expect_i32_max</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, int32_t max_value)</td></tr>
+<tr class="memdesc:gacb9b77aa647947a1e47ab851c715cf6a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a 32-bit signed integer, ensuring that it is at least zero and at most max_value.  <a href="#gacb9b77aa647947a1e47ab851c715cf6a">More...</a><br /></td></tr>
+<tr class="separator:gacb9b77aa647947a1e47ab851c715cf6a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7354498073dfd3583db72591931d22a2"><td class="memItemLeft" align="right" valign="top">int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga7354498073dfd3583db72591931d22a2">mpack_expect_i64_max</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, int64_t max_value)</td></tr>
+<tr class="memdesc:ga7354498073dfd3583db72591931d22a2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a 64-bit signed integer, ensuring that it is at least zero and at most max_value.  <a href="#ga7354498073dfd3583db72591931d22a2">More...</a><br /></td></tr>
+<tr class="separator:ga7354498073dfd3583db72591931d22a2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7a28a0a5daeeb9b4f10d2169d309f5eb"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga7a28a0a5daeeb9b4f10d2169d309f5eb">mpack_expect_int_max</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, int max_value)</td></tr>
+<tr class="memdesc:ga7a28a0a5daeeb9b4f10d2169d309f5eb"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads an int, ensuring that it is at least zero and at most max_value.  <a href="#ga7a28a0a5daeeb9b4f10d2169d309f5eb">More...</a><br /></td></tr>
+<tr class="separator:ga7a28a0a5daeeb9b4f10d2169d309f5eb"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga0fffadf5032a669d582025f5131b53e2"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga0fffadf5032a669d582025f5131b53e2">mpack_expect_float_range</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, float min_value, float max_value)</td></tr>
 <tr class="memdesc:ga0fffadf5032a669d582025f5131b53e2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a number, ensuring that it falls within the given range and returning the value as a float.  <a href="#ga0fffadf5032a669d582025f5131b53e2">More...</a><br /></td></tr>
 <tr class="separator:ga0fffadf5032a669d582025f5131b53e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -201,27 +231,42 @@ Compound Types</h2></td></tr>
 <tr class="memitem:gaa2d131161862c386e9f048ad93fb3d45"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#gaa2d131161862c386e9f048ad93fb3d45">mpack_expect_map_range</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t min_count, uint32_t max_count)</td></tr>
 <tr class="memdesc:gaa2d131161862c386e9f048ad93fb3d45"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of a map with a number of elements in the given range, returning its element count.  <a href="#gaa2d131161862c386e9f048ad93fb3d45">More...</a><br /></td></tr>
 <tr class="separator:gaa2d131161862c386e9f048ad93fb3d45"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga36d86c85877f94aa7b493aaa739c8849"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga36d86c85877f94aa7b493aaa739c8849">mpack_expect_map_max</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t max_count)</td></tr>
+<tr class="memdesc:ga36d86c85877f94aa7b493aaa739c8849"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of a map with a number of elements at most max_count, returning its element count.  <a href="#ga36d86c85877f94aa7b493aaa739c8849">More...</a><br /></td></tr>
+<tr class="separator:ga36d86c85877f94aa7b493aaa739c8849"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gab66c8c170be1b394b397ccc041d6c133"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#gab66c8c170be1b394b397ccc041d6c133">mpack_expect_map_match</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t count)</td></tr>
 <tr class="memdesc:gab66c8c170be1b394b397ccc041d6c133"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of a map of the exact size given.  <a href="#gab66c8c170be1b394b397ccc041d6c133">More...</a><br /></td></tr>
 <tr class="separator:gab66c8c170be1b394b397ccc041d6c133"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaee3ac5d2ea0dc864b5898673a67c69ee"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gaee3ac5d2ea0dc864b5898673a67c69ee"></a>
-bool&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_map_or_nil</b> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t *count)</td></tr>
+<tr class="memitem:gaee3ac5d2ea0dc864b5898673a67c69ee"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#gaee3ac5d2ea0dc864b5898673a67c69ee">mpack_expect_map_or_nil</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t *count)</td></tr>
+<tr class="memdesc:gaee3ac5d2ea0dc864b5898673a67c69ee"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a nil node or the start of a map, returning whether a map was read and placing its number of key/value pairs in count.  <a href="#gaee3ac5d2ea0dc864b5898673a67c69ee">More...</a><br /></td></tr>
 <tr class="separator:gaee3ac5d2ea0dc864b5898673a67c69ee"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2aae8867b092afd5a2350d4701687b35"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga2aae8867b092afd5a2350d4701687b35">mpack_expect_map_max_or_nil</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t max_count, uint32_t *count)</td></tr>
+<tr class="memdesc:ga2aae8867b092afd5a2350d4701687b35"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a nil node or the start of a map with a number of elements at most max_count, returning whether a map was read and placing its number of key/value pairs in count.  <a href="#ga2aae8867b092afd5a2350d4701687b35">More...</a><br /></td></tr>
+<tr class="separator:ga2aae8867b092afd5a2350d4701687b35"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga18285492fd04458fb7ab0d151bea0402"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga18285492fd04458fb7ab0d151bea0402">mpack_expect_array</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader)</td></tr>
 <tr class="memdesc:ga18285492fd04458fb7ab0d151bea0402"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of an array, returning its element count.  <a href="#ga18285492fd04458fb7ab0d151bea0402">More...</a><br /></td></tr>
 <tr class="separator:ga18285492fd04458fb7ab0d151bea0402"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga4c0b7dd785576183e5444691c7d32b90"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga4c0b7dd785576183e5444691c7d32b90">mpack_expect_array_range</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t min_count, uint32_t max_count)</td></tr>
 <tr class="memdesc:ga4c0b7dd785576183e5444691c7d32b90"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of an array with a number of elements in the given range, returning its element count.  <a href="#ga4c0b7dd785576183e5444691c7d32b90">More...</a><br /></td></tr>
 <tr class="separator:ga4c0b7dd785576183e5444691c7d32b90"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga3e1599675ca83c5c03af8de220b9a826"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga3e1599675ca83c5c03af8de220b9a826"></a>
-uint32_t&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_array_max</b> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t max_count)</td></tr>
+<tr class="memitem:ga3e1599675ca83c5c03af8de220b9a826"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga3e1599675ca83c5c03af8de220b9a826">mpack_expect_array_max</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t max_count)</td></tr>
+<tr class="memdesc:ga3e1599675ca83c5c03af8de220b9a826"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of an array with a number of elements at most max_count, returning its element count.  <a href="#ga3e1599675ca83c5c03af8de220b9a826">More...</a><br /></td></tr>
 <tr class="separator:ga3e1599675ca83c5c03af8de220b9a826"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga799bb820a49f5a8a70e604466f8ab9b5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga799bb820a49f5a8a70e604466f8ab9b5">mpack_expect_array_match</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t count)</td></tr>
 <tr class="memdesc:ga799bb820a49f5a8a70e604466f8ab9b5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of an array of the exact size given.  <a href="#ga799bb820a49f5a8a70e604466f8ab9b5">More...</a><br /></td></tr>
 <tr class="separator:ga799bb820a49f5a8a70e604466f8ab9b5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga98d80bf47c6b2deb5cfa607998fd2c58"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga98d80bf47c6b2deb5cfa607998fd2c58">mpack_expect_array_alloc</a>(reader,  Type,  max_count,  count)</td></tr>
-<tr class="memdesc:ga98d80bf47c6b2deb5cfa607998fd2c58"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of an array and allocates storage for it, placing its size in count.  <a href="#ga98d80bf47c6b2deb5cfa607998fd2c58">More...</a><br /></td></tr>
-<tr class="separator:ga98d80bf47c6b2deb5cfa607998fd2c58"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2f3202b0ed8916b311e2c225172afdb3"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga2f3202b0ed8916b311e2c225172afdb3">mpack_expect_array_or_nil</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t *count)</td></tr>
+<tr class="memdesc:ga2f3202b0ed8916b311e2c225172afdb3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a nil node or the start of an array, returning whether an array was read and placing its number of elements in count.  <a href="#ga2f3202b0ed8916b311e2c225172afdb3">More...</a><br /></td></tr>
+<tr class="separator:ga2f3202b0ed8916b311e2c225172afdb3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga0ad5153a6d29bebf8251ba5beb1aaef3"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga0ad5153a6d29bebf8251ba5beb1aaef3">mpack_expect_array_max_or_nil</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t max_count, uint32_t *count)</td></tr>
+<tr class="memdesc:ga0ad5153a6d29bebf8251ba5beb1aaef3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a nil node or the start of an array with a number of elements at most max_count, returning whether an array was read and placing its number of key/value pairs in count.  <a href="#ga0ad5153a6d29bebf8251ba5beb1aaef3">More...</a><br /></td></tr>
+<tr class="separator:ga0ad5153a6d29bebf8251ba5beb1aaef3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7e69ee365f459dec5cdc3c797c7d0642"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga7e69ee365f459dec5cdc3c797c7d0642">mpack_expect_array_alloc</a>(reader,  Type,  max_count,  out_count)</td></tr>
+<tr class="memdesc:ga7e69ee365f459dec5cdc3c797c7d0642"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of an array and allocates storage for it, placing its size in out_count.  <a href="#ga7e69ee365f459dec5cdc3c797c7d0642">More...</a><br /></td></tr>
+<tr class="separator:ga7e69ee365f459dec5cdc3c797c7d0642"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaccad78065b48e2fd3c15c32e91927a75"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#gaccad78065b48e2fd3c15c32e91927a75">mpack_expect_array_or_nil_alloc</a>(reader,  Type,  max_count,  out_count)</td></tr>
+<tr class="memdesc:gaccad78065b48e2fd3c15c32e91927a75"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a nil node or the start of an array and allocates storage for it, placing its size in out_count.  <a href="#gaccad78065b48e2fd3c15c32e91927a75">More...</a><br /></td></tr>
+<tr class="separator:gaccad78065b48e2fd3c15c32e91927a75"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
 String Functions</h2></td></tr>
@@ -231,9 +276,12 @@ String Functions</h2></td></tr>
 <tr class="memitem:ga658205c994cf8fce528f4c8a3a957a14"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga658205c994cf8fce528f4c8a3a957a14">mpack_expect_str_buf</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, char *buf, size_t bufsize)</td></tr>
 <tr class="memdesc:ga658205c994cf8fce528f4c8a3a957a14"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a string of at most the given size, writing it into the given buffer and returning its size in bytes.  <a href="#ga658205c994cf8fce528f4c8a3a957a14">More...</a><br /></td></tr>
 <tr class="separator:ga658205c994cf8fce528f4c8a3a957a14"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga4b096b7fb963f522305ebaeafc777dd6"><td class="memItemLeft" align="right" valign="top">MPACK_INLINE_SPEED void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga4b096b7fb963f522305ebaeafc777dd6">mpack_expect_str_max</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t maxsize)</td></tr>
-<tr class="memdesc:ga4b096b7fb963f522305ebaeafc777dd6"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of a string, raising an error if its length is not at most the given number of bytes (not including any null-terminator.)  <a href="#ga4b096b7fb963f522305ebaeafc777dd6">More...</a><br /></td></tr>
-<tr class="separator:ga4b096b7fb963f522305ebaeafc777dd6"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8c44c450649514ee1a31e567d39f0bf0"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga8c44c450649514ee1a31e567d39f0bf0">mpack_expect_utf8</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, char *buf, size_t bufsize)</td></tr>
+<tr class="memdesc:ga8c44c450649514ee1a31e567d39f0bf0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a string into the given buffer, ensuring it is a valid UTF-8 string and returning its size in bytes.  <a href="#ga8c44c450649514ee1a31e567d39f0bf0">More...</a><br /></td></tr>
+<tr class="separator:ga8c44c450649514ee1a31e567d39f0bf0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaea5d6e47485092366b64d7667fc93916"><td class="memItemLeft" align="right" valign="top">MPACK_INLINE_SPEED uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#gaea5d6e47485092366b64d7667fc93916">mpack_expect_str_max</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t maxsize)</td></tr>
+<tr class="memdesc:gaea5d6e47485092366b64d7667fc93916"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of a string, raising an error if its length is not at most the given number of bytes (not including any null-terminator.)  <a href="#gaea5d6e47485092366b64d7667fc93916">More...</a><br /></td></tr>
+<tr class="separator:gaea5d6e47485092366b64d7667fc93916"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga2125706c0ccfa05074f2a0551fbf2cf1"><td class="memItemLeft" align="right" valign="top">MPACK_INLINE_SPEED void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga2125706c0ccfa05074f2a0551fbf2cf1">mpack_expect_str_length</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t count)</td></tr>
 <tr class="memdesc:ga2125706c0ccfa05074f2a0551fbf2cf1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of a string, raising an error if its length is not exactly the given number of bytes (not including any null-terminator.)  <a href="#ga2125706c0ccfa05074f2a0551fbf2cf1">More...</a><br /></td></tr>
 <tr class="separator:ga2125706c0ccfa05074f2a0551fbf2cf1"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -243,27 +291,33 @@ String Functions</h2></td></tr>
 <tr class="memitem:ga7079e453f462184ada877d68816d59e3"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga7079e453f462184ada877d68816d59e3">mpack_expect_utf8_alloc</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, size_t maxsize, size_t *size)</td></tr>
 <tr class="memdesc:ga7079e453f462184ada877d68816d59e3"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a string with the given total maximum size, allocating storage for it and ensuring it is valid UTF-8.  <a href="#ga7079e453f462184ada877d68816d59e3">More...</a><br /></td></tr>
 <tr class="separator:ga7079e453f462184ada877d68816d59e3"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga3ceade6375ab699c1ef05ef9f5c2ff90"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga3ceade6375ab699c1ef05ef9f5c2ff90">mpack_expect_str_match</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, const char *str, size_t length)</td></tr>
+<tr class="memdesc:ga3ceade6375ab699c1ef05ef9f5c2ff90"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a string, ensuring it exactly matches the given string.  <a href="#ga3ceade6375ab699c1ef05ef9f5c2ff90">More...</a><br /></td></tr>
+<tr class="separator:ga3ceade6375ab699c1ef05ef9f5c2ff90"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga94489d03628c1fb1a3d0ac6971600fe8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga94489d03628c1fb1a3d0ac6971600fe8">mpack_expect_cstr</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, char *buf, size_t size)</td></tr>
-<tr class="memdesc:ga94489d03628c1fb1a3d0ac6971600fe8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a string into the given buffer, ensures it has no null-bytes, and adds null-terminator at the end.  <a href="#ga94489d03628c1fb1a3d0ac6971600fe8">More...</a><br /></td></tr>
+<tr class="memdesc:ga94489d03628c1fb1a3d0ac6971600fe8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a string into the given buffer, ensures it has no null bytes, and adds a null-terminator at the end.  <a href="#ga94489d03628c1fb1a3d0ac6971600fe8">More...</a><br /></td></tr>
 <tr class="separator:ga94489d03628c1fb1a3d0ac6971600fe8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga62be63032f3c84181eeed4609f0dddb4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga62be63032f3c84181eeed4609f0dddb4">mpack_expect_utf8_cstr</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, char *buf, size_t size)</td></tr>
-<tr class="memdesc:ga62be63032f3c84181eeed4609f0dddb4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a string into the given buffer, ensures it is a valid UTF-8 string, and adds null-terminator at the end.  <a href="#ga62be63032f3c84181eeed4609f0dddb4">More...</a><br /></td></tr>
+<tr class="memdesc:ga62be63032f3c84181eeed4609f0dddb4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a string into the given buffer, ensures it is a valid UTF-8 string without null characters, and adds a null-terminator at the end.  <a href="#ga62be63032f3c84181eeed4609f0dddb4">More...</a><br /></td></tr>
 <tr class="separator:ga62be63032f3c84181eeed4609f0dddb4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gab6d2d920a0ed7d39e251ac8d6f077998"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#gab6d2d920a0ed7d39e251ac8d6f077998">mpack_expect_cstr_alloc</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, size_t maxsize)</td></tr>
-<tr class="memdesc:gab6d2d920a0ed7d39e251ac8d6f077998"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a string, allocates storage for it, ensures it has no null-bytes, and adds null-terminator at the end.  <a href="#gab6d2d920a0ed7d39e251ac8d6f077998">More...</a><br /></td></tr>
+<tr class="memdesc:gab6d2d920a0ed7d39e251ac8d6f077998"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a string with the given total maximum size (including space for a null-terminator), allocates storage for it, ensures it has no null-bytes, and adds a null-terminator at the end.  <a href="#gab6d2d920a0ed7d39e251ac8d6f077998">More...</a><br /></td></tr>
 <tr class="separator:gab6d2d920a0ed7d39e251ac8d6f077998"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga8f16d7ec771277e1be2a35ea0573db31"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga8f16d7ec771277e1be2a35ea0573db31">mpack_expect_cstr_match</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, const char *str)</td></tr>
-<tr class="memdesc:ga8f16d7ec771277e1be2a35ea0573db31"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a string, ensuring it exactly matches the given null-terminated string.  <a href="#ga8f16d7ec771277e1be2a35ea0573db31">More...</a><br /></td></tr>
-<tr class="separator:ga8f16d7ec771277e1be2a35ea0573db31"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5acb7f64d13ce1a09670377cbbbf68c7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga5acb7f64d13ce1a09670377cbbbf68c7"></a>
+char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_utf8_cstr_alloc</b> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, size_t maxsize)</td></tr>
+<tr class="separator:ga5acb7f64d13ce1a09670377cbbbf68c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga45a0891f890670e68efeaf1e0772d4b1"><td class="memItemLeft" align="right" valign="top">MPACK_INLINE_SPEED void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga45a0891f890670e68efeaf1e0772d4b1">mpack_expect_cstr_match</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, const char *str)</td></tr>
+<tr class="memdesc:ga45a0891f890670e68efeaf1e0772d4b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a string, ensuring it exactly matches the given null-terminated string.  <a href="#ga45a0891f890670e68efeaf1e0772d4b1">More...</a><br /></td></tr>
+<tr class="separator:ga45a0891f890670e68efeaf1e0772d4b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
 Binary Data / Extension Functions</h2></td></tr>
 <tr class="memitem:gadcf7fc94ae30ed5c3752291a0efd43c5"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#gadcf7fc94ae30ed5c3752291a0efd43c5">mpack_expect_bin</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader)</td></tr>
 <tr class="memdesc:gadcf7fc94ae30ed5c3752291a0efd43c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of a binary blob, returning its size in bytes.  <a href="#gadcf7fc94ae30ed5c3752291a0efd43c5">More...</a><br /></td></tr>
 <tr class="separator:gadcf7fc94ae30ed5c3752291a0efd43c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga1fc38a1a41ea8f64f639c565050831a1"><td class="memItemLeft" align="right" valign="top">MPACK_INLINE_SPEED void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga1fc38a1a41ea8f64f639c565050831a1">mpack_expect_bin_max</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t maxsize)</td></tr>
-<tr class="memdesc:ga1fc38a1a41ea8f64f639c565050831a1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of a binary blob, raising an error if its length is not at most the given number of bytes.  <a href="#ga1fc38a1a41ea8f64f639c565050831a1">More...</a><br /></td></tr>
-<tr class="separator:ga1fc38a1a41ea8f64f639c565050831a1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac2050120f7cc80ca7ef8748774cc80ed"><td class="memItemLeft" align="right" valign="top">MPACK_INLINE_SPEED uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#gac2050120f7cc80ca7ef8748774cc80ed">mpack_expect_bin_max</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t maxsize)</td></tr>
+<tr class="memdesc:gac2050120f7cc80ca7ef8748774cc80ed"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of a binary blob, raising an error if its length is not at most the given number of bytes.  <a href="#gac2050120f7cc80ca7ef8748774cc80ed">More...</a><br /></td></tr>
+<tr class="separator:gac2050120f7cc80ca7ef8748774cc80ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gace8202406ef14871b82ee0b4f3a1da21"><td class="memItemLeft" align="right" valign="top">MPACK_INLINE_SPEED void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#gace8202406ef14871b82ee0b4f3a1da21">mpack_expect_bin_size</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t count)</td></tr>
 <tr class="memdesc:gace8202406ef14871b82ee0b4f3a1da21"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of a binary blob, raising an error if its length is not exactly the given number of bytes.  <a href="#gace8202406ef14871b82ee0b4f3a1da21">More...</a><br /></td></tr>
 <tr class="separator:gace8202406ef14871b82ee0b4f3a1da21"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -276,19 +330,19 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
 <tr class="memitem:ga513a9ce0e5bf78128d2d174bf1434538"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga513a9ce0e5bf78128d2d174bf1434538">mpack_expect_bin_alloc</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, size_t maxsize, size_t *size)</td></tr>
 <tr class="memdesc:ga513a9ce0e5bf78128d2d174bf1434538"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a binary blob with the given total maximum size, allocating storage for it.  <a href="#ga513a9ce0e5bf78128d2d174bf1434538">More...</a><br /></td></tr>
 <tr class="separator:ga513a9ce0e5bf78128d2d174bf1434538"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga29d27dd1c1011dc33505d1b6f8ee2b7e"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga29d27dd1c1011dc33505d1b6f8ee2b7e">mpack_expect_ext_alloc</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, size_t maxsize, uint8_t *exttype, size_t *size)</td></tr>
-<tr class="memdesc:ga29d27dd1c1011dc33505d1b6f8ee2b7e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads an extension object with the given total maximum size, allocating storage for it.  <a href="#ga29d27dd1c1011dc33505d1b6f8ee2b7e">More...</a><br /></td></tr>
-<tr class="separator:ga29d27dd1c1011dc33505d1b6f8ee2b7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gab9b6ffdd8babbe74664003a4fad2f83f"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#gab9b6ffdd8babbe74664003a4fad2f83f">mpack_expect_ext_type_alloc</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint8_t exttype, size_t maxsize, size_t *size)</td></tr>
-<tr class="memdesc:gab9b6ffdd8babbe74664003a4fad2f83f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads an extension object of the given type with the given total maximum size, allocating storage for it.  <a href="#gab9b6ffdd8babbe74664003a4fad2f83f">More...</a><br /></td></tr>
-<tr class="separator:gab9b6ffdd8babbe74664003a4fad2f83f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
+Special Functions</h2></td></tr>
+<tr class="memitem:ga6e9c48430fa233615ec9b5439f9ed451"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga6e9c48430fa233615ec9b5439f9ed451">mpack_expect_tag</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, <a class="el" href="group__common.html#structmpack__tag__t">mpack_tag_t</a> tag)</td></tr>
+<tr class="memdesc:ga6e9c48430fa233615ec9b5439f9ed451"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a MessagePack object header (an MPack tag), expecting it to exactly match the given tag.  <a href="#ga6e9c48430fa233615ec9b5439f9ed451">More...</a><br /></td></tr>
+<tr class="separator:ga6e9c48430fa233615ec9b5439f9ed451"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>The MPack Expect API allows you to easily read MessagePack data when you expect it to follow a predefined schema. </p>
 <p>The main purpose of the Expect API is convenience, so the API is lax. It allows overlong / inefficiently encoded sequences, and it automatically converts between similar types where there is no loss of precision (unless otherwise noted.) It will convert from unsigned to signed or from float to double for example.</p>
 <p>When using any of the expect functions, if the type or value of what was read does not match what is expected, <a class="el" href="group__common.html#gga9d9f282ca4183ab5190e09d04c1f74c4ac91d0dcefbb9c7b9f41403bbc674aef2">mpack_error_type</a> is raised. </p>
 <h2 class="groupheader">Macro Definition Documentation</h2>
-<a class="anchor" id="ga98d80bf47c6b2deb5cfa607998fd2c58"></a>
+<a class="anchor" id="ga7e69ee365f459dec5cdc3c797c7d0642"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -314,7 +368,7 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">&#160;</td>
-          <td class="paramname">count&#160;</td>
+          <td class="paramname">out_count&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -324,8 +378,68 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
       </table>
 </div><div class="memdoc">
 
-<p>Reads the start of an array and allocates storage for it, placing its size in count. </p>
-<p>A number of objects follow equal to the element count of the array. </p>
+<p>Reads the start of an array and allocates storage for it, placing its size in out_count. </p>
+<p>A number of objects follow equal to the element count of the array. You must call <a class="el" href="group__reader.html#gaddae460657b9a26207ed34352bff0b06">mpack_done_array()</a> when done (even if the element count is zero.)</p>
+<p>If an error occurs, NULL is returned and the reader is placed in an error state.</p>
+<p>If the count is zero, NULL is returned. This does not indicate error. You should not check the return value for NULL to check for errors; only check the reader's error state.</p>
+<p>The allocated array must be freed with MPACK_FREE() (or simply free() if MPack's allocator hasn't been customized.)</p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_type</td><td>if the value is not an array or if its size is greater than max_count. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="gaccad78065b48e2fd3c15c32e91927a75"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define mpack_expect_array_or_nil_alloc</td>
+          <td>(</td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">reader, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">Type, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">max_count, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">&#160;</td>
+          <td class="paramname">out_count&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads a nil node or the start of an array and allocates storage for it, placing its size in out_count. </p>
+<p>A number of objects follow equal to the element count of the array if a non-empty array was read.</p>
+<p>If an error occurs, NULL is returned and the reader is placed in an error state.</p>
+<p>If a nil node was read, NULL is returned. If an empty array was read, <a class="el" href="group__reader.html#gaddae460657b9a26207ed34352bff0b06" title="Finishes reading an array. ">mpack_done_array()</a> is called automatically and NULL is returned. These do not indicate error. You should not check the return value for NULL to check for errors; only check the reader's error state.</p>
+<p>The allocated array must be freed with MPACK_FREE() (or simply free() if MPack's allocator hasn't been customized.)</p>
+<dl class="section warning"><dt>Warning</dt><dd>You must call <a class="el" href="group__reader.html#gaddae460657b9a26207ed34352bff0b06">mpack_done_array()</a> if and only if a non-zero element count is read. This function does not differentiate between nil and an empty array.</dd></dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_type</td><td>if the value is not an array or if its size is greater than max_count. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -377,7 +491,121 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
 <p>A number of values follow equal to the element count of the array. <a class="el" href="group__reader.html#gaddae460657b9a26207ed34352bff0b06">mpack_done_array()</a> must be called once all elements have been read.</p>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
-    <tr><td class="paramname">mpack_error_type</td><td>if the value is not an array or if its size does not fall within the given range. </td></tr>
+    <tr><td class="paramname">mpack_error_type</td><td>if the value is not an array or if its size does not match the given count. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga3e1599675ca83c5c03af8de220b9a826"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t mpack_expect_array_max </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
+          <td class="paramname"><em>reader</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>max_count</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads the start of an array with a number of elements at most max_count, returning its element count. </p>
+<p>A number of values follow equal to the element count of the array. <a class="el" href="group__reader.html#gaddae460657b9a26207ed34352bff0b06">mpack_done_array()</a> must be called once all elements have been read.</p>
+<p>Zero is returned if an error occurs.</p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_type</td><td>if the value is not an array or if its size is greater than max_count. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga0ad5153a6d29bebf8251ba5beb1aaef3"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool mpack_expect_array_max_or_nil </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
+          <td class="paramname"><em>reader</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>max_count</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t *&#160;</td>
+          <td class="paramname"><em>count</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads a nil node or the start of an array with a number of elements at most max_count, returning whether an array was read and placing its number of key/value pairs in count. </p>
+<p>If an array was read, a number of values follow equal to the element count of the array. <a class="el" href="group__reader.html#gaddae460657b9a26207ed34352bff0b06">mpack_done_array()</a> should also be called once all elements have been read (only if an array was read.)</p>
+<dl class="section return"><dt>Returns</dt><dd>true if an array was read successfully; false if nil was read or an error occured. </dd></dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_type</td><td>if the value is not a nil or array. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga2f3202b0ed8916b311e2c225172afdb3"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool mpack_expect_array_or_nil </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
+          <td class="paramname"><em>reader</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t *&#160;</td>
+          <td class="paramname"><em>count</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads a nil node or the start of an array, returning whether an array was read and placing its number of elements in count. </p>
+<p>If an array was read, a number of values follow equal to the element count of the array. <a class="el" href="group__reader.html#gaddae460657b9a26207ed34352bff0b06">mpack_done_array()</a> should also be called once all elements have been read (only if an array was read.)</p>
+<dl class="section return"><dt>Returns</dt><dd>true if an array was read successfully; false if nil was read or an error occured. </dd></dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_type</td><td>if the value is not a nil or array. </td></tr>
   </table>
   </dd>
 </dl>
@@ -416,6 +644,7 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
 
 <p>Reads the start of an array with a number of elements in the given range, returning its element count. </p>
 <p>A number of values follow equal to the element count of the array. <a class="el" href="group__reader.html#gaddae460657b9a26207ed34352bff0b06">mpack_done_array()</a> must be called once all elements have been read.</p>
+<p>min_count is returned if an error occurs.</p>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
     <tr><td class="paramname">mpack_error_type</td><td>if the value is not an array or if its size does not fall within the given range. </td></tr>
@@ -514,12 +743,12 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
 
 </div>
 </div>
-<a class="anchor" id="ga1fc38a1a41ea8f64f639c565050831a1"></a>
+<a class="anchor" id="gac2050120f7cc80ca7ef8748774cc80ed"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">MPACK_INLINE_SPEED void mpack_expect_bin_max </td>
+          <td class="memname">MPACK_INLINE_SPEED uint32_t mpack_expect_bin_max </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
           <td class="paramname"><em>reader</em>, </td>
@@ -623,7 +852,7 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
       </table>
 </div><div class="memdoc">
 
-<p>Reads a string into the given buffer, ensures it has no null-bytes, and adds null-terminator at the end. </p>
+<p>Reads a string into the given buffer, ensures it has no null bytes, and adds a null-terminator at the end. </p>
 <p>Raises mpack_error_too_big if there is not enough room for the string and null-terminator. Raises mpack_error_type if the value is not a string or contains a null byte. </p>
 
 </div>
@@ -652,18 +881,19 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
       </table>
 </div><div class="memdoc">
 
-<p>Reads a string, allocates storage for it, ensures it has no null-bytes, and adds null-terminator at the end. </p>
+<p>Reads a string with the given total maximum size (including space for a null-terminator), allocates storage for it, ensures it has no null-bytes, and adds a null-terminator at the end. </p>
 <p>You assume ownership of the returned pointer if reading succeeds.</p>
+<p>The allocated string must be freed with MPACK_FREE() (or simply free() if MPack's allocator hasn't been customized.)</p>
 <p>Raises mpack_error_too_big if the string plus null-terminator is larger than the given maxsize. Raises mpack_error_invalid if the value is not a string or contains a null byte. </p>
 
 </div>
 </div>
-<a class="anchor" id="ga8f16d7ec771277e1be2a35ea0573db31"></a>
+<a class="anchor" id="ga45a0891f890670e68efeaf1e0772d4b1"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">void mpack_expect_cstr_match </td>
+          <td class="memname">MPACK_INLINE_SPEED void mpack_expect_cstr_match </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
           <td class="paramname"><em>reader</em>, </td>
@@ -777,88 +1007,6 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
   </table>
   </dd>
 </dl>
-
-</div>
-</div>
-<a class="anchor" id="ga29d27dd1c1011dc33505d1b6f8ee2b7e"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">char* mpack_expect_ext_alloc </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
-          <td class="paramname"><em>reader</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>maxsize</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint8_t *&#160;</td>
-          <td class="paramname"><em>exttype</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t *&#160;</td>
-          <td class="paramname"><em>size</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Reads an extension object with the given total maximum size, allocating storage for it. </p>
-<p>The extension type will be written to exttype, and the size will be written to size. </p>
-
-</div>
-</div>
-<a class="anchor" id="gab9b6ffdd8babbe74664003a4fad2f83f"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">char* mpack_expect_ext_type_alloc </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
-          <td class="paramname"><em>reader</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">uint8_t&#160;</td>
-          <td class="paramname"><em>exttype</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>maxsize</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">size_t *&#160;</td>
-          <td class="paramname"><em>size</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Reads an extension object of the given type with the given total maximum size, allocating storage for it. </p>
-<p>The size will be written to size. </p>
 
 </div>
 </div>
@@ -993,6 +1141,36 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
 
 </div>
 </div>
+<a class="anchor" id="ga4ac3f09e7eb21aec1926aaff0ca37128"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int16_t mpack_expect_i16_max </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
+          <td class="paramname"><em>reader</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int16_t&#160;</td>
+          <td class="paramname"><em>max_value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads a 16-bit signed integer, ensuring that it is at least zero and at most max_value. </p>
+<p>The underlying type may be an integer type of any size and signedness, as long as the value can be represented in a 16-bit signed int.</p>
+<p>Returns 0 if an error occurs. </p>
+
+</div>
+</div>
 <a class="anchor" id="ga6c4464418c0444854b3ab39785491a4b"></a>
 <div class="memitem">
 <div class="memproto">
@@ -1046,6 +1224,36 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
 <p>Reads a 32-bit signed integer. </p>
 <p>The underlying type may be an integer type of any size and signedness, as long as the value can be represented in a 32-bit signed int.</p>
 <p>Returns zero if an error occurs. </p>
+
+</div>
+</div>
+<a class="anchor" id="gacb9b77aa647947a1e47ab851c715cf6a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int32_t mpack_expect_i32_max </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
+          <td class="paramname"><em>reader</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int32_t&#160;</td>
+          <td class="paramname"><em>max_value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads a 32-bit signed integer, ensuring that it is at least zero and at most max_value. </p>
+<p>The underlying type may be an integer type of any size and signedness, as long as the value can be represented in a 32-bit signed int.</p>
+<p>Returns 0 if an error occurs. </p>
 
 </div>
 </div>
@@ -1105,6 +1313,36 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
 
 </div>
 </div>
+<a class="anchor" id="ga7354498073dfd3583db72591931d22a2"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int64_t mpack_expect_i64_max </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
+          <td class="paramname"><em>reader</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int64_t&#160;</td>
+          <td class="paramname"><em>max_value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads a 64-bit signed integer, ensuring that it is at least zero and at most max_value. </p>
+<p>The underlying type may be an integer type of any size and signedness, as long as the value can be represented in a 64-bit signed int.</p>
+<p>Returns 0 if an error occurs. </p>
+
+</div>
+</div>
 <a class="anchor" id="ga7f7356f1e0638a076fac1a8db87f4f53"></a>
 <div class="memitem">
 <div class="memproto">
@@ -1161,6 +1399,36 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
 
 </div>
 </div>
+<a class="anchor" id="ga1436e08a6cb710bf11dabff20188f67b"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int8_t mpack_expect_i8_max </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
+          <td class="paramname"><em>reader</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int8_t&#160;</td>
+          <td class="paramname"><em>max_value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads an 8-bit signed integer, ensuring that it is at least zero and at most max_value. </p>
+<p>The underlying type may be an integer type of any size and signedness, as long as the value can be represented in an 8-bit signed int.</p>
+<p>Returns 0 if an error occurs. </p>
+
+</div>
+</div>
 <a class="anchor" id="gaa553c386f7ad6d05423835d31a439461"></a>
 <div class="memitem">
 <div class="memproto">
@@ -1197,6 +1465,26 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
 
 </div>
 </div>
+<a class="anchor" id="gae81b9d03f80e49501c9b9a695489315f"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int mpack_expect_int </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
+          <td class="paramname"><em>reader</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads a signed int. </p>
+<p>The underlying type may be an integer type of any size and signedness, as long as the value can be represented in a signed int.</p>
+<p>Returns zero if an error occurs. </p>
+
+</div>
+</div>
 <a class="anchor" id="ga8992b669afbaffee6ac8f336022611aa"></a>
 <div class="memitem">
 <div class="memproto">
@@ -1226,6 +1514,72 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
 
 </div>
 </div>
+<a class="anchor" id="ga7a28a0a5daeeb9b4f10d2169d309f5eb"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int mpack_expect_int_max </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
+          <td class="paramname"><em>reader</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>max_value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads an int, ensuring that it is at least zero and at most max_value. </p>
+<p>The underlying type may be an integer type of any size and signedness, as long as the value can be represented in a signed int.</p>
+<p>Returns 0 if an error occurs. </p>
+
+</div>
+</div>
+<a class="anchor" id="ga749d58ee5e884bce54b9767e7ee56c39"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int mpack_expect_int_range </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
+          <td class="paramname"><em>reader</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>min_value</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int&#160;</td>
+          <td class="paramname"><em>max_value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads a signed integer, ensuring that it falls within the given range. </p>
+<p>The underlying type may be an integer type of any size and signedness, as long as the value can be represented in a signed int.</p>
+<p>Returns min_value if an error occurs. </p>
+
+</div>
+</div>
 <a class="anchor" id="ga44a2941b8e8ec379748c238fab52bda1"></a>
 <div class="memitem">
 <div class="memproto">
@@ -1242,8 +1596,13 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
 
 <p>Reads the start of a map, returning its element count. </p>
 <p>A number of values follow equal to twice the element count of the map, alternating between keys and values. <a class="el" href="group__reader.html#ga86165fc780e7adef09f4b45aee54842a">mpack_done_map()</a> must be called once all elements have been read.</p>
-<p>mpack_error_type is raised if the value is not a map.</p>
-<p>Note that maps in JSON are unordered, so it is recommended not to expect a specific ordering for your map values in case your data is converted to/from JSON. </p>
+<p>Note that maps in JSON are unordered, so it is recommended not to expect a specific ordering for your map values in case your data is converted to/from JSON.</p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_type</td><td>if the value is not a map. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -1273,8 +1632,130 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
 
 <p>Reads the start of a map of the exact size given. </p>
 <p>A number of values follow equal to twice the element count of the map, alternating between keys and values. <a class="el" href="group__reader.html#ga86165fc780e7adef09f4b45aee54842a">mpack_done_map()</a> must be called once all elements have been read.</p>
-<p><a class="el" href="group__common.html#gga9d9f282ca4183ab5190e09d04c1f74c4ac91d0dcefbb9c7b9f41403bbc674aef2">mpack_error_type</a> is raised if the value is not a map or if its size does not match the given count.</p>
-<p>Note that maps in JSON are unordered, so it is recommended not to expect a specific ordering for your map values in case your data is converted to/from JSON. </p>
+<p>Note that maps in JSON are unordered, so it is recommended not to expect a specific ordering for your map values in case your data is converted to/from JSON.</p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_type</td><td>if the value is not a map or if its size does not match the given count. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga36d86c85877f94aa7b493aaa739c8849"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t mpack_expect_map_max </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
+          <td class="paramname"><em>reader</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>max_count</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads the start of a map with a number of elements at most max_count, returning its element count. </p>
+<p>A number of values follow equal to twice the element count of the map, alternating between keys and values. <a class="el" href="group__reader.html#ga86165fc780e7adef09f4b45aee54842a">mpack_done_map()</a> must be called once all elements have been read.</p>
+<p>Note that maps in JSON are unordered, so it is recommended not to expect a specific ordering for your map values in case your data is converted to/from JSON.</p>
+<p>Zero is returned if an error occurs.</p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_type</td><td>if the value is not a map or if its size is greater than max_count. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga2aae8867b092afd5a2350d4701687b35"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool mpack_expect_map_max_or_nil </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
+          <td class="paramname"><em>reader</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>max_count</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t *&#160;</td>
+          <td class="paramname"><em>count</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads a nil node or the start of a map with a number of elements at most max_count, returning whether a map was read and placing its number of key/value pairs in count. </p>
+<p>If a map was read, a number of values follow equal to twice the element count of the map, alternating between keys and values. <a class="el" href="group__reader.html#ga86165fc780e7adef09f4b45aee54842a">mpack_done_map()</a> should anlso be called once all elements have been read (only if a map was read.)</p>
+<p>Note that maps in JSON are unordered, so it is recommended not to expect a specific ordering for your map values in case your data is converted to/from JSON.</p>
+<dl class="section return"><dt>Returns</dt><dd>true if a map was read successfully; false if nil was read or an error occured. </dd></dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_type</td><td>if the value is not a nil or map. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="gaee3ac5d2ea0dc864b5898673a67c69ee"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool mpack_expect_map_or_nil </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
+          <td class="paramname"><em>reader</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t *&#160;</td>
+          <td class="paramname"><em>count</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads a nil node or the start of a map, returning whether a map was read and placing its number of key/value pairs in count. </p>
+<p>If a map was read, a number of values follow equal to twice the element count of the map, alternating between keys and values. <a class="el" href="group__reader.html#ga86165fc780e7adef09f4b45aee54842a">mpack_done_map()</a> should also be called once all elements have been read (only if a map was read.)</p>
+<p>Note that maps in JSON are unordered, so it is recommended not to expect a specific ordering for your map values in case your data is converted to/from JSON.</p>
+<dl class="section return"><dt>Returns</dt><dd>true if a map was read successfully; false if nil was read or an error occured. </dd></dl>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_type</td><td>if the value is not a nil or map. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -1310,8 +1791,14 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
 
 <p>Reads the start of a map with a number of elements in the given range, returning its element count. </p>
 <p>A number of values follow equal to twice the element count of the map, alternating between keys and values. <a class="el" href="group__reader.html#ga86165fc780e7adef09f4b45aee54842a">mpack_done_map()</a> must be called once all elements have been read.</p>
-<p>mpack_error_type is raised if the value is not a map or if its size does not fall within the given range.</p>
-<p>Note that maps in JSON are unordered, so it is recommended not to expect a specific ordering for your map values in case your data is converted to/from JSON. </p>
+<p>Note that maps in JSON are unordered, so it is recommended not to expect a specific ordering for your map values in case your data is converted to/from JSON.</p>
+<p>min_count is returned if an error occurs.</p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_type</td><td>if the value is not a map or if its size does not fall within the given range. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -1384,7 +1871,10 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
 </div><div class="memdoc">
 
 <p>Reads a string with the given total maximum size, allocating storage for it. </p>
-<p>A null-terminator will be added to the string. The length in bytes of the string, not including the null-terminator, will be written to size. </p>
+<p>The length in bytes of the string will be written to size if reading is successful; otherwise size will be zero.</p>
+<p>The allocated string must be freed with MPACK_FREE() (or simply free() if MPack's allocator hasn't been customized.)</p>
+<p>No null-terminator will be added to the string. Use <a class="el" href="group__expect.html#gab6d2d920a0ed7d39e251ac8d6f077998">mpack_expect_cstr_alloc()</a> if you want a null-terminator.</p>
+<p>Returns NULL if any error occurs. </p>
 
 </div>
 </div>
@@ -1419,7 +1909,7 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
 </div><div class="memdoc">
 
 <p>Reads a string of at most the given size, writing it into the given buffer and returning its size in bytes. </p>
-<p>Note that this does not add a null-terminator! No null-terminator is written, even if the string fits. Use <a class="el" href="group__expect.html#ga94489d03628c1fb1a3d0ac6971600fe8" title="Reads a string into the given buffer, ensures it has no null-bytes, and adds null-terminator at the e...">mpack_expect_cstr()</a> to get a null-terminator. </p>
+<p>Note that this does not add a null-terminator! No null-terminator is written, even if the string fits. Use <a class="el" href="group__expect.html#ga94489d03628c1fb1a3d0ac6971600fe8" title="Reads a string into the given buffer, ensures it has no null bytes, and adds a null-terminator at the...">mpack_expect_cstr()</a> to get a null-terminator. </p>
 
 </div>
 </div>
@@ -1453,12 +1943,47 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
 
 </div>
 </div>
-<a class="anchor" id="ga4b096b7fb963f522305ebaeafc777dd6"></a>
+<a class="anchor" id="ga3ceade6375ab699c1ef05ef9f5c2ff90"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">MPACK_INLINE_SPEED void mpack_expect_str_max </td>
+          <td class="memname">void mpack_expect_str_match </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
+          <td class="paramname"><em>reader</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>str</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>length</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads a string, ensuring it exactly matches the given string. </p>
+<p>Remember that maps are unordered in JSON. Don't use this for map keys unless the map has only a single key! </p>
+
+</div>
+</div>
+<a class="anchor" id="gaea5d6e47485092366b64d7667fc93916"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">MPACK_INLINE_SPEED uint32_t mpack_expect_str_max </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
           <td class="paramname"><em>reader</em>, </td>
@@ -1480,6 +2005,54 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
 <p>Reads the start of a string, raising an error if its length is not at most the given number of bytes (not including any null-terminator.) </p>
 <p>The bytes follow and must be read separately with <a class="el" href="group__reader.html#gaeb91e8d4e2a7b7f6562d8bbb7400275c" title="Reads bytes from a string, binary blob or extension object. ">mpack_read_bytes()</a> or <a class="el" href="group__reader.html#ga654d697da6a0eaf25246adf3ed343572" title="Reads bytes from a string, binary blob or extension object in-place in the buffer. ">mpack_read_bytes_inplace()</a>. <a class="el" href="group__reader.html#gaaad37015e0c53704d9356de06b493de6">mpack_done_str()</a> must be called once all bytes have been read.</p>
 <p>mpack_error_type is raised if the value is not a string or if its length does not match. </p>
+
+</div>
+</div>
+<a class="anchor" id="ga6e9c48430fa233615ec9b5439f9ed451"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void mpack_expect_tag </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
+          <td class="paramname"><em>reader</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__common.html#structmpack__tag__t">mpack_tag_t</a>&#160;</td>
+          <td class="paramname"><em>tag</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads a MessagePack object header (an MPack tag), expecting it to exactly match the given tag. </p>
+<p>If the type is compound (i.e. is a map, array, string, binary or extension type), additional reads are required to get the actual data, and the corresponding done function (or cancel) should be called when done.</p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_type</td><td>if the tag does not match</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__reader.html#gaeb91e8d4e2a7b7f6562d8bbb7400275c" title="Reads bytes from a string, binary blob or extension object. ">mpack_read_bytes()</a> </dd>
+<dd>
+<a class="el" href="group__reader.html#gaddae460657b9a26207ed34352bff0b06" title="Finishes reading an array. ">mpack_done_array()</a> </dd>
+<dd>
+<a class="el" href="group__reader.html#ga86165fc780e7adef09f4b45aee54842a" title="Finishes reading a map. ">mpack_done_map()</a> </dd>
+<dd>
+<a class="el" href="group__reader.html#gaaad37015e0c53704d9356de06b493de6" title="Finishes reading a string. ">mpack_done_str()</a> </dd>
+<dd>
+<a class="el" href="group__reader.html#gaa4676c4b0761de4f864fd81c347a15a0" title="Finishes reading a binary data blob. ">mpack_done_bin()</a> </dd>
+<dd>
+<a class="el" href="group__reader.html#ga5ebed90f6fe9c1d324256d827032702b" title="Finishes reading an extended type binary data blob. ">mpack_done_ext()</a> </dd>
+<dd>
+mpack_cancel() </dd></dl>
 
 </div>
 </div>
@@ -1518,6 +2091,36 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
 <p>Reads a 16-bit unsigned integer. </p>
 <p>The underlying type may be an integer type of any size and signedness, as long as the value can be represented in a 16-bit unsigned int.</p>
 <p>Returns zero if an error occurs. </p>
+
+</div>
+</div>
+<a class="anchor" id="ga34cfd4d43ba388ff4f983b35c65c669a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint16_t mpack_expect_u16_max </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
+          <td class="paramname"><em>reader</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint16_t&#160;</td>
+          <td class="paramname"><em>max_value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads a 16-bit unsigned integer, ensuring that it is at most max_value. </p>
+<p>The underlying type may be an integer type of any size and signedness, as long as the value can be represented in a 16-bit unsigned int.</p>
+<p>Returns 0 if an error occurs. </p>
 
 </div>
 </div>
@@ -1577,6 +2180,36 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
 
 </div>
 </div>
+<a class="anchor" id="ga4781e89d1712ae950b768362b8e98065"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint32_t mpack_expect_u32_max </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
+          <td class="paramname"><em>reader</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint32_t&#160;</td>
+          <td class="paramname"><em>max_value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads a 32-bit unsigned integer, ensuring that it is at most max_value. </p>
+<p>The underlying type may be an integer type of any size and signedness, as long as the value can be represented in a 32-bit unsigned int.</p>
+<p>Returns 0 if an error occurs. </p>
+
+</div>
+</div>
 <a class="anchor" id="ga1e3a8ce7d88676ed38f7d4aaf22d0d9c"></a>
 <div class="memitem">
 <div class="memproto">
@@ -1630,6 +2263,36 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
 <p>Reads a 64-bit unsigned integer. </p>
 <p>The underlying type may be an integer type of any size and signedness, as long as the value can be represented in a 64-bit unsigned int.</p>
 <p>Returns zero if an error occurs. </p>
+
+</div>
+</div>
+<a class="anchor" id="gac5babd6ebf912abb4ed67ca8808f3ad0"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint64_t mpack_expect_u64_max </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
+          <td class="paramname"><em>reader</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>max_value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads a 64-bit unsigned integer, ensuring that it is at most max_value. </p>
+<p>The underlying type may be an integer type of any size and signedness, as long as the value can be represented in a 64-bit unsigned int.</p>
+<p>Returns 0 if an error occurs. </p>
 
 </div>
 </div>
@@ -1689,6 +2352,36 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
 
 </div>
 </div>
+<a class="anchor" id="ga61459cbdd02c5b3db5292f9753a03ced"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">uint8_t mpack_expect_u8_max </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
+          <td class="paramname"><em>reader</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint8_t&#160;</td>
+          <td class="paramname"><em>max_value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads an 8-bit unsigned integer, ensuring that it is at most max_value. </p>
+<p>The underlying type may be an integer type of any size and signedness, as long as the value can be represented in an 8-bit unsigned int.</p>
+<p>Returns 0 if an error occurs. </p>
+
+</div>
+</div>
 <a class="anchor" id="gab3922088844e8cb301a6c2a5c5750d4f"></a>
 <div class="memitem">
 <div class="memproto">
@@ -1725,6 +2418,26 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
 
 </div>
 </div>
+<a class="anchor" id="gab217c0e2062b87129f948c6359c3825a"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">unsigned int mpack_expect_uint </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
+          <td class="paramname"><em>reader</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads an unsigned int. </p>
+<p>The underlying type may be an integer type of any size and signedness, as long as the value can be represented in an unsigned int.</p>
+<p>Returns zero if an error occurs. </p>
+
+</div>
+</div>
 <a class="anchor" id="ga005303e0b2c39809fcd5172228fae282"></a>
 <div class="memitem">
 <div class="memproto">
@@ -1751,6 +2464,108 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
 
 <p>Reads an unsigned integer, ensuring that it exactly matches the given value. </p>
 <p>mpack_error_type is raised if the value is not representable as an unsigned integer or if it does not exactly match the given value. </p>
+
+</div>
+</div>
+<a class="anchor" id="ga279a98fc2bb44cbf837fafc70df35bef"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">unsigned int mpack_expect_uint_max </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
+          <td class="paramname"><em>reader</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned int&#160;</td>
+          <td class="paramname"><em>max_value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads an unsigned integer, ensuring that it is at most max_value. </p>
+<p>The underlying type may be an integer type of any size and signedness, as long as the value can be represented in an unsigned int.</p>
+<p>Returns 0 if an error occurs. </p>
+
+</div>
+</div>
+<a class="anchor" id="gaa42508b6153a3531961eb69c38d48bbc"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">unsigned int mpack_expect_uint_range </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
+          <td class="paramname"><em>reader</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned int&#160;</td>
+          <td class="paramname"><em>min_value</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">unsigned int&#160;</td>
+          <td class="paramname"><em>max_value</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads an unsigned integer, ensuring that it falls within the given range. </p>
+<p>The underlying type may be an integer type of any size and signedness, as long as the value can be represented in an unsigned int.</p>
+<p>Returns min_value if an error occurs. </p>
+
+</div>
+</div>
+<a class="anchor" id="ga8c44c450649514ee1a31e567d39f0bf0"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t mpack_expect_utf8 </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
+          <td class="paramname"><em>reader</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>buf</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>bufsize</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads a string into the given buffer, ensuring it is a valid UTF-8 string and returning its size in bytes. </p>
+<p>This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or WTF-8. Only pure UTF-8 is allowed.</p>
+<p>Raises mpack_error_too_big if there is not enough room for the string. Raises mpack_error_type if the value is not a string or is not a valid UTF-8 string. </p>
 
 </div>
 </div>
@@ -1785,7 +2600,10 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
 </div><div class="memdoc">
 
 <p>Reads a string with the given total maximum size, allocating storage for it and ensuring it is valid UTF-8. </p>
-<p>A null-terminator will be added to the string. The length in bytes of the string, not including the null-terminator, will be written to size. </p>
+<p>The length in bytes of the string, not including the null-terminator, will be written to size.</p>
+<p>This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or WTF-8. Only pure UTF-8 is allowed.</p>
+<p>The allocated string must be freed with MPACK_FREE() (or simply free() if MPack's allocator hasn't been customized.)</p>
+<p>No null-terminator will be added to the string. Use <a class="el" href="group__expect.html#gab6d2d920a0ed7d39e251ac8d6f077998">mpack_expect_cstr_alloc()</a> if you want a null-terminator. </p>
 
 </div>
 </div>
@@ -1819,7 +2637,8 @@ const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_
       </table>
 </div><div class="memdoc">
 
-<p>Reads a string into the given buffer, ensures it is a valid UTF-8 string, and adds null-terminator at the end. </p>
+<p>Reads a string into the given buffer, ensures it is a valid UTF-8 string without null characters, and adds a null-terminator at the end. </p>
+<p>This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or WTF-8. Only pure UTF-8 is allowed, but without the null character, since it cannot be represented in a null-terminated string.</p>
 <p>Raises mpack_error_too_big if there is not enough room for the string and null-terminator. Raises mpack_error_type if the value is not a string or is not a valid UTF-8 string. </p>
 
 </div>

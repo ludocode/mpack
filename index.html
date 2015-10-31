@@ -24,7 +24,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">MPack
-   &#160;<span id="projectnumber">0.6</span>
+   &#160;<span id="projectnumber">0.7</span>
    </div>
    <div id="projectbrief">A C encoding/decoding library for the MessagePack serialization format.</div>
   </td>
@@ -92,7 +92,9 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <p>The core of MPack contains a buffered reader and writer with a custom callback to fill or flush the buffer. Helper functions can be enabled to read values of expected type, to work with files, to allocate strings automatically, to check UTF-8 encoding, and more. The MPack featureset can be configured at compile-time to set which features, components and debug checks are compiled, and what dependencies are available.</p>
 <p>The MPack code is small enough to be embedded directly into your codebase. The easiest way to use it is to download the <a href="https://github.com/ludocode/mpack/releases">amalgamation package</a> and insert the source files directly into your project. Copy <code><a class="el" href="mpack_8h.html" title="Includes the full MPack API. ">mpack.h</a></code> and <code>mpack.c</code> into to your codebase, and copy <code>mpack-config.h.sample</code> as <code>mpack-config.h</code>. You can use the defaults or edit it if you'd like to customize the MPack featureset.</p>
 <p>MPack is written in the portable intersection of C99 and C++. In other words, it's written in C99, but if you are stuck using a certain popular compiler from a certain unpopular vendor that refuses to support C99, you can compile it as C++ instead.</p>
-<p><em>NOTE: MPack is beta software under development. The API occasionally changes, there are still some TODOs in the codebase, some security issues to fix, some MessagePack 1.0/1.1 compatibility and interoperability issues to sort out, some test suite portability issues to fix, and there is only around 65% unit test coverage.</em></p>
+<h2>Build Status</h2>
+<p>MPack is beta software under development.</p>
+<p>| <a href="https://travis-ci.org/">Travis-CI</a> | <a href="https://coveralls.io/">Coveralls.io</a> | | :----&mdash;: | :-------&mdash;: |</p>
 <h2>The Node Reader API</h2>
 <p>The Node API parses a chunk of MessagePack data into an immutable tree of dynamically-typed nodes. A series of helper functions can be used to extract data of specific types from each node. </p><pre class="fragment">// parse a file into a node tree
 mpack_tree_t tree;
@@ -108,7 +110,7 @@ if (mpack_tree_destroy(tree) != mpack_ok) {
     fprintf(stderr, "An error occurred decoding the data!\n");
     return;
 }
-</pre><p>Note that no additional error handling is needed in the above code. If the file is missing or corrupt, if map keys are missing or if nodes are not in the expected types, special "nil" nodes and false/zero values are returned and the tree is placed in an error state. An error check is only needed before using the data. Alternatively, the tree can be configured to longjmp in such cases if a handler is set.</p>
+</pre><p>Note that no additional error handling is needed in the above code. If the file is missing or corrupt, if map keys are missing or if nodes are not in the expected types, special "nil" nodes and false/zero values are returned and the tree is placed in an error state. An error check is only needed before using the data.</p>
 <h2>The Write API</h2>
 <p>The MPack Write API encodes structured data to MessagePack. </p><pre class="fragment">// encode to memory buffer
 char* data;
@@ -134,13 +136,13 @@ if (mpack_writer_destroy(&amp;writer) != mpack_ok) {
 do_something_with_data(data, size);
 free(data);
 </pre><p>In the above example, we encode to a growable memory buffer. The writer can instead write to a pre-allocated or stack-allocated buffer, avoiding the need for memory allocation. The writer can also be provided with a flush function (such as a file or socket write function) to call when the buffer is full or when writing is done.</p>
-<p>If any error occurs, the writer is placed in an error state and can optionally longjmp if a handler is set. The writer will flag an error if too much data is written, if the wrong number of elements are written, if the data could not be flushed, etc. No additional error handling is needed in the above code; any subsequent writes are ignored when the writer is in an error state, so you don't need to check every write for errors.</p>
+<p>If any error occurs, the writer is placed in an error state. The writer will flag an error if too much data is written, if the wrong number of elements are written, if the data could not be flushed, etc. No additional error handling is needed in the above code; any subsequent writes are ignored when the writer is in an error state, so you don't need to check every write for errors.</p>
 <p>Note in particular that in debug mode, the <code><a class="el" href="group__writer.html#gabf0ab209845e7c9c3df7aa00b0d59a03" title="Finishes writing a map. ">mpack_finish_map()</a></code> call above ensures that two key/value pairs were actually written as claimed, something that other MessagePack C/C++ libraries may not do.</p>
 <h2>Why Not Just Use JSON?</h2>
 <p>Conceptually, MessagePack stores data similarly to JSON: they are both composed of simple values such as numbers and strings, stored hierarchically in maps and arrays. So why not just use JSON instead? The main reason is that JSON is designed to be human-readable, so it is not as efficient as a binary serialization format:</p>
 <ul>
 <li>Compound types such as strings, maps and arrays are delimited, so appropriate storage cannot be allocated upfront. The whole object must be parsed to determine its size.</li>
-<li>Strings are not stored in their native encoding. They cannot contain quotes or special characters, so they must be escaped when written and converted back when read.</li>
+<li>Strings are not stored in their native encoding. Special characters such as quotes and backslashes must be escaped when written and converted back when read.</li>
 <li>Numbers are particularly inefficient (especially when parsing back floats), making JSON inappropriate as a base format for structured data that contains lots of numbers.</li>
 <li>Binary data is not supported by JSON at all. Small binary blobs such as icons and thumbnails need to be Base64 encoded or passed out-of-band.</li>
 </ul>

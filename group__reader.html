@@ -24,7 +24,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">MPack
-   &#160;<span id="projectnumber">0.6</span>
+   &#160;<span id="projectnumber">0.7</span>
    </div>
    <div id="projectbrief">A C encoding/decoding library for the MessagePack serialization format.</div>
   </td>
@@ -99,7 +99,7 @@ Data Structures</h2></td></tr>
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
 Macros</h2></td></tr>
 <tr class="memitem:ga3950ce57f3f125755cc1cefd1f54e149"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga3950ce57f3f125755cc1cefd1f54e149">mpack_reader_init_stack</a>(reader)</td></tr>
-<tr class="memdesc:ga3950ce57f3f125755cc1cefd1f54e149"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an mpack reader using stack space as a buffer.  <a href="#ga3950ce57f3f125755cc1cefd1f54e149">More...</a><br /></td></tr>
+<tr class="memdesc:ga3950ce57f3f125755cc1cefd1f54e149"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an MPack reader using stack space as a buffer.  <a href="#ga3950ce57f3f125755cc1cefd1f54e149">More...</a><br /></td></tr>
 <tr class="separator:ga3950ce57f3f125755cc1cefd1f54e149"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
@@ -108,7 +108,7 @@ Typedefs</h2></td></tr>
 <tr class="memdesc:ga799a3f21adc8e229c6040ab42d90bef3"><td class="mdescLeft">&#160;</td><td class="mdescRight">An error handler function to be called when an error is flagged on the reader.  <a href="#ga799a3f21adc8e229c6040ab42d90bef3">More...</a><br /></td></tr>
 <tr class="separator:ga799a3f21adc8e229c6040ab42d90bef3"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga97503ca06d41d58c60226b2732661eda"><td class="memItemLeft" align="right" valign="top">typedef size_t(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga97503ca06d41d58c60226b2732661eda">mpack_reader_fill_t</a>) (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, char *buffer, size_t count)</td></tr>
-<tr class="memdesc:ga97503ca06d41d58c60226b2732661eda"><td class="mdescLeft">&#160;</td><td class="mdescRight">The mpack reader's fill function.  <a href="#ga97503ca06d41d58c60226b2732661eda">More...</a><br /></td></tr>
+<tr class="memdesc:ga97503ca06d41d58c60226b2732661eda"><td class="mdescLeft">&#160;</td><td class="mdescRight">The MPack reader's fill function.  <a href="#ga97503ca06d41d58c60226b2732661eda">More...</a><br /></td></tr>
 <tr class="separator:ga97503ca06d41d58c60226b2732661eda"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gadda6baaccdcf0ad9c5e212be9992cf5b"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#gadda6baaccdcf0ad9c5e212be9992cf5b">mpack_reader_teardown_t</a>) (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader)</td></tr>
 <tr class="memdesc:gadda6baaccdcf0ad9c5e212be9992cf5b"><td class="mdescLeft">&#160;</td><td class="mdescRight">A teardown function to be called when the reader is destroyed.  <a href="#gadda6baaccdcf0ad9c5e212be9992cf5b">More...</a><br /></td></tr>
@@ -116,8 +116,6 @@ Typedefs</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="func-members"></a>
 Functions</h2></td></tr>
-<tr class="memitem:gabae431ae889a09d3f7c10aa5c82ac6c0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#gabae431ae889a09d3f7c10aa5c82ac6c0">mpack_debug_print</a> (const char *data, int len)</td></tr>
-<tr class="separator:gabae431ae889a09d3f7c10aa5c82ac6c0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga438bb2b85fbbd06cd8f10d5c8079427e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga438bb2b85fbbd06cd8f10d5c8079427e">mpack_discard</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader)</td></tr>
 <tr class="memdesc:ga438bb2b85fbbd06cd8f10d5c8079427e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads and discards the next object.  <a href="#ga438bb2b85fbbd06cd8f10d5c8079427e">More...</a><br /></td></tr>
 <tr class="separator:ga438bb2b85fbbd06cd8f10d5c8079427e"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -139,9 +137,21 @@ Functions</h2></td></tr>
 <tr class="memitem:ga2ec982b75a30187d9f94831f2e4b20a0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga2ec982b75a30187d9f94831f2e4b20a0">mpack_done_type</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, <a class="el" href="group__common.html#ga22f03cf1240d5a917e1b3e7be8ab327e">mpack_type_t</a> type)</td></tr>
 <tr class="memdesc:ga2ec982b75a30187d9f94831f2e4b20a0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Finishes reading the given type.  <a href="#ga2ec982b75a30187d9f94831f2e4b20a0">More...</a><br /></td></tr>
 <tr class="separator:ga2ec982b75a30187d9f94831f2e4b20a0"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga5be49dacf9e8fba456e562b4fb52e77c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga5be49dacf9e8fba456e562b4fb52e77c">mpack_print</a> (const char *data, size_t len)</td></tr>
+<tr class="memdesc:ga5be49dacf9e8fba456e562b4fb52e77c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts a blob of MessagePack to pseudo-JSON for debugging purposes and pretty-prints it to stdout.  <a href="#ga5be49dacf9e8fba456e562b4fb52e77c">More...</a><br /></td></tr>
+<tr class="separator:ga5be49dacf9e8fba456e562b4fb52e77c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga07a599b767b6b8195a5e12b664afbe32"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga07a599b767b6b8195a5e12b664afbe32">mpack_print_file</a> (const char *data, size_t len, FILE *file)</td></tr>
+<tr class="memdesc:ga07a599b767b6b8195a5e12b664afbe32"><td class="mdescLeft">&#160;</td><td class="mdescRight">Converts a blob of MessagePack to pseudo-JSON for debugging purposes and pretty-prints it to the given file.  <a href="#ga07a599b767b6b8195a5e12b664afbe32">More...</a><br /></td></tr>
+<tr class="separator:ga07a599b767b6b8195a5e12b664afbe32"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaeb91e8d4e2a7b7f6562d8bbb7400275c"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#gaeb91e8d4e2a7b7f6562d8bbb7400275c">mpack_read_bytes</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, char *p, size_t count)</td></tr>
 <tr class="memdesc:gaeb91e8d4e2a7b7f6562d8bbb7400275c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads bytes from a string, binary blob or extension object.  <a href="#gaeb91e8d4e2a7b7f6562d8bbb7400275c">More...</a><br /></td></tr>
 <tr class="separator:gaeb91e8d4e2a7b7f6562d8bbb7400275c"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga147c9412e7df10c3484c7ec9f182fed2"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga147c9412e7df10c3484c7ec9f182fed2">mpack_read_bytes_alloc</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, size_t count)</td></tr>
+<tr class="memdesc:ga147c9412e7df10c3484c7ec9f182fed2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads bytes from a string, binary blob or extension object, allocating storage for them and returning the allocated pointer.  <a href="#ga147c9412e7df10c3484c7ec9f182fed2">More...</a><br /></td></tr>
+<tr class="separator:ga147c9412e7df10c3484c7ec9f182fed2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga6729d63176ecca72886c0d8463a0c29d"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga6729d63176ecca72886c0d8463a0c29d"></a>
+char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_read_bytes_alloc_size</b> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, size_t count, size_t alloc_size)</td></tr>
+<tr class="separator:ga6729d63176ecca72886c0d8463a0c29d"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga654d697da6a0eaf25246adf3ed343572"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga654d697da6a0eaf25246adf3ed343572">mpack_read_bytes_inplace</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, size_t count)</td></tr>
 <tr class="memdesc:ga654d697da6a0eaf25246adf3ed343572"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads bytes from a string, binary blob or extension object in-place in the buffer.  <a href="#ga654d697da6a0eaf25246adf3ed343572">More...</a><br /></td></tr>
 <tr class="separator:ga654d697da6a0eaf25246adf3ed343572"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -149,10 +159,10 @@ Functions</h2></td></tr>
 <tr class="memdesc:ga70c00ecaf381e9711f6c1d0fa92f0c2f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a MessagePack object header (an MPack tag.)  <a href="#ga70c00ecaf381e9711f6c1d0fa92f0c2f">More...</a><br /></td></tr>
 <tr class="separator:ga70c00ecaf381e9711f6c1d0fa92f0c2f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gac04666405e21eea6e8819182571f0d20"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#gac04666405e21eea6e8819182571f0d20">mpack_reader_destroy</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader)</td></tr>
-<tr class="memdesc:gac04666405e21eea6e8819182571f0d20"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cleans up the mpack reader, ensuring that all compound elements have been completely read.  <a href="#gac04666405e21eea6e8819182571f0d20">More...</a><br /></td></tr>
+<tr class="memdesc:gac04666405e21eea6e8819182571f0d20"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cleans up the MPack reader, ensuring that all compound elements have been completely read.  <a href="#gac04666405e21eea6e8819182571f0d20">More...</a><br /></td></tr>
 <tr class="separator:gac04666405e21eea6e8819182571f0d20"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gad7752b631c5f4e6e56b4a38781aca876"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#gad7752b631c5f4e6e56b4a38781aca876">mpack_reader_destroy_cancel</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader)</td></tr>
-<tr class="memdesc:gad7752b631c5f4e6e56b4a38781aca876"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cleans up the mpack reader, discarding any open reads.  <a href="#gad7752b631c5f4e6e56b4a38781aca876">More...</a><br /></td></tr>
+<tr class="memdesc:gad7752b631c5f4e6e56b4a38781aca876"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cleans up the MPack reader, discarding any open reads.  <a href="#gad7752b631c5f4e6e56b4a38781aca876">More...</a><br /></td></tr>
 <tr class="separator:gad7752b631c5f4e6e56b4a38781aca876"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga79050efd2a581e8216f58d4946e7abc2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga79050efd2a581e8216f58d4946e7abc2">mpack_reader_error</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader)</td></tr>
 <tr class="memdesc:ga79050efd2a581e8216f58d4946e7abc2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Queries the error state of the MPack reader.  <a href="#ga79050efd2a581e8216f58d4946e7abc2">More...</a><br /></td></tr>
@@ -164,16 +174,16 @@ Functions</h2></td></tr>
 <tr class="memdesc:ga514df2b80292690e7ead02d6713b5f64"><td class="mdescLeft">&#160;</td><td class="mdescRight">Places the reader in the given error state if the given error is not mpack_ok, returning the resulting error state of the reader.  <a href="#ga514df2b80292690e7ead02d6713b5f64">More...</a><br /></td></tr>
 <tr class="separator:ga514df2b80292690e7ead02d6713b5f64"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga1d79c00c6c013b879b164c26753b3e83"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga1d79c00c6c013b879b164c26753b3e83">mpack_reader_init</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, char *buffer, size_t size, size_t count)</td></tr>
-<tr class="memdesc:ga1d79c00c6c013b879b164c26753b3e83"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an mpack reader with the given buffer.  <a href="#ga1d79c00c6c013b879b164c26753b3e83">More...</a><br /></td></tr>
+<tr class="memdesc:ga1d79c00c6c013b879b164c26753b3e83"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an MPack reader with the given buffer.  <a href="#ga1d79c00c6c013b879b164c26753b3e83">More...</a><br /></td></tr>
 <tr class="separator:ga1d79c00c6c013b879b164c26753b3e83"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga18f41d6786155f265769351ef550e331"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga18f41d6786155f265769351ef550e331">mpack_reader_init_data</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, const char *data, size_t count)</td></tr>
-<tr class="memdesc:ga18f41d6786155f265769351ef550e331"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an mpack reader to parse a pre-loaded contiguous chunk of data.  <a href="#ga18f41d6786155f265769351ef550e331">More...</a><br /></td></tr>
+<tr class="memdesc:ga18f41d6786155f265769351ef550e331"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an MPack reader to parse a pre-loaded contiguous chunk of data.  <a href="#ga18f41d6786155f265769351ef550e331">More...</a><br /></td></tr>
 <tr class="separator:ga18f41d6786155f265769351ef550e331"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga729bf4c0a79516e97a65d2e278f336e0"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga729bf4c0a79516e97a65d2e278f336e0">mpack_reader_init_error</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, <a class="el" href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a> error)</td></tr>
-<tr class="memdesc:ga729bf4c0a79516e97a65d2e278f336e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an mpack reader directly into an error state.  <a href="#ga729bf4c0a79516e97a65d2e278f336e0">More...</a><br /></td></tr>
+<tr class="memdesc:ga729bf4c0a79516e97a65d2e278f336e0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an MPack reader directly into an error state.  <a href="#ga729bf4c0a79516e97a65d2e278f336e0">More...</a><br /></td></tr>
 <tr class="separator:ga729bf4c0a79516e97a65d2e278f336e0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga957b5be20debe9f3b81b629478bda0f5"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga957b5be20debe9f3b81b629478bda0f5">mpack_reader_init_file</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, const char *filename)</td></tr>
-<tr class="memdesc:ga957b5be20debe9f3b81b629478bda0f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an mpack reader that reads from a file.  <a href="#ga957b5be20debe9f3b81b629478bda0f5">More...</a><br /></td></tr>
+<tr class="memdesc:ga957b5be20debe9f3b81b629478bda0f5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an MPack reader that reads from a file.  <a href="#ga957b5be20debe9f3b81b629478bda0f5">More...</a><br /></td></tr>
 <tr class="separator:ga957b5be20debe9f3b81b629478bda0f5"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga291a38358bde6992b16edda81f2fcf45"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga291a38358bde6992b16edda81f2fcf45">mpack_reader_remaining</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, const char **data)</td></tr>
 <tr class="memdesc:ga291a38358bde6992b16edda81f2fcf45"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns bytes left in the reader's buffer.  <a href="#ga291a38358bde6992b16edda81f2fcf45">More...</a><br /></td></tr>
@@ -295,7 +305,7 @@ track</td>
       </table>
 </div><div class="memdoc">
 
-<p>Initializes an mpack reader using stack space as a buffer. </p>
+<p>Initializes an MPack reader using stack space as a buffer. </p>
 <p>A fill function should be added to the reader to fill the buffer.</p>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="group__reader.html#gaf4eab68e9d1751ff9c6c853d563d9a0e" title="Sets the fill function to refill the data buffer when it runs out of data. ">mpack_reader_set_fill</a> </dd></dl>
 
@@ -330,7 +340,7 @@ track</td>
       </table>
 </div><div class="memdoc">
 
-<p>The mpack reader's fill function. </p>
+<p>The MPack reader's fill function. </p>
 <p>It should fill the buffer as much as possible, returning the number of bytes put into the buffer.</p>
 <p>In case of error, it should flag an appropriate error on the reader. </p>
 
@@ -351,33 +361,6 @@ track</td>
 </div>
 </div>
 <h2 class="groupheader">Function Documentation</h2>
-<a class="anchor" id="gabae431ae889a09d3f7c10aa5c82ac6c0"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void mpack_debug_print </td>
-          <td>(</td>
-          <td class="paramtype">const char *&#160;</td>
-          <td class="paramname"><em>data</em>, </td>
-        </tr>
-        <tr>
-          <td class="paramkey"></td>
-          <td></td>
-          <td class="paramtype">int&#160;</td>
-          <td class="paramname"><em>len</em>&#160;</td>
-        </tr>
-        <tr>
-          <td></td>
-          <td>)</td>
-          <td></td><td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-<p>Converts a chunk of messagepack to JSON and pretty-prints it to stdout. </p>
-
-</div>
-</div>
 <a class="anchor" id="ga438bb2b85fbbd06cd8f10d5c8079427e"></a>
 <div class="memitem">
 <div class="memproto">
@@ -521,6 +504,68 @@ track</td>
 
 </div>
 </div>
+<a class="anchor" id="ga5be49dacf9e8fba456e562b4fb52e77c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void mpack_print </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>len</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Converts a blob of MessagePack to pseudo-JSON for debugging purposes and pretty-prints it to stdout. </p>
+
+</div>
+</div>
+<a class="anchor" id="ga07a599b767b6b8195a5e12b664afbe32"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void mpack_print_file </td>
+          <td>(</td>
+          <td class="paramtype">const char *&#160;</td>
+          <td class="paramname"><em>data</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>len</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">FILE *&#160;</td>
+          <td class="paramname"><em>file</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Converts a blob of MessagePack to pseudo-JSON for debugging purposes and pretty-prints it to the given file. </p>
+
+</div>
+</div>
 <a class="anchor" id="gaeb91e8d4e2a7b7f6562d8bbb7400275c"></a>
 <div class="memitem">
 <div class="memproto">
@@ -552,6 +597,36 @@ track</td>
 </div><div class="memdoc">
 
 <p>Reads bytes from a string, binary blob or extension object. </p>
+
+</div>
+</div>
+<a class="anchor" id="ga147c9412e7df10c3484c7ec9f182fed2"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char* mpack_read_bytes_alloc </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
+          <td class="paramname"><em>reader</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>count</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads bytes from a string, binary blob or extension object, allocating storage for them and returning the allocated pointer. </p>
+<p>The allocated string must be freed with MPACK_FREE() (or simply free() if MPack's allocator hasn't been customized.)</p>
+<p>Returns NULL if any error occurs, or if count is zero. </p>
 
 </div>
 </div>
@@ -637,10 +712,10 @@ mpack_cancel() </dd></dl>
       </table>
 </div><div class="memdoc">
 
-<p>Cleans up the mpack reader, ensuring that all compound elements have been completely read. </p>
+<p>Cleans up the MPack reader, ensuring that all compound elements have been completely read. </p>
 <p>Returns the final error state of the reader.</p>
-<p>This will assert in tracking mode if the reader has any incomplete reads. If you want to cancel reading in the middle of a compound element and don't care about the rest of the document, call <a class="el" href="group__reader.html#gad7752b631c5f4e6e56b4a38781aca876" title="Cleans up the mpack reader, discarding any open reads. ">mpack_reader_destroy_cancel()</a> instead.</p>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__reader.html#gad7752b631c5f4e6e56b4a38781aca876" title="Cleans up the mpack reader, discarding any open reads. ">mpack_reader_destroy_cancel()</a> </dd></dl>
+<p>This will assert in tracking mode if the reader has any incomplete reads. If you want to cancel reading in the middle of a compound element and don't care about the rest of the document, call <a class="el" href="group__reader.html#gad7752b631c5f4e6e56b4a38781aca876" title="Cleans up the MPack reader, discarding any open reads. ">mpack_reader_destroy_cancel()</a> instead.</p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__reader.html#gad7752b631c5f4e6e56b4a38781aca876" title="Cleans up the MPack reader, discarding any open reads. ">mpack_reader_destroy_cancel()</a> </dd></dl>
 
 </div>
 </div>
@@ -658,7 +733,7 @@ mpack_cancel() </dd></dl>
       </table>
 </div><div class="memdoc">
 
-<p>Cleans up the mpack reader, discarding any open reads. </p>
+<p>Cleans up the MPack reader, discarding any open reads. </p>
 <p>This should be used if you decide to cancel reading in the middle of the document. </p>
 
 </div>
@@ -778,12 +853,12 @@ mpack_cancel() </dd></dl>
       </table>
 </div><div class="memdoc">
 
-<p>Initializes an mpack reader with the given buffer. </p>
+<p>Initializes an MPack reader with the given buffer. </p>
 <p>The reader does not assume ownership of the buffer, but the buffer must be writeable if a fill function will be used to refill it.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">reader</td><td>The MPack reader. </td></tr>
-    <tr><td class="paramname">buffer</td><td>The buffer with which to read mpack data. </td></tr>
+    <tr><td class="paramname">buffer</td><td>The buffer with which to read MessagePack data. </td></tr>
     <tr><td class="paramname">size</td><td>The size of the buffer. </td></tr>
     <tr><td class="paramname">count</td><td>The number of bytes already in the buffer. </td></tr>
   </table>
@@ -822,7 +897,7 @@ mpack_cancel() </dd></dl>
       </table>
 </div><div class="memdoc">
 
-<p>Initializes an mpack reader to parse a pre-loaded contiguous chunk of data. </p>
+<p>Initializes an MPack reader to parse a pre-loaded contiguous chunk of data. </p>
 <p>The reader does not assume ownership of the data.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
@@ -859,8 +934,8 @@ mpack_cancel() </dd></dl>
       </table>
 </div><div class="memdoc">
 
-<p>Initializes an mpack reader directly into an error state. </p>
-<p>Use this if you are writing a wrapper to <a class="el" href="group__reader.html#ga1d79c00c6c013b879b164c26753b3e83" title="Initializes an mpack reader with the given buffer. ">mpack_reader_init()</a> which can fail its setup. </p>
+<p>Initializes an MPack reader directly into an error state. </p>
+<p>Use this if you are writing a wrapper to <a class="el" href="group__reader.html#ga1d79c00c6c013b879b164c26753b3e83" title="Initializes an MPack reader with the given buffer. ">mpack_reader_init()</a> which can fail its setup. </p>
 
 </div>
 </div>
@@ -888,7 +963,7 @@ mpack_cancel() </dd></dl>
       </table>
 </div><div class="memdoc">
 
-<p>Initializes an mpack reader that reads from a file. </p>
+<p>Initializes an MPack reader that reads from a file. </p>
 
 </div>
 </div>
@@ -918,7 +993,7 @@ mpack_cancel() </dd></dl>
 
 <p>Returns bytes left in the reader's buffer. </p>
 <p>If you are done reading MessagePack data but there is other interesting data following it, the reader may have buffered too much data. The number of bytes remaining in the buffer and a pointer to the position of those bytes can be queried here.</p>
-<p>If you know the length of the mpack chunk beforehand, it's better to instead have your fill function limit the data it reads so that the reader does not have extra data. In this case you can simply check that this returns zero.</p>
+<p>If you know the length of the MPack chunk beforehand, it's better to instead have your fill function limit the data it reads so that the reader does not have extra data. In this case you can simply check that this returns zero.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">reader</td><td>The MPack reader from which to query remaining data. </td></tr>
@@ -1028,7 +1103,8 @@ mpack_cancel() </dd></dl>
 </div><div class="memdoc">
 
 <p>Sets the fill function to refill the data buffer when it runs out of data. </p>
-<p>If no fill function is used, trying to read past the end of the buffer will result in mpack_error_io.</p>
+<p>If no fill function is used, truncated MessagePack data results in mpack_error_invalid (since the buffer is assumed to contain a complete MessagePack object.)</p>
+<p>If a fill function is used, truncated MessagePack data usually results in mpack_error_io (since the fill function fails to get the missing data.)</p>
 <p>This should normally be used with <a class="el" href="group__reader.html#gafc76e77e7431f13ba7ff6a6a83fffe07" title="Sets the custom pointer to pass to the reader callbacks, such as fill or teardown. ">mpack_reader_set_context()</a> to register a custom pointer to pass to the fill function.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
