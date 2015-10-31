@@ -77,7 +77,7 @@ free(data);
 
 In the above example, we encode to a growable memory buffer. The writer can instead write to a pre-allocated or stack-allocated buffer, avoiding the need for memory allocation. The writer can also be provided with a flush function (such as a file or socket write function) to call when the buffer is full or when writing is done.
 
-If any error occurs, the writer is placed in an error state and can optionally longjmp if a handler is set. The writer will flag an error if too much data is written, if the wrong number of elements are written, if the data could not be flushed, etc. No additional error handling is needed in the above code; any subsequent writes are ignored when the writer is in an error state, so you don't need to check every write for errors.
+If any error occurs, the writer is placed in an error state. The writer will flag an error if too much data is written, if the wrong number of elements are written, if the data could not be flushed, etc. No additional error handling is needed in the above code; any subsequent writes are ignored when the writer is in an error state, so you don't need to check every write for errors.
 
 Note in particular that in debug mode, the `mpack_finish_map()` call above ensures that two key/value pairs were actually written as claimed, something that other MessagePack C/C++ libraries may not do.
 

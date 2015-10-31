@@ -289,7 +289,6 @@ MPACK_INLINE size_t mpack_writer_buffer_used(mpack_writer_t* writer) {
  */
 void mpack_writer_flag_error(mpack_writer_t* writer, mpack_error_t error);
 
-
 /**
  * Queries the error state of the MPack writer.
  *

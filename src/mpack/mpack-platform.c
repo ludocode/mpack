@@ -19,6 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+
 // We define MPACK_EMIT_INLINE_DEFS and include mpack.h to emit
 // standalone definitions of all (non-static) inline functions in MPack.
 
@@ -27,6 +28,7 @@
 
 #include "mpack-platform.h"
 #include "mpack.h"
+
 
 #if MPACK_DEBUG && MPACK_STDIO
 #include <stdarg.h>

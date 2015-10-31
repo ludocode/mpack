@@ -905,6 +905,8 @@ char* mpack_node_data_alloc(mpack_node_t node, size_t maxlen);
  *
  * If this node is not a string type, mpack_error_type is raised, and the return
  * value should be discarded.
+ *
+ * @param maxlen The maximum size to allocate, including the null-terminator.
  */
 char* mpack_node_cstr_alloc(mpack_node_t node, size_t maxlen);
 #endif
@@ -1047,8 +1049,8 @@ MPACK_INLINE mpack_node_t mpack_node_map_int(mpack_node_t node, int64_t num) {
 }
 
 /**
- * Returns the value node in the given map for the given integer key, or NULL
- * if the map does not contain the given key.
+ * Returns the value node in the given map for the given integer key, or a nil
+ * node if the map does not contain the given key.
  *
  * @throws mpack_error_type if the node is not a map
  */
@@ -1068,7 +1070,7 @@ MPACK_INLINE mpack_node_t mpack_node_map_uint(mpack_node_t node, uint64_t num) {
 
 /**
  * Returns the value node in the given map for the given unsigned integer
- * key, or NULL if the map does not contain the given key.
+ * key, or a nil node if the map does not contain the given key.
  *
  * @throws mpack_error_type if the node is not a map
  */
@@ -1087,8 +1089,8 @@ MPACK_INLINE mpack_node_t mpack_node_map_str(mpack_node_t node, const char* str,
 }
 
 /**
- * Returns the value node in the given map for the given string key, or NULL
- * if the map does not contain the given key.
+ * Returns the value node in the given map for the given string key, or a
+ * nil node if the map does not contain the given key.
  *
  * @throws mpack_error_type if the node is not a map
  */
@@ -1108,7 +1110,7 @@ MPACK_INLINE mpack_node_t mpack_node_map_cstr(mpack_node_t node, const char* cst
 
 /**
  * Returns the value node in the given map for the given null-terminated
- * string key, or NULL if the map does not contain the given key.
+ * string key, or a nil node if the map does not contain the given key.
  *
  * @throws mpack_error_type if the node is not a map
  */

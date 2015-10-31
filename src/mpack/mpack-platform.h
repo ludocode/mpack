@@ -206,23 +206,36 @@ MPACK_HEADER_START
  * appear when necessary. In addition, three different linkage models need
  * to be supported:
  *
- *  - The C99 model, where "inline" does not emit a definition and "extern inline" does
- *  - The GNU model, where "inline" emits a definition and "extern inline" does not
- *  - The C++ model, where "inline" emits a definition with special (COMDAT) linkage
+ *  - The C99 model, where a standalone function is emitted only if there is any
+ *    `extern inline` or non-`inline` declaration (including the definition itself)
+ *
+ *  - The GNU model, where an `inline` definition emits a standalone function and an
+ *    `extern inline` definition does not, regardless of other declarations
+ *
+ *  - The C++ model, where `inline` emits a standalone function with special
+ *    (COMDAT) linkage
  *
  * The macros below wrap up everything above. All inline functions defined in header
  * files have a single non-inline definition emitted in the compilation of
- * mpack-platform.c.
+ * mpack-platform.c. All inline declarations and definitions use the same MPACK_INLINE
+ * specification to simplify the rules on when standalone functions are emitted.
  *
  * Inline functions in source files are defined static, so MPACK_STATIC_INLINE
  * is used for small functions and MPACK_STATIC_INLINE_SPEED is used for
  * larger optionally inline functions.
+ *
+ * Additional reading:
+ *     http://www.greenend.org.uk/rjk/tech/inline.html
  */
 
 #if defined(__cplusplus)
     // C++ rules
-    // The linker will need weak symbol support to link C++ object files,
-    // so we don't need to worry about emitting a single definition.
+    // The linker will need COMDAT support to link C++ object files,
+    // so we don't need to worry about emitting definitions from C++
+    // translation units. If mpack-platform.c (or the amalgamation)
+    // is compiled as C, its definition will be used, otherwise a
+    // C++ definition will be used, and no other C files will emit
+    // a defition.
     #define MPACK_INLINE inline
 #elif defined(__GNUC__) && (defined(__GNUC_GNU_INLINE__) || \
         !defined(__GNUC_STDC_INLINE__) && !defined(__GNUC_GNU_INLINE__))
@@ -360,7 +373,6 @@ MPACK_HEADER_START
     #define mpack_assert(expr, ...) ((!(expr)) ? MPACK_UNREACHABLE, (void)0 : (void)0)
     #define mpack_break(...) ((void)0)
 #endif
-
 
 
 

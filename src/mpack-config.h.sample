@@ -57,6 +57,11 @@
 #define MPACK_STDIO 1
 #endif
 
+
+/*
+ * System Functions
+ */
+
 /**
  * \def MPACK_MALLOC
  *
@@ -65,13 +70,16 @@
  * debugging functions. If this macro is undefined, the allocation helpers
  * will not be compiled.
  *
- * A memory allocator is required for the Node API.
+ * The default is malloc() if MPACK_STDLIB is enabled.
  */
 /**
  * \def MPACK_REALLOC
  *
- * Defines the realloc function used by mpack. It is used by growable buffers
- * to resize more quickly.
+ * Defines the realloc function used by mpack. It is used by growable
+ * buffers to resize more efficiently.
+ *
+ * The default is realloc() if MPACK_MALLOC has not been customized and
+ * MPACK_STDLIB is enabled.
  *
  * This is optional, even when MPACK_MALLOC is used. If MPACK_MALLOC is
  * set and MPACK_REALLOC is not, MPACK_MALLOC is used with a simple copy
@@ -89,7 +97,7 @@
  * for automatically allocating data the correct size. If this macro is
  * undefined, the allocation helpers will not be compiled.
  *
- * A memory allocator is required for the Node API.
+ * The default is free() if MPACK_STDLIB is enabled.
  */
 #if defined(MPACK_STDLIB) && !defined(MPACK_FREE)
 #define MPACK_FREE free
