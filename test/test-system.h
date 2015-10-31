@@ -39,7 +39,7 @@ void test_system_fail_after(size_t count);
 void test_system_fail_reset(void);
 
 // Runs the given test repeatedly, failing the nth system call on
-// the nth iteration until the test succeeds
+// the nth iteration until the test returns true.
 void test_system_fail_until_ok(bool (*test)(void));
 
 

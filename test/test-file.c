@@ -373,10 +373,8 @@ static void test_file_read(void) {
 
 static bool test_file_expect_failure() {
 
-    // The write failure test may fail with either
-    // mpack_error_memory or mpack_error_io. We write a
-    // bunch of strs and bins to test the various expect
-    // allocator modes.
+    // The expect failure test may fail with either
+    // mpack_error_memory or mpack_error_io.
 
     mpack_reader_t reader;
 
@@ -539,6 +537,65 @@ static void test_file_node(void) {
     mpack_tree_init_file(&tree, "invalid-filename", 0);
     TEST_TREE_DESTROY_ERROR(&tree, mpack_error_io);
 }
+
+static bool test_file_node_failure() {
+
+    // The node failure test may fail with either
+    // mpack_error_memory or mpack_error_io.
+
+    mpack_tree_t tree;
+
+    #define TEST_POSSIBLE_FAILURE() do { \
+        mpack_error_t error = mpack_tree_error(&tree); \
+        TEST_TRUE(test_tree_error == error); \
+        if (error == mpack_error_memory || error == mpack_error_io) { \
+            test_tree_error = mpack_ok; \
+            mpack_tree_destroy(&tree); \
+            return false; \
+        } \
+    } while (0)
+
+    mpack_tree_init_file(&tree, test_filename, 0);
+    if (mpack_tree_error(&tree) == mpack_error_memory || mpack_tree_error(&tree) == mpack_error_io) {
+        mpack_tree_destroy(&tree);
+        return false;
+    }
+    mpack_tree_set_error_handler(&tree, test_tree_error_handler);
+
+
+    mpack_node_t root = mpack_tree_root(&tree);
+    size_t length = mpack_node_array_length(root);
+    TEST_POSSIBLE_FAILURE();
+    TEST_TRUE(6 == length);
+
+    mpack_node_t node = mpack_node_array_at(root, 0);
+    char* str = mpack_node_data_alloc(node, 100);
+    TEST_POSSIBLE_FAILURE();
+    TEST_TRUE(str != NULL);
+    const char* expected = "The quick brown fox jumps over a lazy dog.";
+    TEST_TRUE(mpack_node_strlen(node) == strlen(expected));
+    TEST_TRUE(memcmp(str, expected, mpack_node_strlen(node)) == 0);
+    MPACK_FREE(str);
+
+    node = mpack_node_array_at(root, 1);
+    str = mpack_node_cstr_alloc(node, 100);
+    TEST_POSSIBLE_FAILURE();
+    TEST_TRUE(str != NULL);
+    expected = "one";
+    TEST_TRUE(strlen(str) == strlen(expected));
+    TEST_TRUE(strcmp(str, expected) == 0);
+    MPACK_FREE(str);
+
+    #undef TEST_POSSIBLE_FAILURE
+
+    mpack_error_t error = mpack_tree_destroy(&tree);
+    if (error == mpack_error_io || error == mpack_error_memory)
+        return false;
+    TEST_TRUE(error == mpack_ok, "unexpected error state %i (%s)", (int)error,
+            mpack_error_to_string(error));
+    return true;
+
+}
 #endif
 
 void test_file(void) {
@@ -564,6 +621,9 @@ void test_file(void) {
     test_system_fail_until_ok(&test_file_write_failure);
     #if MPACK_EXPECT
     test_system_fail_until_ok(&test_file_expect_failure);
+    #endif
+    #if MPACK_NODE
+    test_system_fail_until_ok(&test_file_node_failure);
     #endif
 
     TEST_TRUE(remove(test_filename) == 0, "failed to delete %s", test_filename);
