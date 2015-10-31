@@ -37,7 +37,7 @@ MPACK_HEADER_START
 /* Version information */
 
 #define MPACK_VERSION_MAJOR 0  /**< The major version number of MPack. */
-#define MPACK_VERSION_MINOR 6  /**< The minor version number of MPack. */
+#define MPACK_VERSION_MINOR 7  /**< The minor version number of MPack. */
 #define MPACK_VERSION_PATCH 0  /**< The patch version number of MPack. */
 
 /** A number containing the version number of MPack for comparison purposes. */
