@@ -146,7 +146,7 @@ static void test_file_write(void) {
     TEST_TRUE(error == mpack_ok, "write failed with %s", mpack_error_to_string(error));
 
     // test invalid filename
-    mkdir(test_dir, 0700);
+    (void)mkdir(test_dir, 0700);
     mpack_writer_init_file(&writer, test_dir);
     TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_io);
 
