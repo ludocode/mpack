@@ -110,8 +110,6 @@ if ARGUMENTS.get('all'):
             allfeatures + allconfigs + releaseflags + cflags)
     if conf.CheckFlags(ltoflags, ltoflags, "-flto"):
         AddBuild("release-lto", allfeatures + allconfigs + ltoflags + cflags, ltoflags)
-    if hasOg:
-        AddBuild("debug-O0", allfeatures + allconfigs + ["-DDEBUG", "-O0"] + cflags)
 
     # feature subsets with default configuration
     AddBuilds("empty", allconfigs + cflags)
