@@ -80,6 +80,16 @@ void test_system_fail_until_ok(bool (*test)(void)) {
     test_system_fail_reset();
 }
 
+void test_system(void) {
+    #ifdef MPACK_MALLOC
+    TEST_TRUE(test_malloc_count() == 0);
+    TEST_TRUE(NULL == mpack_realloc(NULL, 0, 0));
+    void* p = MPACK_MALLOC(1);
+    TEST_TRUE(NULL == mpack_realloc(p, 1, 0));
+    TEST_TRUE(test_malloc_count() == 0, "realloc leaked");
+    #endif
+}
+
 
 
 #ifdef MPACK_MALLOC

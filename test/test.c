@@ -81,6 +81,7 @@ void test_true_impl(bool result, const char* file, int line, const char* format,
 int main(void) {
     printf("\n\n");
 
+    test_system();
     test_common();
 
     #if MPACK_READER

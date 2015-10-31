@@ -43,6 +43,10 @@ void test_system_fail_reset(void);
 void test_system_fail_until_ok(bool (*test)(void));
 
 
+// runs system tests
+void test_system(void);
+
+
 #ifdef MPACK_MALLOC
 void* test_malloc(size_t size);
 void* test_realloc(void* p, size_t size);
