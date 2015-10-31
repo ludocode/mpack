@@ -29,6 +29,7 @@
 
 static bool test_system_fail = false;
 static size_t test_system_left = 0;
+static const int test_system_fail_until_max = 500;
 
 void test_system_fail_after(size_t count) {
     test_system_fail = true;
@@ -49,6 +50,31 @@ static bool test_system_should_fail(void) {
     return false;
 }
 #endif
+
+void test_system_fail_until_ok(bool (*test)(void)) {
+    #ifdef MPACK_MALLOC
+    test_assert(test_malloc_count() == 0, "allocations exist before starting failure test");
+    #endif
+
+    for (int i = 0; i < test_system_fail_until_max; ++i) {
+        test_system_fail_after(i);
+        bool ok = test();
+
+        #ifdef MPACK_MALLOC
+        test_assert(test_malloc_count() == 0, "test leaked memory on iteration %i!", i);
+        #endif
+
+        if (ok) {
+            test_system_fail_reset();
+            return;
+        }
+    }
+
+    test_assert(false, "hit maximum number of system calls in a system fail test");
+    test_system_fail_reset();
+}
+
+
 
 #ifdef MPACK_MALLOC
 static size_t test_malloc_active = 0;
@@ -98,6 +124,8 @@ size_t test_malloc_count(void) {
 }
 
 #endif
+
+
 
 #if MPACK_STDIO
 #undef fopen

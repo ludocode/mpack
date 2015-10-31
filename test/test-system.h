@@ -23,6 +23,7 @@
 #define MPACK_TEST_SYSTEM_H 1
 
 #include <stddef.h>
+#include <stdbool.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -34,7 +35,12 @@ extern "C" {
 void test_system_fail_after(size_t count);
 
 // Resets the system call failure simulation, allowing all
+// system calls to succeed
 void test_system_fail_reset(void);
+
+// Runs the given test repeatedly, failing the nth system call on
+// the nth iteration until the test succeeds
+void test_system_fail_until_ok(bool (*test)(void));
 
 
 #ifdef MPACK_MALLOC

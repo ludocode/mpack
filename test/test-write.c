@@ -633,6 +633,66 @@ static void test_write_small_structure_trees() {
         );
 
 }
+
+static bool test_write_deep_growth() {
+
+    // test a growable writer with a very deep stack and lots
+    // of data to see if both the growable buffer and the tracking
+    // stack grow properly. we allow mpack_error_memory as an
+    // error (since it will be simulated by the failure system.)
+
+    char* buf;
+    size_t size;
+    mpack_writer_t writer;
+
+    #define TEST_CHECK_MEMORY() do { \
+        if (mpack_writer_error(&writer) == mpack_error_memory) { \
+            mpack_writer_destroy(&writer); \
+            test_assert(buf == NULL); \
+            return false; \
+        } \
+    } while (0)
+
+    mpack_writer_init_growable(&writer, &buf, &size);
+    TEST_CHECK_MEMORY();
+
+    const int depth = 40;
+    const int nums = 1000;
+
+    for (int i = 0; i < depth; ++i) {
+        mpack_start_array(&writer, 1);
+        TEST_CHECK_MEMORY();
+    }
+
+    mpack_start_array(&writer, nums);
+    TEST_CHECK_MEMORY();
+    for (int i = 0; i < nums; ++i) {
+        mpack_write_u64(&writer, UINT64_MAX);
+        TEST_CHECK_MEMORY();
+    }
+    mpack_finish_array(&writer);
+    TEST_CHECK_MEMORY();
+
+    for (int i = 0; i < depth; ++i) {
+        mpack_finish_array(&writer);
+        TEST_CHECK_MEMORY();
+    }
+
+    #undef TEST_CHECK_MEMORY
+
+    mpack_error_t error = mpack_writer_destroy(&writer);
+    if (error == mpack_ok) {
+        MPACK_FREE(buf);
+        return true;
+    }
+    if (error == mpack_error_memory) {
+        test_assert(buf == NULL);
+        return false;
+    }
+    test_assert(false, "unexpected error state %i (%s)", (int)error, mpack_error_to_string(error));
+    return true;
+
+}
 #endif
 
 #if MPACK_WRITE_TRACKING
@@ -708,6 +768,7 @@ void test_writes() {
     #ifdef MPACK_MALLOC
     test_write_basic_structures();
     test_write_small_structure_trees();
+    test_system_fail_until_ok(&test_write_deep_growth);
     #endif
 
     #if MPACK_WRITE_TRACKING
