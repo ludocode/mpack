@@ -537,6 +537,7 @@ MPACK_INLINE_SPEED void mpack_read_native_nojump(mpack_reader_t* reader, char* p
 
 #if MPACK_DEFINE_INLINE_SPEED
 MPACK_INLINE_SPEED void mpack_read_native_nojump(mpack_reader_t* reader, char* p, size_t count) {
+    mpack_assert(reader->error == mpack_ok, "cannot call nojump if an error is already flagged!");
     mpack_reader_error_t error_fn = reader->error_fn;
     reader->error_fn = NULL;
     mpack_read_native(reader, p, count);

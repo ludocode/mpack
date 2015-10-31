@@ -60,7 +60,7 @@ void mpack_break_hit(const char* message) {
 }
 #endif
 
-void TEST_TRUE_impl(bool result, const char* file, int line, const char* format, ...) {
+void test_true_impl(bool result, const char* file, int line, const char* format, ...) {
     ++tests;
     if (result) {
         ++passes;

@@ -260,6 +260,11 @@ char* mpack_read_bytes_alloc_size(mpack_reader_t* reader, size_t count, size_t a
     if (alloc_size == 0)
         return NULL;
 
+    // track the bytes first in case it jumps
+    mpack_reader_track_bytes(reader, count);
+    if (mpack_reader_error(reader) != mpack_ok)
+        return NULL;
+
     // allocate data
     char* data = (char*)MPACK_MALLOC(alloc_size);
     if (data == NULL) {
@@ -268,11 +273,10 @@ char* mpack_read_bytes_alloc_size(mpack_reader_t* reader, size_t count, size_t a
     }
 
     // read with jump disabled so we don't leak our buffer
-    mpack_reader_track_bytes(reader, count);
     mpack_read_native_nojump(reader, data, count);
 
     // report flagged errors
-    if (mpack_reader_error(reader)) {
+    if (mpack_reader_error(reader) != mpack_ok) {
         MPACK_FREE(data);
         if (reader->error_fn)
             reader->error_fn(reader, mpack_reader_error(reader));

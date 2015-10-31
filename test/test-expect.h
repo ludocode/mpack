@@ -28,7 +28,7 @@
 extern "C" {
 #endif
 
-#ifdef MPACK_EXPECT
+#if MPACK_EXPECT
 void test_expect(void);
 #endif
 

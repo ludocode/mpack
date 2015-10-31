@@ -28,7 +28,7 @@
 extern "C" {
 #endif
 
-#ifdef MPACK_NODE
+#if MPACK_NODE
 
 #define TEST_TREE_DESTROY_NOERROR(tree) do { \
     mpack_error_t error = mpack_tree_destroy(tree); \

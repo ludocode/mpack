@@ -28,11 +28,14 @@
 extern "C" {
 #endif
 
-#ifdef MPACK_READER
+#if MPACK_READER
+
+extern mpack_error_t test_read_error;
+void test_read_error_handler(mpack_reader_t* reader, mpack_error_t error);
+
 
 // these setup and destroy test readers and check them for errors.
-// they are generally macros so that the asserts are on the line of the test.
-
+// they are generally macros so that the checks are on the line of the test.
 
 
 // destroy wrappers expecting error or no error
@@ -85,8 +88,11 @@ extern "C" {
 #define TEST_SIMPLE_READ(data, read_expr) do { \
     mpack_reader_t reader; \
     TEST_READER_INIT_STR(&reader, data); \
+    mpack_reader_set_error_handler(&reader, test_read_error_handler); \
     TEST_TRUE((read_expr), "simple read test did not pass: " #read_expr); \
     TEST_READER_DESTROY_NOERROR(&reader); \
+    TEST_TRUE(test_read_error == mpack_ok); \
+    test_read_error = mpack_ok; \
 } while (0)
 
 // runs a simple reader test, ensuring the expression is true and no errors occur, cancelling to ignore tracking info
@@ -101,8 +107,11 @@ extern "C" {
 #define TEST_SIMPLE_READ_ERROR(data, read_expr, error) do { \
     mpack_reader_t reader; \
     TEST_READER_INIT_STR(&reader, data); \
+    mpack_reader_set_error_handler(&reader, test_read_error_handler); \
     TEST_TRUE((read_expr), "simple read error test did not pass: " #read_expr); \
     TEST_READER_DESTROY_ERROR(&reader, (error)); \
+    TEST_TRUE(test_read_error == (error)); \
+    test_read_error = mpack_ok; \
 } while (0)
 
 

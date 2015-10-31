@@ -80,9 +80,9 @@ extern "C" {
 // runs the given expression, causing a unit test failure with the
 // given printf format string if the expression is not true.
 #define TEST_TRUE(expr, ...) \
-    TEST_TRUE_impl((expr), __FILE__, __LINE__, " " __VA_ARGS__)
+    test_true_impl((expr), __FILE__, __LINE__, " " __VA_ARGS__)
 
-void TEST_TRUE_impl(bool result, const char* file, int line, const char* format, ...);
+void test_true_impl(bool result, const char* file, int line, const char* format, ...);
 
 extern int tests;
 extern int passes;

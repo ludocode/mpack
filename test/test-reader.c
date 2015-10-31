@@ -23,6 +23,15 @@
 
 #if MPACK_READER
 
+mpack_error_t test_read_error = mpack_ok;
+
+void test_read_error_handler(mpack_reader_t* reader, mpack_error_t error) {
+    TEST_TRUE(test_read_error == mpack_ok, "error handler was called multiple times");
+    TEST_TRUE(error != mpack_ok, "error handler was called with mpack_ok");
+    TEST_TRUE(mpack_reader_error(reader) == error, "reader error does not match given error");
+    test_read_error = error;
+}
+
 void test_reader() {
     // almost all reader functions are tested by the expect tests.
     // minor miscellaneous read tests are added here.
