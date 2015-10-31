@@ -21,7 +21,6 @@ conf = Configure(env, custom_tests = {'CheckFlags': CheckFlags})
 for x in os.environ.keys():
     if x in ["CC", "CXX", "PATH", "TRAVIS", "TERM"] or x.startswith("CLANG_") or x.startswith("CCC_"):
         env[x] = os.environ[x]
-        env["ENV"][x] = os.environ[x]
 
 env.Append(CPPFLAGS = [
     "-Wall", "-Wextra", "-Werror",
@@ -69,6 +68,9 @@ if ARGUMENTS.get('gcov'):
     gcovflags = ["-DMPACK_GCOV=1", "--coverage"]
 
 ltoflags = ["-O3", "-flto", "-fuse-linker-plugin", "-fno-fat-lto-objects"]
+
+# -lstdc++ is added in SConscript
+cxxflags = ["-x", "c++"]
 
 
 # Functions to add a variant build. One variant build will build and run the
@@ -141,13 +143,13 @@ if ARGUMENTS.get('all'):
     # other language standards (C11, various C++ versions)
     if conf.CheckFlags(["-std=c11"]):
         AddBuilds("c11", allfeatures + allconfigs + ["-std=c11"], [])
-    AddBuilds("cxx", allfeatures + allconfigs + ["-xc++", "-std=c++98"], ["-lstdc++"])
-    if conf.CheckFlags(["-xc++", "-std=c++11"], [], "-std=c++11"):
-        AddBuilds("cxx11", allfeatures + allconfigs + ["-xc++", "-std=c++11"], ["-lstdc++"])
-    if conf.CheckFlags(["-xc++", "-std=c++14"], [], "-std=c++14"):
-        AddBuilds("cxx14", allfeatures + allconfigs + ["-xc++", "-std=c++14"], ["-lstdc++"])
+    AddBuilds("cxx", allfeatures + allconfigs + cxxflags + ["-std=c++98"], [])
+    if conf.CheckFlags(cxxflags + ["-std=c++11"], [], "-std=c++11"):
+        AddBuilds("cxx11", allfeatures + allconfigs + cxxflags + ["-std=c++11"], [])
+    if conf.CheckFlags(cxxflags + ["-std=c++14"], [], "-std=c++14"):
+        AddBuilds("cxx14", allfeatures + allconfigs + cxxflags + ["-std=c++14"], [])
 
     # 32-bit build
     if conf.CheckFlags(["-m32"], ["-m32"]):
         AddBuilds("32",     allfeatures + allconfigs + cflags + ["-m32"], ["-m32"])
-        AddBuilds("cxx32",  allfeatures + allconfigs + ["-xc++", "-std=c++98", "-m32"], ["-lstdc++", "-m32"])
+        AddBuilds("cxx32",  allfeatures + allconfigs + cxxflags + ["-std=c++98", "-m32"], ["-m32"])

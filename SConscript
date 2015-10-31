@@ -4,8 +4,8 @@ Import('env', 'CPPFLAGS', 'LINKFLAGS')
 
 # we add the C/C++ specific flags here. we can't use CCFLAGS/CXXFLAGS
 # because as far as SCons is concerned, they are all C files; we're
-# passing -xc++ to force the language.
-if "-xc++" in CPPFLAGS:
+# passing -x c++ to force the language.
+if "c++" in CPPFLAGS:
     CPPFLAGS += ["-Wmissing-declarations"]
     LINKFLAGS += ["-lstdc++"]
 else:
