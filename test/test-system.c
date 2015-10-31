@@ -112,7 +112,6 @@ void* test_malloc(size_t size) {
 }
 
 void* test_realloc(void* p, size_t size) {
-    TEST_TRUE(size != 0, "cannot allocate zero bytes!");
     if (size == 0) {
         if (p) {
             free(p);
