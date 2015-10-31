@@ -40,7 +40,7 @@ void test_system_fail_reset(void) {
     test_system_fail = false;
 }
 
-#if defined(MPACK_MALLOC) || (defined(MPACK_STDIO) && MPACK_STDIO)
+#if defined(MPACK_MALLOC) || MPACK_STDIO
 static bool test_system_should_fail(void) {
     if (!test_system_fail)
         return false;
@@ -55,6 +55,9 @@ void test_system_fail_until_ok(bool (*test)(void)) {
     #ifdef MPACK_MALLOC
     test_assert(test_malloc_count() == 0, "allocations exist before starting failure test");
     #endif
+    #if MPACK_STDIO
+    test_assert(test_files_count() == 0, "files are open before starting failure test");
+    #endif
 
     for (int i = 0; i < test_system_fail_until_max; ++i) {
         test_system_fail_after(i);
@@ -62,6 +65,9 @@ void test_system_fail_until_ok(bool (*test)(void)) {
 
         #ifdef MPACK_MALLOC
         test_assert(test_malloc_count() == 0, "test leaked memory on iteration %i!", i);
+        #endif
+        #if MPACK_STDIO
+        test_assert(test_files_count() == 0, "test leaked file on iteration %i!", i);
         #endif
 
         if (ok) {
@@ -78,6 +84,10 @@ void test_system_fail_until_ok(bool (*test)(void)) {
 
 #ifdef MPACK_MALLOC
 static size_t test_malloc_active = 0;
+
+size_t test_malloc_count(void) {
+    return test_malloc_active;
+}
 
 void* test_malloc(size_t size) {
     test_assert(size != 0, "cannot allocate zero bytes!");
@@ -119,10 +129,6 @@ void test_free(void* p) {
     free(p);
 }
 
-size_t test_malloc_count(void) {
-    return test_malloc_active;
-}
-
 #endif
 
 
@@ -135,23 +141,39 @@ size_t test_malloc_count(void) {
 #undef fseek
 #undef ftell
 
+static size_t test_files_active = 0;
+
+size_t test_files_count(void) {
+    return test_files_active;
+}
+
 FILE* test_fopen(const char* path, const char* mode) {
     if (test_system_should_fail()) {
         errno = EACCES;
         return NULL;
     }
-    return fopen(path, mode);
+
+    FILE* file = fopen(path, mode);
+    if (file)
+        ++test_files_active;
+    return file;
 }
 
 int test_fclose(FILE* stream) {
     test_assert(stream != NULL);
+
+    --test_files_active;
+
+    // if we're simulating failure, we still close the file
+    // anyway to avoid leaking any files
+    int ret = fclose(stream);
 
     if (test_system_should_fail()) {
         errno = EACCES;
         return EOF;
     }
 
-    return fclose(stream);
+    return ret;
 }
 
 size_t test_fread(void* ptr, size_t size, size_t nmemb, FILE* stream) {

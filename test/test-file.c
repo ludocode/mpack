@@ -167,6 +167,38 @@ static void test_file_write(void) {
     test_writer_destroy_error(&writer, mpack_error_io);
 }
 
+static bool test_file_write_failure() {
+
+    // The write failure test may fail with either
+    // mpack_error_memory or mpack_error_io. We write a
+    // bunch of strs and bins to test the various expect
+    // allocator modes.
+
+    mpack_writer_t writer;
+    mpack_writer_init_file(&writer, test_filename);
+
+    mpack_start_array(&writer, 6);
+
+    // write a large string near the start to cause a
+    // more than double buffer size growth
+    mpack_write_cstr(&writer, "The quick brown fox jumps over a lazy dog.");
+
+    mpack_write_cstr(&writer, "one");
+    mpack_write_cstr(&writer, "two");
+    mpack_write_cstr(&writer, "three");
+    mpack_write_cstr(&writer, "four");
+    mpack_write_cstr(&writer, "five");
+    mpack_finish_array(&writer);
+
+    mpack_error_t error = mpack_writer_destroy(&writer);
+    if (error == mpack_error_io || error == mpack_error_memory)
+        return false;
+    test_assert(error == mpack_ok, "unexpected error state %i (%s)", (int)error,
+            mpack_error_to_string(error));
+    return true;
+
+}
+
 // compares the test filename to the expected debug output
 static void test_compare_print() {
     size_t expected_size;
@@ -338,6 +370,77 @@ static void test_file_read(void) {
     mpack_reader_init_file(&reader, "invalid-filename");
     test_reader_destroy_error(&reader, mpack_error_io);
 }
+
+static bool test_file_expect_failure() {
+
+    // The write failure test may fail with either
+    // mpack_error_memory or mpack_error_io. We write a
+    // bunch of strs and bins to test the various expect
+    // allocator modes.
+
+    mpack_reader_t reader;
+
+    #define TEST_POSSIBLE_FAILURE() do { \
+        mpack_error_t error = mpack_reader_error(&reader); \
+        if (error == mpack_error_memory || error == mpack_error_io) { \
+            mpack_reader_destroy(&reader); \
+            return false; \
+        } \
+    } while (0)
+
+    mpack_reader_init_file(&reader, test_filename);
+
+    uint32_t count;
+    char** strings = mpack_expect_array_alloc(&reader, char*, 50, &count);
+    TEST_POSSIBLE_FAILURE();
+    test_assert(strings != NULL);
+    test_assert(count == 6);
+    MPACK_FREE(strings);
+
+    size_t size;
+    char* str = mpack_expect_str_alloc(&reader, 100, &size);
+    TEST_POSSIBLE_FAILURE();
+    test_assert(str != NULL);
+    const char* expected = "The quick brown fox jumps over a lazy dog.";
+    test_assert(size == strlen(expected));
+    test_assert(memcmp(str, expected, size) == 0);
+    MPACK_FREE(str);
+
+    str = mpack_expect_utf8_alloc(&reader, 100, &size);
+    TEST_POSSIBLE_FAILURE();
+    test_assert(str != NULL);
+    expected = "one";
+    test_assert(size == strlen(expected));
+    test_assert(memcmp(str, expected, size) == 0);
+    MPACK_FREE(str);
+
+    str = mpack_expect_cstr_alloc(&reader, 100);
+    TEST_POSSIBLE_FAILURE();
+    test_assert(str != NULL);
+    test_assert(strcmp(str, "two") == 0);
+    MPACK_FREE(str);
+
+    str = mpack_expect_utf8_cstr_alloc(&reader, 100);
+    TEST_POSSIBLE_FAILURE();
+    test_assert(str != NULL);
+    test_assert(strcmp(str, "three") == 0);
+    MPACK_FREE(str);
+
+    mpack_discard(&reader);
+    mpack_discard(&reader);
+
+    mpack_done_array(&reader);
+
+    #undef TEST_POSSIBLE_FAILURE
+
+    mpack_error_t error = mpack_reader_destroy(&reader);
+    if (error == mpack_error_io || error == mpack_error_memory)
+        return false;
+    test_assert(error == mpack_ok, "unexpected error state %i (%s)", (int)error,
+            mpack_error_to_string(error));
+    return true;
+
+}
 #endif
 
 #if MPACK_NODE
@@ -456,6 +559,11 @@ void test_file(void) {
     #endif
     #if MPACK_NODE
     test_file_node();
+    #endif
+
+    test_system_fail_until_ok(&test_file_write_failure);
+    #if MPACK_EXPECT
+    test_system_fail_until_ok(&test_file_expect_failure);
     #endif
 
     test_assert(remove(test_filename) == 0, "failed to delete %s", test_filename);

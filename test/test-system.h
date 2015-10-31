@@ -60,6 +60,9 @@ size_t test_fread(void* ptr, size_t size, size_t nmemb, FILE* stream);
 size_t test_fwrite(const void* ptr, size_t size, size_t nmemb, FILE* stream);
 int test_fseek(FILE* stream, long offset, int whence);
 long test_ftell(FILE* stream);
+
+// Returns the number of files that have not yet been closed.
+size_t test_files_count(void);
 #endif
 
 

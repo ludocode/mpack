@@ -645,7 +645,7 @@ static bool test_write_deep_growth() {
     size_t size;
     mpack_writer_t writer;
 
-    #define TEST_CHECK_MEMORY() do { \
+    #define TEST_POSSIBLE_FAILURE() do { \
         if (mpack_writer_error(&writer) == mpack_error_memory) { \
             mpack_writer_destroy(&writer); \
             test_assert(buf == NULL); \
@@ -654,31 +654,31 @@ static bool test_write_deep_growth() {
     } while (0)
 
     mpack_writer_init_growable(&writer, &buf, &size);
-    TEST_CHECK_MEMORY();
+    TEST_POSSIBLE_FAILURE();
 
     const int depth = 40;
     const int nums = 1000;
 
     for (int i = 0; i < depth; ++i) {
         mpack_start_array(&writer, 1);
-        TEST_CHECK_MEMORY();
+        TEST_POSSIBLE_FAILURE();
     }
 
     mpack_start_array(&writer, nums);
-    TEST_CHECK_MEMORY();
+    TEST_POSSIBLE_FAILURE();
     for (int i = 0; i < nums; ++i) {
         mpack_write_u64(&writer, UINT64_MAX);
-        TEST_CHECK_MEMORY();
+        TEST_POSSIBLE_FAILURE();
     }
     mpack_finish_array(&writer);
-    TEST_CHECK_MEMORY();
+    TEST_POSSIBLE_FAILURE();
 
     for (int i = 0; i < depth; ++i) {
         mpack_finish_array(&writer);
-        TEST_CHECK_MEMORY();
+        TEST_POSSIBLE_FAILURE();
     }
 
-    #undef TEST_CHECK_MEMORY
+    #undef TEST_POSSIBLE_FAILURE
 
     mpack_error_t error = mpack_writer_destroy(&writer);
     if (error == mpack_ok) {

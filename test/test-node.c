@@ -686,7 +686,7 @@ static void test_node_read_data(void) {
     #ifdef MPACK_MALLOC
     char* alice_alloc = mpack_node_cstr_alloc(alice, 100);
     test_assert(0 == strcmp("alice", alice_alloc));
-    free(alice_alloc);
+    MPACK_FREE(alice_alloc);
     #endif
 
     mpack_node_t bob = mpack_node_array_at(root, 1);
@@ -696,7 +696,7 @@ static void test_node_read_data(void) {
     #ifdef MPACK_MALLOC
     char* bob_alloc = mpack_node_data_alloc(bob, 100);
     test_assert(0 == memcmp("bob", bob_alloc, 3));
-    free(bob_alloc);
+    MPACK_FREE(bob_alloc);
     #endif
 
     mpack_node_t carl = mpack_node_array_at(root, 2);

@@ -104,6 +104,7 @@ AddBuild("debug", allfeatures + allconfigs + debugflags + cflags + gcovflags, gc
 if ARGUMENTS.get('more') or ARGUMENTS.get('all'):
     AddBuild("release", allfeatures + allconfigs + releaseflags + cflags)
     AddBuilds("embed", allfeatures + cflags)
+    AddBuilds("noio", allfeatures + noioconfigs + cflags)
 
 
 # Run "scons all=1" to run all builds. This is what the CI runs.
@@ -125,7 +126,6 @@ if ARGUMENTS.get('all'):
     AddBuilds("node", ["-DMPACK_NODE=1"] + allconfigs + cflags)
 
     # no i/o
-    AddBuilds("noio", allfeatures + noioconfigs + cflags)
     AddBuilds("noio-writer", ["-DMPACK_WRITER=1"] + noioconfigs + cflags)
     AddBuilds("noio-reader", ["-DMPACK_READER=1"] + noioconfigs + cflags)
     AddBuilds("noio-expect", ["-DMPACK_READER=1", "-DMPACK_EXPECT=1"] + noioconfigs + cflags)
