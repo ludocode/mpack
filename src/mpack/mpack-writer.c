@@ -26,21 +26,23 @@
 #if MPACK_WRITER
 
 #if MPACK_WRITE_TRACKING
-#define MPACK_WRITER_TRACK(writer, error) mpack_writer_flag_if_error(writer, error)
+#define MPACK_WRITER_TRACK(writer, error_expr) \
+    (((writer)->error == mpack_ok) ? mpack_writer_flag_if_error((writer), (error_expr)) : ((void)0))
 
 MPACK_STATIC_INLINE_SPEED void mpack_writer_flag_if_error(mpack_writer_t* writer, mpack_error_t error) {
     if (error != mpack_ok)
         mpack_writer_flag_error(writer, error);
 }
 #else
-#define MPACK_WRITER_TRACK(writer, error) MPACK_UNUSED(writer)
+#define MPACK_WRITER_TRACK(writer, error_expr) MPACK_UNUSED(writer)
 #endif
 
 MPACK_STATIC_INLINE_SPEED void mpack_writer_track_element(mpack_writer_t* writer) {
-    MPACK_WRITER_TRACK(writer, mpack_track_element(&writer->track, true));
+    MPACK_WRITER_TRACK(writer, mpack_track_element(&writer->track, false));
 }
 
 void mpack_writer_init(mpack_writer_t* writer, char* buffer, size_t size) {
+    mpack_assert(buffer != NULL, "cannot initialize writer with empty buffer");
     mpack_memset(writer, 0, sizeof(*writer));
     writer->buffer = buffer;
     writer->size = size;
@@ -153,6 +155,11 @@ void mpack_writer_init_growable(mpack_writer_t* writer, char** target_data, size
 
     size_t capacity = MPACK_BUFFER_SIZE;
     char* buffer = (char*)MPACK_MALLOC(capacity);
+    if (buffer == NULL) {
+        MPACK_FREE(growable_writer);
+        mpack_writer_init_error(writer, mpack_error_memory);
+        return;
+    }
 
     mpack_writer_init(writer, buffer, capacity);
     mpack_writer_set_context(writer, growable_writer);
@@ -282,18 +289,18 @@ MPACK_STATIC_INLINE_SPEED void mpack_write_native(mpack_writer_t* writer, const 
     }
 }
 
-MPACK_ALWAYS_INLINE void mpack_store_native_u8_at(char* p, uint8_t val) {
+MPACK_STATIC_ALWAYS_INLINE void mpack_store_native_u8_at(char* p, uint8_t val) {
     uint8_t* u = (uint8_t*)p;
     u[0] = val;
 }
 
-MPACK_ALWAYS_INLINE void mpack_store_native_u16_at(char* p, uint16_t val) {
+MPACK_STATIC_ALWAYS_INLINE void mpack_store_native_u16_at(char* p, uint16_t val) {
     uint8_t* u = (uint8_t*)p;
     u[0] = (uint8_t)((val >> 8) & 0xFF);
     u[1] = (uint8_t)( val       & 0xFF);
 }
 
-MPACK_ALWAYS_INLINE void mpack_store_native_u32_at(char* p, uint32_t val) {
+MPACK_STATIC_ALWAYS_INLINE void mpack_store_native_u32_at(char* p, uint32_t val) {
     uint8_t* u = (uint8_t*)p;
     u[0] = (uint8_t)((val >> 24) & 0xFF);
     u[1] = (uint8_t)((val >> 16) & 0xFF);
@@ -301,7 +308,7 @@ MPACK_ALWAYS_INLINE void mpack_store_native_u32_at(char* p, uint32_t val) {
     u[3] = (uint8_t)( val        & 0xFF);
 }
 
-MPACK_ALWAYS_INLINE void mpack_store_native_u64_at(char* p, uint64_t val) {
+MPACK_STATIC_ALWAYS_INLINE void mpack_store_native_u64_at(char* p, uint64_t val) {
     uint8_t* u = (uint8_t*)p;
     u[0] = (uint8_t)((val >> 56) & 0xFF);
     u[1] = (uint8_t)((val >> 48) & 0xFF);
@@ -382,7 +389,11 @@ MPACK_STATIC_INLINE_SPEED void mpack_write_native_double(mpack_writer_t* writer,
 }
 
 mpack_error_t mpack_writer_destroy(mpack_writer_t* writer) {
-    MPACK_WRITER_TRACK(writer, mpack_track_destroy(&writer->track, false));
+
+    // clean up tracking, asserting if we're not already in an error state
+    #if MPACK_WRITE_TRACKING
+    mpack_track_destroy(&writer->track, writer->error != mpack_ok);
+    #endif
 
     // flush any outstanding data
     if (mpack_writer_error(writer) == mpack_ok && writer->used != 0 && writer->flush != NULL) {
@@ -399,7 +410,10 @@ mpack_error_t mpack_writer_destroy(mpack_writer_t* writer) {
 }
 
 void mpack_writer_destroy_cancel(mpack_writer_t* writer) {
-    MPACK_WRITER_TRACK(writer, mpack_track_destroy(&writer->track, true));
+
+    #if MPACK_WRITE_TRACKING
+    mpack_track_destroy(&writer->track, true);
+    #endif
 
     if (writer->teardown)
         writer->teardown(writer);
@@ -407,17 +421,14 @@ void mpack_writer_destroy_cancel(mpack_writer_t* writer) {
 }
 
 void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t value) {
-    mpack_writer_track_element(writer);
 
     switch (value.type) {
-
-        case mpack_type_nil:    mpack_write_nil   (writer);          break;
-
-        case mpack_type_bool:   mpack_write_bool  (writer, value.v.b); break;
-        case mpack_type_float:  mpack_write_float (writer, value.v.f); break;
-        case mpack_type_double: mpack_write_double(writer, value.v.d); break;
-        case mpack_type_int:    mpack_write_int   (writer, value.v.i); break;
-        case mpack_type_uint:   mpack_write_uint  (writer, value.v.u); break;
+        case mpack_type_nil:    mpack_writer_track_element(writer); mpack_write_nil   (writer);            break;
+        case mpack_type_bool:   mpack_writer_track_element(writer); mpack_write_bool  (writer, value.v.b); break;
+        case mpack_type_float:  mpack_writer_track_element(writer); mpack_write_float (writer, value.v.f); break;
+        case mpack_type_double: mpack_writer_track_element(writer); mpack_write_double(writer, value.v.d); break;
+        case mpack_type_int:    mpack_writer_track_element(writer); mpack_write_int   (writer, value.v.i); break;
+        case mpack_type_uint:   mpack_writer_track_element(writer); mpack_write_uint  (writer, value.v.u); break;
 
         case mpack_type_str: mpack_start_str(writer, value.v.l); break;
         case mpack_type_bin: mpack_start_bin(writer, value.v.l); break;

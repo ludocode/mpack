@@ -100,9 +100,14 @@ void mpack_reader_init_file(mpack_reader_t* reader, const char* filename) {
 }
 #endif
 
-mpack_error_t mpack_reader_destroy_impl(mpack_reader_t* reader, bool cancel) {
+static mpack_error_t mpack_reader_destroy_impl(mpack_reader_t* reader, bool cancel) {
+
+    // clean up tracking, asserting if we're not already in an error state
+    cancel |= reader->error != mpack_ok;
     MPACK_UNUSED(cancel);
-    MPACK_UNUSED(MPACK_READER_TRACK(reader, mpack_track_destroy(&reader->track, cancel)));
+    #if MPACK_READ_TRACKING
+    mpack_track_destroy(&reader->track, cancel);
+    #endif
 
     if (reader->teardown)
         reader->teardown(reader);
@@ -139,11 +144,12 @@ void mpack_reader_flag_error(mpack_reader_t* reader, mpack_error_t error) {
 // A helper to call the reader fill function. This makes sure it's
 // implemented and guards against overflow in case it returns -1.
 MPACK_STATIC_INLINE_SPEED size_t mpack_fill(mpack_reader_t* reader, char* p, size_t count) {
-    if (!reader->fill)
-        return 0;
+    mpack_assert(reader->fill != NULL, "mpack_fill() called with no fill function?");
+
     size_t ret = reader->fill(reader, p, count);
     if (ret == ((size_t)(-1)))
         return 0;
+
     return ret;
 }
 
@@ -164,6 +170,16 @@ void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count) {
                 "left in buffer. call mpack_read_native() instead",
                 (int)count, (int)reader->left);
         mpack_reader_flag_error(reader, mpack_error_bug);
+        mpack_memset(p, 0, count);
+        return;
+    }
+
+    // we'll need a fill function to get more data. if there's no
+    // fill function, the buffer should contain an entire MessagePack
+    // object, so we raise mpack_error_invalid instead of mpack_error_io
+    // on truncated data.
+    if (reader->fill == NULL) {
+        mpack_reader_flag_error(reader, mpack_error_invalid);
         mpack_memset(p, 0, count);
         return;
     }
@@ -238,6 +254,39 @@ void mpack_read_bytes(mpack_reader_t* reader, char* p, size_t count) {
     mpack_read_native(reader, p, count);
 }
 
+#ifdef MPACK_MALLOC
+char* mpack_read_bytes_alloc_size(mpack_reader_t* reader, size_t count, size_t alloc_size) {
+    mpack_assert(count <= alloc_size, "count %i is less than alloc_size %i", (int)count, (int)alloc_size);
+    if (alloc_size == 0)
+        return NULL;
+
+    // track the bytes first in case it jumps
+    mpack_reader_track_bytes(reader, count);
+    if (mpack_reader_error(reader) != mpack_ok)
+        return NULL;
+
+    // allocate data
+    char* data = (char*)MPACK_MALLOC(alloc_size);
+    if (data == NULL) {
+        mpack_reader_flag_error(reader, mpack_error_memory);
+        return NULL;
+    }
+
+    // read with jump disabled so we don't leak our buffer
+    mpack_read_native_nojump(reader, data, count);
+
+    // report flagged errors
+    if (mpack_reader_error(reader) != mpack_ok) {
+        MPACK_FREE(data);
+        if (reader->error_fn)
+            reader->error_fn(reader, mpack_reader_error(reader));
+        return NULL;
+    }
+
+    return data;
+}
+#endif
+
 // internal inplace reader for when it straddles the end of the buffer
 // this is split out to inline the common case, although this isn't done
 // right now because we can't inline tracking yet
@@ -248,9 +297,12 @@ static const char* mpack_read_bytes_inplace_big(mpack_reader_t* reader, size_t c
             mpack_error_to_string(mpack_reader_error(reader)));
     mpack_assert(reader->left < count, "already enough bytes in buffer: %i left, %i count", (int)reader->left, (int)count);
 
-    // we'll need a fill function to get more data
-    if (!reader->fill) {
-        mpack_reader_flag_error(reader, mpack_error_io);
+    // we'll need a fill function to get more data. if there's no
+    // fill function, the buffer should contain an entire MessagePack
+    // object, so we raise mpack_error_invalid instead of mpack_error_io
+    // on truncated data.
+    if (reader->fill == NULL) {
+        mpack_reader_flag_error(reader, mpack_error_invalid);
         return NULL;
     }
 
@@ -292,11 +344,13 @@ const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count) {
 mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
     mpack_tag_t var = mpack_tag_nil();
 
+    // make sure we can read a tag
+    if (mpack_reader_track_element(reader) != mpack_ok)
+        return mpack_tag_nil();
+
     // get the type
     uint8_t type = mpack_read_native_u8(reader);
     if (mpack_reader_error(reader))
-        return mpack_tag_nil();
-    if (mpack_reader_track_element(reader) != mpack_ok)
         return mpack_tag_nil();
 
     // unfortunately, by far the fastest way to parse a tag is to switch
@@ -619,6 +673,7 @@ void mpack_discard(mpack_reader_t* reader) {
                 if (mpack_reader_error(reader))
                     break;
             }
+            mpack_done_array(reader);
             break;
         }
         case mpack_type_map: {
@@ -628,6 +683,7 @@ void mpack_discard(mpack_reader_t* reader) {
                 if (mpack_reader_error(reader))
                     break;
             }
+            mpack_done_map(reader);
             break;
         }
         default:
@@ -661,130 +717,122 @@ void mpack_done_type(mpack_reader_t* reader, mpack_type_t type) {
 }
 #endif
 
-#if MPACK_DEBUG && MPACK_STDIO && !MPACK_NO_PRINT
-static void mpack_debug_print_element(mpack_reader_t* reader, size_t depth) {
+#if MPACK_STDIO
+static void mpack_print_element(mpack_reader_t* reader, size_t depth, FILE* file) {
     mpack_tag_t val = mpack_read_tag(reader);
     if (mpack_reader_error(reader) != mpack_ok)
         return;
     switch (val.type) {
 
         case mpack_type_nil:
-            printf("null");
+            fprintf(file, "null");
             break;
         case mpack_type_bool:
-            printf(val.v.b ? "true" : "false");
+            fprintf(file, val.v.b ? "true" : "false");
             break;
 
         case mpack_type_float:
-            printf("%f", val.v.f);
+            fprintf(file, "%f", val.v.f);
             break;
         case mpack_type_double:
-            printf("%f", val.v.d);
+            fprintf(file, "%f", val.v.d);
             break;
 
         case mpack_type_int:
-            printf("%" PRIi64, val.v.i);
+            fprintf(file, "%" PRIi64, val.v.i);
             break;
         case mpack_type_uint:
-            printf("%" PRIu64, val.v.u);
+            fprintf(file, "%" PRIu64, val.v.u);
             break;
 
         case mpack_type_bin:
-            // skip data
-            for (size_t i = 0; i < val.v.l; ++i)
-                mpack_read_native_u8(reader);
-            if (mpack_reader_error(reader) != mpack_ok)
-                return;
-            printf("<binary data>");
+            fprintf(file, "<binary data of length %u>", val.v.l);
+            mpack_skip_bytes(reader, val.v.l);
             mpack_done_bin(reader);
             break;
 
         case mpack_type_ext:
-            // skip data
-            for (size_t i = 0; i < val.v.l; ++i)
-                mpack_read_native_u8(reader);
-            if (mpack_reader_error(reader) != mpack_ok)
-                return;
-            printf("<ext data of type %i>", val.exttype);
+            fprintf(file, "<ext data of type %i and length %u>", val.exttype, val.v.l);
+            mpack_skip_bytes(reader, val.v.l);
             mpack_done_ext(reader);
             break;
 
         case mpack_type_str:
-            putchar('"');
+            putc('"', file);
             for (size_t i = 0; i < val.v.l; ++i) {
                 char c;
                 mpack_read_bytes(reader, &c, 1);
                 if (mpack_reader_error(reader) != mpack_ok)
                     return;
                 switch (c) {
-                    case '\n': printf("\\n"); break;
-                    case '\\': printf("\\\\"); break;
-                    case '"': printf("\\\""); break;
-                    default: putchar(c); break;
+                    case '\n': fprintf(file, "\\n"); break;
+                    case '\\': fprintf(file, "\\\\"); break;
+                    case '"': fprintf(file, "\\\""); break;
+                    default: putc(c, file); break;
                 }
             }
-            putchar('"');
+            putc('"', file);
             mpack_done_str(reader);
             break;
 
         case mpack_type_array:
-            printf("[\n");
+            fprintf(file, "[\n");
             for (size_t i = 0; i < val.v.n; ++i) {
-                if (mpack_reader_error(reader) != mpack_ok)
-                    return;
                 for (size_t j = 0; j < depth + 1; ++j)
-                    printf("    ");
-                mpack_debug_print_element(reader, depth + 1);
+                    fprintf(file, "    ");
+                mpack_print_element(reader, depth + 1, file);
                 if (mpack_reader_error(reader) != mpack_ok)
                     return;
                 if (i != val.v.n - 1)
-                    putchar(',');
-                putchar('\n');
+                    putc(',', file);
+                putc('\n', file);
             }
             for (size_t i = 0; i < depth; ++i)
-                printf("    ");
-            putchar(']');
+                fprintf(file, "    ");
+            putc(']', file);
             mpack_done_array(reader);
             break;
 
         case mpack_type_map:
-            printf("{\n");
+            fprintf(file, "{\n");
             for (size_t i = 0; i < val.v.n; ++i) {
                 for (size_t j = 0; j < depth + 1; ++j)
-                    printf("    ");
-                mpack_debug_print_element(reader, depth + 1);
+                    fprintf(file, "    ");
+                mpack_print_element(reader, depth + 1, file);
                 if (mpack_reader_error(reader) != mpack_ok)
                     return;
-                printf(": ");
-                mpack_debug_print_element(reader, depth + 1);
+                fprintf(file, ": ");
+                mpack_print_element(reader, depth + 1, file);
                 if (mpack_reader_error(reader) != mpack_ok)
                     return;
                 if (i != val.v.n - 1)
-                    putchar(',');
-                putchar('\n');
+                    putc(',', file);
+                putc('\n', file);
             }
             for (size_t i = 0; i < depth; ++i)
-                printf("    ");
-            putchar('}');
+                fprintf(file, "    ");
+            putc('}', file);
             mpack_done_map(reader);
             break;
     }
 }
 
-void mpack_debug_print(const char* data, int len) {
+void mpack_print_file(const char* data, size_t len, FILE* file) {
     mpack_reader_t reader;
     mpack_reader_init_data(&reader, data, len);
 
     int depth = 2;
     for (int i = 0; i < depth; ++i)
-        printf("    ");
-    mpack_debug_print_element(&reader, depth);
-    putchar('\n');
+        fprintf(file, "    ");
+    mpack_print_element(&reader, depth, file);
+    putc('\n', file);
 
-    if (mpack_reader_error(&reader) != mpack_ok)
-        printf("<mpack parsing error %s>\n", mpack_error_to_string(mpack_reader_error(&reader)));
-    else if (mpack_reader_remaining(&reader, NULL) > 0)
-        printf("<%i extra bytes at end of mpack>\n", (int)mpack_reader_remaining(&reader, NULL));
+    size_t remaining = mpack_reader_remaining(&reader, NULL);
+
+    if (mpack_reader_destroy(&reader) != mpack_ok)
+        fprintf(file, "<mpack parsing error %s>\n", mpack_error_to_string(mpack_reader_error(&reader)));
+    else if (remaining > 0)
+        fprintf(file, "<%i extra bytes at end of mpack>\n", (int)remaining);
 }
 #endif
 

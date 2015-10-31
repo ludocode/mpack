@@ -1,5 +1,3 @@
-[![Build Status](https://travis-ci.org/ludocode/mpack.svg?branch=master)](https://travis-ci.org/ludocode/mpack/branches)
-
 ## Introduction
 
 MPack is a C implementation of an encoder and decoder for the [MessagePack](http://msgpack.org/) serialization format. It is intended to be:
@@ -16,7 +14,13 @@ The MPack code is small enough to be embedded directly into your codebase. The e
 
 MPack is written in the portable intersection of C99 and C++. In other words, it's written in C99, but if you are stuck using a certain popular compiler from a certain unpopular vendor that refuses to support C99, you can compile it as C++ instead.
 
-*NOTE: MPack is beta software under development. The API occasionally changes, there are still some TODOs in the codebase, some security issues to fix, some MessagePack 1.0/1.1 compatibility and interoperability issues to sort out, some test suite portability issues to fix, and there is only around 65% unit test coverage.*
+## Build Status
+
+MPack is beta software under development.
+
+| [Travis-CI](https://travis-ci.org/) | [Coveralls.io](https://coveralls.io/) |
+| :-------: | :----------: |
+| [![Build Status](https://travis-ci.org/ludocode/mpack.svg?branch=master)](https://travis-ci.org/ludocode/mpack/branches) | [![Coverage Status](https://coveralls.io/repos/ludocode/mpack/badge.svg?branch=master&service=github)](https://coveralls.io/github/ludocode/mpack?branch=master) |
 
 ## The Node Reader API
 
@@ -39,7 +43,7 @@ if (mpack_tree_destroy(tree) != mpack_ok) {
 }
 ```
 
-Note that no additional error handling is needed in the above code. If the file is missing or corrupt, if map keys are missing or if nodes are not in the expected types, special "nil" nodes and false/zero values are returned and the tree is placed in an error state. An error check is only needed before using the data. Alternatively, the tree can be configured to longjmp in such cases if a handler is set.
+Note that no additional error handling is needed in the above code. If the file is missing or corrupt, if map keys are missing or if nodes are not in the expected types, special "nil" nodes and false/zero values are returned and the tree is placed in an error state. An error check is only needed before using the data.
 
 ## The Write API
 
@@ -73,7 +77,7 @@ free(data);
 
 In the above example, we encode to a growable memory buffer. The writer can instead write to a pre-allocated or stack-allocated buffer, avoiding the need for memory allocation. The writer can also be provided with a flush function (such as a file or socket write function) to call when the buffer is full or when writing is done.
 
-If any error occurs, the writer is placed in an error state and can optionally longjmp if a handler is set. The writer will flag an error if too much data is written, if the wrong number of elements are written, if the data could not be flushed, etc. No additional error handling is needed in the above code; any subsequent writes are ignored when the writer is in an error state, so you don't need to check every write for errors.
+If any error occurs, the writer is placed in an error state. The writer will flag an error if too much data is written, if the wrong number of elements are written, if the data could not be flushed, etc. No additional error handling is needed in the above code; any subsequent writes are ignored when the writer is in an error state, so you don't need to check every write for errors.
 
 Note in particular that in debug mode, the `mpack_finish_map()` call above ensures that two key/value pairs were actually written as claimed, something that other MessagePack C/C++ libraries may not do.
 
@@ -83,7 +87,7 @@ Conceptually, MessagePack stores data similarly to JSON: they are both composed 
 
 - Compound types such as strings, maps and arrays are delimited, so appropriate storage cannot be allocated upfront. The whole object must be parsed to determine its size.
 
-- Strings are not stored in their native encoding. They cannot contain quotes or special characters, so they must be escaped when written and converted back when read.
+- Strings are not stored in their native encoding. Special characters such as quotes and backslashes must be escaped when written and converted back when read.
 
 - Numbers are particularly inefficient (especially when parsing back floats), making JSON inappropriate as a base format for structured data that contains lots of numbers.
 

@@ -30,12 +30,14 @@
 
 #include "mpack-platform.h"
 
+MPACK_HEADER_START
+
 
 
 /* Version information */
 
 #define MPACK_VERSION_MAJOR 0  /**< The major version number of MPack. */
-#define MPACK_VERSION_MINOR 6  /**< The minor version number of MPack. */
+#define MPACK_VERSION_MINOR 7  /**< The minor version number of MPack. */
 #define MPACK_VERSION_PATCH 0  /**< The patch version number of MPack. */
 
 /** A number containing the version number of MPack for comparison purposes. */
@@ -85,10 +87,6 @@
 
 
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /**
  * @defgroup common Common Elements
  *
@@ -117,7 +115,7 @@ typedef enum mpack_error_t {
 } mpack_error_t;
 
 /**
- * Converts an mpack error to a string. This function returns an empty
+ * Converts an MPack error to a string. This function returns an empty
  * string when MPACK_DEBUG is not set.
  */
 const char* mpack_error_to_string(mpack_error_t error);
@@ -140,7 +138,7 @@ typedef enum mpack_type_t {
 } mpack_type_t;
 
 /**
- * Converts an mpack type to a string. This function returns an empty
+ * Converts an MPack type to a string. This function returns an empty
  * string when MPACK_DEBUG is not set.
  */
 const char* mpack_type_to_string(mpack_type_t type);
@@ -182,6 +180,33 @@ MPACK_INLINE mpack_tag_t mpack_tag_nil(void) {
     return ret;
 }
 
+/** Generates a bool tag. */
+MPACK_INLINE mpack_tag_t mpack_tag_bool(bool value) {
+    mpack_tag_t ret;
+    mpack_memset(&ret, 0, sizeof(ret));
+    ret.type = mpack_type_bool;
+    ret.v.b = value;
+    return ret;
+}
+
+/** Generates a bool tag with value true. */
+MPACK_INLINE mpack_tag_t mpack_tag_true(void) {
+    mpack_tag_t ret;
+    mpack_memset(&ret, 0, sizeof(ret));
+    ret.type = mpack_type_bool;
+    ret.v.b = true;
+    return ret;
+}
+
+/** Generates a bool tag with value false. */
+MPACK_INLINE mpack_tag_t mpack_tag_false(void) {
+    mpack_tag_t ret;
+    mpack_memset(&ret, 0, sizeof(ret));
+    ret.type = mpack_type_bool;
+    ret.v.b = false;
+    return ret;
+}
+
 /** Generates a signed int tag. */
 MPACK_INLINE mpack_tag_t mpack_tag_int(int64_t value) {
     mpack_tag_t ret;
@@ -197,15 +222,6 @@ MPACK_INLINE mpack_tag_t mpack_tag_uint(uint64_t value) {
     mpack_memset(&ret, 0, sizeof(ret));
     ret.type = mpack_type_uint;
     ret.v.u = value;
-    return ret;
-}
-
-/** Generates a bool tag. */
-MPACK_INLINE mpack_tag_t mpack_tag_bool(bool value) {
-    mpack_tag_t ret;
-    mpack_memset(&ret, 0, sizeof(ret));
-    ret.type = mpack_type_bool;
-    ret.v.b = value;
     return ret;
 }
 
@@ -227,16 +243,65 @@ MPACK_INLINE mpack_tag_t mpack_tag_double(double value) {
     return ret;
 }
 
+/** Generates an array tag. */
+MPACK_INLINE mpack_tag_t mpack_tag_array(int32_t count) {
+    mpack_tag_t ret;
+    mpack_memset(&ret, 0, sizeof(ret));
+    ret.type = mpack_type_array;
+    ret.v.n = count;
+    return ret;
+}
+
+/** Generates a map tag. */
+MPACK_INLINE mpack_tag_t mpack_tag_map(int32_t count) {
+    mpack_tag_t ret;
+    mpack_memset(&ret, 0, sizeof(ret));
+    ret.type = mpack_type_map;
+    ret.v.n = count;
+    return ret;
+}
+
+/** Generates a str tag. */
+MPACK_INLINE mpack_tag_t mpack_tag_str(int32_t length) {
+    mpack_tag_t ret;
+    mpack_memset(&ret, 0, sizeof(ret));
+    ret.type = mpack_type_str;
+    ret.v.l = length;
+    return ret;
+}
+
+/** Generates a bin tag. */
+MPACK_INLINE mpack_tag_t mpack_tag_bin(int32_t length) {
+    mpack_tag_t ret;
+    mpack_memset(&ret, 0, sizeof(ret));
+    ret.type = mpack_type_bin;
+    ret.v.l = length;
+    return ret;
+}
+
+/** Generates an ext tag. */
+MPACK_INLINE mpack_tag_t mpack_tag_ext(int8_t exttype, int32_t length) {
+    mpack_tag_t ret;
+    mpack_memset(&ret, 0, sizeof(ret));
+    ret.type = mpack_type_ext;
+    ret.exttype = exttype;
+    ret.v.l = length;
+    return ret;
+}
+
 /**
  * Compares two tags with an arbitrary fixed ordering. Returns 0 if the tags are
  * equal, a negative integer if left comes before right, or a positive integer
  * otherwise.
  *
- * See mpack_tag_equal() for information on when tags are considered
- * to be equal.
+ * \warning The ordering is not guaranteed to be preserved across MPack versions; do
+ * not rely on it in persistent data.
  *
- * The ordering is not guaranteed to be preserved across mpack versions; do not
- * rely on it in serialized data.
+ * \warning Floating point numbers are compared bit-for-bit, not using the language's
+ * operator==. This means that NaNs with matching representation will compare equal.
+ * This behaviour is up for debate; see comments in the definition of mpack_tag_cmp().
+ *
+ * See mpack_tag_equal() for more information on when tags are considered equal.
  */
 int mpack_tag_cmp(mpack_tag_t left, mpack_tag_t right);
 
@@ -252,7 +317,9 @@ int mpack_tag_cmp(mpack_tag_t left, mpack_tag_t right);
  * The "extension type" of an extension object is considered part of the value
  * and much match exactly.
  *
- * Floating point numbers are compared bit-for-bit, not using the language's operator==.
+ * \warning Floating point numbers are compared bit-for-bit, not using the language's
+ * operator==. This means that NaNs with matching representation will compare equal.
+ * This behaviour is up for debate; see comments in the definition of mpack_tag_cmp().
  */
 MPACK_INLINE bool mpack_tag_equal(mpack_tag_t left, mpack_tag_t right) {
     return mpack_tag_cmp(left, right) == 0;
@@ -300,7 +367,6 @@ MPACK_ALWAYS_INLINE uint64_t mpack_load_native_u64(const char* p) {
 
 
 #if MPACK_READ_TRACKING || MPACK_WRITE_TRACKING
-
 /* Tracks the write state of compound elements (maps, arrays, */
 /* strings, binary blobs and extension types) */
 /** @cond */
@@ -319,143 +385,23 @@ typedef struct mpack_track_t {
 #if MPACK_INTERNAL
 mpack_error_t mpack_track_init(mpack_track_t* track);
 mpack_error_t mpack_track_grow(mpack_track_t* track);
-
-// These look like some overly large inline functions, but really
-// they are mostly asserts. They boil down to just a few checks
-// and assignments.
-
-MPACK_INLINE_SPEED mpack_error_t mpack_track_push(mpack_track_t* track, mpack_type_t type, uint64_t count);
-MPACK_INLINE_SPEED mpack_error_t mpack_track_pop(mpack_track_t* track, mpack_type_t type);
-MPACK_INLINE_SPEED mpack_error_t mpack_track_element(mpack_track_t* track, bool read);
-MPACK_INLINE_SPEED mpack_error_t mpack_track_bytes(mpack_track_t* track, bool read, uint64_t count);
-MPACK_INLINE_SPEED mpack_error_t mpack_track_check_empty(mpack_track_t* track);
-MPACK_INLINE_SPEED mpack_error_t mpack_track_destroy(mpack_track_t* track, bool cancel);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED mpack_error_t mpack_track_push(mpack_track_t* track, mpack_type_t type, uint64_t count) {
-    mpack_assert(track->elements, "null track elements!");
-
-    // maps have twice the number of elements (key/value pairs)
-    if (type == mpack_type_map)
-        count *= 2;
-
-    // grow if needed
-    if (track->count == track->capacity) {
-        mpack_error_t error = mpack_track_grow(track);
-        if (error != mpack_ok)
-            return error;
-    }
-
-    // insert new track
-    track->elements[track->count].type = type;
-    track->elements[track->count].left = count;
-    ++track->count;
-    return mpack_ok;
-}
-
-MPACK_INLINE_SPEED mpack_error_t mpack_track_pop(mpack_track_t* track, mpack_type_t type) {
-    mpack_assert(track->elements, "null track elements!");
-
-    if (track->count == 0) {
-        mpack_break("attempting to close a %s but nothing was opened!", mpack_type_to_string(type));
-        return mpack_error_bug;
-    }
-
-    mpack_track_element_t* element = &track->elements[track->count - 1];
-
-    if (element->type != type) {
-        mpack_break("attempting to close a %s but the open element is a %s!",
-                mpack_type_to_string(type), mpack_type_to_string(element->type));
-        return mpack_error_bug;
-    }
-
-    if (element->left != 0) {
-        mpack_break("attempting to close a %s but there are %" PRIu64 " %s left",
-                mpack_type_to_string(type), element->left,
-                (type == mpack_type_map || type == mpack_type_array) ? "elements" : "bytes");
-        return mpack_error_bug;
-    }
-
-    --track->count;
-    return mpack_ok;
-}
-
-MPACK_INLINE_SPEED mpack_error_t mpack_track_element(mpack_track_t* track, bool read) {
-    MPACK_UNUSED(read);
-    mpack_assert(track->elements, "null track elements!");
-
-    // if there are no open elements, that's fine, we can read elements at will
-    if (track->count == 0)
-        return mpack_ok;
-
-    mpack_track_element_t* element = &track->elements[track->count - 1];
-
-    if (element->type != mpack_type_map && element->type != mpack_type_array) {
-        mpack_break("elements cannot be %s within an %s", read ? "read" : "written",
-                mpack_type_to_string(element->type));
-        return mpack_error_bug;
-    }
-
-    if (element->left == 0) {
-        mpack_break("too many elements %s for %s", read ? "read" : "written",
-                mpack_type_to_string(element->type));
-        return mpack_error_bug;
-    }
-
-    --element->left;
-    return mpack_ok;
-}
-
-MPACK_INLINE_SPEED mpack_error_t mpack_track_bytes(mpack_track_t* track, bool read, uint64_t count) {
-    MPACK_UNUSED(read);
-    mpack_assert(track->elements, "null track elements!");
-
-    if (track->count == 0) {
-        mpack_break("bytes cannot be %s with no open bin, str or ext", read ? "read" : "written");
-        return mpack_error_bug;
-    }
-
-    mpack_track_element_t* element = &track->elements[track->count - 1];
-
-    if (element->type == mpack_type_map || element->type == mpack_type_array) {
-        mpack_break("bytes cannot be %s within an %s", read ? "read" : "written",
-                mpack_type_to_string(element->type));
-        return mpack_error_bug;
-    }
-
-    if (element->left < count) {
-        mpack_break("too many bytes %s for %s", read ? "read" : "written",
-                mpack_type_to_string(element->type));
-        return mpack_error_bug;
-    }
-
-    element->left -= count;
-    return mpack_ok;
-}
-
-MPACK_INLINE_SPEED mpack_error_t mpack_track_check_empty(mpack_track_t* track) {
-    if (track->count != 0) {
-        mpack_assert(0, "unclosed %s", mpack_type_to_string(track->elements[0].type));
-        return mpack_error_bug;
-    }
-    return mpack_ok;
-}
-
-MPACK_INLINE_SPEED mpack_error_t mpack_track_destroy(mpack_track_t* track, bool cancel) {
-    mpack_error_t error = cancel ? mpack_ok : mpack_track_check_empty(track);
-    MPACK_FREE(track->elements);
-    track->elements = NULL;
-    return error;
-}
+mpack_error_t mpack_track_push(mpack_track_t* track, mpack_type_t type, uint64_t count);
+mpack_error_t mpack_track_pop(mpack_track_t* track, mpack_type_t type);
+mpack_error_t mpack_track_element(mpack_track_t* track, bool read);
+mpack_error_t mpack_track_bytes(mpack_track_t* track, bool read, uint64_t count);
+mpack_error_t mpack_track_check_empty(mpack_track_t* track);
+mpack_error_t mpack_track_destroy(mpack_track_t* track, bool cancel);
 #endif
 
-#endif
 /** @endcond */
 #endif
 
 
 
 #if MPACK_INTERNAL
+/** @cond */
+
+
 
 /* The below code is from Bjoern Hoehrmann's Flexible and Economical */
 /* UTF-8 decoder, modified to support MPack inlining and add the mpack prefix. */
@@ -466,30 +412,55 @@ MPACK_INLINE_SPEED mpack_error_t mpack_track_destroy(mpack_track_t* track, bool 
 #define MPACK_UTF8_ACCEPT 0
 #define MPACK_UTF8_REJECT 12
 
-MPACK_INLINE_SPEED uint32_t mpack_utf8_decode(uint32_t* state, uint32_t* codep, uint32_t byte);
+/**
+ * Parses one byte from a UTF-8 stream.
+ *
+ * Returns and sets state to:
+ *   - MPACK_UTF8_ACCEPT if the byte completes a valid unicode code point, placing it in codep
+ *   - MPACK_UTF8_REJECT if the byte is invalid UTF-8
+ *   - something else if more bytes are needed to form a valid character
+ *
+ * If more bytes are needed, this should be called again with the next byte
+ * in the string. state and codep should not be modified, since they will
+ * contain the partially read code point.
+ *
+ * The initial state should be set to MPACK_UTF8_ACCEPT before parsing a string.
+ *
+ * This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or
+ * WTF-8. Overlong sequences and UTF-16 surrogates will be rejected. Only
+ * pure UTF-8 is accepted.
+ */
+uint32_t mpack_utf8_decode(uint32_t* state, uint32_t* codep, uint8_t byte);
 
-#if MPACK_DEFINE_INLINE_SPEED
-extern const uint8_t mpack_utf8d[];
+/* End of UTF-8 decoder code */
 
-MPACK_INLINE_SPEED uint32_t mpack_utf8_decode(uint32_t* state, uint32_t* codep, uint32_t byte) {
-  uint32_t type = mpack_utf8d[byte];
 
-  *codep = (*state != MPACK_UTF8_ACCEPT) ?
-    (byte & 0x3fu) | (*codep << 6) :
-    (0xff >> type) & (byte);
 
-  *state = mpack_utf8d[256 + *state + type];
-  return *state;
-}
+/* Miscellaneous string functions */
+
+/**
+ * Returns true if the given UTF-8 string is valid.
+ */
+bool mpack_utf8_check(char* str, size_t bytes);
+
+/**
+ * Returns true if the given UTF-8 string is valid and contains no null characters.
+ */
+bool mpack_utf8_check_no_null(char* str, size_t bytes);
+
+/**
+ * Returns true if the given string has no null bytes.
+ */
+bool mpack_str_check_no_null(char* str, size_t bytes);
+
+
+
+/** @endcond */
 #endif
 
-#endif
 
 
-
-#ifdef __cplusplus
-}
-#endif
+MPACK_HEADER_END
 
 #endif
 

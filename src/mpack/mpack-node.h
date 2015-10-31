@@ -30,11 +30,9 @@
 
 #include "mpack-reader.h"
 
-#if MPACK_NODE
+MPACK_HEADER_START
 
-#ifdef __cplusplus
-extern "C" {
-#endif
+#if MPACK_NODE
 
 /**
  * @defgroup node Node API
@@ -223,7 +221,7 @@ void mpack_tree_init(mpack_tree_t* tree, const char* data, size_t length);
 void mpack_tree_init_pool(mpack_tree_t* tree, const char* data, size_t length, mpack_node_data_t* node_pool, size_t node_pool_count);
 
 /**
- * Initializes an mpack tree directly into an error state. Use this if you
+ * Initializes an MPack tree directly into an error state. Use this if you
  * are writing a wrapper to mpack_tree_init() which can fail its setup.
  */
 void mpack_tree_init_error(mpack_tree_t* tree, mpack_error_t error);
@@ -353,13 +351,22 @@ MPACK_INLINE mpack_error_t mpack_node_error(mpack_node_t node) {
  */
 mpack_tag_t mpack_node_tag(mpack_node_t node);
 
-#if MPACK_DEBUG && MPACK_STDIO && !MPACK_NO_PRINT
+#if MPACK_STDIO
 /**
- * Converts a node to JSON and pretty-prints it to stdout.
- *
- * This function is only available in debugging mode.
+ * Converts a node to pseudo-JSON for debugging purposes
+ * and pretty-prints it to the given file.
  */
-void mpack_node_print(mpack_node_t node);
+void mpack_node_print_file(mpack_node_t node, FILE* file);
+
+#ifndef MPACK_GCOV
+/**
+ * Converts a node to pseudo-JSON for debugging purposes
+ * and pretty-prints it to stdout.
+ */
+MPACK_INLINE void mpack_node_print(mpack_node_t node) {
+    mpack_node_print_file(node, stdout);
+}
+#endif
 #endif
 
 /**
@@ -775,16 +782,16 @@ MPACK_INLINE_SPEED int8_t mpack_node_exttype(mpack_node_t node) {
 /**
  * Returns the length of the given str, bin or ext node.
  */
-MPACK_INLINE_SPEED size_t mpack_node_data_len(mpack_node_t node);
+MPACK_INLINE_SPEED uint32_t mpack_node_data_len(mpack_node_t node);
 
 #if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED size_t mpack_node_data_len(mpack_node_t node) {
+MPACK_INLINE_SPEED uint32_t mpack_node_data_len(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
     mpack_type_t type = node.data->type;
     if (type == mpack_type_str || type == mpack_type_bin || type == mpack_type_ext)
-        return (size_t)node.data->value.data.l;
+        return (uint32_t)node.data->value.data.l;
 
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
@@ -813,13 +820,17 @@ MPACK_INLINE_SPEED size_t mpack_node_strlen(mpack_node_t node) {
 /**
  * Returns a pointer to the data contained by this node.
  *
- * Note that strings are not null-terminated! Use mpack_node_copy_cstr() or
- * mpack_node_cstr_alloc() to get a null-terminated string.
+ * Note that strings are not null-terminated! Use one of the cstr functions
+ * to get a null-terminated string.
  *
  * The pointer is valid as long as the data backing the tree is valid.
  *
  * If this node is not of a str, bin or map, mpack_error_type is raised, and
  * NULL is returned.
+ *
+ * @see mpack_node_copy_cstr()
+ * @see mpack_node_cstr_alloc()
+ * @see mpack_node_utf8_cstr_alloc()
  */
 MPACK_INLINE_SPEED const char* mpack_node_data(mpack_node_t node);
 
@@ -872,7 +883,10 @@ void mpack_node_copy_cstr(mpack_node_t node, char* buffer, size_t size);
 #ifdef MPACK_MALLOC
 /**
  * Allocates a new chunk of data using MPACK_MALLOC with the bytes
- * contained by this node. The returned string should be freed with MPACK_FREE.
+ * contained by this node.
+ *
+ * The allocated data must be freed with MPACK_FREE() (or simply free()
+ * if MPack's allocator hasn't been customized.)
  *
  * If this node is not a str, bin or ext type, mpack_error_type is raised
  * and the return value should be discarded. If the string and null-terminator
@@ -884,10 +898,15 @@ char* mpack_node_data_alloc(mpack_node_t node, size_t maxlen);
 
 /**
  * Allocates a new null-terminated string using MPACK_MALLOC with the string
- * contained by this node. The returned string should be freed with MPACK_FREE.
+ * contained by this node.
+ *
+ * The allocated string must be freed with MPACK_FREE() (or simply free()
+ * if MPack's allocator hasn't been customized.)
  *
  * If this node is not a string type, mpack_error_type is raised, and the return
  * value should be discarded.
+ *
+ * @param maxlen The maximum size to allocate, including the null-terminator.
  */
 char* mpack_node_cstr_alloc(mpack_node_t node, size_t maxlen);
 #endif
@@ -1030,8 +1049,8 @@ MPACK_INLINE mpack_node_t mpack_node_map_int(mpack_node_t node, int64_t num) {
 }
 
 /**
- * Returns the value node in the given map for the given integer key, or NULL
- * if the map does not contain the given key.
+ * Returns the value node in the given map for the given integer key, or a nil
+ * node if the map does not contain the given key.
  *
  * @throws mpack_error_type if the node is not a map
  */
@@ -1051,7 +1070,7 @@ MPACK_INLINE mpack_node_t mpack_node_map_uint(mpack_node_t node, uint64_t num) {
 
 /**
  * Returns the value node in the given map for the given unsigned integer
- * key, or NULL if the map does not contain the given key.
+ * key, or a nil node if the map does not contain the given key.
  *
  * @throws mpack_error_type if the node is not a map
  */
@@ -1070,8 +1089,8 @@ MPACK_INLINE mpack_node_t mpack_node_map_str(mpack_node_t node, const char* str,
 }
 
 /**
- * Returns the value node in the given map for the given string key, or NULL
- * if the map does not contain the given key.
+ * Returns the value node in the given map for the given string key, or a
+ * nil node if the map does not contain the given key.
  *
  * @throws mpack_error_type if the node is not a map
  */
@@ -1091,7 +1110,7 @@ MPACK_INLINE mpack_node_t mpack_node_map_cstr(mpack_node_t node, const char* cst
 
 /**
  * Returns the value node in the given map for the given null-terminated
- * string key, or NULL if the map does not contain the given key.
+ * string key, or a nil node if the map does not contain the given key.
  *
  * @throws mpack_error_type if the node is not a map
  */
@@ -1123,11 +1142,10 @@ MPACK_INLINE bool mpack_node_map_contains_cstr(mpack_node_t node, const char* cs
  * @}
  */
 
-#ifdef __cplusplus
-}
 #endif
 
-#endif
+MPACK_HEADER_END
+
 #endif
 
 

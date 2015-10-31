@@ -23,6 +23,17 @@
     #define MPACK_FREE test_free
 #endif
 
+// We replace the file i/o functions to simulate failures
+#if defined(MPACK_STDIO) && MPACK_STDIO
+#include <stdio.h>
+#define fopen  test_fopen
+#define fclose test_fclose
+#define fread  test_fread
+#define fwrite test_fwrite
+#define fseek  test_fseek
+#define ftell  test_ftell
+#endif
+
 // Tracking matches the default config, except the test suite
 // also supports MPACK_NO_TRACKING to disable it.
 #if defined(MPACK_MALLOC) && !defined(MPACK_NO_TRACKING)
@@ -34,11 +45,17 @@
     #endif
 #endif
 
-#ifdef MPACK_MALLOC
-#include "test-malloc.h"
+// We use a custom assert function which longjmps, allowing
+// us to test assertions in debug mode.
+#ifdef MPACK_DEBUG
+#define MPACK_CUSTOM_ASSERT 1
+#define MPACK_CUSTOM_BREAK 1
 #endif
 
+#include "test-system.h"
+
 // we use small buffer sizes to test flushing, growing, and malloc failures
+#define MPACK_TRACKING_INITIAL_CAPACITY 3
 #define MPACK_STACK_SIZE 7
 #define MPACK_BUFFER_SIZE 7
 #define MPACK_NODE_PAGE_SIZE 7

@@ -77,6 +77,9 @@
 #ifndef MPACK_CUSTOM_ASSERT
 #define MPACK_CUSTOM_ASSERT 0
 #endif
+#ifndef MPACK_CUSTOM_BREAK
+#define MPACK_CUSTOM_BREAK 0
+#endif
 
 #ifndef MPACK_READ_TRACKING
 #define MPACK_READ_TRACKING 0
@@ -99,9 +102,6 @@
 #endif
 #ifndef MPACK_INTERNAL
 #define MPACK_INTERNAL 0
-#endif
-#ifndef MPACK_NO_PRINT
-#define MPACK_NO_PRINT 0
 #endif
 
 
@@ -130,11 +130,51 @@
 #endif
 #if MPACK_STDIO
 #include <stdio.h>
+#include <errno.h>
 #endif
 
+
+
+/*
+ * Header configuration
+ */
+
 #ifdef __cplusplus
-extern "C" {
+#define MPACK_EXTERN_C_START extern "C" {
+#define MPACK_EXTERN_C_END   }
+#else
+#define MPACK_EXTERN_C_START /* nothing */
+#define MPACK_EXTERN_C_END   /* nothing */
 #endif
+
+/* GCC versions from 4.6 to before 5.1 warn about defining a C99
+ * non-static inline function before declaring it (see issue #20) */
+#if (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
+#ifdef __cplusplus
+#define MPACK_DECLARED_INLINE_WARNING_START \
+    _Pragma ("GCC diagnostic push") \
+    _Pragma ("GCC diagnostic ignored \"-Wmissing-declarations\"")
+#else
+#define MPACK_DECLARED_INLINE_WARNING_START \
+    _Pragma ("GCC diagnostic push") \
+    _Pragma ("GCC diagnostic ignored \"-Wmissing-prototypes\"")
+#endif
+#define MPACK_DECLARED_INLINE_WARNING_END \
+    _Pragma ("GCC diagnostic pop")
+#else
+#define MPACK_DECLARED_INLINE_WARNING_START /* nothing */
+#define MPACK_DECLARED_INLINE_WARNING_END /* nothing */
+#endif
+
+#define MPACK_HEADER_START \
+    MPACK_EXTERN_C_START \
+    MPACK_DECLARED_INLINE_WARNING_START
+
+#define MPACK_HEADER_END \
+    MPACK_DECLARED_INLINE_WARNING_END \
+    MPACK_EXTERN_C_END
+
+MPACK_HEADER_START
 
 
 
@@ -166,23 +206,36 @@ extern "C" {
  * appear when necessary. In addition, three different linkage models need
  * to be supported:
  *
- *  - The C99 model, where "inline" does not emit a definition and "extern inline" does
- *  - The GNU model, where "inline" emits a definition and "extern inline" does not
- *  - The C++ model, where "inline" emits a definition with weak linkage
+ *  - The C99 model, where a standalone function is emitted only if there is any
+ *    `extern inline` or non-`inline` declaration (including the definition itself)
+ *
+ *  - The GNU model, where an `inline` definition emits a standalone function and an
+ *    `extern inline` definition does not, regardless of other declarations
+ *
+ *  - The C++ model, where `inline` emits a standalone function with special
+ *    (COMDAT) linkage
  *
  * The macros below wrap up everything above. All inline functions defined in header
  * files have a single non-inline definition emitted in the compilation of
- * mpack-platform.c.
+ * mpack-platform.c. All inline declarations and definitions use the same MPACK_INLINE
+ * specification to simplify the rules on when standalone functions are emitted.
  *
  * Inline functions in source files are defined static, so MPACK_STATIC_INLINE
  * is used for small functions and MPACK_STATIC_INLINE_SPEED is used for
  * larger optionally inline functions.
+ *
+ * Additional reading:
+ *     http://www.greenend.org.uk/rjk/tech/inline.html
  */
 
 #if defined(__cplusplus)
     // C++ rules
-    // The linker will need weak symbol support to link C++ object files,
-    // so we don't need to worry about emitting a single definition.
+    // The linker will need COMDAT support to link C++ object files,
+    // so we don't need to worry about emitting definitions from C++
+    // translation units. If mpack-platform.c (or the amalgamation)
+    // is compiled as C, its definition will be used, otherwise a
+    // C++ definition will be used, and no other C files will emit
+    // a defition.
     #define MPACK_INLINE inline
 #elif defined(__GNUC__) && (defined(__GNUC_GNU_INLINE__) || \
         !defined(__GNUC_STDC_INLINE__) && !defined(__GNUC_GNU_INLINE__))
@@ -228,15 +281,31 @@ extern "C" {
 #if defined(__GNUC__) || defined(__clang__)
     #define MPACK_UNREACHABLE __builtin_unreachable()
     #define MPACK_NORETURN(fn) fn __attribute__((noreturn))
-    #define MPACK_ALWAYS_INLINE __attribute__((always_inline)) MPACK_INLINE
+
+    // gcov gets confused with always_inline, so we disable it under the unit tests
+    #ifndef MPACK_GCOV
+        #define MPACK_ALWAYS_INLINE __attribute__((always_inline)) MPACK_INLINE
+        #define MPACK_STATIC_ALWAYS_INLINE static __attribute__((always_inline)) inline
+    #endif
+
 #elif defined(_MSC_VER)
     #define MPACK_UNREACHABLE __assume(0)
     #define MPACK_NORETURN(fn) __declspec(noreturn) fn
     #define MPACK_ALWAYS_INLINE __forceinline
-#else
+    #define MPACK_STATIC_ALWAYS_INLINE static __forceinline
+#endif
+
+#ifndef MPACK_UNREACHABLE
     #define MPACK_UNREACHABLE ((void)0)
+#endif
+#ifndef MPACK_NORETURN
     #define MPACK_NORETURN(fn) fn
+#endif
+#ifndef MPACK_ALWAYS_INLINE
     #define MPACK_ALWAYS_INLINE MPACK_INLINE
+#endif
+#ifndef MPACK_STATIC_ALWAYS_INLINE
+    #define MPACK_STATIC_ALWAYS_INLINE static inline
 #endif
 
 
@@ -304,7 +373,6 @@ extern "C" {
     #define mpack_assert(expr, ...) ((!(expr)) ? MPACK_UNREACHABLE, (void)0 : (void)0)
     #define mpack_break(...) ((void)0)
 #endif
-
 
 
 
@@ -379,9 +447,7 @@ size_t mpack_strlen(const char *s);
  * @}
  */
 
-#ifdef __cplusplus
-}
-#endif
+MPACK_HEADER_END
 
 /** @endcond */
 

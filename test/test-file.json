@@ -1,0 +1,27 @@
+[
+    null,
+    false,
+    true,
+    [
+        0,
+        1,
+        -1,
+        -32768,
+        65535,
+        -2147483648,
+        4294967295,
+        //-9223372036854775808,
+        //18446744073709551615,
+        0.0,
+    ],
+    {
+        "a": 1,
+        "b": 2,
+        "c": 3,
+        "d": 4,
+    },
+    "\"\n\\",
+    "The quick brown fox jumps over the lazy dog.",
+    "base64:VGhlIGZpdmUgYm94aW5nIHdpemFyZHMganVtcCBxdWlja2x5Lg==",
+    "ext:1:base64:U3BoaW54IG9mIGJsYWNrIHF1YXJ0eiwganVkZ2UgbXkgdm93Lg==",
+]

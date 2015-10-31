@@ -143,105 +143,105 @@ static void test_buffer_flush(mpack_writer_t* writer, const char* buffer, size_t
 
 #if MPACK_EXPECT
 static void test_expect_buffer_values(mpack_reader_t* reader) {
-    test_read_noerror(reader, 2 == mpack_expect_u8(reader));
-    test_read_noerror(reader, 17 == mpack_expect_u8(reader));
-    test_read_noerror(reader, 29 == mpack_expect_u8(reader));
-    test_read_noerror(reader, 43 == mpack_expect_u8(reader));
-    test_read_noerror(reader, 59 == mpack_expect_u8(reader));
-    test_read_noerror(reader, 71 == mpack_expect_u8(reader));
-    test_read_noerror(reader, 89 == mpack_expect_u8(reader));
-    test_read_noerror(reader, 101 == mpack_expect_u8(reader));
+    TEST_READ_NOERROR(reader, 2 == mpack_expect_u8(reader));
+    TEST_READ_NOERROR(reader, 17 == mpack_expect_u8(reader));
+    TEST_READ_NOERROR(reader, 29 == mpack_expect_u8(reader));
+    TEST_READ_NOERROR(reader, 43 == mpack_expect_u8(reader));
+    TEST_READ_NOERROR(reader, 59 == mpack_expect_u8(reader));
+    TEST_READ_NOERROR(reader, 71 == mpack_expect_u8(reader));
+    TEST_READ_NOERROR(reader, 89 == mpack_expect_u8(reader));
+    TEST_READ_NOERROR(reader, 101 == mpack_expect_u8(reader));
 
-    test_read_noerror(reader, 131 == mpack_expect_u8(reader));
-    test_read_noerror(reader, 149 == mpack_expect_u8(reader));
-    test_read_noerror(reader, 157 == mpack_expect_u8(reader));
-    test_read_noerror(reader, 173 == mpack_expect_u8(reader));
-    test_read_noerror(reader, 191 == mpack_expect_u8(reader));
-    test_read_noerror(reader, 199 == mpack_expect_u8(reader));
-    test_read_noerror(reader, 223 == mpack_expect_u8(reader));
-    test_read_noerror(reader, 227 == mpack_expect_u8(reader));
+    TEST_READ_NOERROR(reader, 131 == mpack_expect_u8(reader));
+    TEST_READ_NOERROR(reader, 149 == mpack_expect_u8(reader));
+    TEST_READ_NOERROR(reader, 157 == mpack_expect_u8(reader));
+    TEST_READ_NOERROR(reader, 173 == mpack_expect_u8(reader));
+    TEST_READ_NOERROR(reader, 191 == mpack_expect_u8(reader));
+    TEST_READ_NOERROR(reader, 199 == mpack_expect_u8(reader));
+    TEST_READ_NOERROR(reader, 223 == mpack_expect_u8(reader));
+    TEST_READ_NOERROR(reader, 227 == mpack_expect_u8(reader));
 
-    test_read_noerror(reader, 257 == mpack_expect_u16(reader));
-    test_read_noerror(reader, 7517 == mpack_expect_u16(reader));
-    test_read_noerror(reader, 14767 == mpack_expect_u16(reader));
-    test_read_noerror(reader, 22027 == mpack_expect_u16(reader));
-    test_read_noerror(reader, 29269 == mpack_expect_u16(reader));
-    test_read_noerror(reader, 36523 == mpack_expect_u16(reader));
-    test_read_noerror(reader, 43777 == mpack_expect_u16(reader));
-    test_read_noerror(reader, 51031 == mpack_expect_u16(reader));
+    TEST_READ_NOERROR(reader, 257 == mpack_expect_u16(reader));
+    TEST_READ_NOERROR(reader, 7517 == mpack_expect_u16(reader));
+    TEST_READ_NOERROR(reader, 14767 == mpack_expect_u16(reader));
+    TEST_READ_NOERROR(reader, 22027 == mpack_expect_u16(reader));
+    TEST_READ_NOERROR(reader, 29269 == mpack_expect_u16(reader));
+    TEST_READ_NOERROR(reader, 36523 == mpack_expect_u16(reader));
+    TEST_READ_NOERROR(reader, 43777 == mpack_expect_u16(reader));
+    TEST_READ_NOERROR(reader, 51031 == mpack_expect_u16(reader));
 
-    test_read_noerror(reader, 65537 == mpack_expect_u32(reader));
-    test_read_noerror(reader, 477276851 == mpack_expect_u32(reader));
-    test_read_noerror(reader, 954488153 == mpack_expect_u32(reader));
-    test_read_noerror(reader, 1431699481 == mpack_expect_u32(reader));
-    test_read_noerror(reader, 1908910763 == mpack_expect_u32(reader));
+    TEST_READ_NOERROR(reader, 65537 == mpack_expect_u32(reader));
+    TEST_READ_NOERROR(reader, 477276851 == mpack_expect_u32(reader));
+    TEST_READ_NOERROR(reader, 954488153 == mpack_expect_u32(reader));
+    TEST_READ_NOERROR(reader, 1431699481 == mpack_expect_u32(reader));
+    TEST_READ_NOERROR(reader, 1908910763 == mpack_expect_u32(reader));
 
     // when using UINT32_C() and compiling the test suite as c++, gcc complains:
     // error: this decimal constant is unsigned only in ISO C90 [-Werror]
-    test_read_noerror(reader, UINT64_C(2386122103) == mpack_expect_u32(reader));
-    test_read_noerror(reader, UINT64_C(2863333399) == mpack_expect_u32(reader));
-    test_read_noerror(reader, UINT64_C(3340544681) == mpack_expect_u32(reader));
+    TEST_READ_NOERROR(reader, UINT64_C(2386122103) == mpack_expect_u32(reader));
+    TEST_READ_NOERROR(reader, UINT64_C(2863333399) == mpack_expect_u32(reader));
+    TEST_READ_NOERROR(reader, UINT64_C(3340544681) == mpack_expect_u32(reader));
 
-    test_read_noerror(reader, UINT64_C(4294967311) == mpack_expect_u64(reader));
-    test_read_noerror(reader, UINT64_C(1941762537917555303) == mpack_expect_u64(reader));
-    test_read_noerror(reader, UINT64_C(3883525071540143119) == mpack_expect_u64(reader));
-    test_read_noerror(reader, UINT64_C(5825287605162730577) == mpack_expect_u64(reader));
-    test_read_noerror(reader, UINT64_C(7767050138785318961) == mpack_expect_u64(reader));
-    test_read_noerror(reader, UINT64_C(9708812672407906367) == mpack_expect_u64(reader));
-    test_read_noerror(reader, UINT64_C(11650575206030493713) == mpack_expect_u64(reader));
-    test_read_noerror(reader, UINT64_C(13592337739653081091) == mpack_expect_u64(reader));
+    TEST_READ_NOERROR(reader, UINT64_C(4294967311) == mpack_expect_u64(reader));
+    TEST_READ_NOERROR(reader, UINT64_C(1941762537917555303) == mpack_expect_u64(reader));
+    TEST_READ_NOERROR(reader, UINT64_C(3883525071540143119) == mpack_expect_u64(reader));
+    TEST_READ_NOERROR(reader, UINT64_C(5825287605162730577) == mpack_expect_u64(reader));
+    TEST_READ_NOERROR(reader, UINT64_C(7767050138785318961) == mpack_expect_u64(reader));
+    TEST_READ_NOERROR(reader, UINT64_C(9708812672407906367) == mpack_expect_u64(reader));
+    TEST_READ_NOERROR(reader, UINT64_C(11650575206030493713) == mpack_expect_u64(reader));
+    TEST_READ_NOERROR(reader, UINT64_C(13592337739653081091) == mpack_expect_u64(reader));
 }
 #endif
 
 #if MPACK_WRITER
 static void test_write_buffer_values(mpack_writer_t* writer) {
-    test_write_noerror(writer, mpack_write_u8(writer, 2));
-    test_write_noerror(writer, mpack_write_u8(writer, 17));
-    test_write_noerror(writer, mpack_write_u8(writer, 29));
-    test_write_noerror(writer, mpack_write_u8(writer, 43));
-    test_write_noerror(writer, mpack_write_u8(writer, 59));
-    test_write_noerror(writer, mpack_write_u8(writer, 71));
-    test_write_noerror(writer, mpack_write_u8(writer, 89));
-    test_write_noerror(writer, mpack_write_u8(writer, 101));
+    TEST_WRITE_NOERROR(writer, mpack_write_u8(writer, 2));
+    TEST_WRITE_NOERROR(writer, mpack_write_u8(writer, 17));
+    TEST_WRITE_NOERROR(writer, mpack_write_u8(writer, 29));
+    TEST_WRITE_NOERROR(writer, mpack_write_u8(writer, 43));
+    TEST_WRITE_NOERROR(writer, mpack_write_u8(writer, 59));
+    TEST_WRITE_NOERROR(writer, mpack_write_u8(writer, 71));
+    TEST_WRITE_NOERROR(writer, mpack_write_u8(writer, 89));
+    TEST_WRITE_NOERROR(writer, mpack_write_u8(writer, 101));
 
-    test_write_noerror(writer, mpack_write_u8(writer, 131));
-    test_write_noerror(writer, mpack_write_u8(writer, 149));
-    test_write_noerror(writer, mpack_write_u8(writer, 157));
-    test_write_noerror(writer, mpack_write_u8(writer, 173));
-    test_write_noerror(writer, mpack_write_u8(writer, 191));
-    test_write_noerror(writer, mpack_write_u8(writer, 199));
-    test_write_noerror(writer, mpack_write_u8(writer, 223));
-    test_write_noerror(writer, mpack_write_u8(writer, 227));
+    TEST_WRITE_NOERROR(writer, mpack_write_u8(writer, 131));
+    TEST_WRITE_NOERROR(writer, mpack_write_u8(writer, 149));
+    TEST_WRITE_NOERROR(writer, mpack_write_u8(writer, 157));
+    TEST_WRITE_NOERROR(writer, mpack_write_u8(writer, 173));
+    TEST_WRITE_NOERROR(writer, mpack_write_u8(writer, 191));
+    TEST_WRITE_NOERROR(writer, mpack_write_u8(writer, 199));
+    TEST_WRITE_NOERROR(writer, mpack_write_u8(writer, 223));
+    TEST_WRITE_NOERROR(writer, mpack_write_u8(writer, 227));
 
-    test_write_noerror(writer, mpack_write_u16(writer, 257));
-    test_write_noerror(writer, mpack_write_u16(writer, 7517));
-    test_write_noerror(writer, mpack_write_u16(writer, 14767));
-    test_write_noerror(writer, mpack_write_u16(writer, 22027));
-    test_write_noerror(writer, mpack_write_u16(writer, 29269));
-    test_write_noerror(writer, mpack_write_u16(writer, 36523));
-    test_write_noerror(writer, mpack_write_u16(writer, 43777));
-    test_write_noerror(writer, mpack_write_u16(writer, 51031));
+    TEST_WRITE_NOERROR(writer, mpack_write_u16(writer, 257));
+    TEST_WRITE_NOERROR(writer, mpack_write_u16(writer, 7517));
+    TEST_WRITE_NOERROR(writer, mpack_write_u16(writer, 14767));
+    TEST_WRITE_NOERROR(writer, mpack_write_u16(writer, 22027));
+    TEST_WRITE_NOERROR(writer, mpack_write_u16(writer, 29269));
+    TEST_WRITE_NOERROR(writer, mpack_write_u16(writer, 36523));
+    TEST_WRITE_NOERROR(writer, mpack_write_u16(writer, 43777));
+    TEST_WRITE_NOERROR(writer, mpack_write_u16(writer, 51031));
 
-    test_write_noerror(writer, mpack_write_u32(writer, 65537));
-    test_write_noerror(writer, mpack_write_u32(writer, 477276851));
-    test_write_noerror(writer, mpack_write_u32(writer, 954488153));
-    test_write_noerror(writer, mpack_write_u32(writer, 1431699481));
-    test_write_noerror(writer, mpack_write_u32(writer, 1908910763));
+    TEST_WRITE_NOERROR(writer, mpack_write_u32(writer, 65537));
+    TEST_WRITE_NOERROR(writer, mpack_write_u32(writer, 477276851));
+    TEST_WRITE_NOERROR(writer, mpack_write_u32(writer, 954488153));
+    TEST_WRITE_NOERROR(writer, mpack_write_u32(writer, 1431699481));
+    TEST_WRITE_NOERROR(writer, mpack_write_u32(writer, 1908910763));
 
     // when using UINT32_C() and compiling the test suite as c++, gcc complains:
     // error: this decimal constant is unsigned only in ISO C90 [-Werror]
-    test_write_noerror(writer, mpack_write_u32(writer, UINT64_C(2386122103)));
-    test_write_noerror(writer, mpack_write_u32(writer, UINT64_C(2863333399)));
-    test_write_noerror(writer, mpack_write_u32(writer, UINT64_C(3340544681)));
+    TEST_WRITE_NOERROR(writer, mpack_write_u32(writer, UINT64_C(2386122103)));
+    TEST_WRITE_NOERROR(writer, mpack_write_u32(writer, UINT64_C(2863333399)));
+    TEST_WRITE_NOERROR(writer, mpack_write_u32(writer, UINT64_C(3340544681)));
 
-    test_write_noerror(writer, mpack_write_u64(writer, UINT64_C(4294967311)));
-    test_write_noerror(writer, mpack_write_u64(writer, UINT64_C(1941762537917555303)));
-    test_write_noerror(writer, mpack_write_u64(writer, UINT64_C(3883525071540143119)));
-    test_write_noerror(writer, mpack_write_u64(writer, UINT64_C(5825287605162730577)));
-    test_write_noerror(writer, mpack_write_u64(writer, UINT64_C(7767050138785318961)));
-    test_write_noerror(writer, mpack_write_u64(writer, UINT64_C(9708812672407906367)));
-    test_write_noerror(writer, mpack_write_u64(writer, UINT64_C(11650575206030493713)));
-    test_write_noerror(writer, mpack_write_u64(writer, UINT64_C(13592337739653081091)));
+    TEST_WRITE_NOERROR(writer, mpack_write_u64(writer, UINT64_C(4294967311)));
+    TEST_WRITE_NOERROR(writer, mpack_write_u64(writer, UINT64_C(1941762537917555303)));
+    TEST_WRITE_NOERROR(writer, mpack_write_u64(writer, UINT64_C(3883525071540143119)));
+    TEST_WRITE_NOERROR(writer, mpack_write_u64(writer, UINT64_C(5825287605162730577)));
+    TEST_WRITE_NOERROR(writer, mpack_write_u64(writer, UINT64_C(7767050138785318961)));
+    TEST_WRITE_NOERROR(writer, mpack_write_u64(writer, UINT64_C(9708812672407906367)));
+    TEST_WRITE_NOERROR(writer, mpack_write_u64(writer, UINT64_C(11650575206030493713)));
+    TEST_WRITE_NOERROR(writer, mpack_write_u64(writer, UINT64_C(13592337739653081091)));
 }
 #endif
 
@@ -260,7 +260,7 @@ static void test_expect_buffer(void) {
 
         // read and destroy, ensuring no errors
         test_expect_buffer_values(&reader);
-        test_reader_destroy_noerror(&reader);
+        TEST_READER_DESTROY_NOERROR(&reader);
         free(buffer);
 
     }
@@ -285,14 +285,14 @@ static void test_write_buffer(void) {
 
         // read and destroy, ensuring no errors
         test_write_buffer_values(&writer);
-        test_writer_destroy_noerror(&writer);
+        TEST_WRITER_DESTROY_NOERROR(&writer);
         free(buffer);
 
         // check output
-        test_assert(output_size - state.remaining == sizeof(test_numbers) - 1,
+        TEST_TRUE(output_size - state.remaining == sizeof(test_numbers) - 1,
                 "output contains %i bytes but %i were expected",
                 (int)(pos - output), (int)sizeof(test_numbers) - 1);
-        test_assert(memcmp(output, test_numbers, sizeof(test_numbers) - 1) == 0,
+        TEST_TRUE(memcmp(output, test_numbers, sizeof(test_numbers) - 1) == 0,
                 "output does not match test buffer");
         free(output);
     }
@@ -314,8 +314,8 @@ static void test_inplace_buffer(void) {
 
         // read the array
         mpack_tag_t tag = mpack_read_tag(&reader);
-        test_assert(tag.type == mpack_type_array, "wrong type: %i %s", (int)tag.type, mpack_type_to_string(tag.type));
-        test_assert(tag.v.n == 15, "wrong array count: %i", tag.v.n);
+        TEST_TRUE(tag.type == mpack_type_array, "wrong type: %i %s", (int)tag.type, mpack_type_to_string(tag.type));
+        TEST_TRUE(tag.v.n == 15, "wrong array count: %i", tag.v.n);
 
         // check each string, using inplace if it's less than or equal to the
         // length of the buffer size
@@ -324,21 +324,21 @@ static void test_inplace_buffer(void) {
         char r[15];
         for (size_t j = 0; j < 15; ++j) {
             tag = mpack_read_tag(&reader);
-            test_assert(tag.type == mpack_type_str, "wrong type: %i %s", (int)tag.type, mpack_type_to_string(tag.type));
-            test_assert(tag.v.l == j, "string is the wrong length: %i bytes", (int)tag.v.l);
+            TEST_TRUE(tag.type == mpack_type_str, "wrong type: %i %s", (int)tag.type, mpack_type_to_string(tag.type));
+            TEST_TRUE(tag.v.l == j, "string is the wrong length: %i bytes", (int)tag.v.l);
             if (tag.v.l <= reader.size) {
                 val = mpack_read_bytes_inplace(&reader, tag.v.l);
             } else {
                 mpack_read_bytes(&reader, r, tag.v.l);
                 val = r;
             }
-            test_assert(memcmp(val, ref, tag.v.l) == 0, "strings do not match!");
+            TEST_TRUE(memcmp(val, ref, tag.v.l) == 0, "strings do not match!");
             mpack_done_str(&reader);
         }
 
         // destroy, ensuring no errors
         mpack_done_array(&reader);
-        test_reader_destroy_noerror(&reader);
+        TEST_READER_DESTROY_NOERROR(&reader);
         free(buffer);
 
     }

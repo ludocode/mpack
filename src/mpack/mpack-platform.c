@@ -19,6 +19,7 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+
 // We define MPACK_EMIT_INLINE_DEFS and include mpack.h to emit
 // standalone definitions of all (non-static) inline functions in MPack.
 
@@ -28,13 +29,16 @@
 #include "mpack-platform.h"
 #include "mpack.h"
 
+
 #if MPACK_DEBUG && MPACK_STDIO
 #include <stdarg.h>
 #endif
 
 
 
-#if MPACK_DEBUG && MPACK_STDIO
+#if MPACK_DEBUG
+
+#if MPACK_STDIO
 void mpack_assert_fail_format(const char* format, ...) {
     char buffer[512];
     va_list args;
@@ -56,13 +60,7 @@ void mpack_break_hit_format(const char* format, ...) {
 }
 #endif
 
-#if MPACK_CUSTOM_ASSERT
-void mpack_break_hit(const char* message) {
-    // If we have a custom assert handler, break just wraps it
-    // for simplicity.
-    mpack_assert_fail(message);
-}
-#else
+#if !MPACK_CUSTOM_ASSERT
 void mpack_assert_fail(const char* message) {
     MPACK_UNUSED(message);
 
@@ -84,7 +82,23 @@ void mpack_assert_fail(const char* message) {
 
     MPACK_UNREACHABLE;
 }
+#endif
 
+#if !MPACK_CUSTOM_BREAK
+
+// If we have a custom assert handler, break wraps it by default.
+// This allows users of MPack to only implement mpack_assert_fail() without
+// having to worry about the difference between assert and break.
+//
+// MPACK_CUSTOM_BREAK is available to define a separate break handler
+// (which is needed by the unit test suite), but this is not offered in
+// mpack-config.h for simplicity.
+
+#if MPACK_CUSTOM_ASSERT
+void mpack_break_hit(const char* message) {
+    mpack_assert_fail(message);
+}
+#else
 void mpack_break_hit(const char* message) {
     MPACK_UNUSED(message);
 
@@ -102,6 +116,10 @@ void mpack_break_hit(const char* message) {
     __builtin_abort();
     #endif
 }
+#endif
+
+#endif
+
 #endif
 
 
@@ -166,11 +184,16 @@ size_t mpack_strlen(const char *s) {
 
 #if defined(MPACK_MALLOC) && !defined(MPACK_REALLOC)
 void* mpack_realloc(void* old_ptr, size_t used_size, size_t new_size) {
-    if (new_size == 0)
+    if (new_size == 0) {
+        if (old_ptr)
+            MPACK_FREE(old_ptr);
         return NULL;
+    }
+
     void* new_ptr = MPACK_MALLOC(new_size);
     if (new_ptr == NULL)
         return NULL;
+
     mpack_memcpy(new_ptr, old_ptr, used_size);
     MPACK_FREE(old_ptr);
     return new_ptr;

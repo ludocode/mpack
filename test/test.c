@@ -22,11 +22,13 @@
 #include "test.h"
 
 #include <string.h>
+#include <stdarg.h>
 
+#include "test-reader.h"
 #include "test-expect.h"
 #include "test-write.h"
 #include "test-buffer.h"
-#include "test-tag.h"
+#include "test-common.h"
 #include "test-node.h"
 #include "test-file.h"
 
@@ -35,11 +37,56 @@ mpack_tag_t (*fn_mpack_tag_nil)(void) = &mpack_tag_nil;
 int passes;
 int tests;
 
+#if MPACK_CUSTOM_ASSERT
+bool test_jmp_set = false;
+jmp_buf test_jmp_buf;
+bool test_break_set = false;
+bool test_break_hit;
+
+void mpack_assert_fail(const char* message) {
+    if (!test_jmp_set) {
+        TEST_TRUE(false, "assertion hit! %s", message);
+        abort();
+    }
+    longjmp(test_jmp_buf, 1);
+}
+
+void mpack_break_hit(const char* message) {
+    if (!test_break_set) {
+        TEST_TRUE(false, "break hit! %s", message);
+        abort();
+    }
+    test_break_hit = true;
+}
+#endif
+
+void test_true_impl(bool result, const char* file, int line, const char* format, ...) {
+    ++tests;
+    if (result) {
+        ++passes;
+    } else {
+        printf("TEST FAILED AT %s:%i --", file, line);
+
+        va_list args;
+        va_start(args, format);
+        vprintf(format, args);
+        va_end(args);
+
+        printf("\n");
+        if (TEST_EARLY_EXIT)
+            abort();
+    }
+}
+
 int main(void) {
     printf("\n\n");
 
-    test_tags();
+    test_system();
+    test_common();
 
+    #if MPACK_READER
+    test_reader();
+    #endif
     #if MPACK_EXPECT
     test_expect();
     #endif
@@ -55,7 +102,7 @@ int main(void) {
 
     test_buffers();
 
-    printf("\n\nUnit testing complete. %i passes out of %i tests.\n\n\n", passes, tests);
+    printf("\n\nUnit testing complete. %i failures in %i checks.\n\n\n", tests - passes, tests);
     return (passes == tests) ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 

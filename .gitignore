@@ -4,6 +4,10 @@
 *.swp
 *.gcov
 /.sconsign.dblite
+/.sconf_temp/
+/config.log
+mpack-test-file
+/mpack-test-dir/
 
 # folders
 /tags

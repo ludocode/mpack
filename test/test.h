@@ -33,6 +33,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include <setjmp.h>
 
 #ifdef WIN32
 #include <float.h>
@@ -44,7 +45,12 @@
 #endif
 
 #ifdef WIN32
-#define unlink _unlink
+#include <direct.h>
+#define mkdir(path, mode) ((void)(mode), _mkdir(path))
+#define rmdir _rmdir
+#else
+#include <sys/stat.h>
+#include <sys/types.h>
 #endif
 
 #ifdef __cplusplus
@@ -71,21 +77,65 @@ extern "C" {
 // enable this to exit at the first error
 #define TEST_EARLY_EXIT 1
 
-#define test_assert(expr, ...) do { \
-    ++tests; \
-    if (expr) { \
-        ++passes; \
-    } else { \
-        printf("TEST FAILED AT %s:%i --", __FILE__, __LINE__); \
-        printf(" " __VA_ARGS__); \
-        printf("\n"); \
-        if (TEST_EARLY_EXIT) \
-            exit(EXIT_FAILURE); \
-    } \
-} while (0)
+// runs the given expression, causing a unit test failure with the
+// given printf format string if the expression is not true.
+#define TEST_TRUE(expr, ...) \
+    test_true_impl((expr), __FILE__, __LINE__, " " __VA_ARGS__)
+
+void test_true_impl(bool result, const char* file, int line, const char* format, ...);
 
 extern int tests;
 extern int passes;
+
+#if MPACK_CUSTOM_ASSERT
+extern bool test_jmp_set;
+extern jmp_buf test_jmp_buf;
+extern bool test_break_set;
+extern bool test_break_hit;
+
+// calls setjmp to expect an assert from a unit test. an assertion
+// will cause a longjmp to here with a value of 1.
+#define TEST_TRUE_SETJMP() \
+    (TEST_TRUE(!test_jmp_set, "an assert jmp is already set!"), \
+        test_jmp_set = true, \
+        setjmp(test_jmp_buf))
+
+// clears the expectation of an assert. a subsequent assert will
+// cause the unit test suite to abort with error.
+#define TEST_TRUE_CLEARJMP() \
+    (TEST_TRUE(test_jmp_set, "an assert jmp is not set!"), \
+        test_jmp_set = false)
+
+// runs the given expression, causing a unit test failure if an assertion
+// is not triggered. (note that stack variables may need to be marked volatile
+// since non-volatile stack variables that are written to after setjmp are
+// undefined after longjmp.)
+#define TEST_ASSERT(expr) do { \
+    volatile bool jumped = false; \
+    if (TEST_TRUE_SETJMP()) { \
+        jumped = true; \
+    } else { \
+        (expr); \
+    } \
+    TEST_TRUE_CLEARJMP(); \
+    TEST_TRUE(jumped, "expression should assert, but didn't: " #expr); \
+} while (0)
+
+#define TEST_BREAK(expr, ...) do { \
+    test_break_set = true; \
+    test_break_hit = false; \
+    TEST_TRUE(expr , ## __VA_ARGS__, "expression is not true: " # expr); \
+    TEST_TRUE(test_break_hit, "expression should break, but didn't: " # expr); \
+    test_break_set = false; \
+} while (0);
+
+#else
+
+// in release mode we just run the expr since asserts are compiled out.
+#define TEST_ASSERT(expr) do { (expr); } while (0)
+#define TEST_BREAK(expr, ...) do { TEST_TRUE(expr , ## __VA_ARGS__); } while (0)
+
+#endif
 
 #ifdef __cplusplus
 }
