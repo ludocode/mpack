@@ -89,7 +89,8 @@ def AddBuild(variant_dir, cppflags, linkflags = []):
 
 def AddBuilds(variant_dir, cppflags, linkflags = []):
     AddBuild("debug-" + variant_dir, debugflags + cppflags, debugflags + linkflags)
-    AddBuild("release-" + variant_dir, releaseflags + cppflags, releaseflags + linkflags)
+    if ARGUMENTS.get('all'):
+        AddBuild("release-" + variant_dir, releaseflags + cppflags, releaseflags + linkflags)
 
 
 # The default build, everything in debug. This is the build used
@@ -98,13 +99,18 @@ def AddBuilds(variant_dir, cppflags, linkflags = []):
 AddBuild("debug", allfeatures + allconfigs + debugflags + cflags + gcovflags, gcovflags)
 
 
-# Otherwise run all builds. Use a parallel build, e.g. "scons -j12" to
-# build this in a reasonable amount of time.
+# Run "scons more=1" to run a handful of builds that are likely
+# to reveal configuration errors.
+if ARGUMENTS.get('more') or ARGUMENTS.get('all'):
+    AddBuild("release", allfeatures + allconfigs + releaseflags + cflags)
+    AddBuilds("embed", allfeatures + cflags)
 
+
+# Run "scons all=1" to run all builds. This is what the CI runs.
 if ARGUMENTS.get('all'):
 
-    # release flags
-    AddBuild("release", allfeatures + allconfigs + releaseflags + cflags)
+    # various release builds
+    AddBuild("release-unopt", allfeatures + allconfigs + cflags + ["-O0"])
     AddBuild("release-fastmath", allfeatures + allconfigs + releaseflags + cflags + ["-ffast-math"])
     AddBuild("release-speed", ["-DMPACK_OPTIMIZE_FOR_SIZE=0"] +
             allfeatures + allconfigs + releaseflags + cflags)
@@ -126,7 +132,6 @@ if ARGUMENTS.get('all'):
     AddBuilds("noio-node", ["-DMPACK_NODE=1"] + noioconfigs + cflags)
 
     # embedded builds without libc
-    AddBuilds("embed", allfeatures + cflags)
     AddBuilds("embed-writer", ["-DMPACK_WRITER=1"] + cflags)
     AddBuilds("embed-reader", ["-DMPACK_READER=1"] + cflags)
     AddBuilds("embed-expect", ["-DMPACK_READER=1", "-DMPACK_EXPECT=1"] + cflags)
