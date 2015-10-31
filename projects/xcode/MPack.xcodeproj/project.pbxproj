@@ -21,6 +21,7 @@
 		012F29DF1AD4524700346AC7 /* test-expect.c in Sources */ = {isa = PBXBuildFile; fileRef = 012F29CC1AD4524700346AC7 /* test-expect.c */; };
 		012F29E01AD4524700346AC7 /* test-common.c in Sources */ = {isa = PBXBuildFile; fileRef = 012F29CE1AD4524700346AC7 /* test-common.c */; };
 		012F29E11AD4524700346AC7 /* test-write.c in Sources */ = {isa = PBXBuildFile; fileRef = 012F29D01AD4524700346AC7 /* test-write.c */; };
+		014246B61BE5426200347D5E /* test-reader.c in Sources */ = {isa = PBXBuildFile; fileRef = 014246B41BE5426200347D5E /* test-reader.c */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -68,6 +69,8 @@
 		012F29D01AD4524700346AC7 /* test-write.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "test-write.c"; sourceTree = "<group>"; };
 		012F29D11AD4524700346AC7 /* test-write.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "test-write.h"; sourceTree = "<group>"; };
 		012F29D21AD4524700346AC7 /* test.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = test.h; sourceTree = "<group>"; };
+		014246B41BE5426200347D5E /* test-reader.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "test-reader.c"; sourceTree = "<group>"; };
+		014246B51BE5426200347D5E /* test-reader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "test-reader.h"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -131,22 +134,24 @@
 		012F29C11AD4524700346AC7 /* test */ = {
 			isa = PBXGroup;
 			children = (
-				012F29C21AD4524700346AC7 /* test.c */,
 				012F29C31AD4524700346AC7 /* mpack-config.h */,
 				012F29C41AD4524700346AC7 /* test-buffer.c */,
 				012F29C51AD4524700346AC7 /* test-buffer.h */,
-				012F29C61AD4524700346AC7 /* test-file.c */,
-				012F29C71AD4524700346AC7 /* test-file.h */,
-				012F29C81AD4524700346AC7 /* test-system.c */,
-				012F29C91AD4524700346AC7 /* test-system.h */,
-				012F29CA1AD4524700346AC7 /* test-node.c */,
-				012F29CB1AD4524700346AC7 /* test-node.h */,
-				012F29CC1AD4524700346AC7 /* test-expect.c */,
-				012F29CD1AD4524700346AC7 /* test-expect.h */,
 				012F29CE1AD4524700346AC7 /* test-common.c */,
 				012F29CF1AD4524700346AC7 /* test-common.h */,
+				012F29CC1AD4524700346AC7 /* test-expect.c */,
+				012F29CD1AD4524700346AC7 /* test-expect.h */,
+				012F29C61AD4524700346AC7 /* test-file.c */,
+				012F29C71AD4524700346AC7 /* test-file.h */,
+				012F29CA1AD4524700346AC7 /* test-node.c */,
+				012F29CB1AD4524700346AC7 /* test-node.h */,
+				014246B41BE5426200347D5E /* test-reader.c */,
+				014246B51BE5426200347D5E /* test-reader.h */,
+				012F29C81AD4524700346AC7 /* test-system.c */,
+				012F29C91AD4524700346AC7 /* test-system.h */,
 				012F29D01AD4524700346AC7 /* test-write.c */,
 				012F29D11AD4524700346AC7 /* test-write.h */,
+				012F29C21AD4524700346AC7 /* test.c */,
 				012F29D21AD4524700346AC7 /* test.h */,
 			);
 			name = test;
@@ -212,6 +217,7 @@
 				012F29DA1AD4524700346AC7 /* test.c in Sources */,
 				012F29DD1AD4524700346AC7 /* test-system.c in Sources */,
 				012F29DE1AD4524700346AC7 /* test-node.c in Sources */,
+				014246B61BE5426200347D5E /* test-reader.c in Sources */,
 				012F29E01AD4524700346AC7 /* test-common.c in Sources */,
 				012F29DF1AD4524700346AC7 /* test-expect.c in Sources */,
 				012F29D91AD4524700346AC7 /* mpack-writer.c in Sources */,
