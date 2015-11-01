@@ -30,16 +30,12 @@
 
 #include "mpack-common.h"
 
+MPACK_HEADER_START
+
 #if MPACK_WRITER
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#if MPACK_TRACKING
-/* Tracks the write state of compound elements (maps, arrays, */
-/* strings, binary blobs and extension types) */
-typedef struct mpack_writer_track_t mpack_writer_track_t;
+#if MPACK_WRITE_TRACKING
+struct mpack_track_t;
 #endif
 
 /**
@@ -49,12 +45,6 @@ typedef struct mpack_writer_track_t mpack_writer_track_t;
  *
  * @{
  */
-
-/**
- * The mpack writer's flush function to flush the buffer to the output stream.
- * It should return false if writing fails.
- */
-typedef bool (*mpack_flush_t)(void* context, const char* buffer, size_t count);
 
 /**
  * A buffered MessagePack encoder.
@@ -67,23 +57,59 @@ typedef bool (*mpack_flush_t)(void* context, const char* buffer, size_t count);
  */
 typedef struct mpack_writer_t mpack_writer_t;
 
+/**
+ * The MPack writer's flush function to flush the buffer to the output stream.
+ * It should flag an appropriate error on the writer if flushing fails (usually
+ * mpack_error_io.)
+ *
+ * The specified context for callbacks is at writer->context.
+ */
+typedef void (*mpack_writer_flush_t)(mpack_writer_t* writer, const char* buffer, size_t count);
+
+/**
+ * An error handler function to be called when an error is flagged on
+ * the writer.
+ *
+ * The error handler will only be called once on the first error flagged;
+ * any subsequent writes and errors are ignored, and the writer is
+ * permanently in that error state.
+ *
+ * MPack is safe against non-local jumps out of error handler callbacks.
+ * This means you are allowed to longjmp or throw an exception (in C++
+ * or with SEH) out of this callback.
+ *
+ * Bear in mind when using longjmp that local non-volatile variables that
+ * have changed are undefined when setjmp() returns, so you can't put the
+ * writer on the stack in the same activation frame as the setjmp without
+ * declaring it volatile.)
+ *
+ * You must still eventually destroy the writer. It is not destroyed
+ * automatically when an error is flagged. It is safe to destroy the
+ * writer within this error callback, but you will either need to perform
+ * a non-local jump, or store something in your context to identify
+ * that the writer is destroyed since any future accesses to it cause
+ * undefined behavior.
+ */
+typedef void (*mpack_writer_error_t)(mpack_writer_t* writer, mpack_error_t error);
+
+/**
+ * A teardown function to be called when the writer is destroyed.
+ */
+typedef void (*mpack_writer_teardown_t)(mpack_writer_t* writer);
+
 struct mpack_writer_t {
-    mpack_flush_t flush;        /* Function to write bytes to the output stream */
-    mpack_teardown_t teardown;  /* Function to teardown the context on destroy */
-    void* context;              /* Context for the writer function */
+    mpack_writer_flush_t flush;       /* Function to write bytes to the output stream */
+    mpack_writer_error_t error_fn;    /* Function to call on error */
+    mpack_writer_teardown_t teardown; /* Function to teardown the context on destroy */
+    void* context;                    /* Context for writer callbacks */
 
     char* buffer;         /* Byte buffer */
     size_t size;          /* Size of the buffer */
     size_t used;          /* How many bytes have been written into the buffer */
     mpack_error_t error;  /* Error state */
 
-    #if MPACK_SETJMP
-    bool jump;          /* Whether to longjmp on error */
-    jmp_buf jump_env;   /* Where to jump */
-    #endif
-
-    #if MPACK_TRACKING
-    mpack_writer_track_t* track; /* Stack of map/array/str/bin/ext writes */
+    #if MPACK_WRITE_TRACKING
+    mpack_track_t track; /* Stack of map/array/str/bin/ext writes */
     #endif
 };
 
@@ -93,7 +119,7 @@ struct mpack_writer_t {
  */
 
 /**
- * Initializes an mpack writer with the given buffer. The writer
+ * Initializes an MPack writer with the given buffer. The writer
  * does not assume ownership of the buffer.
  *
  * Trying to write past the end of the buffer will result in mpack_error_io unless
@@ -102,36 +128,44 @@ struct mpack_writer_t {
  * written.
  *
  * @param writer The MPack writer.
- * @param buffer The buffer into which to write mpack data.
+ * @param buffer The buffer into which to write MessagePack data.
  * @param size The size of the buffer.
  */
 void mpack_writer_init(mpack_writer_t* writer, char* buffer, size_t size);
 
 #ifdef MPACK_MALLOC
 /**
- * Initializes an mpack writer using a growable buffer.
+ * Initializes an MPack writer using a growable buffer.
  *
  * The data is placed in the given data pointer if and when the writer
- * is destroyed without error. The data should be freed with MPACK_FREE().
+ * is destroyed without error. The data pointer is NULL during writing,
+ * and will remain NULL if an error occurs.
  *
- * mpack_error_memory is raised if the buffer fails to grow.
+ * The allocated data must be freed with MPACK_FREE() (or simply free()
+ * if MPack's allocator hasn't been customized.)
+ *
+ * @throws mpack_error_memory if the buffer fails to grow when
+ * flushing (not mpack_error_io)
  *
  * @param writer The MPack writer.
- * @param buffer The pointer in which to place the allocated data.
- * @param size The pointer in which to write the size of the data.
+ * @param data Where to place the allocated data.
+ * @param size Where to write the size of the data.
  */
 void mpack_writer_init_growable(mpack_writer_t* writer, char** data, size_t* size);
 #endif
 
 /**
- * Initializes an mpack writer directly into an error state. Use this if you
+ * Initializes an MPack writer directly into an error state. Use this if you
  * are writing a wrapper to mpack_writer_init() which can fail its setup.
  */
 void mpack_writer_init_error(mpack_writer_t* writer, mpack_error_t error);
 
 #if MPACK_STDIO
 /**
- * Initializes an mpack writer that writes to a file.
+ * Initializes an MPack writer that writes to a file.
+ *
+ * @throws mpack_error_memory if allocation fails
+ * @throws mpack_error_io if the file cannot be opened
  */
 void mpack_writer_init_file(mpack_writer_t* writer, const char* filename);
 #endif
@@ -140,7 +174,8 @@ void mpack_writer_init_file(mpack_writer_t* writer, const char* filename);
  * @def mpack_writer_init_stack(writer, flush, context)
  * @hideinitializer
  *
- * Initializes an mpack writer using stack space.
+ * Initializes an MPack writer using stack space as a buffer. A flush function
+ * should be added to the writer to flush the buffer.
  */
 
 #define mpack_writer_init_stack_line_ex(line, writer) \
@@ -153,41 +188,28 @@ void mpack_writer_init_file(mpack_writer_t* writer, const char* filename);
 #define mpack_writer_init_stack(writer) \
     mpack_writer_init_stack_line(__LINE__, (writer))
 
-#if MPACK_SETJMP
-
 /**
- * @hideinitializer
- *
- * Registers a jump target in case of error.
- *
- * If the writer is in an error state, 1 is returned when called. Otherwise 0 is
- * returned when called, and when the first error occurs, control flow will jump
- * to the point where MPACK_WRITER_SETJMP() was called, resuming as though it
- * returned 1. This ensures an error handling block runs exactly once in case of
- * error.
- *
- * The argument may be evaluated multiple times.
- *
- * @returns 0 if the writer is not in an error state; 1 if and when an error occurs.
- */
-#define MPACK_WRITER_SETJMP(writer) (((writer)->error == mpack_ok) ? \
-    ((writer)->jump = true, setjmp((writer)->jump_env)) : 1)
-
-/**
- * Clears a jump target. Subsequent write errors will not cause the writer to
- * jump.
- */
-static inline void mpack_writer_clearjmp(mpack_writer_t* writer) {
-    writer->jump = false;
-}
-#endif
-
-/**
- * Cleans up the mpack writer, flushing any buffered bytes to the
+ * Cleans up the MPack writer, flushing any buffered bytes to the
  * underlying stream, if any. Returns the final error state of the
- * writer in case an error occurred flushing.
+ * writer in case an error occurred flushing. Causes an assert if
+ * there are any unclosed compound types in tracking mode.
+ *
+ * Note that if a jump handler is set, a writer may jump during destroy if it
+ * fails to flush any remaining data. In this case the writer will not be fully
+ * destroyed; you can still get the error state, and you must call destroy as
+ * usual in the jump handler.
  */
 mpack_error_t mpack_writer_destroy(mpack_writer_t* writer);
+
+/**
+ * Cleans up the MPack writer, discarding any open writes and unflushed data.
+ *
+ * Use this to cancel writing in the middle of writing a document (for example
+ * in case an error occurred.) This should be used instead of mpack_writer_destroy()
+ * because the former will assert in tracking mode if there are any unclosed
+ * compound types.
+ */
+void mpack_writer_destroy_cancel(mpack_writer_t* writer);
 
 /**
  * Sets the custom pointer to pass to the writer callbacks, such as flush
@@ -196,7 +218,7 @@ mpack_error_t mpack_writer_destroy(mpack_writer_t* writer);
  * @param writer The MPack writer.
  * @param context User data to pass to the writer callbacks.
  */
-static inline void mpack_writer_set_context(mpack_writer_t* writer, void* context) {
+MPACK_INLINE void mpack_writer_set_context(mpack_writer_t* writer, void* context) {
     writer->context = context;
 }
 
@@ -212,9 +234,26 @@ static inline void mpack_writer_set_context(mpack_writer_t* writer, void* contex
  * @param writer The MPack writer.
  * @param flush The function to write out data from the buffer.
  */
-static inline void mpack_writer_set_flush(mpack_writer_t* writer, mpack_flush_t flush) {
+MPACK_INLINE void mpack_writer_set_flush(mpack_writer_t* writer, mpack_writer_flush_t flush) {
     mpack_assert(writer->size != 0, "cannot use flush function without a writeable buffer!");
     writer->flush = flush;
+}
+
+/**
+ * Sets the error function to call when an error is flagged on the writer.
+ *
+ * This should normally be used with mpack_writer_set_context() to register
+ * a custom pointer to pass to the error function.
+ *
+ * See the definition of mpack_writer_error_t for more information about
+ * what you can do from an error callback.
+ *
+ * @see mpack_writer_error_t
+ * @param writer The MPack writer.
+ * @param error The function to call when an error is flagged on the writer.
+ */
+MPACK_INLINE void mpack_writer_set_error_handler(mpack_writer_t* writer, mpack_writer_error_t error_fn) {
+    writer->error_fn = error_fn;
 }
 
 /**
@@ -226,7 +265,7 @@ static inline void mpack_writer_set_flush(mpack_writer_t* writer, mpack_flush_t 
  * @param writer The MPack writer.
  * @param teardown The function to call when the writer is destroyed.
  */
-static inline void mpack_writer_set_teardown(mpack_writer_t* writer, mpack_teardown_t teardown) {
+MPACK_INLINE void mpack_writer_set_teardown(mpack_writer_t* writer, mpack_writer_teardown_t teardown) {
     writer->teardown = teardown;
 }
 
@@ -235,7 +274,7 @@ static inline void mpack_writer_set_teardown(mpack_writer_t* writer, mpack_teard
  * may be less than the total number of bytes written if bytes have
  * been flushed to an underlying stream.
  */
-static inline size_t mpack_writer_buffer_used(mpack_writer_t* writer) {
+MPACK_INLINE size_t mpack_writer_buffer_used(mpack_writer_t* writer) {
     return writer->used;
 }
 
@@ -251,12 +290,12 @@ static inline size_t mpack_writer_buffer_used(mpack_writer_t* writer) {
 void mpack_writer_flag_error(mpack_writer_t* writer, mpack_error_t error);
 
 /**
- * Queries the error state of the mpack writer.
+ * Queries the error state of the MPack writer.
  *
  * If a writer is in an error state, you should discard all data since the
  * last time the error flag was checked. The error flag cannot be cleared.
  */
-static inline mpack_error_t mpack_writer_error(mpack_writer_t* writer) {
+MPACK_INLINE mpack_error_t mpack_writer_error(mpack_writer_t* writer) {
     return writer->error;
 }
 
@@ -292,7 +331,7 @@ void mpack_write_i32(mpack_writer_t* writer, int32_t value);
 void mpack_write_i64(mpack_writer_t* writer, int64_t value);
 
 /*! Writes an integer in the most efficient packing available. */
-static inline void mpack_write_int(mpack_writer_t* writer, int64_t value) {
+MPACK_INLINE void mpack_write_int(mpack_writer_t* writer, int64_t value) {
     mpack_write_i64(writer, value);
 }
 
@@ -309,7 +348,7 @@ void mpack_write_u32(mpack_writer_t* writer, uint32_t value);
 void mpack_write_u64(mpack_writer_t* writer, uint64_t value);
 
 /*! Writes an unsigned integer in the most efficient packing available. */
-static inline void mpack_write_uint(mpack_writer_t* writer, uint64_t value) {
+MPACK_INLINE void mpack_write_uint(mpack_writer_t* writer, uint64_t value) {
     mpack_write_u64(writer, value);
 }
 
@@ -321,6 +360,12 @@ void mpack_write_double(mpack_writer_t* writer, double value);
 
 /*! Writes a boolean. */
 void mpack_write_bool(mpack_writer_t* writer, bool value);
+
+/*! Writes a boolean with value true. */
+void mpack_write_true(mpack_writer_t* writer);
+
+/*! Writes a boolean with value false. */
+void mpack_write_false(mpack_writer_t* writer);
 
 /*! Writes a nil. */
 void mpack_write_nil(mpack_writer_t* writer);
@@ -418,57 +463,56 @@ void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count);
  */
 void mpack_write_bytes(mpack_writer_t* writer, const char* data, size_t count);
 
-#if MPACK_TRACKING
+#if MPACK_WRITE_TRACKING
 /**
  * Finishes writing an array.
  *
- * In release mode, this is a no-op. However if a debug build is used and
- * stdio is available, this will track writes to ensure that the correct
- * number of elements are written.
+ * This will track writes to ensure that the correct number of elements are written.
  */
 void mpack_finish_array(mpack_writer_t* writer);
 
 /**
  * Finishes writing a map.
  *
- * In release mode, this is a no-op. However if a debug build is used and
- * stdio is available, this will track writes to ensure that the correct
- * number of elements were written.
+ * This will track writes to ensure that the correct number of elements are written.
  */
 void mpack_finish_map(mpack_writer_t* writer);
 
 /**
  * Finishes writing a string.
  *
- * In release mode, this is a no-op. However if a debug build is used and
- * stdio is available, this will track writes to ensure that the correct
- * number of bytes were written.
+ * This will track writes to ensure that the correct number of bytes are written.
  */
 void mpack_finish_str(mpack_writer_t* writer);
 
 /**
  * Finishes writing a binary blob.
  *
- * In release mode, this is a no-op. However if a debug build is used and
- * stdio is available, this will track writes to ensure that the correct
- * number of bytes were written.
+ * This will track writes to ensure that the correct number of bytes are written.
  */
 void mpack_finish_bin(mpack_writer_t* writer);
 
 /**
- * Finishes writing an extension type.
+ * Finishes writing an extended type binary data blob.
  *
- * In release mode, this is a no-op. However if a debug build is used and
- * stdio is available, this will track writes to ensure that the correct
- * number of bytes were written.
+ * This will track writes to ensure that the correct number of bytes are written.
  */
 void mpack_finish_ext(mpack_writer_t* writer);
+
+/**
+ * Finishes writing the given compound type.
+ *
+ * This will track writes to ensure that the correct number of elements
+ * or bytes are written.
+ */
+void mpack_finish_type(mpack_writer_t* writer, mpack_type_t type);
 #else
-static inline void mpack_finish_array(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
-static inline void mpack_finish_map(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
-static inline void mpack_finish_str(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
-static inline void mpack_finish_bin(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
-static inline void mpack_finish_ext(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
+MPACK_INLINE void mpack_finish_array(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
+MPACK_INLINE void mpack_finish_map(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
+MPACK_INLINE void mpack_finish_str(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
+MPACK_INLINE void mpack_finish_bin(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
+MPACK_INLINE void mpack_finish_ext(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
+MPACK_INLINE void mpack_finish_type(mpack_writer_t* writer, mpack_type_t type) {MPACK_UNUSED(writer); MPACK_UNUSED(type);}
 #endif
 
 /**
@@ -487,10 +531,9 @@ void mpack_write_cstr(mpack_writer_t* writer, const char* str);
  * @}
  */
 
-#ifdef __cplusplus
-}
 #endif
 
-#endif
+MPACK_HEADER_END
+
 #endif
 

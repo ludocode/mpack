@@ -1,0 +1,13 @@
+{
+   # https://bugs.kde.org/show_bug.cgi?id=345307
+   # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=65434
+   GCC-STL-pool-reachable
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   fun:pool
+   fun:__static_initialization_and_destruction_0
+   fun:_GLOBAL__sub_I_eh_alloc.cc
+   fun:call_init.part.0
+   fun:_dl_init
+}

@@ -30,14 +30,12 @@
 
 #include "mpack-reader.h"
 
+MPACK_HEADER_START
+
 #if MPACK_EXPECT
 
 #if !MPACK_READER
-#error MPACK_EXPECT requires MPACK_READER.
-#endif
-
-#ifdef __cplusplus
-extern "C" {
+#error "MPACK_EXPECT requires MPACK_READER."
 #endif
 
 /**
@@ -230,20 +228,80 @@ uint32_t mpack_expect_u32_range(mpack_reader_t* reader, uint32_t min_value, uint
  */
 uint64_t mpack_expect_u64_range(mpack_reader_t* reader, uint64_t min_value, uint64_t max_value);
 
-static inline uint8_t mpack_expect_u8_max(mpack_reader_t* reader, uint8_t max_value) {
+/**
+ * Reads an unsigned integer, ensuring that it falls within the given range.
+ *
+ * The underlying type may be an integer type of any size and signedness,
+ * as long as the value can be represented in an unsigned int.
+ *
+ * Returns min_value if an error occurs.
+ */
+MPACK_INLINE unsigned int mpack_expect_uint_range(mpack_reader_t* reader, unsigned int min_value, unsigned int max_value) {
+    // This should be true at compile-time, so this just wraps the 32-bit
+    // function. We fallback to 64-bit if for some reason sizeof(int) isn't 4.
+    if (sizeof(unsigned int) == 4)
+        return (unsigned int)mpack_expect_u32_range(reader, (uint32_t)min_value, (uint32_t)max_value);
+    return (unsigned int)mpack_expect_u64_range(reader, min_value, max_value);
+}
+
+/**
+ * Reads an 8-bit unsigned integer, ensuring that it is at most max_value.
+ *
+ * The underlying type may be an integer type of any size and signedness,
+ * as long as the value can be represented in an 8-bit unsigned int.
+ *
+ * Returns 0 if an error occurs.
+ */
+MPACK_INLINE uint8_t mpack_expect_u8_max(mpack_reader_t* reader, uint8_t max_value) {
     return mpack_expect_u8_range(reader, 0, max_value);
 }
 
-static inline uint16_t mpack_expect_u16_max(mpack_reader_t* reader, uint16_t max_value) {
+/**
+ * Reads a 16-bit unsigned integer, ensuring that it is at most max_value.
+ *
+ * The underlying type may be an integer type of any size and signedness,
+ * as long as the value can be represented in a 16-bit unsigned int.
+ *
+ * Returns 0 if an error occurs.
+ */
+MPACK_INLINE uint16_t mpack_expect_u16_max(mpack_reader_t* reader, uint16_t max_value) {
     return mpack_expect_u16_range(reader, 0, max_value);
 }
 
-static inline uint32_t mpack_expect_u32_max(mpack_reader_t* reader, uint32_t max_value) {
+/**
+ * Reads a 32-bit unsigned integer, ensuring that it is at most max_value.
+ *
+ * The underlying type may be an integer type of any size and signedness,
+ * as long as the value can be represented in a 32-bit unsigned int.
+ *
+ * Returns 0 if an error occurs.
+ */
+MPACK_INLINE uint32_t mpack_expect_u32_max(mpack_reader_t* reader, uint32_t max_value) {
     return mpack_expect_u32_range(reader, 0, max_value);
 }
 
-static inline uint64_t mpack_expect_u64_max(mpack_reader_t* reader, uint64_t max_value) {
+/**
+ * Reads a 64-bit unsigned integer, ensuring that it is at most max_value.
+ *
+ * The underlying type may be an integer type of any size and signedness,
+ * as long as the value can be represented in a 64-bit unsigned int.
+ *
+ * Returns 0 if an error occurs.
+ */
+MPACK_INLINE uint64_t mpack_expect_u64_max(mpack_reader_t* reader, uint64_t max_value) {
     return mpack_expect_u64_range(reader, 0, max_value);
+}
+
+/**
+ * Reads an unsigned integer, ensuring that it is at most max_value.
+ *
+ * The underlying type may be an integer type of any size and signedness,
+ * as long as the value can be represented in an unsigned int.
+ *
+ * Returns 0 if an error occurs.
+ */
+MPACK_INLINE unsigned int mpack_expect_uint_max(mpack_reader_t* reader, unsigned int max_value) {
+    return mpack_expect_uint_range(reader, 0, max_value);
 }
 
 /**
@@ -287,6 +345,86 @@ int32_t mpack_expect_i32_range(mpack_reader_t* reader, int32_t min_value, int32_
 int64_t mpack_expect_i64_range(mpack_reader_t* reader, int64_t min_value, int64_t max_value);
 
 /**
+ * Reads a signed integer, ensuring that it falls within the given range.
+ *
+ * The underlying type may be an integer type of any size and signedness,
+ * as long as the value can be represented in a signed int.
+ *
+ * Returns min_value if an error occurs.
+ */
+MPACK_INLINE int mpack_expect_int_range(mpack_reader_t* reader, int min_value, int max_value) {
+    // This should be true at compile-time, so this just wraps the 32-bit
+    // function. We fallback to 64-bit if for some reason sizeof(int) isn't 4.
+    if (sizeof(int) == 4)
+        return (int)mpack_expect_i32_range(reader, (int32_t)min_value, (int32_t)max_value);
+    return (int)mpack_expect_i64_range(reader, min_value, max_value);
+}
+
+/**
+ * Reads an 8-bit signed integer, ensuring that it is at least zero and at
+ * most max_value.
+ *
+ * The underlying type may be an integer type of any size and signedness,
+ * as long as the value can be represented in an 8-bit signed int.
+ *
+ * Returns 0 if an error occurs.
+ */
+MPACK_INLINE int8_t mpack_expect_i8_max(mpack_reader_t* reader, int8_t max_value) {
+    return mpack_expect_i8_range(reader, 0, max_value);
+}
+
+/**
+ * Reads a 16-bit signed integer, ensuring that it is at least zero and at
+ * most max_value.
+ *
+ * The underlying type may be an integer type of any size and signedness,
+ * as long as the value can be represented in a 16-bit signed int.
+ *
+ * Returns 0 if an error occurs.
+ */
+MPACK_INLINE int16_t mpack_expect_i16_max(mpack_reader_t* reader, int16_t max_value) {
+    return mpack_expect_i16_range(reader, 0, max_value);
+}
+
+/**
+ * Reads a 32-bit signed integer, ensuring that it is at least zero and at
+ * most max_value.
+ *
+ * The underlying type may be an integer type of any size and signedness,
+ * as long as the value can be represented in a 32-bit signed int.
+ *
+ * Returns 0 if an error occurs.
+ */
+MPACK_INLINE int32_t mpack_expect_i32_max(mpack_reader_t* reader, int32_t max_value) {
+    return mpack_expect_i32_range(reader, 0, max_value);
+}
+
+/**
+ * Reads a 64-bit signed integer, ensuring that it is at least zero and at
+ * most max_value.
+ *
+ * The underlying type may be an integer type of any size and signedness,
+ * as long as the value can be represented in a 64-bit signed int.
+ *
+ * Returns 0 if an error occurs.
+ */
+MPACK_INLINE int64_t mpack_expect_i64_max(mpack_reader_t* reader, int64_t max_value) {
+    return mpack_expect_i64_range(reader, 0, max_value);
+}
+
+/**
+ * Reads an int, ensuring that it is at least zero and at most max_value.
+ *
+ * The underlying type may be an integer type of any size and signedness,
+ * as long as the value can be represented in a signed int.
+ *
+ * Returns 0 if an error occurs.
+ */
+MPACK_INLINE int mpack_expect_int_max(mpack_reader_t* reader, int max_value) {
+    return mpack_expect_int_range(reader, 0, max_value);
+}
+
+/**
  * Reads a number, ensuring that it falls within the given range and returning
  * the value as a float. The underlying value can be an integer, float or
  * double; the value is converted to a float.
@@ -313,6 +451,59 @@ double mpack_expect_double_range(mpack_reader_t* reader, double min_value, doubl
 /**
  * @}
  */
+
+
+
+// These are additional Basic Number functions that wrap inline range functions.
+
+/**
+ * @name Basic Number Functions
+ * @{
+ */
+
+/**
+ * Reads an unsigned int.
+ *
+ * The underlying type may be an integer type of any size and signedness,
+ * as long as the value can be represented in an unsigned int.
+ *
+ * Returns zero if an error occurs.
+ */
+MPACK_INLINE unsigned int mpack_expect_uint(mpack_reader_t* reader) {
+
+    // This should be true at compile-time, so this just wraps the 32-bit function.
+    if (sizeof(unsigned int) == 4)
+        return (unsigned int)mpack_expect_u32(reader);
+
+    // Otherwise we wrap the max function to ensure it fits.
+    return (unsigned int)mpack_expect_u64_max(reader, UINT_MAX);
+
+}
+
+/**
+ * Reads a signed int.
+ *
+ * The underlying type may be an integer type of any size and signedness,
+ * as long as the value can be represented in a signed int.
+ *
+ * Returns zero if an error occurs.
+ */
+MPACK_INLINE int mpack_expect_int(mpack_reader_t* reader) {
+
+    // This should be true at compile-time, so this just wraps the 32-bit function.
+    if (sizeof(int) == 4)
+        return (int)mpack_expect_i32(reader);
+
+    // Otherwise we wrap the range function to ensure it fits.
+    return (int)mpack_expect_i64_range(reader, INT_MIN, INT_MAX);
+
+}
+
+/**
+ * @}
+ */
+
+
 
 /**
  * @name Matching Number Functions
@@ -378,11 +569,11 @@ void mpack_expect_false(mpack_reader_t* reader);
  * alternating between keys and values. @ref mpack_done_map() must be called
  * once all elements have been read.
  *
- * mpack_error_type is raised if the value is not a map.
- *
  * Note that maps in JSON are unordered, so it is recommended not to expect
  * a specific ordering for your map values in case your data is converted
  * to/from JSON.
+ *
+ * @throws mpack_error_type if the value is not a map.
  */
 uint32_t mpack_expect_map(mpack_reader_t* reader);
 
@@ -394,14 +585,37 @@ uint32_t mpack_expect_map(mpack_reader_t* reader);
  * alternating between keys and values. @ref mpack_done_map() must be called
  * once all elements have been read.
  *
- * mpack_error_type is raised if the value is not a map or if its size does
+ * Note that maps in JSON are unordered, so it is recommended not to expect
+ * a specific ordering for your map values in case your data is converted
+ * to/from JSON.
+ *
+ * min_count is returned if an error occurs.
+ *
+ * @throws mpack_error_type if the value is not a map or if its size does
  * not fall within the given range.
+ */
+uint32_t mpack_expect_map_range(mpack_reader_t* reader, uint32_t min_count, uint32_t max_count);
+
+/**
+ * Reads the start of a map with a number of elements at most max_count,
+ * returning its element count.
+ *
+ * A number of values follow equal to twice the element count of the map,
+ * alternating between keys and values. @ref mpack_done_map() must be called
+ * once all elements have been read.
  *
  * Note that maps in JSON are unordered, so it is recommended not to expect
  * a specific ordering for your map values in case your data is converted
  * to/from JSON.
+ *
+ * Zero is returned if an error occurs.
+ *
+ * @throws mpack_error_type if the value is not a map or if its size is
+ * greater than max_count.
  */
-uint32_t mpack_expect_map_range(mpack_reader_t* reader, uint32_t min_count, uint32_t max_count);
+MPACK_INLINE uint32_t mpack_expect_map_max(mpack_reader_t* reader, uint32_t max_count) {
+    return mpack_expect_map_range(reader, 0, max_count);
+}
 
 /**
  * Reads the start of a map of the exact size given.
@@ -410,16 +624,49 @@ uint32_t mpack_expect_map_range(mpack_reader_t* reader, uint32_t min_count, uint
  * alternating between keys and values. @ref mpack_done_map() must be called
  * once all elements have been read.
  *
- * @ref mpack_error_type is raised if the value is not a map or if its size
+ * Note that maps in JSON are unordered, so it is recommended not to expect
+ * a specific ordering for your map values in case your data is converted
+ * to/from JSON.
+ *
+ * @throws mpack_error_type if the value is not a map or if its size
  * does not match the given count.
+ */
+void mpack_expect_map_match(mpack_reader_t* reader, uint32_t count);
+
+/**
+ * Reads a nil node or the start of a map, returning whether a map was
+ * read and placing its number of key/value pairs in count.
+ *
+ * If a map was read, a number of values follow equal to twice the element count
+ * of the map, alternating between keys and values. @ref mpack_done_map() should
+ * also be called once all elements have been read (only if a map was read.)
  *
  * Note that maps in JSON are unordered, so it is recommended not to expect
  * a specific ordering for your map values in case your data is converted
  * to/from JSON.
+ *
+ * @returns true if a map was read successfully; false if nil was read or an error occured.
+ * @throws mpack_error_type if the value is not a nil or map.
  */
-void mpack_expect_map_match(mpack_reader_t* reader, uint32_t count);
-
 bool mpack_expect_map_or_nil(mpack_reader_t* reader, uint32_t* count);
+
+/**
+ * Reads a nil node or the start of a map with a number of elements at most
+ * max_count, returning whether a map was read and placing its number of
+ * key/value pairs in count.
+ *
+ * If a map was read, a number of values follow equal to twice the element count
+ * of the map, alternating between keys and values. @ref mpack_done_map() should
+ * anlso be called once all elements have been read (only if a map was read.)
+ *
+ * Note that maps in JSON are unordered, so it is recommended not to expect
+ * a specific ordering for your map values in case your data is converted
+ * to/from JSON.
+ *
+ * @returns true if a map was read successfully; false if nil was read or an error occured.
+ * @throws mpack_error_type if the value is not a nil or map.
+ */
+bool mpack_expect_map_max_or_nil(mpack_reader_t* reader, uint32_t max_count, uint32_t* count);
 
 /**
  * Reads the start of an array, returning its element count.
@@ -436,12 +683,26 @@ uint32_t mpack_expect_array(mpack_reader_t* reader);
  * A number of values follow equal to the element count of the array.
  * @ref mpack_done_array() must be called once all elements have been read.
  *
+ * min_count is returned if an error occurs.
+ *
  * @throws mpack_error_type if the value is not an array or if its size does
  * not fall within the given range.
  */
 uint32_t mpack_expect_array_range(mpack_reader_t* reader, uint32_t min_count, uint32_t max_count);
 
-static inline uint32_t mpack_expect_array_max(mpack_reader_t* reader, uint32_t max_count) {
+/**
+ * Reads the start of an array with a number of elements at most max_count,
+ * returning its element count.
+ *
+ * A number of values follow equal to the element count of the array.
+ * @ref mpack_done_array() must be called once all elements have been read.
+ *
+ * Zero is returned if an error occurs.
+ *
+ * @throws mpack_error_type if the value is not an array or if its size is
+ * greater than max_count.
+ */
+MPACK_INLINE uint32_t mpack_expect_array_max(mpack_reader_t* reader, uint32_t max_count) {
     return mpack_expect_array_range(reader, 0, max_count);
 }
 
@@ -452,30 +713,101 @@ static inline uint32_t mpack_expect_array_max(mpack_reader_t* reader, uint32_t m
  * @ref mpack_done_array() must be called once all elements have been read.
  *
  * @throws mpack_error_type if the value is not an array or if its size does
- * not fall within the given range.
+ * not match the given count.
  */
 void mpack_expect_array_match(mpack_reader_t* reader, uint32_t count);
+
+/**
+ * Reads a nil node or the start of an array, returning whether an array was
+ * read and placing its number of elements in count.
+ *
+ * If an array was read, a number of values follow equal to the element count
+ * of the array. @ref mpack_done_array() should also be called once all elements
+ * have been read (only if an array was read.)
+ *
+ * @returns true if an array was read successfully; false if nil was read or an error occured.
+ * @throws mpack_error_type if the value is not a nil or array.
+ */
+bool mpack_expect_array_or_nil(mpack_reader_t* reader, uint32_t* count);
+
+/**
+ * Reads a nil node or the start of an array with a number of elements at most
+ * max_count, returning whether an array was read and placing its number of
+ * key/value pairs in count.
+ *
+ * If an array was read, a number of values follow equal to the element count
+ * of the array. @ref mpack_done_array() should also be called once all elements
+ * have been read (only if an array was read.)
+ *
+ * @returns true if an array was read successfully; false if nil was read or an error occured.
+ * @throws mpack_error_type if the value is not a nil or array.
+ */
+bool mpack_expect_array_max_or_nil(mpack_reader_t* reader, uint32_t max_count, uint32_t* count);
 
 #ifdef MPACK_MALLOC
 /**
  * @hideinitializer
  *
  * Reads the start of an array and allocates storage for it, placing its
- * size in count. A number of objects follow equal to the element count
- * of the array.
+ * size in out_count. A number of objects follow equal to the element count
+ * of the array. You must call @ref mpack_done_array() when done (even
+ * if the element count is zero.)
+ *
+ * If an error occurs, NULL is returned and the reader is placed in an
+ * error state.
+ *
+ * If the count is zero, NULL is returned. This does not indicate error.
+ * You should not check the return value for NULL to check for errors; only
+ * check the reader's error state.
+ *
+ * The allocated array must be freed with MPACK_FREE() (or simply free()
+ * if MPack's allocator hasn't been customized.)
+ *
+ * @throws mpack_error_type if the value is not an array or if its size is
+ * greater than max_count.
  */
-#define mpack_expect_array_alloc(reader, Type, max_count, count) \
-    ((Type*)mpack_expect_array_alloc_impl(reader, sizeof(Type), max_count, count))
+#define mpack_expect_array_alloc(reader, Type, max_count, out_count) \
+    ((Type*)mpack_expect_array_alloc_impl(reader, sizeof(Type), max_count, out_count, false))
+
+/**
+ * @hideinitializer
+ *
+ * Reads a nil node or the start of an array and allocates storage for it,
+ * placing its size in out_count. A number of objects follow equal to the element
+ * count of the array if a non-empty array was read.
+ *
+ * If an error occurs, NULL is returned and the reader is placed in an
+ * error state.
+ *
+ * If a nil node was read, NULL is returned. If an empty array was read,
+ * mpack_done_array() is called automatically and NULL is returned. These
+ * do not indicate error. You should not check the return value for NULL
+ * to check for errors; only check the reader's error state.
+ *
+ * The allocated array must be freed with MPACK_FREE() (or simply free()
+ * if MPack's allocator hasn't been customized.)
+ *
+ * @warning You must call @ref mpack_done_array() if and only if a non-zero
+ * element count is read. This function does not differentiate between nil
+ * and an empty array.
+ *
+ * @throws mpack_error_type if the value is not an array or if its size is
+ * greater than max_count.
+ */
+#define mpack_expect_array_or_nil_alloc(reader, Type, max_count, out_count) \
+    ((Type*)mpack_expect_array_alloc_impl(reader, sizeof(Type), max_count, out_count, true))
 #endif
 
 /**
  * @}
  */
 
+/** @cond */
 #ifdef MPACK_MALLOC
 void* mpack_expect_array_alloc_impl(mpack_reader_t* reader,
-        size_t element_size, uint32_t max_count, size_t* count);
+        size_t element_size, uint32_t max_count, uint32_t* out_count, bool allow_nil);
 #endif
+/** @endcond */
 
 
 /**
@@ -505,8 +837,20 @@ uint32_t mpack_expect_str(mpack_reader_t* reader);
 size_t mpack_expect_str_buf(mpack_reader_t* reader, char* buf, size_t bufsize);
 
 /**
+ * Reads a string into the given buffer, ensuring it is a valid UTF-8 string
+ * and returning its size in bytes.
+ *
+ * This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or
+ * WTF-8. Only pure UTF-8 is allowed.
+ *
+ * Raises mpack_error_too_big if there is not enough room for the string.
+ * Raises mpack_error_type if the value is not a string or is not a valid UTF-8 string.
+ */
+size_t mpack_expect_utf8(mpack_reader_t* reader, char* buf, size_t bufsize);
+
+/**
  * Reads the start of a string, raising an error if its length is not
- * exactly the given number of bytes.
+ * at most the given number of bytes (not including any null-terminator.)
  *
  * The bytes follow and must be read separately with mpack_read_bytes()
  * or mpack_read_bytes_inplace(). @ref mpack_done_str() must be called
@@ -515,26 +859,87 @@ size_t mpack_expect_str_buf(mpack_reader_t* reader, char* buf, size_t bufsize);
  * mpack_error_type is raised if the value is not a string or if its
  * length does not match.
  */
-void mpack_expect_str_length(mpack_reader_t* reader, uint32_t count);
+MPACK_INLINE_SPEED uint32_t mpack_expect_str_max(mpack_reader_t* reader, uint32_t maxsize);
+
+#if MPACK_DEFINE_INLINE_SPEED
+MPACK_INLINE_SPEED uint32_t mpack_expect_str_max(mpack_reader_t* reader, uint32_t maxsize) {
+    uint32_t length = mpack_expect_str(reader);
+    if (length > maxsize) {
+        mpack_reader_flag_error(reader, mpack_error_type);
+        return 0;
+    }
+    return length;
+}
+#endif
 
 /**
+ * Reads the start of a string, raising an error if its length is not
+ * exactly the given number of bytes (not including any null-terminator.)
+ *
+ * The bytes follow and must be read separately with mpack_read_bytes()
+ * or mpack_read_bytes_inplace(). @ref mpack_done_str() must be called
+ * once all bytes have been read.
+ *
+ * mpack_error_type is raised if the value is not a string or if its
+ * length does not match.
+ */
+MPACK_INLINE_SPEED void mpack_expect_str_length(mpack_reader_t* reader, uint32_t count);
+
+#if MPACK_DEFINE_INLINE_SPEED
+MPACK_INLINE_SPEED void mpack_expect_str_length(mpack_reader_t* reader, uint32_t count) {
+    if (mpack_expect_str(reader) != count)
+        mpack_reader_flag_error(reader, mpack_error_type);
+}
+#endif
+
+
+#ifdef MPACK_MALLOC
+/**
  * Reads a string with the given total maximum size, allocating storage for it.
- * A null-terminator will be added to the string. The length in bytes of the string,
- * not including the null-terminator, will be written to size.
+ *
+ * The length in bytes of the string will be written to size if reading is
+ * successful; otherwise size will be zero.
+ *
+ * The allocated string must be freed with MPACK_FREE() (or simply free()
+ * if MPack's allocator hasn't been customized.)
+ *
+ * No null-terminator will be added to the string. Use @ref mpack_expect_cstr_alloc()
+ * if you want a null-terminator.
+ *
+ * Returns NULL if any error occurs.
  */
 char* mpack_expect_str_alloc(mpack_reader_t* reader, size_t maxsize, size_t* size);
 
 /**
  * Reads a string with the given total maximum size, allocating storage for it
- * and ensuring it is valid UTF-8. A null-terminator will be added to the string.
+ * and ensuring it is valid UTF-8.
+ *
  * The length in bytes of the string, not including the null-terminator,
  * will be written to size.
+ *
+ * This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or
+ * WTF-8. Only pure UTF-8 is allowed.
+ *
+ * The allocated string must be freed with MPACK_FREE() (or simply free()
+ * if MPack's allocator hasn't been customized.)
+ *
+ * No null-terminator will be added to the string. Use @ref mpack_expect_cstr_alloc()
+ * if you want a null-terminator.
  */
 char* mpack_expect_utf8_alloc(mpack_reader_t* reader, size_t maxsize, size_t* size);
+#endif
 
 /**
- * Reads a string into the given buffer, ensures it has no null-bytes,
- * and adds null-terminator at the end.
+ * Reads a string, ensuring it exactly matches the given string.
+ *
+ * Remember that maps are unordered in JSON. Don't use this for map keys
+ * unless the map has only a single key!
+ */
+void mpack_expect_str_match(mpack_reader_t* reader, const char* str, size_t length);
+
+/**
+ * Reads a string into the given buffer, ensures it has no null bytes,
+ * and adds a null-terminator at the end.
  *
  * Raises mpack_error_too_big if there is not enough room for the string and null-terminator.
  * Raises mpack_error_type if the value is not a string or contains a null byte.
@@ -542,23 +947,35 @@ char* mpack_expect_utf8_alloc(mpack_reader_t* reader, size_t maxsize, size_t* si
 void mpack_expect_cstr(mpack_reader_t* reader, char* buf, size_t size);
 
 /**
- * Reads a string into the given buffer, ensures it is a valid UTF-8 string,
- * and adds null-terminator at the end.
+ * Reads a string into the given buffer, ensures it is a valid UTF-8 string
+ * without null characters, and adds a null-terminator at the end.
+ *
+ * This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or
+ * WTF-8. Only pure UTF-8 is allowed, but without the null character, since
+ * it cannot be represented in a null-terminated string.
  *
  * Raises mpack_error_too_big if there is not enough room for the string and null-terminator.
  * Raises mpack_error_type if the value is not a string or is not a valid UTF-8 string.
  */
 void mpack_expect_utf8_cstr(mpack_reader_t* reader, char* buf, size_t size);
 
+#ifdef MPACK_MALLOC
 /**
- * Reads a string, allocates storage for it, ensures it has no null-bytes,
- * and adds null-terminator at the end. You assume ownership of the
+ * Reads a string with the given total maximum size (including space for a
+ * null-terminator), allocates storage for it, ensures it has no null-bytes,
+ * and adds a null-terminator at the end. You assume ownership of the
  * returned pointer if reading succeeds.
+ *
+ * The allocated string must be freed with MPACK_FREE() (or simply free()
+ * if MPack's allocator hasn't been customized.)
  *
  * Raises mpack_error_too_big if the string plus null-terminator is larger than the given maxsize.
  * Raises mpack_error_invalid if the value is not a string or contains a null byte.
  */
 char* mpack_expect_cstr_alloc(mpack_reader_t* reader, size_t maxsize);
+
+char* mpack_expect_utf8_cstr_alloc(mpack_reader_t* reader, size_t maxsize);
+#endif
 
 /**
  * Reads a string, ensuring it exactly matches the given null-terminated
@@ -567,7 +984,17 @@ char* mpack_expect_cstr_alloc(mpack_reader_t* reader, size_t maxsize);
  * Remember that maps are unordered in JSON. Don't use this for map keys
  * unless the map has only a single key!
  */
-void mpack_expect_cstr_match(mpack_reader_t* reader, const char* str);
+MPACK_INLINE_SPEED void mpack_expect_cstr_match(mpack_reader_t* reader, const char* str);
+
+#if MPACK_DEFINE_INLINE_SPEED
+MPACK_INLINE_SPEED void mpack_expect_cstr_match(mpack_reader_t* reader, const char* str) {
+    if (mpack_strlen(str) > UINT32_MAX) {
+        mpack_reader_flag_error(reader, mpack_error_type);
+        return;
+    }
+    mpack_expect_str_match(reader, str, mpack_strlen(str));
+}
+#endif
 
 /**
  * @}
@@ -591,6 +1018,30 @@ uint32_t mpack_expect_bin(mpack_reader_t* reader);
 
 /**
  * Reads the start of a binary blob, raising an error if its length is not
+ * at most the given number of bytes.
+ *
+ * The bytes follow and must be read separately with mpack_read_bytes()
+ * or mpack_read_bytes_inplace(). @ref mpack_done_bin() must be called
+ * once all bytes have been read.
+ *
+ * mpack_error_type is raised if the value is not a binary blob or if its
+ * length does not match.
+ */
+MPACK_INLINE_SPEED uint32_t mpack_expect_bin_max(mpack_reader_t* reader, uint32_t maxsize);
+
+#if MPACK_DEFINE_INLINE_SPEED
+MPACK_INLINE_SPEED uint32_t mpack_expect_bin_max(mpack_reader_t* reader, uint32_t maxsize) {
+    uint32_t length = mpack_expect_bin(reader);
+    if (length > maxsize) {
+        mpack_reader_flag_error(reader, mpack_error_type);
+        return 0;
+    }
+    return length;
+}
+#endif
+
+/**
+ * Reads the start of a binary blob, raising an error if its length is not
  * exactly the given number of bytes.
  *
  * The bytes follow and must be read separately with mpack_read_bytes()
@@ -600,7 +1051,14 @@ uint32_t mpack_expect_bin(mpack_reader_t* reader);
  * mpack_error_type is raised if the value is not a binary blob or if its
  * length does not match.
  */
-void mpack_expect_bin_size(mpack_reader_t* reader, uint32_t count);
+MPACK_INLINE_SPEED void mpack_expect_bin_size(mpack_reader_t* reader, uint32_t count);
+
+#if MPACK_DEFINE_INLINE_SPEED
+MPACK_INLINE_SPEED void mpack_expect_bin_size(mpack_reader_t* reader, uint32_t count) {
+    if (mpack_expect_bin(reader) != count)
+        mpack_reader_flag_error(reader, mpack_error_type);
+}
+#endif
 
 /**
  * Reads a binary blob into the given buffer, returning its size in bytes.
@@ -619,17 +1077,34 @@ const char* mpack_expect_bin_inplace(mpack_reader_t* reader, size_t maxsize, siz
 char* mpack_expect_bin_alloc(mpack_reader_t* reader, size_t maxsize, size_t* size);
 
 /**
- * Reads an extension object with the given total maximum size, allocating storage
- * for it. The extension type will be written to exttype, and the size will be
- * written to size.
+ * @}
  */
-char* mpack_expect_ext_alloc(mpack_reader_t* reader, size_t maxsize, uint8_t* exttype, size_t* size);
 
 /**
- * Reads an extension object of the given type with the given total maximum size,
- * allocating storage for it. The size will be written to size.
+ * @name Special Functions
+ * @{
  */
-char* mpack_expect_ext_type_alloc(mpack_reader_t* reader, uint8_t exttype, size_t maxsize, size_t* size);
+
+/**
+ * Reads a MessagePack object header (an MPack tag), expecting it to exactly
+ * match the given tag.
+ *
+ * If the type is compound (i.e. is a map, array, string, binary or
+ * extension type), additional reads are required to get the actual data,
+ * and the corresponding done function (or cancel) should be called when
+ * done.
+ *
+ * @throws mpack_error_type if the tag does not match
+ *
+ * @see mpack_read_bytes()
+ * @see mpack_done_array()
+ * @see mpack_done_map()
+ * @see mpack_done_str()
+ * @see mpack_done_bin()
+ * @see mpack_done_ext()
+ * @see mpack_cancel()
+ */
+void mpack_expect_tag(mpack_reader_t* reader, mpack_tag_t tag);
 
 /**
  * @}
@@ -639,11 +1114,10 @@ char* mpack_expect_ext_type_alloc(mpack_reader_t* reader, uint8_t exttype, size_
  * @}
  */
 
-#ifdef __cplusplus
-}
 #endif
 
-#endif
+MPACK_HEADER_END
+
 #endif
 
 

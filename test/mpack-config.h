@@ -6,34 +6,65 @@
 
 #if defined(DEBUG) || defined(_DEBUG)
 #define MPACK_DEBUG 1
-#define MPACK_TRACKING 1
 #endif
 
-#define MPACK_READER 1
-#define MPACK_WRITER 1
-#define MPACK_EXPECT 1
-#define MPACK_NODE 1
+// Most options such as featureset and platform configuration
+// are specified by the SCons buildsystem. For other platforms,
+// we define the usual configuration here.
+#ifndef MPACK_SCONS
+    #define MPACK_READER 1
+    #define MPACK_WRITER 1
+    #define MPACK_EXPECT 1
+    #define MPACK_NODE 1
 
-#define MPACK_STDLIB 1
-#define MPACK_STDIO 1
-#define MPACK_SETJMP 1
+    #define MPACK_STDLIB 1
+    #define MPACK_STDIO 1
+    #define MPACK_MALLOC test_malloc
+    #define MPACK_FREE test_free
+#endif
 
-#include "test-malloc.h"
-#define MPACK_MALLOC test_malloc
-#define MPACK_FREE test_free
+// We replace the file i/o functions to simulate failures
+#if defined(MPACK_STDIO) && MPACK_STDIO
+#include <stdio.h>
+#define fopen  test_fopen
+#define fclose test_fclose
+#define fread  test_fread
+#define fwrite test_fwrite
+#define fseek  test_fseek
+#define ftell  test_ftell
+#endif
 
-// the test harness uses a custom assert function since we
-// test whether assertions are hit
+// Tracking matches the default config, except the test suite
+// also supports MPACK_NO_TRACKING to disable it.
+#if defined(MPACK_MALLOC) && !defined(MPACK_NO_TRACKING)
+    #if defined(MPACK_DEBUG) && MPACK_DEBUG && defined(MPACK_READER) && MPACK_READER
+        #define MPACK_READ_TRACKING 1
+    #endif
+    #if defined(MPACK_DEBUG) && MPACK_DEBUG && defined(MPACK_WRITER) && MPACK_WRITER
+        #define MPACK_WRITE_TRACKING 1
+    #endif
+#endif
+
+// We use a custom assert function which longjmps, allowing
+// us to test assertions in debug mode.
+#ifdef MPACK_DEBUG
 #define MPACK_CUSTOM_ASSERT 1
+#define MPACK_CUSTOM_BREAK 1
+#endif
 
-// we use small buffer sizes to test flushing and malloc failures
+#include "test-system.h"
+
+// we use small buffer sizes to test flushing, growing, and malloc failures
+#define MPACK_TRACKING_INITIAL_CAPACITY 3
 #define MPACK_STACK_SIZE 7
 #define MPACK_BUFFER_SIZE 7
-#define MPACK_NODE_ARRAY_STARTING_SIZE 32
-#define MPACK_NODE_MAX_DEPTH 2048
+#define MPACK_NODE_PAGE_SIZE 7
 
-// don't include debug print functions in code coverage
-#define MPACK_NO_PRINT 1
+#ifdef MPACK_MALLOC
+#define MPACK_NODE_INITIAL_DEPTH 3
+#else
+#define MPACK_NODE_MAX_DEPTH_WITHOUT_MALLOC 32
+#endif
 
 #endif
 

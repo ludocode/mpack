@@ -17,9 +17,6 @@
     <ClCompile Include="..\..\src\mpack\mpack-expect.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\mpack\mpack-internal.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\mpack\mpack-node.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -32,7 +29,7 @@
     <ClCompile Include="..\..\src\mpack\mpack-writer.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test\main.c">
+    <ClCompile Include="..\..\test\test.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\test\test-buffer.c">
@@ -41,19 +38,22 @@
     <ClCompile Include="..\..\test\test-file.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test\test-malloc.c">
+    <ClCompile Include="..\..\test\test-system.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\test\test-node.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test\test-read.c">
+    <ClCompile Include="..\..\test\test-expect.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\test\test-tag.c">
+    <ClCompile Include="..\..\test\test-common.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\test\test-write.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\test\test-reader.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -62,9 +62,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\mpack\mpack-expect.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\mpack\mpack-internal.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\mpack\mpack-node.h">
@@ -91,22 +88,25 @@
     <ClInclude Include="..\..\test\test-file.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test\test-malloc.h">
+    <ClInclude Include="..\..\test\test-system.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\test\test-node.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test\test-read.h">
+    <ClInclude Include="..\..\test\test-expect.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\test\test-tag.h">
+    <ClInclude Include="..\..\test\test-common.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\test\test-write.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\test\test.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\test\test-reader.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

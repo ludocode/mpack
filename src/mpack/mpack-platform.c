@@ -19,9 +19,16 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+
+// We define MPACK_EMIT_INLINE_DEFS and include mpack.h to emit
+// standalone definitions of all (non-static) inline functions in MPack.
+
 #define MPACK_INTERNAL 1
+#define MPACK_EMIT_INLINE_DEFS 1
 
 #include "mpack-platform.h"
+#include "mpack.h"
+
 
 #if MPACK_DEBUG && MPACK_STDIO
 #include <stdarg.h>
@@ -29,7 +36,9 @@
 
 
 
-#if MPACK_DEBUG && MPACK_STDIO
+#if MPACK_DEBUG
+
+#if MPACK_STDIO
 void mpack_assert_fail_format(const char* format, ...) {
     char buffer[512];
     va_list args;
@@ -39,11 +48,19 @@ void mpack_assert_fail_format(const char* format, ...) {
     buffer[sizeof(buffer) - 1] = 0;
     mpack_assert_fail(buffer);
 }
+
+void mpack_break_hit_format(const char* format, ...) {
+    char buffer[512];
+    va_list args;
+    va_start(args, format);
+    vsnprintf(buffer, sizeof(buffer), format, args);
+    va_end(args);
+    buffer[sizeof(buffer) - 1] = 0;
+    mpack_break_hit(buffer);
+}
 #endif
 
-
-
-#if !defined(MPACK_CUSTOM_ASSERT) || !MPACK_CUSTOM_ASSERT
+#if !MPACK_CUSTOM_ASSERT
 void mpack_assert_fail(const char* message) {
     MPACK_UNUSED(message);
 
@@ -51,14 +68,58 @@ void mpack_assert_fail(const char* message) {
     fprintf(stderr, "%s\n", message);
     #endif
 
-    #if defined(__GCC__) || defined(__CLANG__)
+    #if defined(__GCC__) || defined(__clang__)
     __builtin_trap();
-    #elif WIN32
+    #elif defined(WIN32)
     __debugbreak();
     #endif
 
+    #if MPACK_STDLIB
     abort();
+    #elif defined(__GCC__) || defined(__clang__)
+    __builtin_abort();
+    #endif
+
+    MPACK_UNREACHABLE;
 }
+#endif
+
+#if !MPACK_CUSTOM_BREAK
+
+// If we have a custom assert handler, break wraps it by default.
+// This allows users of MPack to only implement mpack_assert_fail() without
+// having to worry about the difference between assert and break.
+//
+// MPACK_CUSTOM_BREAK is available to define a separate break handler
+// (which is needed by the unit test suite), but this is not offered in
+// mpack-config.h for simplicity.
+
+#if MPACK_CUSTOM_ASSERT
+void mpack_break_hit(const char* message) {
+    mpack_assert_fail(message);
+}
+#else
+void mpack_break_hit(const char* message) {
+    MPACK_UNUSED(message);
+
+    #if MPACK_STDIO
+    fprintf(stderr, "%s\n", message);
+    #endif
+
+    #if defined(__GCC__) || defined(__clang__)
+    __builtin_trap();
+    #elif defined(WIN32)
+    __debugbreak();
+    #elif MPACK_STDLIB
+    abort();
+    #elif defined(__GCC__) || defined(__clang__)
+    __builtin_abort();
+    #endif
+}
+#endif
+
+#endif
+
 #endif
 
 
@@ -67,6 +128,36 @@ void mpack_assert_fail(const char* message) {
 
 // The below are adapted from the C wikibook:
 //     https://en.wikibooks.org/wiki/C_Programming/Strings
+
+void* mpack_memset(void *s, int c, size_t n) {
+    unsigned char *us = (unsigned char *)s;
+    unsigned char uc = (unsigned char)c;
+    while (n-- != 0)
+        *us++ = uc;
+    return s;
+}
+
+void* mpack_memcpy(void *s1, const void *s2, size_t n) {
+    char * __restrict dst = (char *)s1;
+    const char * __restrict src = (const char *)s2;
+    while (n-- != 0)
+        *dst++ = *src++;
+    return s1;
+}
+
+void* mpack_memmove(void *s1, const void *s2, size_t n) {
+    char *p1 = (char *)s1;
+    const char *p2 = (const char *)s2;
+    if (p2 < p1 && p1 < p2 + n) {
+        p2 += n;
+        p1 += n;
+        while (n-- != 0)
+            *--p1 = *--p2;
+    } else
+        while (n-- != 0)
+            *p1++ = *p2++;
+    return s1;
+}
 
 int mpack_memcmp(const void* s1, const void* s2, size_t n) {
      const unsigned char *us1 = (const unsigned char *) s1;
@@ -89,3 +180,22 @@ size_t mpack_strlen(const char *s) {
 
 #endif
 
+
+
+#if defined(MPACK_MALLOC) && !defined(MPACK_REALLOC)
+void* mpack_realloc(void* old_ptr, size_t used_size, size_t new_size) {
+    if (new_size == 0) {
+        if (old_ptr)
+            MPACK_FREE(old_ptr);
+        return NULL;
+    }
+
+    void* new_ptr = MPACK_MALLOC(new_size);
+    if (new_ptr == NULL)
+        return NULL;
+
+    mpack_memcpy(new_ptr, old_ptr, used_size);
+    MPACK_FREE(old_ptr);
+    return new_ptr;
+}
+#endif

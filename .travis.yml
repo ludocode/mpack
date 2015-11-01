@@ -1,0 +1,21 @@
+language: c
+
+before_install:
+  - pip install --user cpp-coveralls
+
+addons:
+  apt:
+    packages:
+      - clang
+      - valgrind
+
+script: tools/ci.sh
+
+compiler:
+  - clang
+  - gcc
+  - scan-build
+
+env:
+  - AMALGAMATED=1
+  - STANDARD=1

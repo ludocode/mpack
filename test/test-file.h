@@ -32,7 +32,9 @@
 extern "C" {
 #endif
 
+#if MPACK_STDIO
 void test_file(void);
+#endif
 
 #ifdef __cplusplus
 }

@@ -19,37 +19,21 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#include "test-malloc.h"
+#ifndef MPACK_TEST_COMMON_H
+#define MPACK_TEST_COMMON_H 1
 
 #include "test.h"
 
-static bool test_malloc_fail = false;
-static size_t test_malloc_left;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-void* test_malloc(size_t size) {
-    if (test_malloc_fail) {
-        if (test_malloc_left == 0)
-            return NULL;
-        --test_malloc_left;
-    }
-    return malloc(size);
+void test_common(void);
+
+#ifdef __cplusplus
 }
+#endif
 
-void test_free(void* p) {
-    // while free() is supposed to allow NULL, we don't trust that all
-    // malloc implementations safely handle this, so we don't free NULL.
-    test_assert(p != NULL, "attempting to free NULL");
+#endif
 
-    // TODO: track malloc/free
-    free(p);
-}
-
-void test_malloc_fail_after(size_t count) {
-    test_malloc_fail = true;
-    test_malloc_left = count;
-}
-
-void test_malloc_reset(void) {
-    test_malloc_fail = false;
-}
 

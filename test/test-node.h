@@ -24,43 +24,66 @@
 
 #include "test.h"
 
-#define test_tree_destroy_noerror(tree) do { \
-    test_assert(mpack_tree_error(tree) == mpack_ok, \
-            "tree is in error state %i", (int)mpack_tree_error(tree)); \
-    test_check_no_assertion(); \
-    mpack_tree_destroy(tree); \
-} while (0)
-
-#define test_tree_destroy_error(tree, error) do { \
-    mpack_error_t e = (error); \
-    test_assert(mpack_tree_error(tree) == e, \
-            "tree is in error state %i instead of %i", \
-            (int)mpack_tree_error(tree), (int)e); \
-    mpack_tree_destroy(tree); \
-} while (0)
-
-#define test_simple_tree_read(data, read_expr) do { \
-  mpack_tree_t tree; \
-  mpack_tree_init(&tree, data, sizeof(data) - 1); \
-  mpack_node_t* node = mpack_tree_root(&tree); \
-  test_check_no_assertion(); \
-  test_assert((read_expr), "simple tree test did not pass: " #read_expr); \
-  test_tree_destroy_noerror(&tree); \
-} while (0)
-
-#define test_simple_tree_read_error(data, read_expr, error) do { \
-  mpack_tree_t tree; \
-  mpack_tree_init(&tree, data, sizeof(data) - 1); \
-  mpack_node_t* node = mpack_tree_root(&tree); \
-  test_assert((read_expr), "simple read error test did not pass: " #read_expr); \
-  test_tree_destroy_error(&tree, (error)); \
-} while (0)
-
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+#if MPACK_NODE
+
+extern mpack_error_t test_tree_error;
+void test_tree_error_handler(mpack_tree_t* tree, mpack_error_t error);
+
+
+#define TEST_TREE_DESTROY_NOERROR(tree) do { \
+    mpack_error_t error = mpack_tree_destroy(tree); \
+    TEST_TRUE(error == mpack_ok, \
+            "tree is in error state %i", (int)error); \
+} while (0)
+
+#define TEST_TREE_DESTROY_ERROR(tree, error) do { \
+    mpack_error_t expected = (error); \
+    mpack_error_t actual = mpack_tree_destroy(tree); \
+    TEST_TRUE(actual == expected, "tree is in error state %i instead of %i", \
+            (int)actual, (int)expected); \
+} while (0)
+
+#define TEST_SIMPLE_TREE_READ(data, read_expr) do { \
+    mpack_tree_t tree; \
+    mpack_tree_init_pool(&tree, data, sizeof(data) - 1, pool, sizeof(pool) / sizeof(*pool)); \
+    mpack_tree_set_error_handler(&tree, test_tree_error_handler); \
+    mpack_node_t node = mpack_tree_root(&tree); \
+    TEST_TRUE((read_expr), "simple tree test did not pass: " #read_expr); \
+    TEST_TREE_DESTROY_NOERROR(&tree); \
+    TEST_TRUE(test_tree_error == mpack_ok); \
+    test_tree_error = mpack_ok; \
+} while (0)
+
+#ifdef MPACK_MALLOC
+#define TEST_TREE_INIT mpack_tree_init
+#else
+#define TEST_TREE_INIT(tree, data, data_size) \
+    mpack_node_data_t pool[128]; \
+mpack_tree_init_pool((tree), (data), (data_size), pool, sizeof(pool) / sizeof(*pool));
+#endif
+
+// the error handler is only called if the tree is not already in an
+// error state, so we call it ourselves if the tree init failed.
+#define TEST_SIMPLE_TREE_READ_ERROR(data, read_expr, error) do { \
+    mpack_tree_t tree; \
+    mpack_tree_init_pool(&tree, data, sizeof(data) - 1, pool, sizeof(pool) / sizeof(*pool)); \
+    if (mpack_tree_error(&tree) != mpack_ok) \
+        test_tree_error_handler(&tree, error); \
+    mpack_tree_set_error_handler(&tree, test_tree_error_handler); \
+    mpack_node_t node = mpack_tree_root(&tree); \
+    TEST_TRUE((read_expr), "simple read error test did not pass: " #read_expr); \
+    TEST_TREE_DESTROY_ERROR(&tree, (error)); \
+    TEST_TRUE(test_tree_error == (error)); \
+    test_tree_error = mpack_ok; \
+} while (0)
+
 void test_node(void);
+
+#endif
 
 #ifdef __cplusplus
 }
