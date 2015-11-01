@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.6)
 project(mpack)
 
 set(MPACK_MAJOR 0)
-set(MPACK_MINOR 4)
+set(MPACK_MINOR 7)
 
 # mpack features
 set(MPACK_READER  1)
@@ -30,6 +30,8 @@ include_directories(
 # miscellaneous
 set(MPACK_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/src/mpack")
 set(MPACK_DOC_DIR "${CMAKE_CURRENT_BINARY_DIR}/docs")
+
+enable_testing()
 
 # load cmake packages
 find_package(Doxygen)
