@@ -50,14 +50,14 @@ static char* test_file_fetch(const char* filename, size_t* out_size) {
     // read the file
     long total = 0;
     while (total < size) {
-        size_t read = fread(data + total, 1, (size_t)(size - total), file);
-        if (read <= 0) {
+        size_t count = fread(data + total, 1, (size_t)(size - total), file);
+        if (count <= 0) {
             TEST_TRUE(false, "failed to read from file %s", filename);
             fclose(file);
             MPACK_FREE(data);
             return NULL;
         }
-        total += read;
+        total += count;
     }
 
     fclose(file);
@@ -288,11 +288,11 @@ static void test_file_expect_bytes(mpack_reader_t* reader, mpack_tag_t tag) {
     memset(expected, 0, sizeof(expected));
     char buf[sizeof(expected)];
     while (tag.v.l > 0) {
-        uint32_t read = (tag.v.l < (uint32_t)sizeof(buf)) ? tag.v.l : (uint32_t)sizeof(buf);
-        mpack_read_bytes(reader, buf, read);
+        uint32_t count = (tag.v.l < (uint32_t)sizeof(buf)) ? tag.v.l : (uint32_t)sizeof(buf);
+        mpack_read_bytes(reader, buf, count);
         TEST_TRUE(mpack_reader_error(reader) == mpack_ok);
-        TEST_TRUE(memcmp(buf, expected, read) == 0);
-        tag.v.l -= read;
+        TEST_TRUE(memcmp(buf, expected, count) == 0);
+        tag.v.l -= count;
     }
 
     mpack_done_type(reader, tag.type);
