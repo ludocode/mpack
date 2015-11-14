@@ -438,9 +438,13 @@ static void test_node_read_bad_type() {
 }
 
 static void test_node_read_possible() {
-    mpack_node_data_t pool[128];
-
     // test early exit for data that contains impossible node numbers
+
+    mpack_node_data_t pool[128];
+    TEST_SIMPLE_TREE_READ_ERROR("\xcc", (MPACK_UNUSED(node), true), mpack_error_invalid); // truncated u8
+    TEST_SIMPLE_TREE_READ_ERROR("\xcd", (MPACK_UNUSED(node), true), mpack_error_invalid); // truncated u16
+    TEST_SIMPLE_TREE_READ_ERROR("\xce", (MPACK_UNUSED(node), true), mpack_error_invalid); // truncated u32
+    TEST_SIMPLE_TREE_READ_ERROR("\xcf", (MPACK_UNUSED(node), true), mpack_error_invalid); // truncated u64
 
     #ifdef MPACK_MALLOC
     // this is an example of a potential denial-of-service attack against
@@ -484,11 +488,6 @@ static void test_node_read_possible() {
     TEST_TRUE(allocation_count <= 2, "too many allocations! %i calls to malloc()", (int)allocation_count);
     TEST_TREE_DESTROY_ERROR(&tree, mpack_error_invalid);
     #endif
-
-    TEST_SIMPLE_TREE_READ_ERROR("\xcc", (MPACK_UNUSED(node), true), mpack_error_invalid); // truncated u8
-    TEST_SIMPLE_TREE_READ_ERROR("\xcd", (MPACK_UNUSED(node), true), mpack_error_invalid); // truncated u16
-    TEST_SIMPLE_TREE_READ_ERROR("\xce", (MPACK_UNUSED(node), true), mpack_error_invalid); // truncated u32
-    TEST_SIMPLE_TREE_READ_ERROR("\xcf", (MPACK_UNUSED(node), true), mpack_error_invalid); // truncated u64
 }
 
 static void test_node_read_pre_error() {
