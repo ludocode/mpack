@@ -53,7 +53,10 @@ void* test_realloc(void* p, size_t size);
 void test_free(void* p);
 
 // Returns the number of mallocs that have not yet been freed.
-size_t test_malloc_count(void);
+size_t test_malloc_active_count(void);
+
+// Returns the total number of mallocs or non-zero reallocs ever made.
+size_t test_malloc_total_count(void);
 #endif
 
 

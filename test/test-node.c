@@ -481,10 +481,10 @@ static void test_node_read_possible() {
             "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff"
             "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff"
             "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff";
-    size_t allocation_count = test_malloc_count();
+    size_t allocation_count = test_malloc_total_count();
     mpack_tree_t tree;
     mpack_tree_init(&tree, attack, strlen(attack));
-    allocation_count = test_malloc_count() - allocation_count;
+    allocation_count = test_malloc_total_count() - allocation_count;
     TEST_TRUE(allocation_count <= 2, "too many allocations! %i calls to malloc()", (int)allocation_count);
     TEST_TREE_DESTROY_ERROR(&tree, mpack_error_invalid);
     #endif
