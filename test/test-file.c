@@ -401,28 +401,36 @@ static bool test_file_expect_failure() {
     TEST_TRUE(str != NULL);
     const char* expected = "The quick brown fox jumps over a lazy dog.";
     TEST_TRUE(size == strlen(expected));
-    TEST_TRUE(memcmp(str, expected, size) == 0);
-    MPACK_FREE(str);
+    if (str) {
+        TEST_TRUE(memcmp(str, expected, size) == 0);
+        MPACK_FREE(str);
+    }
 
     str = mpack_expect_utf8_alloc(&reader, 100, &size);
     TEST_POSSIBLE_FAILURE();
     TEST_TRUE(str != NULL);
     expected = "one";
     TEST_TRUE(size == strlen(expected));
-    TEST_TRUE(memcmp(str, expected, size) == 0);
-    MPACK_FREE(str);
+    if (str) {
+        TEST_TRUE(memcmp(str, expected, size) == 0);
+        MPACK_FREE(str);
+    }
 
     str = mpack_expect_cstr_alloc(&reader, 100);
     TEST_POSSIBLE_FAILURE();
     TEST_TRUE(str != NULL);
-    TEST_TRUE(strcmp(str, "two") == 0);
-    MPACK_FREE(str);
+    if (str) {
+        TEST_TRUE(strcmp(str, "two") == 0);
+        MPACK_FREE(str);
+    }
 
     str = mpack_expect_utf8_cstr_alloc(&reader, 100);
     TEST_POSSIBLE_FAILURE();
     TEST_TRUE(str != NULL);
-    TEST_TRUE(strcmp(str, "three") == 0);
-    MPACK_FREE(str);
+    if (str) {
+        TEST_TRUE(strcmp(str, "three") == 0);
+        MPACK_FREE(str);
+    }
 
     mpack_discard(&reader);
     mpack_discard(&reader);
@@ -574,17 +582,21 @@ static bool test_file_node_failure() {
     TEST_TRUE(str != NULL);
     const char* expected = "The quick brown fox jumps over a lazy dog.";
     TEST_TRUE(mpack_node_strlen(node) == strlen(expected));
-    TEST_TRUE(memcmp(str, expected, mpack_node_strlen(node)) == 0);
-    MPACK_FREE(str);
+    if (str) {
+        TEST_TRUE(memcmp(str, expected, mpack_node_strlen(node)) == 0);
+        MPACK_FREE(str);
+    }
 
     node = mpack_node_array_at(root, 1);
     str = mpack_node_cstr_alloc(node, 100);
     TEST_POSSIBLE_FAILURE();
     TEST_TRUE(str != NULL);
     expected = "one";
-    TEST_TRUE(strlen(str) == strlen(expected));
-    TEST_TRUE(strcmp(str, expected) == 0);
-    MPACK_FREE(str);
+    if (str) {
+        TEST_TRUE(strlen(str) == strlen(expected));
+        TEST_TRUE(strcmp(str, expected) == 0);
+        MPACK_FREE(str);
+    }
 
     #undef TEST_POSSIBLE_FAILURE
 
