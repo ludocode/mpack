@@ -409,17 +409,6 @@ mpack_error_t mpack_writer_destroy(mpack_writer_t* writer) {
     return writer->error;
 }
 
-void mpack_writer_destroy_cancel(mpack_writer_t* writer) {
-
-    #if MPACK_WRITE_TRACKING
-    mpack_track_destroy(&writer->track, true);
-    #endif
-
-    if (writer->teardown)
-        writer->teardown(writer);
-    writer->teardown = NULL;
-}
-
 void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t value) {
 
     switch (value.type) {

@@ -457,7 +457,8 @@ static void test_expect_tracking() {
     // cancel
     TEST_READER_INIT_STR(&reader, "\x90");
     mpack_expect_array(&reader);
-    mpack_reader_destroy_cancel(&reader);
+    mpack_reader_flag_error(&reader, mpack_error_data);
+    TEST_READER_DESTROY_ERROR(&reader, mpack_error_data);
 
     // done type when nothing was open
     TEST_READER_INIT_STR(&reader, "\x90");

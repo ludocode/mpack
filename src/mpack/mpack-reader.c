@@ -100,13 +100,11 @@ void mpack_reader_init_file(mpack_reader_t* reader, const char* filename) {
 }
 #endif
 
-static mpack_error_t mpack_reader_destroy_impl(mpack_reader_t* reader, bool cancel) {
+mpack_error_t mpack_reader_destroy(mpack_reader_t* reader) {
 
     // clean up tracking, asserting if we're not already in an error state
-    cancel |= reader->error != mpack_ok;
-    MPACK_UNUSED(cancel);
     #if MPACK_READ_TRACKING
-    mpack_track_destroy(&reader->track, cancel);
+    mpack_track_destroy(&reader->track, reader->error != mpack_ok);
     #endif
 
     if (reader->teardown)
@@ -114,14 +112,6 @@ static mpack_error_t mpack_reader_destroy_impl(mpack_reader_t* reader, bool canc
     reader->teardown = NULL;
 
     return reader->error;
-}
-
-void mpack_reader_destroy_cancel(mpack_reader_t* reader) {
-    mpack_reader_destroy_impl(reader, true);
-}
-
-mpack_error_t mpack_reader_destroy(mpack_reader_t* reader) {
-    return mpack_reader_destroy_impl(reader, false);
 }
 
 size_t mpack_reader_remaining(mpack_reader_t* reader, const char** data) {

@@ -189,27 +189,32 @@ void mpack_writer_init_file(mpack_writer_t* writer, const char* filename);
     mpack_writer_init_stack_line(__LINE__, (writer))
 
 /**
- * Cleans up the MPack writer, flushing any buffered bytes to the
- * underlying stream, if any. Returns the final error state of the
- * writer in case an error occurred flushing. Causes an assert if
- * there are any unclosed compound types in tracking mode.
+ * Cleans up the MPack writer, flushing and closing the underlying stream,
+ * if any. Returns the final error state of the writer.
  *
- * Note that if a jump handler is set, a writer may jump during destroy if it
- * fails to flush any remaining data. In this case the writer will not be fully
- * destroyed; you can still get the error state, and you must call destroy as
- * usual in the jump handler.
+ * No flushing is performed if the writer is in an error state. The attached
+ * teardown function is called whether or not the writer is in an error state.
+ *
+ * This will assert in tracking mode if the writer is not in an error
+ * state and has any unclosed compound types. If you want to cancel
+ * writing in the middle of a document, you need to flag an error on
+ * the writer before destroying it (such as mpack_error_data).
+ *
+ * Note that a writer may raise an error and call your error handler during
+ * the final flush. It is safe to longjmp or throw out of this error handler,
+ * but if you do, the writer will not be destroyed, and the teardown function
+ * will not be called. You can still get the writer's error state, and you
+ * must call mpack_writer_destroy again. (The second call is guaranteed not
+ * to call your error handler again since the writer is already in an error
+ * state.)
+ *
+ * @see mpack_writer_set_error_handler
+ * @see mpack_writer_set_flush
+ * @see mpack_writer_set_teardown
+ * @see mpack_writer_flag_error
+ * @see mpack_error_data
  */
 mpack_error_t mpack_writer_destroy(mpack_writer_t* writer);
-
-/**
- * Cleans up the MPack writer, discarding any open writes and unflushed data.
- *
- * Use this to cancel writing in the middle of writing a document (for example
- * in case an error occurred.) This should be used instead of mpack_writer_destroy()
- * because the former will assert in tracking mode if there are any unclosed
- * compound types.
- */
-void mpack_writer_destroy_cancel(mpack_writer_t* writer);
 
 /**
  * Sets the custom pointer to pass to the writer callbacks, such as flush

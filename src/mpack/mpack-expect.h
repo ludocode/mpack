@@ -1090,9 +1090,8 @@ char* mpack_expect_bin_alloc(mpack_reader_t* reader, size_t maxsize, size_t* siz
  * match the given tag.
  *
  * If the type is compound (i.e. is a map, array, string, binary or
- * extension type), additional reads are required to get the actual data,
- * and the corresponding done function (or cancel) should be called when
- * done.
+ * extension type), additional reads are required to get the contained
+ * data, and the corresponding done function must be called when done.
  *
  * @throws mpack_error_type if the tag does not match
  *
@@ -1102,7 +1101,6 @@ char* mpack_expect_bin_alloc(mpack_reader_t* reader, size_t maxsize, size_t* siz
  * @see mpack_done_str()
  * @see mpack_done_bin()
  * @see mpack_done_ext()
- * @see mpack_cancel()
  */
 void mpack_expect_tag(mpack_reader_t* reader, mpack_tag_t tag);
 

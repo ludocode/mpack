@@ -722,7 +722,8 @@ static void test_write_tracking() {
     mpack_writer_init(&writer, buf, sizeof(buf));
     mpack_start_map(&writer, 5);
     mpack_start_array(&writer, 5);
-    mpack_writer_destroy_cancel(&writer);
+    mpack_writer_flag_error(&writer, mpack_error_data);
+    TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_data);
 
     // finishing type when nothing was open
     mpack_writer_init(&writer, buf, sizeof(buf));

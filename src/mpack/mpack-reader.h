@@ -181,22 +181,16 @@ void mpack_reader_init_file(mpack_reader_t* reader, const char* filename);
  * have been completely read. Returns the final error state of the
  * reader.
  *
- * This will assert in tracking mode if the reader has any incomplete
- * reads. If you want to cancel reading in the middle of a compound
- * element and don't care about the rest of the document, call
- * mpack_reader_destroy_cancel() instead.
+ * This will assert in tracking mode if the reader is not in an error
+ * state and has any incomplete reads. If you want to cancel reading
+ * in the middle of a document, you need to flag an error on the reader
+ * before destroying it (such as mpack_error_data).
  *
- * @see mpack_reader_destroy_cancel()
+ * @see mpack_read_tag()
+ * @see mpack_reader_flag_error()
+ * @see mpack_error_data
  */
 mpack_error_t mpack_reader_destroy(mpack_reader_t* reader);
-
-/**
- * Cleans up the MPack reader, discarding any open reads.
- *
- * This should be used if you decide to cancel reading in the middle
- * of the document.
- */
-void mpack_reader_destroy_cancel(mpack_reader_t* reader);
 
 /**
  * Sets the custom pointer to pass to the reader callbacks, such as fill
@@ -328,9 +322,8 @@ size_t mpack_reader_remaining(mpack_reader_t* reader, const char** data);
  * nil tag is returned.
  *
  * If the type is compound (i.e. is a map, array, string, binary or
- * extension type), additional reads are required to get the actual data,
- * and the corresponding done function (or cancel) should be called when
- * done.
+ * extension type), additional reads are required to get the contained
+ * data, and the corresponding done function must be called when done.
  *
  * Note that maps in JSON are unordered, so it is recommended not to expect
  * a specific ordering for your map values in case your data is converted
@@ -342,7 +335,6 @@ size_t mpack_reader_remaining(mpack_reader_t* reader, const char** data);
  * @see mpack_done_str()
  * @see mpack_done_bin()
  * @see mpack_done_ext()
- * @see mpack_cancel()
  */
 mpack_tag_t mpack_read_tag(mpack_reader_t* reader);
 
