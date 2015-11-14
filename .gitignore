@@ -8,6 +8,7 @@
 /config.log
 mpack-test-file
 /mpack-test-dir/
+/analysis/
 
 # folders
 /tags

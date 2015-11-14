@@ -18,6 +18,12 @@ FILES="\
     mpack-expect \
     mpack-node"
 
+TOOLS="\
+    tools/clean.sh \
+    tools/gcov.sh \
+    tools/scan-build.sh \
+    tools/valgrind-suppressions"
+
 # add top license and comment
 rm -rf build/amalgamation
 mkdir -p build/amalgamation/src/mpack
@@ -64,8 +70,7 @@ cp projects/vs/mpack.{sln,vcxproj,vcxproj.filters} build/amalgamation/projects/v
 cp projects/xcode/MPack.xcodeproj/project.pbxproj build/amalgamation/projects/xcode/MPack.xcodeproj
 cp src/mpack-config.h.sample build/amalgamation/src
 mkdir -p build/amalgamation/tools
-cp tools/gcov.sh build/amalgamation/tools
-cp tools/valgrind-suppressions build/amalgamation/tools
+cp $TOOLS build/amalgamation/tools
 
 # create package
 NAME=mpack-amalgamation-$VERSION

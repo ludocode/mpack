@@ -19,8 +19,10 @@ env = Environment()
 conf = Configure(env, custom_tests = {'CheckFlags': CheckFlags})
 
 for x in os.environ.keys():
-    if x in ["CC", "CXX", "PATH", "TRAVIS", "TERM"] or x.startswith("CLANG_") or x.startswith("CCC_"):
+    if x in ["CC", "CXX"]:
         env[x] = os.environ[x]
+    if x in ["PATH", "TRAVIS", "TERM"] or x.startswith("CLANG_") or x.startswith("CCC_"):
+        env["ENV"][x] = os.environ[x]
 
 env.Append(CPPFLAGS = [
     "-Wall", "-Wextra", "-Werror",
@@ -34,7 +36,7 @@ env.Append(LINKFLAGS = [
     ])
 # Additional warning flags are passed in SConscript based on the language (C/C++)
 
-if 'TRAVIS' not in env:
+if 'TRAVIS' not in env["ENV"]:
     # Travis-CI currently uses Clang 3.4 which does not support this option,
     # and it also appears to be incompatible with other GCC options on Travis-CI
     env.Append(CPPFLAGS = ["-Wno-float-conversion"])

@@ -1,8 +1,5 @@
 language: c
 
-before_install:
-  - pip install --user cpp-coveralls
-
 addons:
   apt:
     packages:

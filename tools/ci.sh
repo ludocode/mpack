@@ -11,14 +11,19 @@ fi
 pwd
 
 if [[ "$CC" == "scan-build" ]]; then
-    export CC=`which clang`
-    scan-build --use-cc="$CC" --status-bugs scons
+    unset CC
+    unset CXX
+    scan-build -o analysis --use-cc=`which clang` --status-bugs scons || exit $?
+
 elif [[ "$CC" == "gcc" ]] && [[ "$STANDARD" == "1" ]]; then
     # We only perform code coverage measurements from the
     # GCC non-amalgamated build.
     scons gcov=1 all=1 || exit $?
     tools/gcov.sh || exit $?
+    pip install --user cpp-coveralls || exit $?
     coveralls --no-gcov --include src || exit $?
+
 else
     scons all=1 || exit $?
+
 fi
