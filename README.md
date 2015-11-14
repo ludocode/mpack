@@ -20,7 +20,7 @@ MPack is beta software under development.
 
 | [Travis-CI](https://travis-ci.org/) | [Coveralls.io](https://coveralls.io/) |
 | :-------: | :----------: |
-| [![Build Status](https://travis-ci.org/ludocode/mpack.svg?branch=master)](https://travis-ci.org/ludocode/mpack/branches) | [![Coverage Status](https://coveralls.io/repos/ludocode/mpack/badge.svg?branch=master&service=github)](https://coveralls.io/github/ludocode/mpack?branch=master) |
+| [![Build Status](https://travis-ci.org/ludocode/mpack.svg?branch=develop)](https://travis-ci.org/ludocode/mpack/branches) | [![Coverage Status](https://coveralls.io/repos/ludocode/mpack/badge.svg?branch=develop&service=github)](https://coveralls.io/github/ludocode/mpack?branch=develop) |
 
 ## The Node Reader API
 
