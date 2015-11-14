@@ -5,7 +5,7 @@
 # building the amalgamated package and running code coverage.
 
 if [[ "$AMALGAMATED" == "1" ]]; then
-    tools/package.sh || exit $?
+    tools/amalgamate.sh || exit $?
     cd build/amalgamation
 fi
 pwd
