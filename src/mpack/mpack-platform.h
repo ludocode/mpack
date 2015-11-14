@@ -166,12 +166,27 @@
 #define MPACK_DECLARED_INLINE_WARNING_END /* nothing */
 #endif
 
+/* GCC versions before 4.8 warn about shadowing a function with a
+ * variable that isn't a function or function pointer (like "index") */
+#if (__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 8)
+#define MPACK_WSHADOW_WARNING_START \
+    _Pragma ("GCC diagnostic push") \
+    _Pragma ("GCC diagnostic ignored \"-Wshadow\"")
+#define MPACK_WSHADOW_WARNING_END \
+    _Pragma ("GCC diagnostic pop")
+#else
+#define MPACK_WSHADOW_WARNING_START /* nothing */
+#define MPACK_WSHADOW_WARNING_END /* nothing */
+#endif
+
 #define MPACK_HEADER_START \
     MPACK_EXTERN_C_START \
+    MPACK_WSHADOW_WARNING_START \
     MPACK_DECLARED_INLINE_WARNING_START
 
 #define MPACK_HEADER_END \
     MPACK_DECLARED_INLINE_WARNING_END \
+    MPACK_WSHADOW_WARNING_END \
     MPACK_EXTERN_C_END
 
 MPACK_HEADER_START
