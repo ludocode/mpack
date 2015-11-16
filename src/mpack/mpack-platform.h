@@ -100,6 +100,9 @@
 #ifndef MPACK_AMALGAMATED
 #define MPACK_AMALGAMATED 0
 #endif
+#ifndef MPACK_RELEASE_VERSION
+#define MPACK_RELEASE_VERSION 0
+#endif
 #ifndef MPACK_INTERNAL
 #define MPACK_INTERNAL 0
 #endif
