@@ -68,16 +68,16 @@ void mpack_assert_fail(const char* message) {
     fprintf(stderr, "%s\n", message);
     #endif
 
-    #if defined(__GCC__) || defined(__clang__)
+    #if defined(__GNUC__) || defined(__clang__)
     __builtin_trap();
     #elif defined(WIN32)
     __debugbreak();
     #endif
 
-    #if MPACK_STDLIB
-    abort();
-    #elif defined(__GCC__) || defined(__clang__)
+    #if defined(__GNUC__) || defined(__clang__)
     __builtin_abort();
+    #elif MPACK_STDLIB
+    abort();
     #endif
 
     MPACK_UNREACHABLE;
@@ -106,14 +106,12 @@ void mpack_break_hit(const char* message) {
     fprintf(stderr, "%s\n", message);
     #endif
 
-    #if defined(__GCC__) || defined(__clang__)
+    #if defined(__GNUC__) || defined(__clang__)
     __builtin_trap();
     #elif defined(WIN32)
     __debugbreak();
     #elif MPACK_STDLIB
     abort();
-    #elif defined(__GCC__) || defined(__clang__)
-    __builtin_abort();
     #endif
 }
 #endif
