@@ -283,6 +283,7 @@ static void test_file_discard(void) {
 #if MPACK_EXPECT
 static void test_file_expect_bytes(mpack_reader_t* reader, mpack_tag_t tag) {
     mpack_expect_tag(reader, tag);
+    TEST_TRUE(mpack_reader_error(reader) == mpack_ok, "got error %i (%s)", (int)mpack_reader_error(reader), mpack_error_to_string(mpack_reader_error(reader)));
 
     char expected[1024];
     memset(expected, 0, sizeof(expected));
@@ -290,8 +291,8 @@ static void test_file_expect_bytes(mpack_reader_t* reader, mpack_tag_t tag) {
     while (tag.v.l > 0) {
         uint32_t count = (tag.v.l < (uint32_t)sizeof(buf)) ? tag.v.l : (uint32_t)sizeof(buf);
         mpack_read_bytes(reader, buf, count);
-        TEST_TRUE(mpack_reader_error(reader) == mpack_ok);
-        TEST_TRUE(memcmp(buf, expected, count) == 0);
+        TEST_TRUE(mpack_reader_error(reader) == mpack_ok, "got error %i (%s)", (int)mpack_reader_error(reader), mpack_error_to_string(mpack_reader_error(reader)));
+        TEST_TRUE(memcmp(buf, expected, count) == 0, "data does not match!");
         tag.v.l -= count;
     }
 
