@@ -387,7 +387,7 @@ MPACK_HEADER_START
 #endif
 
 #ifndef MPACK_STATIC_ASSERT
-#define MPACK_STATIC_ASSERT(expr, str) /* nothing */
+#define MPACK_STATIC_ASSERT(expr, str) (MPACK_UNUSED(sizeof(char[1 - 2*!(expr)])))
 #endif
 
 
