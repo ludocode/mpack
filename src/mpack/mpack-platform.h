@@ -365,12 +365,15 @@ MPACK_HEADER_START
 #ifndef MPACK_STATIC_ASSERT
 #if defined(__GNUC__)
 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
+#ifndef __cplusplus
 #define MPACK_STATIC_ASSERT(expr, str) do { \
     _Pragma ("GCC diagnostic push") \
-    _Pragma ("GCC diagnostic ignored \"-Wpedantic\"") \
+    _Pragma ("GCC diagnostic ignored \"-pedantic\"") \
+    _Pragma ("GCC diagnostic ignored \"-Wc++-compat\"") \
     _Static_assert(expr, str); \
     _Pragma ("GCC diagnostic pop") \
 } while (0)
+#endif
 #endif
 #endif
 #endif
