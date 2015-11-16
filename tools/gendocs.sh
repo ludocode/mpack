@@ -15,6 +15,8 @@ sed '/travis-ci\.org\/ludocode\/mpack\.svg/d' -i README.md
 
 # Generate docs
 doxygen
-RET=$?
-git checkout README.md Doxyfile
-exit $RET
+DOXYGEN_RET=$?
+git checkout README.md Doxyfile || exit $?
+if [ "$DOXYGEN_RET" -ne 0 ]; then
+    exit $DOXYGEN_RET
+fi
