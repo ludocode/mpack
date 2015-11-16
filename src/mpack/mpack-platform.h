@@ -337,8 +337,10 @@ MPACK_HEADER_START
 /* Static assert */
 
 #ifndef MPACK_STATIC_ASSERT
+#ifdef __STDC_VERSION__
 #if __STDC_VERSION__ >= 201112L
 #define MPACK_STATIC_ASSERT _Static_assert
+#endif
 #endif
 #endif
 
