@@ -287,26 +287,33 @@ MPACK_STATIC_INLINE_SPEED void mpack_write_native(mpack_writer_t* writer, const 
     }
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_store_native_u8(char* p, uint8_t val) {
-    uint8_t* u = (uint8_t*)p;
-    u[0] = val;
+MPACK_STATIC_ALWAYS_INLINE void mpack_write_native_u8(mpack_writer_t* writer, uint8_t value) {
+    mpack_write_native(writer, (char*)&value, sizeof(value));
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_store_native_u16(char* p, uint16_t val) {
+MPACK_STATIC_ALWAYS_INLINE size_t mpack_store_native_u8(char* p, uint8_t val) {
+    uint8_t* u = (uint8_t*)p;
+    u[0] = val;
+    return sizeof(val);
+}
+
+MPACK_STATIC_INLINE size_t mpack_store_native_u16(char* p, uint16_t val) {
     uint8_t* u = (uint8_t*)p;
     u[0] = (uint8_t)((val >> 8) & 0xFF);
     u[1] = (uint8_t)( val       & 0xFF);
+    return sizeof(val);
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_store_native_u32(char* p, uint32_t val) {
+MPACK_STATIC_INLINE size_t mpack_store_native_u32(char* p, uint32_t val) {
     uint8_t* u = (uint8_t*)p;
     u[0] = (uint8_t)((val >> 24) & 0xFF);
     u[1] = (uint8_t)((val >> 16) & 0xFF);
     u[2] = (uint8_t)((val >>  8) & 0xFF);
     u[3] = (uint8_t)( val        & 0xFF);
+    return sizeof(val);
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_store_native_u64(char* p, uint64_t val) {
+MPACK_STATIC_INLINE size_t mpack_store_native_u64(char* p, uint64_t val) {
     uint8_t* u = (uint8_t*)p;
     u[0] = (uint8_t)((val >> 56) & 0xFF);
     u[1] = (uint8_t)((val >> 48) & 0xFF);
@@ -316,85 +323,62 @@ MPACK_STATIC_ALWAYS_INLINE void mpack_store_native_u64(char* p, uint64_t val) {
     u[5] = (uint8_t)((val >> 16) & 0xFF);
     u[6] = (uint8_t)((val >>  8) & 0xFF);
     u[7] = (uint8_t)( val        & 0xFF);
+    return sizeof(val);
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_store_native_i8(char* p, int8_t val) {mpack_store_native_u8(p, (uint8_t)val);}
-MPACK_STATIC_ALWAYS_INLINE void mpack_store_native_i16(char* p, int16_t val) {mpack_store_native_u16(p, (uint16_t)val);}
-MPACK_STATIC_ALWAYS_INLINE void mpack_store_native_i32(char* p, int32_t val) {mpack_store_native_u32(p, (uint32_t)val);}
-MPACK_STATIC_ALWAYS_INLINE void mpack_store_native_i64(char* p, int64_t val) {mpack_store_native_u64(p, (uint64_t)val);}
+MPACK_STATIC_ALWAYS_INLINE size_t mpack_store_native_i8(char* p, int8_t val) {return mpack_store_native_u8(p, (uint8_t)val);}
+MPACK_STATIC_ALWAYS_INLINE size_t mpack_store_native_i16(char* p, int16_t val) {return mpack_store_native_u16(p, (uint16_t)val);}
+MPACK_STATIC_ALWAYS_INLINE size_t mpack_store_native_i32(char* p, int32_t val) {return mpack_store_native_u32(p, (uint32_t)val);}
+MPACK_STATIC_ALWAYS_INLINE size_t mpack_store_native_i64(char* p, int64_t val) {return mpack_store_native_u64(p, (uint64_t)val);}
 
-MPACK_STATIC_INLINE void mpack_store_native_float(char* p, float value) {
+MPACK_STATIC_INLINE size_t mpack_store_native_float(char* p, float value) {
     union {
         float f;
         uint32_t i;
     } u;
     u.f = value;
     mpack_store_native_u32(p, u.i);
+    return sizeof(value);
 }
 
-MPACK_STATIC_INLINE void mpack_store_native_double(char* p, double value) {
+MPACK_STATIC_INLINE size_t mpack_store_native_double(char* p, double value) {
     union {
         double d;
         uint64_t i;
     } u;
     u.d = value;
     mpack_store_native_u64(p, u.i);
+    return sizeof(value);
 }
 
-MPACK_STATIC_INLINE void mpack_write_native_u8(mpack_writer_t* writer, uint8_t val) {
-    char encoded[sizeof(val)];
-    mpack_store_native_u8(encoded, val);
-    mpack_write_native(writer, encoded, sizeof(encoded));
+MPACK_STATIC_INLINE size_t mpack_store_native_pair_u8(char* p, uint8_t header, uint8_t val) {
+    mpack_store_native_u8(p, header);
+    mpack_store_native_u8(p + sizeof(header), val);
+    return sizeof(header) + sizeof(val);
 }
 
-MPACK_STATIC_INLINE void mpack_write_native_i8(mpack_writer_t* writer, int8_t val) {mpack_write_native_u8(writer, (uint8_t)val);}
-
-MPACK_STATIC_INLINE void mpack_write_native_pair_u8(mpack_writer_t* writer, uint8_t header, uint8_t val) {
-    char encoded[1 + sizeof(val)];
-    mpack_store_native_u8(encoded, header);
-    mpack_store_native_u8(encoded + 1, val);
-    mpack_write_native(writer, encoded, sizeof(encoded));
+MPACK_STATIC_INLINE size_t mpack_store_native_pair_u16(char* p, uint8_t header, uint16_t val) {
+    mpack_store_native_u8(p, header);
+    mpack_store_native_u16(p + sizeof(header), val);
+    return sizeof(header) + sizeof(val);
 }
 
-MPACK_STATIC_INLINE void mpack_write_native_pair_u16(mpack_writer_t* writer, uint8_t header, uint16_t val) {
-    char encoded[1 + sizeof(val)];
-    mpack_store_native_u8(encoded, header);
-    mpack_store_native_u16(encoded + 1, val);
-    mpack_write_native(writer, encoded, sizeof(encoded));
+MPACK_STATIC_INLINE size_t mpack_store_native_pair_u32(char* p, uint8_t header, uint32_t val) {
+    mpack_store_native_u8(p, header);
+    mpack_store_native_u32(p + sizeof(header), val);
+    return sizeof(header) + sizeof(val);
 }
 
-MPACK_STATIC_INLINE void mpack_write_native_pair_u32(mpack_writer_t* writer, uint8_t header, uint32_t val) {
-    char encoded[1 + sizeof(val)];
-    mpack_store_native_u8(encoded, header);
-    mpack_store_native_u32(encoded + 1, val);
-    mpack_write_native(writer, encoded, sizeof(encoded));
+MPACK_STATIC_INLINE size_t mpack_store_native_pair_u64(char* p, uint8_t header, uint64_t val) {
+    mpack_store_native_u8(p, header);
+    mpack_store_native_u64(p + sizeof(header), val);
+    return sizeof(header) + sizeof(val);
 }
 
-MPACK_STATIC_INLINE void mpack_write_native_pair_u64(mpack_writer_t* writer, uint8_t header, uint64_t val) {
-    char encoded[1 + sizeof(val)];
-    mpack_store_native_u8(encoded, header);
-    mpack_store_native_u64(encoded + 1, val);
-    mpack_write_native(writer, encoded, sizeof(encoded));
-}
-
-MPACK_STATIC_INLINE void mpack_write_native_pair_float(mpack_writer_t* writer, uint8_t header, float val) {
-    char encoded[1 + sizeof(val)];
-    mpack_store_native_u8(encoded, header);
-    mpack_store_native_float(encoded + 1, val);
-    mpack_write_native(writer, encoded, sizeof(encoded));
-}
-
-MPACK_STATIC_INLINE void mpack_write_native_pair_double(mpack_writer_t* writer, uint8_t header, double val) {
-    char encoded[1 + sizeof(val)];
-    mpack_store_native_u8(encoded, header);
-    mpack_store_native_double(encoded + 1, val);
-    mpack_write_native(writer, encoded, sizeof(encoded));
-}
-
-MPACK_STATIC_INLINE void mpack_write_native_pair_i8(mpack_writer_t* writer, uint8_t header, int8_t val) {mpack_write_native_pair_u8(writer, header, (uint8_t)val);}
-MPACK_STATIC_INLINE void mpack_write_native_pair_i16(mpack_writer_t* writer, uint8_t header, int16_t val) {mpack_write_native_pair_u16(writer, header, (uint16_t)val);}
-MPACK_STATIC_INLINE void mpack_write_native_pair_i32(mpack_writer_t* writer, uint8_t header, int32_t val) {mpack_write_native_pair_u32(writer, header, (uint32_t)val);}
-MPACK_STATIC_INLINE void mpack_write_native_pair_i64(mpack_writer_t* writer, uint8_t header, int64_t val) {mpack_write_native_pair_u64(writer, header, (uint64_t)val);}
+MPACK_STATIC_INLINE size_t mpack_store_native_pair_i8(char* p, uint8_t header, int8_t val) {return mpack_store_native_pair_u8(p, header, (uint8_t)val);}
+MPACK_STATIC_INLINE size_t mpack_store_native_pair_i16(char* p, uint8_t header, int16_t val) {return mpack_store_native_pair_u16(p, header, (uint16_t)val);}
+MPACK_STATIC_INLINE size_t mpack_store_native_pair_i32(char* p, uint8_t header, int32_t val) {return mpack_store_native_pair_u32(p, header, (uint32_t)val);}
+MPACK_STATIC_INLINE size_t mpack_store_native_pair_i64(char* p, uint8_t header, int64_t val) {return mpack_store_native_pair_u64(p, header, (uint64_t)val);}
 
 mpack_error_t mpack_writer_destroy(mpack_writer_t* writer) {
 
@@ -418,7 +402,6 @@ mpack_error_t mpack_writer_destroy(mpack_writer_t* writer) {
 }
 
 void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t value) {
-
     switch (value.type) {
         case mpack_type_nil:    mpack_writer_track_element(writer); mpack_write_nil   (writer);            break;
         case mpack_type_bool:   mpack_writer_track_element(writer); mpack_write_bool  (writer, value.v.b); break;
@@ -442,50 +425,74 @@ void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t value) {
 
 void mpack_write_u8(mpack_writer_t* writer, uint8_t value) {
     mpack_writer_track_element(writer);
+
+    char encoded[2];
+    size_t size;
+
     if (value <= 0x7f) {
-        mpack_write_native_u8(writer, value);
+        size = mpack_store_native_u8(encoded, value);
     } else {
-        mpack_write_native_pair_u8(writer, 0xcc, value);
+        size = mpack_store_native_pair_u8(encoded, 0xcc, value);
     }
+
+    mpack_write_native(writer, encoded, size);
 }
 
 void mpack_write_u16(mpack_writer_t* writer, uint16_t value) {
     mpack_writer_track_element(writer);
+
+    char encoded[3];
+    size_t size;
+
     if (value <= 0x7f) {
-        mpack_write_native_u8(writer, (uint8_t)value);
+        size = mpack_store_native_u8(encoded, (uint8_t)value);
     } else if (value <= UINT8_MAX) {
-        mpack_write_native_pair_u8(writer, 0xcc, (uint8_t)value);
+        size = mpack_store_native_pair_u8(encoded, 0xcc, (uint8_t)value);
     } else {
-        mpack_write_native_pair_u16(writer, 0xcd, value);
+        size = mpack_store_native_pair_u16(encoded, 0xcd, value);
     }
+
+    mpack_write_native(writer, encoded, size);
 }
 
 void mpack_write_u32(mpack_writer_t* writer, uint32_t value) {
     mpack_writer_track_element(writer);
+
+    char encoded[5];
+    size_t size;
+
     if (value <= 0x7f) {
-        mpack_write_native_u8(writer, (uint8_t)value);
+        size = mpack_store_native_u8(encoded, (uint8_t)value);
     } else if (value <= UINT8_MAX) {
-        mpack_write_native_pair_u8(writer, 0xcc, (uint8_t)value);
+        size = mpack_store_native_pair_u8(encoded, 0xcc, (uint8_t)value);
     } else if (value <= UINT16_MAX) {
-        mpack_write_native_pair_u16(writer, 0xcd, (uint16_t)value);
+        size = mpack_store_native_pair_u16(encoded, 0xcd, (uint16_t)value);
     } else {
-        mpack_write_native_pair_u32(writer, 0xce, value);
+        size = mpack_store_native_pair_u32(encoded, 0xce, value);
     }
+
+    mpack_write_native(writer, encoded, size);
 }
 
 void mpack_write_u64(mpack_writer_t* writer, uint64_t value) {
     mpack_writer_track_element(writer);
+
+    char encoded[9];
+    size_t size;
+
     if (value <= 0x7f) {
-        mpack_write_native_u8(writer, (uint8_t)value);
+        size = mpack_store_native_u8(encoded, (uint8_t)value);
     } else if (value <= UINT8_MAX) {
-        mpack_write_native_pair_u8(writer, 0xcc, (uint8_t)value);
+        size = mpack_store_native_pair_u8(encoded, 0xcc, (uint8_t)value);
     } else if (value <= UINT16_MAX) {
-        mpack_write_native_pair_u16(writer, 0xcd, (uint16_t)value);
+        size = mpack_store_native_pair_u16(encoded, 0xcd, (uint16_t)value);
     } else if (value <= UINT32_MAX) {
-        mpack_write_native_pair_u32(writer, 0xce, (uint32_t)value);
+        size = mpack_store_native_pair_u32(encoded, 0xce, (uint32_t)value);
     } else {
-        mpack_write_native_pair_u64(writer, 0xcf, value);
+        size = mpack_store_native_pair_u64(encoded, 0xcf, value);
     }
+
+    mpack_write_native(writer, encoded, size);
 }
 
 void mpack_write_i8(mpack_writer_t* writer, int8_t value) {
@@ -497,12 +504,17 @@ void mpack_write_i8(mpack_writer_t* writer, int8_t value) {
     }
 
     mpack_writer_track_element(writer);
+
+    char encoded[2];
+    size_t size;
+
     if (value >= -32) {
-        mpack_write_native_i8(writer, value);
+        size = mpack_store_native_i8(encoded, value);
     } else {
-        mpack_write_native_pair_i8(writer, 0xd0, value);
+        size = mpack_store_native_pair_i8(encoded, 0xd0, value);
     }
 
+    mpack_write_native(writer, encoded, size);
 }
 
 void mpack_write_i16(mpack_writer_t* writer, int16_t value) {
@@ -514,14 +526,19 @@ void mpack_write_i16(mpack_writer_t* writer, int16_t value) {
     }
 
     mpack_writer_track_element(writer);
+
+    char encoded[3];
+    size_t size;
+
     if (value >= -32) {
-        mpack_write_native_i8(writer, (int8_t)value);
+        size = mpack_store_native_i8(encoded, (int8_t)value);
     } else if (value >= INT8_MIN) {
-        mpack_write_native_pair_i8(writer, 0xd0, (int8_t)value);
+        size = mpack_store_native_pair_i8(encoded, 0xd0, (int8_t)value);
     } else {
-        mpack_write_native_pair_i16(writer, 0xd1, value);
+        size = mpack_store_native_pair_i16(encoded, 0xd1, value);
     }
 
+    mpack_write_native(writer, encoded, size);
 }
 
 void mpack_write_i32(mpack_writer_t* writer, int32_t value) {
@@ -533,16 +550,21 @@ void mpack_write_i32(mpack_writer_t* writer, int32_t value) {
     }
 
     mpack_writer_track_element(writer);
+
+    char encoded[5];
+    size_t size;
+
     if (value >= -32) {
-        mpack_write_native_i8(writer, (int8_t)value);
+        size = mpack_store_native_i8(encoded, (int8_t)value);
     } else if (value >= INT8_MIN) {
-        mpack_write_native_pair_i8(writer, 0xd0, (int8_t)value);
+        size = mpack_store_native_pair_i8(encoded, 0xd0, (int8_t)value);
     } else if (value >= INT16_MIN) {
-        mpack_write_native_pair_i16(writer, 0xd1, (int16_t)value);
+        size = mpack_store_native_pair_i16(encoded, 0xd1, (int16_t)value);
     } else {
-        mpack_write_native_pair_i32(writer, 0xd2, value);
+        size = mpack_store_native_pair_i32(encoded, 0xd2, value);
     }
 
+    mpack_write_native(writer, encoded, size);
 }
 
 void mpack_write_i64(mpack_writer_t* writer, int64_t value) {
@@ -554,18 +576,23 @@ void mpack_write_i64(mpack_writer_t* writer, int64_t value) {
     }
 
     mpack_writer_track_element(writer);
+
+    char encoded[9];
+    size_t size;
+
     if (value >= -32) {
-        mpack_write_native_i8(writer, (int8_t)value);
+        size = mpack_store_native_i8(encoded, (int8_t)value);
     } else if (value >= INT8_MIN) {
-        mpack_write_native_pair_i8(writer, 0xd0, (int8_t)value);
+        size = mpack_store_native_pair_i8(encoded, 0xd0, (int8_t)value);
     } else if (value >= INT16_MIN) {
-        mpack_write_native_pair_i16(writer, 0xd1, (int16_t)value);
+        size = mpack_store_native_pair_i16(encoded, 0xd1, (int16_t)value);
     } else if (value >= INT32_MIN) {
-        mpack_write_native_pair_i32(writer, 0xd2, (int32_t)value);
+        size = mpack_store_native_pair_i32(encoded, 0xd2, (int32_t)value);
     } else {
-        mpack_write_native_pair_i64(writer, 0xd3, value);
+        size = mpack_store_native_pair_i64(encoded, 0xd3, value);
     }
 
+    mpack_write_native(writer, encoded, size);
 }
 
 void mpack_write_bool(mpack_writer_t* writer, bool value) {
@@ -590,12 +617,18 @@ void mpack_write_nil(mpack_writer_t* writer) {
 
 void mpack_write_float(mpack_writer_t* writer, float value) {
     mpack_writer_track_element(writer);
-    mpack_write_native_pair_float(writer, 0xca, value);
+    char encoded[5];
+    mpack_store_native_u8(encoded, 0xca);
+    mpack_store_native_float(encoded + 1, value);
+    mpack_write_native(writer, encoded, sizeof(encoded));
 }
 
 void mpack_write_double(mpack_writer_t* writer, double value) {
     mpack_writer_track_element(writer);
-    mpack_write_native_pair_double(writer, 0xcb, value);
+    char encoded[9];
+    mpack_store_native_u8(encoded, 0xcb);
+    mpack_store_native_double(encoded + 1, value);
+    mpack_write_native(writer, encoded, sizeof(encoded));
 }
 
 #if MPACK_WRITE_TRACKING
@@ -629,15 +662,20 @@ void mpack_start_array(mpack_writer_t* writer, uint32_t count) {
         return;
 
     mpack_writer_track_element(writer);
+    MPACK_WRITER_TRACK(writer, mpack_track_push(&writer->track, mpack_type_array, count));
+
+    char encoded[5];
+    size_t size;
+
     if (count <= 15) {
-        mpack_write_native_u8(writer, (uint8_t)(0x90 | count));
+        size = mpack_store_native_u8(encoded, (uint8_t)(0x90 | count));
     } else if (count <= UINT16_MAX) {
-        mpack_write_native_pair_u16(writer, 0xdc, (uint16_t)count);
+        size = mpack_store_native_pair_u16(encoded, 0xdc, (uint16_t)count);
     } else {
-        mpack_write_native_pair_u32(writer, 0xdd, count);
+        size = mpack_store_native_pair_u32(encoded, 0xdd, count);
     }
 
-    MPACK_WRITER_TRACK(writer, mpack_track_push(&writer->track, mpack_type_array, count));
+    mpack_write_native(writer, encoded, size);
 }
 
 void mpack_start_map(mpack_writer_t* writer, uint32_t count) {
@@ -645,15 +683,20 @@ void mpack_start_map(mpack_writer_t* writer, uint32_t count) {
         return;
 
     mpack_writer_track_element(writer);
+    MPACK_WRITER_TRACK(writer, mpack_track_push(&writer->track, mpack_type_map, count));
+
+    char encoded[5];
+    size_t size;
+
     if (count <= 15) {
-        mpack_write_native_u8(writer, (uint8_t)(0x80 | count));
+        size = mpack_store_native_u8(encoded, (uint8_t)(0x80 | count));
     } else if (count <= UINT16_MAX) {
-        mpack_write_native_pair_u16(writer, 0xde, (uint16_t)count);
+        size = mpack_store_native_pair_u16(encoded, 0xde, (uint16_t)count);
     } else {
-        mpack_write_native_pair_u32(writer, 0xdf, count);
+        size = mpack_store_native_pair_u32(encoded, 0xdf, count);
     }
 
-    MPACK_WRITER_TRACK(writer, mpack_track_push(&writer->track, mpack_type_map, count));
+    mpack_write_native(writer, encoded, size);
 }
 
 void mpack_start_str(mpack_writer_t* writer, uint32_t count) {
@@ -661,19 +704,24 @@ void mpack_start_str(mpack_writer_t* writer, uint32_t count) {
         return;
 
     mpack_writer_track_element(writer);
+    MPACK_WRITER_TRACK(writer, mpack_track_push(&writer->track, mpack_type_str, count));
+
+    char encoded[5];
+    size_t size;
+
     if (count <= 31) {
-        mpack_write_native_u8(writer, (uint8_t)(0xa0 | count));
+        size = mpack_store_native_u8(encoded, (uint8_t)(0xa0 | count));
     } else if (count <= UINT8_MAX) {
         // TODO: str8 had no counterpart in MessagePack 1.0; there was only
         // raw16 and raw32. This should not be used in compatibility mode.
-        mpack_write_native_pair_u8(writer, 0xd9, (uint8_t)count);
+        size = mpack_store_native_pair_u8(encoded, 0xd9, (uint8_t)count);
     } else if (count <= UINT16_MAX) {
-        mpack_write_native_pair_u16(writer, 0xda, (uint16_t)count);
+        size = mpack_store_native_pair_u16(encoded, 0xda, (uint16_t)count);
     } else {
-        mpack_write_native_pair_u32(writer, 0xdb, count);
+        size = mpack_store_native_pair_u32(encoded, 0xdb, count);
     }
 
-    MPACK_WRITER_TRACK(writer, mpack_track_push(&writer->track, mpack_type_str, count));
+    mpack_write_native(writer, encoded, size);
 }
 
 void mpack_start_bin(mpack_writer_t* writer, uint32_t count) {
@@ -683,15 +731,20 @@ void mpack_start_bin(mpack_writer_t* writer, uint32_t count) {
     // TODO: use str (raw) in compatibility mode
 
     mpack_writer_track_element(writer);
+    MPACK_WRITER_TRACK(writer, mpack_track_push(&writer->track, mpack_type_bin, count));
+
+    char encoded[5];
+    size_t size;
+
     if (count <= UINT8_MAX) {
-        mpack_write_native_pair_u8(writer, 0xc4, (uint8_t)count);
+        size = mpack_store_native_pair_u8(encoded, 0xc4, (uint8_t)count);
     } else if (count <= UINT16_MAX) {
-        mpack_write_native_pair_u16(writer, 0xc5, (uint16_t)count);
+        size = mpack_store_native_pair_u16(encoded, 0xc5, (uint16_t)count);
     } else {
-        mpack_write_native_pair_u32(writer, 0xc6, count);
+        size = mpack_store_native_pair_u32(encoded, 0xc6, count);
     }
 
-    MPACK_WRITER_TRACK(writer, mpack_track_push(&writer->track, mpack_type_bin, count));
+    mpack_write_native(writer, encoded, size);
 }
 
 void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count) {
@@ -701,37 +754,36 @@ void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count) {
     // TODO: fail if compatibility mode
 
     mpack_writer_track_element(writer);
+    MPACK_WRITER_TRACK(writer, mpack_track_push(&writer->track, mpack_type_ext, count));
+
+    char encoded[6];
+    size_t size = 0;
+
     if (count == 1) {
-        mpack_write_native_pair_i8(writer, 0xd4, exttype);
+        size = mpack_store_native_pair_i8(encoded, 0xd4, exttype);
     } else if (count == 2) {
-        mpack_write_native_pair_i8(writer, 0xd5, exttype);
+        size = mpack_store_native_pair_i8(encoded, 0xd5, exttype);
     } else if (count == 4) {
-        mpack_write_native_pair_i8(writer, 0xd6, exttype);
+        size = mpack_store_native_pair_i8(encoded, 0xd6, exttype);
     } else if (count == 8) {
-        mpack_write_native_pair_i8(writer, 0xd7, exttype);
+        size = mpack_store_native_pair_i8(encoded, 0xd7, exttype);
     } else if (count == 16) {
-        mpack_write_native_pair_i8(writer, 0xd8, exttype);
+        size = mpack_store_native_pair_i8(encoded, 0xd8, exttype);
     } else if (count <= UINT8_MAX) {
-        char encoded[3];
-        mpack_store_native_u8(encoded, 0xc7);
-        mpack_store_native_u8(encoded + 1, (uint8_t)count);
-        mpack_store_native_i8(encoded + 2, exttype);
-        mpack_write_native(writer, encoded, sizeof(encoded));
+        size += mpack_store_native_u8(encoded + size, 0xc7);
+        size += mpack_store_native_u8(encoded + size, (uint8_t)count);
+        size += mpack_store_native_i8(encoded + size, exttype);
     } else if (count <= UINT16_MAX) {
-        char encoded[4];
-        mpack_store_native_u8(encoded, 0xc8);
-        mpack_store_native_u16(encoded + 1, (uint16_t)count);
-        mpack_store_native_i8(encoded + 3, exttype);
-        mpack_write_native(writer, encoded, sizeof(encoded));
+        size += mpack_store_native_u8(encoded + size, 0xc8);
+        size += mpack_store_native_u16(encoded + size, (uint16_t)count);
+        size += mpack_store_native_i8(encoded + size, exttype);
     } else {
-        char encoded[6];
-        mpack_store_native_u8(encoded, 0xc9);
-        mpack_store_native_u32(encoded + 1, count);
-        mpack_store_native_i8(encoded + 5, exttype);
-        mpack_write_native(writer, encoded, sizeof(encoded));
+        size += mpack_store_native_u8(encoded + size, 0xc9);
+        size += mpack_store_native_u32(encoded + size, count);
+        size += mpack_store_native_i8(encoded + size, exttype);
     }
 
-    MPACK_WRITER_TRACK(writer, mpack_track_push(&writer->track, mpack_type_ext, count));
+    mpack_write_native(writer, encoded, size);
 }
 
 void mpack_write_str(mpack_writer_t* writer, const char* data, uint32_t count) {
