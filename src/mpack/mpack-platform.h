@@ -149,6 +149,7 @@
 
 /* GCC versions from 4.6 to before 5.1 warn about defining a C99
  * non-static inline function before declaring it (see issue #20) */
+#ifdef __GNUC__
 #if (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
 #ifdef __cplusplus
 #define MPACK_DECLARED_INLINE_WARNING_START \
@@ -161,20 +162,25 @@
 #endif
 #define MPACK_DECLARED_INLINE_WARNING_END \
     _Pragma ("GCC diagnostic pop")
-#else
+#endif
+#endif
+#ifndef MPACK_DECLARED_INLINE_WARNING_START
 #define MPACK_DECLARED_INLINE_WARNING_START /* nothing */
 #define MPACK_DECLARED_INLINE_WARNING_END /* nothing */
 #endif
 
 /* GCC versions before 4.8 warn about shadowing a function with a
  * variable that isn't a function or function pointer (like "index") */
+#ifdef __GNUC__
 #if (__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 8)
 #define MPACK_WSHADOW_WARNING_START \
     _Pragma ("GCC diagnostic push") \
     _Pragma ("GCC diagnostic ignored \"-Wshadow\"")
 #define MPACK_WSHADOW_WARNING_END \
     _Pragma ("GCC diagnostic pop")
-#else
+#endif
+#endif
+#ifndef MPACK_WSHADOW_WARNING_START
 #define MPACK_WSHADOW_WARNING_START /* nothing */
 #define MPACK_WSHADOW_WARNING_END /* nothing */
 #endif
@@ -321,6 +327,59 @@ MPACK_HEADER_START
 #endif
 #ifndef MPACK_STATIC_ALWAYS_INLINE
     #define MPACK_STATIC_ALWAYS_INLINE static inline
+#endif
+
+
+
+/* Static assert */
+
+#ifndef MPACK_STATIC_ASSERT
+#if __STDC_VERSION__ >= 201112L
+#define MPACK_STATIC_ASSERT _Static_assert
+#endif
+#endif
+
+#ifndef MPACK_STATIC_ASSERT
+#if defined(__has_feature)
+#if __has_feature(cxx_static_assert)
+#define MPACK_STATIC_ASSERT static_assert
+#elif __has_feature(c_static_assert)
+#define MPACK_STATIC_ASSERT _Static_assert
+#endif
+#endif
+#endif
+
+#ifndef MPACK_STATIC_ASSERT
+#if defined(__cplusplus)
+#if __cplusplus >= 201103L
+#define MPACK_STATIC_ASSERT static_assert
+#endif
+#endif
+#endif
+
+#ifndef MPACK_STATIC_ASSERT
+#if defined(__GNUC__)
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
+#define MPACK_STATIC_ASSERT(expr, str) do { \
+    _Pragma ("GCC diagnostic push") \
+    _Pragma ("GCC diagnostic ignored \"-Wpedantic\"") \
+    _Static_assert(expr, str); \
+    _Pragma ("GCC diagnostic pop") \
+} while (0)
+#endif
+#endif
+#endif
+
+#ifndef MPACK_STATIC_ASSERT
+#ifdef _MSC_VER
+#if _MSC_VER >= 1600
+#define MPACK_STATIC_ASSERT static_assert
+#endif
+#endif
+#endif
+
+#ifndef MPACK_STATIC_ASSERT
+#define MPACK_STATIC_ASSERT(expr, str) /* nothing */
 #endif
 
 
