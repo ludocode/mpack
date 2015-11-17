@@ -397,6 +397,23 @@ void mpack_write_nil(mpack_writer_t* writer);
 void mpack_write_str(mpack_writer_t* writer, const char* str, uint32_t length);
 
 /**
+ * Writes a null-terminated string. (The null-terminator is not written.)
+ *
+ * MPack does not care about the underlying encoding, but UTF-8 is highly
+ * recommended, especially for compatibility with JSON.
+ */
+void mpack_write_cstr(mpack_writer_t* writer, const char* cstr);
+
+/**
+ * Writes a null-terminated string, or a nil node if the given cstr pointer
+ * is null. (The null-terminator is not written.)
+ *
+ * MPack does not care about the underlying encoding, but UTF-8 is highly
+ * recommended, especially for compatibility with JSON.
+ */
+void mpack_write_cstr_or_nil(mpack_writer_t* writer, const char* cstr);
+
+/**
  * Writes a binary blob.
  *
  * To stream a binary blob in chunks, use mpack_start_bin() instead.
@@ -530,14 +547,6 @@ MPACK_INLINE void mpack_finish_bin(mpack_writer_t* writer) {MPACK_UNUSED(writer)
 MPACK_INLINE void mpack_finish_ext(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
 MPACK_INLINE void mpack_finish_type(mpack_writer_t* writer, mpack_type_t type) {MPACK_UNUSED(writer); MPACK_UNUSED(type);}
 #endif
-
-/**
- * Writes a null-terminated string. (The null-terminator is not written.)
- *
- * MPack does not care about the underlying encoding, but UTF-8 is highly
- * recommended, especially for compatibility with JSON.
- */
-void mpack_write_cstr(mpack_writer_t* writer, const char* str);
 
 /**
  * @}

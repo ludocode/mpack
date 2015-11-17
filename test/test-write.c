@@ -623,8 +623,8 @@ static void test_write_small_structure_trees() {
 
         mpack_write_cstr(&writer, "hello");
         mpack_start_array(&writer, 3);
-            mpack_write_cstr(&writer, "bonjour");
-            mpack_write_nil(&writer);
+            mpack_write_cstr_or_nil(&writer, "bonjour");
+            mpack_write_cstr_or_nil(&writer, NULL);
             mpack_write_int(&writer, -1);
         mpack_finish_array(&writer);
 

@@ -855,11 +855,18 @@ void mpack_write_bytes(mpack_writer_t* writer, const char* data, size_t count) {
     mpack_write_native(writer, data, count);
 }
 
-void mpack_write_cstr(mpack_writer_t* writer, const char* str) {
-    size_t len = mpack_strlen(str);
+void mpack_write_cstr(mpack_writer_t* writer, const char* cstr) {
+    size_t len = mpack_strlen(cstr);
     if (len > UINT32_MAX)
         mpack_writer_flag_error(writer, mpack_error_invalid);
-    mpack_write_str(writer, str, (uint32_t)len);
+    mpack_write_str(writer, cstr, (uint32_t)len);
+}
+
+void mpack_write_cstr_or_nil(mpack_writer_t* writer, const char* cstr) {
+    if (cstr)
+        mpack_write_cstr(writer, cstr);
+    else
+        mpack_write_nil(writer);
 }
 
 #endif
