@@ -790,7 +790,7 @@ static void test_write_utf8(void) {
     TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_valid, sizeof(utf8_valid)-1));
     TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_trimmed, sizeof(utf8_trimmed)-1));
     TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_invalid, sizeof(utf8_invalid)-1));
-    TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_invalid, sizeof(utf8_invalid_trimmed)-1));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_invalid_trimmed, sizeof(utf8_invalid_trimmed)-1));
     TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_truncated, sizeof(utf8_truncated)-1));
     TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_modified, sizeof(utf8_modified)-1));
     TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_cesu8, sizeof(utf8_cesu8)-1));
@@ -818,7 +818,7 @@ static void test_write_utf8(void) {
     TEST_SIMPLE_WRITE_NOERROR(mpack_write_utf8(&writer, utf8_valid, sizeof(utf8_valid)-1));
     TEST_SIMPLE_WRITE_NOERROR(mpack_write_utf8(&writer, utf8_trimmed, sizeof(utf8_trimmed)-1));
     TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8(&writer, utf8_invalid, sizeof(utf8_invalid)-1), mpack_error_invalid);
-    TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8(&writer, utf8_invalid, sizeof(utf8_invalid_trimmed)-1), mpack_error_invalid);
+    TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8(&writer, utf8_invalid_trimmed, sizeof(utf8_invalid_trimmed)-1), mpack_error_invalid);
     TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8(&writer, utf8_truncated, sizeof(utf8_truncated)-1), mpack_error_invalid);
     TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8(&writer, utf8_modified, sizeof(utf8_modified)-1), mpack_error_invalid);
     TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8(&writer, utf8_cesu8, sizeof(utf8_cesu8)-1), mpack_error_invalid);

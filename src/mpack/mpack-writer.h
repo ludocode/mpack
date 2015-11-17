@@ -359,6 +359,7 @@ MPACK_INLINE mpack_error_t mpack_writer_error(mpack_writer_t* writer) {
  */
 void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t tag);
 
+#if MPACK_WRITE_TRACKING
 /**
  * Finishes writing the given compound type.
  *
@@ -369,6 +370,7 @@ void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t tag);
  * mpack_finish_*() function if you want to finish a dynamic type.
  */
 void mpack_finish_type(mpack_writer_t* writer, mpack_type_t type);
+#endif
 
 /**
  * @}
