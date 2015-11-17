@@ -856,15 +856,37 @@ void mpack_write_bytes(mpack_writer_t* writer, const char* data, size_t count) {
 }
 
 void mpack_write_cstr(mpack_writer_t* writer, const char* cstr) {
-    size_t len = mpack_strlen(cstr);
-    if (len > UINT32_MAX)
+    size_t length = mpack_strlen(cstr);
+    if (length > UINT32_MAX)
         mpack_writer_flag_error(writer, mpack_error_invalid);
-    mpack_write_str(writer, cstr, (uint32_t)len);
+    mpack_write_str(writer, cstr, (uint32_t)length);
 }
 
 void mpack_write_cstr_or_nil(mpack_writer_t* writer, const char* cstr) {
     if (cstr)
         mpack_write_cstr(writer, cstr);
+    else
+        mpack_write_nil(writer);
+}
+
+void mpack_write_utf8(mpack_writer_t* writer, const char* str, uint32_t length) {
+    if (!mpack_utf8_check(str, length)) {
+        mpack_writer_flag_error(writer, mpack_error_invalid);
+        return;
+    }
+    mpack_write_str(writer, str, length);
+}
+
+void mpack_write_utf8_cstr(mpack_writer_t* writer, const char* cstr) {
+    size_t length = mpack_strlen(cstr);
+    if (length > UINT32_MAX)
+        mpack_writer_flag_error(writer, mpack_error_invalid);
+    mpack_write_utf8(writer, cstr, (uint32_t)length);
+}
+
+void mpack_write_utf8_cstr_or_nil(mpack_writer_t* writer, const char* cstr) {
+    if (cstr)
+        mpack_write_utf8_cstr(writer, cstr);
     else
         mpack_write_nil(writer);
 }

@@ -352,7 +352,7 @@ uint32_t mpack_utf8_decode(uint32_t* state, uint32_t* codep, uint8_t byte) {
 
 
 
-bool mpack_utf8_check(char* str, size_t bytes) {
+bool mpack_utf8_check(const char* str, size_t bytes) {
     uint32_t state = MPACK_UTF8_ACCEPT;
     uint32_t codepoint;
     for (size_t i = 0; i < bytes; ++i)
@@ -361,7 +361,7 @@ bool mpack_utf8_check(char* str, size_t bytes) {
     return state == MPACK_UTF8_ACCEPT;
 }
 
-bool mpack_utf8_check_no_null(char* str, size_t bytes) {
+bool mpack_utf8_check_no_null(const char* str, size_t bytes) {
     uint32_t state = MPACK_UTF8_ACCEPT;
     uint32_t codepoint;
     for (size_t i = 0; i < bytes; ++i)
@@ -370,7 +370,7 @@ bool mpack_utf8_check_no_null(char* str, size_t bytes) {
     return state == MPACK_UTF8_ACCEPT;
 }
 
-bool mpack_str_check_no_null(char* str, size_t bytes) {
+bool mpack_str_check_no_null(const char* str, size_t bytes) {
     for (size_t i = 0; i < bytes; ++i)
         if (str[i] == '\0')
             return false;

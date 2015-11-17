@@ -441,17 +441,17 @@ uint32_t mpack_utf8_decode(uint32_t* state, uint32_t* codep, uint8_t byte);
 /**
  * Returns true if the given UTF-8 string is valid.
  */
-bool mpack_utf8_check(char* str, size_t bytes);
+bool mpack_utf8_check(const char* str, size_t bytes);
 
 /**
  * Returns true if the given UTF-8 string is valid and contains no null characters.
  */
-bool mpack_utf8_check_no_null(char* str, size_t bytes);
+bool mpack_utf8_check_no_null(const char* str, size_t bytes);
 
 /**
  * Returns true if the given string has no null bytes.
  */
-bool mpack_str_check_no_null(char* str, size_t bytes);
+bool mpack_str_check_no_null(const char* str, size_t bytes);
 
 
 

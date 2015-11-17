@@ -514,12 +514,27 @@ void mpack_finish_map(mpack_writer_t* writer);
  * To stream a string in chunks, use mpack_start_str() instead.
  *
  * MPack does not care about the underlying encoding, but UTF-8 is highly
- * recommended, especially for compatibility with JSON.
+ * recommended, especially for compatibility with JSON. You should consider
+ * calling mpack_write_utf8() instead, especially if you will be reading
+ * it back as UTF-8.
  *
  * You should not call mpack_finish_str() after calling this; this
  * performs both start and finish.
  */
 void mpack_write_str(mpack_writer_t* writer, const char* str, uint32_t length);
+
+/**
+ * Writes a string, ensuring that it is valid UTF-8.
+ *
+ * This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or
+ * WTF-8. Only pure UTF-8 is allowed.
+ *
+ * You should not call mpack_finish_str() after calling this; this
+ * performs both start and finish.
+ *
+ * @throws mpack_error_invalid if the string is not valid UTF-8
+ */
+void mpack_write_utf8(mpack_writer_t* writer, const char* str, uint32_t length);
 
 /**
  * Writes a null-terminated string. (The null-terminator is not written.)
@@ -534,7 +549,7 @@ void mpack_write_cstr(mpack_writer_t* writer, const char* cstr);
 
 /**
  * Writes a null-terminated string, or a nil node if the given cstr pointer
- * is null. (The null-terminator is not written.)
+ * is NULL. (The null-terminator is not written.)
  *
  * MPack does not care about the underlying encoding, but UTF-8 is highly
  * recommended, especially for compatibility with JSON.
@@ -543,6 +558,35 @@ void mpack_write_cstr(mpack_writer_t* writer, const char* cstr);
  * performs both start and finish.
  */
 void mpack_write_cstr_or_nil(mpack_writer_t* writer, const char* cstr);
+
+/**
+ * Writes a null-terminated string, ensuring that it is valid UTF-8. (The
+ * null-terminator is not written.)
+ *
+ * This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or
+ * WTF-8. Only pure UTF-8 is allowed.
+ *
+ * You should not call mpack_finish_str() after calling this; this
+ * performs both start and finish.
+ *
+ * @throws mpack_error_invalid if the string is not valid UTF-8
+ */
+void mpack_write_utf8_cstr(mpack_writer_t* writer, const char* cstr);
+
+/**
+ * Writes a null-terminated string ensuring that it is valid UTF-8, or
+ * writes nil if the given cstr pointer is NULL. (The null-terminator
+ * is not written.)
+ *
+ * This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or
+ * WTF-8. Only pure UTF-8 is allowed.
+ *
+ * You should not call mpack_finish_str() after calling this; this
+ * performs both start and finish.
+ *
+ * @throws mpack_error_invalid if the string is not valid UTF-8
+ */
+void mpack_write_utf8_cstr_or_nil(mpack_writer_t* writer, const char* cstr);
 
 /**
  * Writes a binary blob.
@@ -577,7 +621,7 @@ void mpack_write_ext(mpack_writer_t* writer, int8_t exttype, const char* data, u
  */
 
 /**
- * Opens a string. count bytes should be written with calls to 
+ * Opens a string. `count` bytes should be written with calls to
  * mpack_write_bytes(), and mpack_finish_str() should be called
  * when done.
  *
@@ -590,14 +634,14 @@ void mpack_write_ext(mpack_writer_t* writer, int8_t exttype, const char* data, u
 void mpack_start_str(mpack_writer_t* writer, uint32_t count);
 
 /**
- * Opens a binary blob. count bytes should be written with calls to 
+ * Opens a binary blob. `count` bytes should be written with calls to
  * mpack_write_bytes(), and mpack_finish_bin() should be called
  * when done.
  */
 void mpack_start_bin(mpack_writer_t* writer, uint32_t count);
 
 /**
- * Opens an extension type. count bytes should be written with calls
+ * Opens an extension type. `count` bytes should be written with calls
  * to mpack_write_bytes(), and mpack_finish_ext() should be called
  * when done.
  *
