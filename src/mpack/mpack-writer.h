@@ -60,7 +60,7 @@ typedef struct mpack_writer_t mpack_writer_t;
 /**
  * The MPack writer's flush function to flush the buffer to the output stream.
  * It should flag an appropriate error on the writer if flushing fails (usually
- * mpack_error_io.)
+ * mpack_error_io or mpack_error_memory.)
  *
  * The specified context for callbacks is at writer->context.
  */
@@ -131,10 +131,10 @@ struct mpack_writer_t {
  * Initializes an MPack writer with the given buffer. The writer
  * does not assume ownership of the buffer.
  *
- * Trying to write past the end of the buffer will result in mpack_error_io unless
- * a flush function is set with mpack_writer_set_flush(). To use the data without
- * flushing, call mpack_writer_buffer_used() to determine the number of bytes
- * written.
+ * Trying to write past the end of the buffer will result in mpack_error_too_big
+ * unless a flush function is set with mpack_writer_set_flush(). To use the data
+ * without flushing, call mpack_writer_buffer_used() to determine the number of
+ * bytes written.
  *
  * The minimum buffer size is MPACK_WRITER_MINIMUM_BUFFER_SIZE.
  *
@@ -156,7 +156,7 @@ void mpack_writer_init(mpack_writer_t* writer, char* buffer, size_t size);
  * if MPack's allocator hasn't been customized.)
  *
  * @throws mpack_error_memory if the buffer fails to grow when
- * flushing (not mpack_error_io)
+ * flushing.
  *
  * @param writer The MPack writer.
  * @param data Where to place the allocated data.
@@ -254,7 +254,7 @@ MPACK_INLINE void mpack_writer_set_context(mpack_writer_t* writer, void* context
  * Sets the flush function to write out the data when the buffer is full.
  *
  * If no flush function is used, trying to write past the end of the
- * buffer will result in mpack_error_io.
+ * buffer will result in mpack_error_too_big.
  *
  * This should normally be used with mpack_writer_set_context() to register
  * a custom pointer to pass to the flush function.

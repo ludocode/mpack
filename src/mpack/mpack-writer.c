@@ -248,7 +248,7 @@ static void mpack_write_native_big(mpack_writer_t* writer, const char* p, size_t
 
     // we'll need a flush function
     if (!writer->flush) {
-        mpack_writer_flag_error(writer, mpack_error_io);
+        mpack_writer_flag_error(writer, mpack_error_too_big);
         return;
     }
 

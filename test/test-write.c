@@ -841,6 +841,18 @@ static void test_write_utf8(void) {
     TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8_cstr_or_nil(&writer, utf8_invalid), mpack_error_invalid);
 }
 
+static void test_misc(void) {
+
+    // writing too much data without a flush callback
+    // should result in mpack_error_too_big
+    char shortbuf[10];
+    mpack_writer_t writer;
+    mpack_writer_init(&writer, shortbuf, sizeof(shortbuf));
+    mpack_write_cstr(&writer, "The quick brown fox jumps over the lazy dog.");
+    TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_too_big);
+
+}
+
 void test_writes() {
     /*
     const char c[] =
@@ -867,6 +879,8 @@ void test_writes() {
     #if MPACK_WRITE_TRACKING
     test_write_tracking();
     #endif
+
+    test_misc();
 }
 
 #endif
