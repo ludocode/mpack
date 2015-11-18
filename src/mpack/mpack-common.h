@@ -331,9 +331,17 @@ MPACK_INLINE bool mpack_tag_equal(mpack_tag_t left, mpack_tag_t right) {
 
 
 
-/* Helpers for fetching an arbitrarily sized int from a memory
- * location, regardless of endianness or alignment. */
 /** @cond */
+
+/*
+ * Helpers to perform unaligned network-endian loads and stores
+ * at arbitrary addresses.
+ *
+ * These will remain available in the public API so feel free to
+ * use them for other purposes, but they are undocumented. (Note
+ * also that they are static always-inline; they do not follow
+ * the normal MPack inline linkage.)
+ */
 
 MPACK_ALWAYS_INLINE uint8_t mpack_load_native_u8(const char* p) {
     return (uint8_t)p[0];
@@ -360,6 +368,37 @@ MPACK_ALWAYS_INLINE uint64_t mpack_load_native_u64(const char* p) {
            (((uint64_t)(uint8_t)p[5]) << 16) |
            (((uint64_t)(uint8_t)p[6]) <<  8) |
             ((uint64_t)(uint8_t)p[7]);
+}
+
+MPACK_ALWAYS_INLINE void mpack_store_native_u8(char* p, uint8_t val) {
+    uint8_t* u = (uint8_t*)p;
+    u[0] = val;
+}
+
+MPACK_ALWAYS_INLINE void mpack_store_native_u16(char* p, uint16_t val) {
+    uint8_t* u = (uint8_t*)p;
+    u[0] = (uint8_t)((val >> 8) & 0xFF);
+    u[1] = (uint8_t)( val       & 0xFF);
+}
+
+MPACK_ALWAYS_INLINE void mpack_store_native_u32(char* p, uint32_t val) {
+    uint8_t* u = (uint8_t*)p;
+    u[0] = (uint8_t)((val >> 24) & 0xFF);
+    u[1] = (uint8_t)((val >> 16) & 0xFF);
+    u[2] = (uint8_t)((val >>  8) & 0xFF);
+    u[3] = (uint8_t)( val        & 0xFF);
+}
+
+MPACK_ALWAYS_INLINE void mpack_store_native_u64(char* p, uint64_t val) {
+    uint8_t* u = (uint8_t*)p;
+    u[0] = (uint8_t)((val >> 56) & 0xFF);
+    u[1] = (uint8_t)((val >> 48) & 0xFF);
+    u[2] = (uint8_t)((val >> 40) & 0xFF);
+    u[3] = (uint8_t)((val >> 32) & 0xFF);
+    u[4] = (uint8_t)((val >> 24) & 0xFF);
+    u[5] = (uint8_t)((val >> 16) & 0xFF);
+    u[6] = (uint8_t)((val >>  8) & 0xFF);
+    u[7] = (uint8_t)( val        & 0xFF);
 }
 
 /** @endcond */

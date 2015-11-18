@@ -310,37 +310,6 @@ MPACK_STATIC_INLINE_SPEED void mpack_writer_ensure_buffer_impl(mpack_writer_t* w
     mpack_writer_ensure_buffer_impl((writer), (count)); \
 } while (0)
 
-MPACK_STATIC_INLINE void mpack_store_native_u8(char* p, uint8_t val) {
-    uint8_t* u = (uint8_t*)p;
-    u[0] = val;
-}
-
-MPACK_STATIC_INLINE void mpack_store_native_u16(char* p, uint16_t val) {
-    uint8_t* u = (uint8_t*)p;
-    u[0] = (uint8_t)((val >> 8) & 0xFF);
-    u[1] = (uint8_t)( val       & 0xFF);
-}
-
-MPACK_STATIC_INLINE void mpack_store_native_u32(char* p, uint32_t val) {
-    uint8_t* u = (uint8_t*)p;
-    u[0] = (uint8_t)((val >> 24) & 0xFF);
-    u[1] = (uint8_t)((val >> 16) & 0xFF);
-    u[2] = (uint8_t)((val >>  8) & 0xFF);
-    u[3] = (uint8_t)( val        & 0xFF);
-}
-
-MPACK_STATIC_INLINE void mpack_store_native_u64(char* p, uint64_t val) {
-    uint8_t* u = (uint8_t*)p;
-    u[0] = (uint8_t)((val >> 56) & 0xFF);
-    u[1] = (uint8_t)((val >> 48) & 0xFF);
-    u[2] = (uint8_t)((val >> 40) & 0xFF);
-    u[3] = (uint8_t)((val >> 32) & 0xFF);
-    u[4] = (uint8_t)((val >> 24) & 0xFF);
-    u[5] = (uint8_t)((val >> 16) & 0xFF);
-    u[6] = (uint8_t)((val >>  8) & 0xFF);
-    u[7] = (uint8_t)( val        & 0xFF);
-}
-
 MPACK_STATIC_INLINE void mpack_write_native_u8_unchecked(mpack_writer_t* writer, uint8_t val) {
     mpack_assert(writer->size - writer->used >= sizeof(val));
     mpack_store_native_u8(writer->buffer + writer->used, val);
