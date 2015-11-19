@@ -428,6 +428,34 @@ MPACK_ALWAYS_INLINE void mpack_store_native_u64(char* p, uint64_t val) {
     #endif
 }
 
+// These are the same as the unsigned versions; they're just
+// implemented to better document what's signed versus unsigned
+// in the writer store functions.
+MPACK_ALWAYS_INLINE void mpack_store_native_i8 (char* p, int8_t  val) {mpack_store_native_u8 (p, (uint8_t) val);}
+MPACK_ALWAYS_INLINE void mpack_store_native_i16(char* p, int16_t val) {mpack_store_native_u16(p, (uint16_t)val);}
+MPACK_ALWAYS_INLINE void mpack_store_native_i32(char* p, int32_t val) {mpack_store_native_u32(p, (uint32_t)val);}
+MPACK_ALWAYS_INLINE void mpack_store_native_i64(char* p, int64_t val) {mpack_store_native_u64(p, (uint64_t)val);}
+
+MPACK_ALWAYS_INLINE void mpack_store_native_float(char* p, float value) {
+    MPACK_CHECK_FLOAT_ORDER();
+    union {
+        float f;
+        uint32_t i;
+    } u;
+    u.f = value;
+    mpack_store_native_u32(p, u.i);
+}
+
+MPACK_ALWAYS_INLINE void mpack_store_native_double(char* p, double value) {
+    MPACK_CHECK_FLOAT_ORDER();
+    union {
+        double d;
+        uint64_t i;
+    } u;
+    u.d = value;
+    mpack_store_native_u64(p, u.i);
+}
+
 /** @endcond */
 
 

@@ -64,7 +64,7 @@ void test_write_error_handler(mpack_writer_t* writer, mpack_error_t error);
     TEST_TRUE(sizeof(data)-1 == size, \
             "written data length %i does not match length %i of expected", \
             (int)size, (int)(sizeof(data)-1)); \
-    TEST_TRUE(memcmp((data), buf, size) == 0, \
+    TEST_TRUE(memcmp(data, buf, size) == 0, \
             "written data does not match expected"); \
 } while (0)
 

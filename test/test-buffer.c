@@ -271,9 +271,6 @@ static void test_expect_buffer(void) {
 static void test_write_buffer(void) {
     for (size_t i = 0; i < sizeof(test_buffer_sizes) / sizeof(test_buffer_sizes[0]); ++i) {
         size_t size = test_buffer_sizes[i];
-        if (size < MPACK_WRITER_MINIMUM_BUFFER_SIZE)
-            continue;
-
         size_t output_size = 0xffff;
         char* output = (char*)malloc(output_size);
 

@@ -114,15 +114,6 @@ struct mpack_writer_t {
 };
 
 /**
- * @def MPACK_WRITER_MINIMUM_BUFFER_SIZE
- *
- * The minimum size in bytes allowed for a writer buffer. This is
- * the minimum even if you know the output data will be less than
- * this size.
- */
-#define MPACK_WRITER_MINIMUM_BUFFER_SIZE 9
-
-/**
  * @name Lifecycle Functions
  * @{
  */
@@ -135,8 +126,6 @@ struct mpack_writer_t {
  * unless a flush function is set with mpack_writer_set_flush(). To use the data
  * without flushing, call mpack_writer_buffer_used() to determine the number of
  * bytes written.
- *
- * The minimum buffer size is MPACK_WRITER_MINIMUM_BUFFER_SIZE.
  *
  * @param writer The MPack writer.
  * @param buffer The buffer into which to write MessagePack data.
@@ -313,6 +302,14 @@ MPACK_INLINE void mpack_writer_set_teardown(mpack_writer_t* writer, mpack_writer
  */
 MPACK_INLINE size_t mpack_writer_buffer_used(mpack_writer_t* writer) {
     return writer->used;
+}
+
+/**
+ * Returns the amount of space left in the buffer. This may be reset
+ * after a write if bytes are flushed to an underlying stream.
+ */
+MPACK_INLINE size_t mpack_writer_buffer_left(mpack_writer_t* writer) {
+    return writer->size - writer->used;
 }
 
 /**
