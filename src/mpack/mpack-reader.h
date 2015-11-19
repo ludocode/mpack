@@ -597,6 +597,7 @@ MPACK_ALWAYS_INLINE int32_t mpack_read_native_i32 (mpack_reader_t* reader) {retu
 MPACK_ALWAYS_INLINE int64_t mpack_read_native_i64 (mpack_reader_t* reader) {return (int64_t)mpack_read_native_u64 (reader);}
 
 MPACK_ALWAYS_INLINE float mpack_read_native_float(mpack_reader_t* reader) {
+    MPACK_CHECK_FLOAT_ORDER();
     union {
         float f;
         uint32_t i;
@@ -606,6 +607,7 @@ MPACK_ALWAYS_INLINE float mpack_read_native_float(mpack_reader_t* reader) {
 }
 
 MPACK_ALWAYS_INLINE double mpack_read_native_double(mpack_reader_t* reader) {
+    MPACK_CHECK_FLOAT_ORDER();
     union {
         double d;
         uint64_t i;

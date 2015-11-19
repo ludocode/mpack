@@ -341,6 +341,11 @@ MPACK_INLINE bool mpack_tag_equal(mpack_tag_t left, mpack_tag_t right) {
  * use them for other purposes, but they are undocumented. (Note
  * also that they are static always-inline; they do not follow
  * the normal MPack inline linkage.)
+ *
+ * The bswap builtins are used when needed and available. With
+ * GCC 5.2 they appear to give better performance and smaller
+ * code size on little-endian ARM while compiling to the same
+ * assembly as the bit-shifting code on x86_64.
  */
 
 MPACK_ALWAYS_INLINE uint8_t mpack_load_native_u8(const char* p) {
@@ -353,13 +358,24 @@ MPACK_ALWAYS_INLINE uint16_t mpack_load_native_u16(const char* p) {
 }
 
 MPACK_ALWAYS_INLINE uint32_t mpack_load_native_u32(const char* p) {
+    #ifdef MPACK_NHSWAP32
+    uint32_t val;
+    mpack_memcpy(&val, p, sizeof(val));
+    return MPACK_NHSWAP32(val);
+    #else
     return (((uint32_t)(uint8_t)p[0]) << 24) |
            (((uint32_t)(uint8_t)p[1]) << 16) |
            (((uint32_t)(uint8_t)p[2]) <<  8) |
             ((uint32_t)(uint8_t)p[3]);
+    #endif
 }
 
 MPACK_ALWAYS_INLINE uint64_t mpack_load_native_u64(const char* p) {
+    #ifdef MPACK_NHSWAP64
+    uint64_t val;
+    mpack_memcpy(&val, p, sizeof(val));
+    return MPACK_NHSWAP64(val);
+    #else
     return (((uint64_t)(uint8_t)p[0]) << 56) |
            (((uint64_t)(uint8_t)p[1]) << 48) |
            (((uint64_t)(uint8_t)p[2]) << 40) |
@@ -368,6 +384,7 @@ MPACK_ALWAYS_INLINE uint64_t mpack_load_native_u64(const char* p) {
            (((uint64_t)(uint8_t)p[5]) << 16) |
            (((uint64_t)(uint8_t)p[6]) <<  8) |
             ((uint64_t)(uint8_t)p[7]);
+    #endif
 }
 
 MPACK_ALWAYS_INLINE void mpack_store_native_u8(char* p, uint8_t val) {
@@ -382,14 +399,23 @@ MPACK_ALWAYS_INLINE void mpack_store_native_u16(char* p, uint16_t val) {
 }
 
 MPACK_ALWAYS_INLINE void mpack_store_native_u32(char* p, uint32_t val) {
+    #ifdef MPACK_NHSWAP32
+    val = MPACK_NHSWAP32(val);
+    mpack_memcpy(p, &val, sizeof(val));
+    #else
     uint8_t* u = (uint8_t*)p;
     u[0] = (uint8_t)((val >> 24) & 0xFF);
     u[1] = (uint8_t)((val >> 16) & 0xFF);
     u[2] = (uint8_t)((val >>  8) & 0xFF);
     u[3] = (uint8_t)( val        & 0xFF);
+    #endif
 }
 
 MPACK_ALWAYS_INLINE void mpack_store_native_u64(char* p, uint64_t val) {
+    #ifdef MPACK_NHSWAP64
+    val = MPACK_NHSWAP64(val);
+    mpack_memcpy(p, &val, sizeof(val));
+    #else
     uint8_t* u = (uint8_t*)p;
     u[0] = (uint8_t)((val >> 56) & 0xFF);
     u[1] = (uint8_t)((val >> 48) & 0xFF);
@@ -399,6 +425,7 @@ MPACK_ALWAYS_INLINE void mpack_store_native_u64(char* p, uint64_t val) {
     u[5] = (uint8_t)((val >> 16) & 0xFF);
     u[6] = (uint8_t)((val >>  8) & 0xFF);
     u[7] = (uint8_t)( val        & 0xFF);
+    #endif
 }
 
 /** @endcond */

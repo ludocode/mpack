@@ -360,6 +360,7 @@ MPACK_STATIC_INLINE void mpack_write_native_i64_unchecked(mpack_writer_t* writer
 }
 
 MPACK_STATIC_INLINE void mpack_write_native_float_unchecked(mpack_writer_t* writer, float value) {
+    MPACK_CHECK_FLOAT_ORDER();
     union {
         float f;
         uint32_t i;
@@ -369,6 +370,7 @@ MPACK_STATIC_INLINE void mpack_write_native_float_unchecked(mpack_writer_t* writ
 }
 
 MPACK_STATIC_INLINE void mpack_write_native_double_unchecked(mpack_writer_t* writer, double value) {
+    MPACK_CHECK_FLOAT_ORDER();
     union {
         double d;
         uint64_t i;

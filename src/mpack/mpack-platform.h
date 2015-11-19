@@ -394,6 +394,84 @@ MPACK_HEADER_START
 
 
 /*
+ * Endianness checks
+ *
+ * These define MPACK_NHSWAP*() which swap network<->host byte
+ * order when needed.
+ *
+ * We leave them undefined if we can't determine the endianness
+ * at compile-time, in which case we fall back to bit-shifts.
+ *
+ * See the notes in mpack-common.h.
+ */
+
+#if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && defined(__ORDER_BIG_ENDIAN__)
+    #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+        #define MPACK_NHSWAP32(x) (x)
+        #define MPACK_NHSWAP64(x) (x)
+    #elif __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+
+        #if defined(__clang__)
+            #ifdef __has_builtin
+                #if __has_builtin(__builtin_bswap32)
+                    #define MPACK_NHSWAP32(x) __builtin_bswap32(x)
+                #endif
+                #if __has_builtin(__builtin_bswap64)
+                    #define MPACK_NHSWAP64(x) __builtin_bswap64(x)
+                #endif
+            #endif
+
+        #elif defined(__GNUC__)
+
+            // The GCC bswap builtins are apparently poorly optimized on older
+            // versions of GCC, so we set a minimum version here just in case
+            //     http://hardwarebug.org/2010/01/14/beware-the-builtins/
+
+            #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
+                #define MPACK_NHSWAP32(x) __builtin_bswap32(x)
+                #define MPACK_NHSWAP64(x) __builtin_bswap64(x)
+            #endif
+
+        #endif
+    #endif
+
+#elif defined(_MSC_VER) && defined(_WIN32)
+
+    // On Windows, we assume x86 and x86_64 are always little-endian.
+    // We make no assumptions about ARM even though all current
+    // Windows Phone devices are little-endian just in case they
+    // release one that isn't.
+
+    #if defined(_M_IX86) || defined(_M_X64) || defined(_M_AMD64)
+        #define MPACK_NHSWAP32(x) _byteswap_ulong(x)
+        #define MPACK_NHSWAP64(x) _byteswap_uint64(x)
+    #endif
+
+#endif
+
+#if defined(__FLOAT_WORD_ORDER__) && defined(__BYTE_ORDER__)
+
+    // We check where possible that the float byte order matches the
+    // integer byte order. This is extremely unlikely to fail, but
+    // we check anyway just in case.
+    //
+    // (The static assert is placed in float/double encoders instead
+    // of here because our static assert fallback doesn't work at
+    // file scope)
+
+    #define MPACK_CHECK_FLOAT_ORDER() \
+        MPACK_STATIC_ASSERT(__FLOAT_WORD_ORDER__ == __BYTE_ORDER__, \
+            "float byte order does not match int byte order! float/double " \
+            "encoding is not properly implemented on this platform.")
+
+#endif
+
+#ifndef MPACK_CHECK_FLOAT_ORDER
+    #define MPACK_CHECK_FLOAT_ORDER() /* nothing */
+#endif
+
+
+/*
  * Here we define mpack_assert() and mpack_break(). They both work like a normal
  * assertion function in debug mode, causing a trap or abort. However, on some platforms
  * you can safely resume execution from mpack_break(), whereas mpack_assert() is
