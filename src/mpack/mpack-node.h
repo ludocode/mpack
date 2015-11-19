@@ -1105,6 +1105,7 @@ MPACK_INLINE mpack_node_t mpack_node_map_str_optional(mpack_node_t node, const c
  * is raised and a nil node is returned.
  */
 MPACK_INLINE mpack_node_t mpack_node_map_cstr(mpack_node_t node, const char* cstr) {
+    mpack_assert(cstr != NULL, "cstr is NULL");
     return mpack_node_map_str(node, cstr, mpack_strlen(cstr));
 }
 
@@ -1115,6 +1116,7 @@ MPACK_INLINE mpack_node_t mpack_node_map_cstr(mpack_node_t node, const char* cst
  * @throws mpack_error_type if the node is not a map
  */
 MPACK_INLINE mpack_node_t mpack_node_map_cstr_optional(mpack_node_t node, const char* cstr) {
+    mpack_assert(cstr != NULL, "cstr is NULL");
     return mpack_node_map_str_optional(node, cstr, mpack_strlen(cstr));
 }
 
@@ -1131,6 +1133,7 @@ bool mpack_node_map_contains_str(mpack_node_t node, const char* str, size_t leng
  * is raised and null is returned.
  */
 MPACK_INLINE bool mpack_node_map_contains_cstr(mpack_node_t node, const char* cstr) {
+    mpack_assert(cstr != NULL, "cstr is NULL");
     return mpack_node_map_contains_str(node, cstr, mpack_strlen(cstr));
 }
 

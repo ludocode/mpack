@@ -142,6 +142,9 @@ static void mpack_growable_writer_teardown(mpack_writer_t* writer) {
 }
 
 void mpack_writer_init_growable(mpack_writer_t* writer, char** target_data, size_t* target_size) {
+    mpack_assert(target_data != NULL, "cannot initialize writer without a destination for the data");
+    mpack_assert(target_size != NULL, "cannot initialize writer without a destination for the size");
+
     *target_data = NULL;
     *target_size = 0;
 
@@ -197,6 +200,8 @@ static void mpack_file_writer_teardown(mpack_writer_t* writer) {
 }
 
 void mpack_writer_init_file(mpack_writer_t* writer, const char* filename) {
+    mpack_assert(filename != NULL, "filename is NULL");
+
     mpack_file_writer_t* file_writer = (mpack_file_writer_t*) MPACK_MALLOC(sizeof(mpack_file_writer_t));
     if (file_writer == NULL) {
         mpack_writer_init_error(writer, mpack_error_memory);
@@ -237,6 +242,8 @@ static void mpack_writer_flush_unchecked(mpack_writer_t* writer) {
 }
 
 static void mpack_write_native_big(mpack_writer_t* writer, const char* p, size_t count) {
+    mpack_assert(count == 0 || p != NULL, "data pointer for %i bytes is NULL", (int)count);
+
     if (mpack_writer_error(writer) != mpack_ok)
         return;
     mpack_log("big write for %i bytes from %p, %i space left in buffer\n",
@@ -288,6 +295,8 @@ static void mpack_write_native_big(mpack_writer_t* writer, const char* p, size_t
 }
 
 MPACK_STATIC_INLINE_SPEED void mpack_write_native(mpack_writer_t* writer, const char* p, size_t count) {
+    mpack_assert(count == 0 || p != NULL, "data pointer for %i bytes is NULL", (int)count);
+
     if (writer->size - writer->used < count) {
         mpack_write_native_big(writer, p, count);
     } else {
@@ -800,24 +809,28 @@ void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count) {
 }
 
 void mpack_write_str(mpack_writer_t* writer, const char* data, uint32_t count) {
+    mpack_assert(data != NULL, "data for string of length %i is NULL", (int)count);
     mpack_start_str(writer, count);
     mpack_write_bytes(writer, data, count);
     mpack_finish_str(writer);
 }
 
 void mpack_write_bin(mpack_writer_t* writer, const char* data, uint32_t count) {
+    mpack_assert(data != NULL, "data pointer for bin of %i bytes is NULL", (int)count);
     mpack_start_bin(writer, count);
     mpack_write_bytes(writer, data, count);
     mpack_finish_bin(writer);
 }
 
 void mpack_write_ext(mpack_writer_t* writer, int8_t exttype, const char* data, uint32_t count) {
+    mpack_assert(data != NULL, "data pointer for ext of type %i and %i bytes is NULL", exttype, (int)count);
     mpack_start_ext(writer, exttype, count);
     mpack_write_bytes(writer, data, count);
     mpack_finish_ext(writer);
 }
 
 void mpack_write_bytes(mpack_writer_t* writer, const char* data, size_t count) {
+    mpack_assert(data != NULL, "data pointer for %i bytes is NULL", (int)count);
     MPACK_WRITER_TRACK(writer, mpack_track_bytes(&writer->track, false, count));
     if (mpack_writer_error(writer) != mpack_ok)
         return;
@@ -825,6 +838,7 @@ void mpack_write_bytes(mpack_writer_t* writer, const char* data, size_t count) {
 }
 
 void mpack_write_cstr(mpack_writer_t* writer, const char* cstr) {
+    mpack_assert(cstr != NULL, "cstr pointer is NULL");
     size_t length = mpack_strlen(cstr);
     if (length > UINT32_MAX)
         mpack_writer_flag_error(writer, mpack_error_invalid);
@@ -839,6 +853,7 @@ void mpack_write_cstr_or_nil(mpack_writer_t* writer, const char* cstr) {
 }
 
 void mpack_write_utf8(mpack_writer_t* writer, const char* str, uint32_t length) {
+    mpack_assert(str != NULL, "data for string of length %i is NULL", (int)length);
     if (!mpack_utf8_check(str, length)) {
         mpack_writer_flag_error(writer, mpack_error_invalid);
         return;
@@ -847,6 +862,7 @@ void mpack_write_utf8(mpack_writer_t* writer, const char* str, uint32_t length) 
 }
 
 void mpack_write_utf8_cstr(mpack_writer_t* writer, const char* cstr) {
+    mpack_assert(cstr != NULL, "cstr pointer is NULL");
     size_t length = mpack_strlen(cstr);
     if (length > UINT32_MAX)
         mpack_writer_flag_error(writer, mpack_error_invalid);

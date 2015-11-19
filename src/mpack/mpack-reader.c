@@ -26,6 +26,8 @@
 #if MPACK_READER
 
 void mpack_reader_init(mpack_reader_t* reader, char* buffer, size_t size, size_t count) {
+    mpack_assert(buffer != NULL, "buffer is NULL");
+
     mpack_memset(reader, 0, sizeof(*reader));
     reader->buffer = buffer;
     reader->size = size;
@@ -39,6 +41,8 @@ void mpack_reader_init_error(mpack_reader_t* reader, mpack_error_t error) {
 }
 
 void mpack_reader_init_data(mpack_reader_t* reader, const char* data, size_t count) {
+    mpack_assert(data != NULL, "data is NULL");
+
     mpack_memset(reader, 0, sizeof(*reader));
     reader->left = count;
 
@@ -80,6 +84,8 @@ static void mpack_file_reader_teardown(mpack_reader_t* reader) {
 }
 
 void mpack_reader_init_file(mpack_reader_t* reader, const char* filename) {
+    mpack_assert(filename != NULL, "filename is NULL");
+
     mpack_file_reader_t* file_reader = (mpack_file_reader_t*) MPACK_MALLOC(sizeof(mpack_file_reader_t));
     if (file_reader == NULL) {
         mpack_reader_init_error(reader, mpack_error_memory);
@@ -146,6 +152,8 @@ MPACK_STATIC_INLINE_SPEED size_t mpack_fill(mpack_reader_t* reader, char* p, siz
 // Reads count bytes into p. Used when there are not enough bytes
 // left in the buffer to satisfy a read.
 void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count) {
+    mpack_assert(count == 0 || p != NULL, "data pointer for %i bytes is NULL", (int)count);
+
     if (mpack_reader_error(reader) != mpack_ok) {
         mpack_memset(p, 0, count);
         return;
@@ -240,6 +248,7 @@ void mpack_skip_bytes(mpack_reader_t* reader, size_t count) {
 }
 
 void mpack_read_bytes(mpack_reader_t* reader, char* p, size_t count) {
+    mpack_assert(p != NULL, "destination for read of %i bytes is NULL", (int)count);
     mpack_reader_track_bytes(reader, count);
     mpack_read_native(reader, p, count);
 }
@@ -808,6 +817,9 @@ static void mpack_print_element(mpack_reader_t* reader, size_t depth, FILE* file
 }
 
 void mpack_print_file(const char* data, size_t len, FILE* file) {
+    mpack_assert(data != NULL, "data is NULL");
+    mpack_assert(file != NULL, "file is NULL");
+
     mpack_reader_t reader;
     mpack_reader_init_data(&reader, data, len);
 

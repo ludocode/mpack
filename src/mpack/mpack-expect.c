@@ -281,6 +281,8 @@ void mpack_expect_map_match(mpack_reader_t* reader, uint32_t count) {
 }
 
 bool mpack_expect_map_or_nil(mpack_reader_t* reader, uint32_t* count) {
+    mpack_assert(count != NULL, "count cannot be NULL");
+
     mpack_tag_t var = mpack_read_tag(reader);
     if (var.type == mpack_type_nil) {
         *count = 0;
@@ -296,6 +298,8 @@ bool mpack_expect_map_or_nil(mpack_reader_t* reader, uint32_t* count) {
 }
 
 bool mpack_expect_map_max_or_nil(mpack_reader_t* reader, uint32_t max_count, uint32_t* count) {
+    mpack_assert(count != NULL, "count cannot be NULL");
+
     bool has_map = mpack_expect_map_or_nil(reader, count);
     if (has_map && *count > max_count) {
         *count = 0;
@@ -319,6 +323,8 @@ void mpack_expect_array_match(mpack_reader_t* reader, uint32_t count) {
 }
 
 bool mpack_expect_array_or_nil(mpack_reader_t* reader, uint32_t* count) {
+    mpack_assert(count != NULL, "count cannot be NULL");
+
     mpack_tag_t var = mpack_read_tag(reader);
     if (var.type == mpack_type_nil) {
         *count = 0;
@@ -334,6 +340,8 @@ bool mpack_expect_array_or_nil(mpack_reader_t* reader, uint32_t* count) {
 }
 
 bool mpack_expect_array_max_or_nil(mpack_reader_t* reader, uint32_t max_count, uint32_t* count) {
+    mpack_assert(count != NULL, "count cannot be NULL");
+
     bool has_array = mpack_expect_array_or_nil(reader, count);
     if (has_array && *count > max_count) {
         *count = 0;
@@ -345,6 +353,7 @@ bool mpack_expect_array_max_or_nil(mpack_reader_t* reader, uint32_t max_count, u
 
 #ifdef MPACK_MALLOC
 void* mpack_expect_array_alloc_impl(mpack_reader_t* reader, size_t element_size, uint32_t max_count, uint32_t* out_count, bool allow_nil) {
+    mpack_assert(out_count != NULL, "out_count cannot be NULL");
     *out_count = 0;
 
     uint32_t count;
@@ -389,6 +398,8 @@ uint32_t mpack_expect_str(mpack_reader_t* reader) {
 }
 
 size_t mpack_expect_str_buf(mpack_reader_t* reader, char* buf, size_t bufsize) {
+    mpack_assert(buf != NULL, "buf cannot be NULL");
+
     size_t length = mpack_expect_str(reader);
     if (mpack_reader_error(reader))
         return 0;
@@ -407,6 +418,8 @@ size_t mpack_expect_str_buf(mpack_reader_t* reader, char* buf, size_t bufsize) {
 }
 
 size_t mpack_expect_utf8(mpack_reader_t* reader, char* buf, size_t size) {
+    mpack_assert(buf != NULL, "buf cannot be NULL");
+
     size_t length = mpack_expect_str_buf(reader, buf, size);
 
     if (!mpack_utf8_check(buf, length)) {
@@ -426,6 +439,8 @@ uint32_t mpack_expect_bin(mpack_reader_t* reader) {
 }
 
 size_t mpack_expect_bin_buf(mpack_reader_t* reader, char* buf, size_t bufsize) {
+    mpack_assert(buf != NULL, "buf cannot be NULL");
+
     size_t binsize = mpack_expect_bin(reader);
     if (mpack_reader_error(reader))
         return 0;
@@ -441,6 +456,7 @@ size_t mpack_expect_bin_buf(mpack_reader_t* reader, char* buf, size_t bufsize) {
 }
 
 static size_t mpack_expect_cstr_unchecked(mpack_reader_t* reader, char* buf, size_t bufsize) {
+    mpack_assert(buf != NULL, "buf cannot be NULL");
 
     // make sure buffer makes sense
     mpack_assert(bufsize >= 1, "buffer size is zero; you must have room for at least a null-terminator");
@@ -457,6 +473,8 @@ static size_t mpack_expect_cstr_unchecked(mpack_reader_t* reader, char* buf, siz
 }
 
 void mpack_expect_cstr(mpack_reader_t* reader, char* buf, size_t bufsize) {
+    mpack_assert(buf != NULL, "buf cannot be NULL");
+
     size_t length = mpack_expect_cstr_unchecked(reader, buf, bufsize);
 
     // check for null bytes
@@ -467,6 +485,8 @@ void mpack_expect_cstr(mpack_reader_t* reader, char* buf, size_t bufsize) {
 }
 
 void mpack_expect_utf8_cstr(mpack_reader_t* reader, char* buf, size_t bufsize) {
+    mpack_assert(buf != NULL, "buf cannot be NULL");
+
     size_t length = mpack_expect_cstr_unchecked(reader, buf, bufsize);
 
     // check encoding
@@ -478,6 +498,7 @@ void mpack_expect_utf8_cstr(mpack_reader_t* reader, char* buf, size_t bufsize) {
 
 #ifdef MPACK_MALLOC
 char* mpack_expect_str_alloc(mpack_reader_t* reader, size_t maxsize, size_t* size) {
+    mpack_assert(size != NULL, "size cannot be NULL");
     *size = 0;
 
     if (maxsize > UINT32_MAX)
@@ -493,6 +514,7 @@ char* mpack_expect_str_alloc(mpack_reader_t* reader, size_t maxsize, size_t* siz
 }
 
 char* mpack_expect_utf8_alloc(mpack_reader_t* reader, size_t maxsize, size_t* size) {
+    mpack_assert(size != NULL, "size cannot be NULL");
     char* str = mpack_expect_str_alloc(reader, maxsize, size);
 
     if (str && !mpack_utf8_check(str, *size)) {
@@ -506,6 +528,7 @@ char* mpack_expect_utf8_alloc(mpack_reader_t* reader, size_t maxsize, size_t* si
 }
 
 static char* mpack_expect_cstr_alloc_unchecked(mpack_reader_t* reader, size_t maxsize, size_t* out_length) {
+    mpack_assert(out_length != NULL, "out_length cannot be NULL");
     *out_length = 0;
 
     // make sure argument makes sense
@@ -557,6 +580,7 @@ char* mpack_expect_utf8_cstr_alloc(mpack_reader_t* reader, size_t maxsize) {
 #endif
 
 void mpack_expect_str_match(mpack_reader_t* reader, const char* str, size_t len) {
+    mpack_assert(str != NULL, "str cannot be NULL");
 
     // expect a str the correct length
     if (len > UINT32_MAX)
@@ -585,6 +609,7 @@ void mpack_expect_tag(mpack_reader_t* reader, mpack_tag_t expected) {
 
 #ifdef MPACK_MALLOC
 char* mpack_expect_bin_alloc(mpack_reader_t* reader, size_t maxsize, size_t* size) {
+    mpack_assert(size != NULL, "size cannot be NULL");
     *size = 0;
 
     if (maxsize > UINT32_MAX)

@@ -512,6 +512,8 @@ MPACK_INLINE_SPEED void mpack_read_native(mpack_reader_t* reader, char* p, size_
 
 #if MPACK_DEFINE_INLINE_SPEED
 MPACK_INLINE_SPEED void mpack_read_native(mpack_reader_t* reader, char* p, size_t count) {
+    mpack_assert(count == 0 || p != NULL, "data pointer for %i bytes is NULL", (int)count);
+
     if (count > reader->left) {
         mpack_read_native_big(reader, p, count);
     } else {

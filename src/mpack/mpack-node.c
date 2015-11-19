@@ -964,6 +964,7 @@ static void mpack_node_print_element(mpack_node_t node, size_t depth, FILE* file
 }
 
 void mpack_node_print_file(mpack_node_t node, FILE* file) {
+    mpack_assert(file != NULL, "file is NULL");
     int depth = 2;
     for (int i = 0; i < depth; ++i)
         fprintf(file, "    ");
@@ -981,6 +982,8 @@ void mpack_node_print_file(mpack_node_t node, FILE* file) {
 size_t mpack_node_copy_data(mpack_node_t node, char* buffer, size_t size) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
+
+    mpack_assert(size == 0 || buffer != NULL, "buffer is NULL for maximum of %i bytes", (int)size);
 
     mpack_type_t type = node.data->type;
     if (type != mpack_type_str && type != mpack_type_bin && type != mpack_type_ext) {
@@ -1003,6 +1006,7 @@ void mpack_node_copy_cstr(mpack_node_t node, char* buffer, size_t size) {
 
     // we can't break here because the error isn't recoverable; we
     // have to add a null-terminator.
+    mpack_assert(buffer != NULL, "buffer is NULL");
     mpack_assert(size >= 1, "buffer size is zero; you must have room for at least a null-terminator");
 
     if (node.data->type != mpack_type_str) {
@@ -1138,6 +1142,8 @@ mpack_node_t mpack_node_map_str_impl(mpack_node_t node, const char* str, size_t 
     if (mpack_node_error(node) != mpack_ok)
         return mpack_tree_nil_node(node.tree);
 
+    mpack_assert(length == 0 || str != NULL, "str of length %i is NULL", (int)length);
+
     if (node.data->type != mpack_type_map) {
         mpack_node_flag_error(node, mpack_error_type);
         return mpack_tree_nil_node(node.tree);
@@ -1159,6 +1165,8 @@ mpack_node_t mpack_node_map_str_impl(mpack_node_t node, const char* str, size_t 
 bool mpack_node_map_contains_str(mpack_node_t node, const char* str, size_t length) {
     if (mpack_node_error(node) != mpack_ok)
         return false;
+
+    mpack_assert(length == 0 || str != NULL, "str of length %i is NULL", (int)length);
 
     if (node.data->type != mpack_type_map) {
         mpack_node_flag_error(node, mpack_error_type);
