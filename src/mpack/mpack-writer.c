@@ -756,7 +756,9 @@ void mpack_write_utf8_cstr_or_nil(mpack_writer_t* writer, const char* cstr) {
     mpack_writer_track_element(writer);                                                 \
     if (mpack_writer_buffer_left(writer) >= maximum_possible_bytes) {                   \
         writer->used += mpack_store_##name(writer->buffer + writer->used, __VA_ARGS__); \
-    } else {                                                                            \
+    } else if (mpack_writer_error(writer) == mpack_ok) {                                \
+        if (writer->flush)                                                              \
+            mpack_writer_flush_unchecked(writer);                                       \
         char buf[maximum_possible_bytes];                                               \
         mpack_write_native(writer, buf, mpack_store_##name(buf, __VA_ARGS__));          \
     }
