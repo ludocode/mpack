@@ -348,7 +348,7 @@ void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t value) {
     }
 }
 
-static size_t mpack_store_u8(char* p, uint8_t value) {
+static size_t mpack_encode_u8(char* p, uint8_t value) {
     if (value <= 0x7f) {
         mpack_store_native_u8(p, (uint8_t)value);
         return 1;
@@ -358,7 +358,7 @@ static size_t mpack_store_u8(char* p, uint8_t value) {
     return 2;
 }
 
-static size_t mpack_store_u16(char* p, uint16_t value) {
+static size_t mpack_encode_u16(char* p, uint16_t value) {
     if (value <= 0x7f) {
         mpack_store_native_u8(p, (uint8_t)value);
         return 1;
@@ -373,7 +373,7 @@ static size_t mpack_store_u16(char* p, uint16_t value) {
     return 3;
 }
 
-static size_t mpack_store_u32(char* p, uint32_t value) {
+static size_t mpack_encode_u32(char* p, uint32_t value) {
     if (value <= 0x7f) {
         mpack_store_native_u8(p, (uint8_t)value);
         return 1;
@@ -393,7 +393,7 @@ static size_t mpack_store_u32(char* p, uint32_t value) {
     return 5;
 }
 
-static size_t mpack_store_u64(char* p, uint64_t value) {
+static size_t mpack_encode_u64(char* p, uint64_t value) {
     if (value <= 0x7f) {
         mpack_store_native_u8(p, (uint8_t)value);
         return 1;
@@ -418,11 +418,11 @@ static size_t mpack_store_u64(char* p, uint64_t value) {
     return 9;
 }
 
-static size_t mpack_store_i8(char* p, int8_t value) {
+static size_t mpack_encode_i8(char* p, int8_t value) {
 
     // write any non-negative number as a uint
     if (value >= 0)
-        return mpack_store_u8(p, (uint8_t)value);
+        return mpack_encode_u8(p, (uint8_t)value);
 
     if (value >= -32) {
         mpack_store_native_i8(p, value);
@@ -433,11 +433,11 @@ static size_t mpack_store_i8(char* p, int8_t value) {
     return 2;
 }
 
-static size_t mpack_store_i16(char* p, int16_t value) {
+static size_t mpack_encode_i16(char* p, int16_t value) {
 
     // write any non-negative number as a uint
     if (value >= 0)
-        return mpack_store_u16(p, (uint16_t)value);
+        return mpack_encode_u16(p, (uint16_t)value);
 
     if (value >= -32) {
         mpack_store_native_i8(p, (int8_t)value);
@@ -453,11 +453,11 @@ static size_t mpack_store_i16(char* p, int16_t value) {
     return 3;
 }
 
-static size_t mpack_store_i32(char* p, int32_t value) {
+static size_t mpack_encode_i32(char* p, int32_t value) {
 
     // write any non-negative number as a uint
     if (value >= 0)
-        return mpack_store_u32(p, (uint32_t)value);
+        return mpack_encode_u32(p, (uint32_t)value);
 
     if (value >= -32) {
         mpack_store_native_i8(p, (int8_t)value);
@@ -479,11 +479,11 @@ static size_t mpack_store_i32(char* p, int32_t value) {
 
 }
 
-static size_t mpack_store_i64(char* p, int64_t value) {
+static size_t mpack_encode_i64(char* p, int64_t value) {
 
     // write any non-negative number as a uint
     if (value >= 0)
-        return mpack_store_u64(p, (uint64_t)value);
+        return mpack_encode_u64(p, (uint64_t)value);
 
     if (value >= -32) {
         mpack_store_native_i8(p, (int8_t)value);
@@ -530,13 +530,13 @@ void mpack_write_nil(mpack_writer_t* writer) {
     mpack_write_byte_element(writer, (char)0xc0);
 }
 
-MPACK_STATIC_INLINE size_t mpack_store_float(char* p, float value) {
+MPACK_STATIC_INLINE size_t mpack_encode_float(char* p, float value) {
     mpack_store_native_u8(p, 0xca);
     mpack_store_native_float(p + 1, value);
     return 5;
 }
 
-MPACK_STATIC_INLINE size_t mpack_store_double(char* p, double value) {
+MPACK_STATIC_INLINE size_t mpack_encode_double(char* p, double value) {
     mpack_store_native_u8(p, 0xcb);
     mpack_store_native_double(p + 1, value);
     return 9;
@@ -568,7 +568,7 @@ void mpack_finish_type(mpack_writer_t* writer, mpack_type_t type) {
 }
 #endif
 
-static size_t mpack_store_array(char* p, uint32_t count) {
+static size_t mpack_encode_array(char* p, uint32_t count) {
     if (count <= 15) {
         mpack_store_native_u8(p, (uint8_t)(0x90 | count));
         return 1;
@@ -583,7 +583,7 @@ static size_t mpack_store_array(char* p, uint32_t count) {
     return 5;
 }
 
-static size_t mpack_store_map(char* p, uint32_t count) {
+static size_t mpack_encode_map(char* p, uint32_t count) {
     if (count <= 15) {
         mpack_store_native_u8(p, (uint8_t)(0x80 | count));
         return 1;
@@ -598,7 +598,7 @@ static size_t mpack_store_map(char* p, uint32_t count) {
     return 5;
 }
 
-static size_t mpack_store_str(char* p, uint32_t count) {
+static size_t mpack_encode_str(char* p, uint32_t count) {
     if (count <= 31) {
         mpack_store_native_u8(p, (uint8_t)(0xa0 | count));
         return 1;
@@ -620,7 +620,7 @@ static size_t mpack_store_str(char* p, uint32_t count) {
     return 5;
 }
 
-static size_t mpack_store_bin(char* p, uint32_t count) {
+static size_t mpack_encode_bin(char* p, uint32_t count) {
     if (count <= UINT8_MAX) {
         mpack_store_native_u8(p, 0xc4);
         mpack_store_native_u8(p + 1, (uint8_t)count);
@@ -636,7 +636,7 @@ static size_t mpack_store_bin(char* p, uint32_t count) {
     return 5;
 }
 
-static size_t mpack_store_ext(char* p, int8_t exttype, uint32_t count) {
+static size_t mpack_encode_ext(char* p, int8_t exttype, uint32_t count) {
     if (count == 1) {
         mpack_store_native_u8(p, 0xd4);
         mpack_store_native_i8(p + 1, exttype);
@@ -755,12 +755,12 @@ void mpack_write_utf8_cstr_or_nil(mpack_writer_t* writer, const char* cstr) {
 #define MPACK_WRITE_WRAPPER(name, maximum_possible_bytes, ...)                          \
     mpack_writer_track_element(writer);                                                 \
     if (mpack_writer_buffer_left(writer) >= maximum_possible_bytes) {                   \
-        writer->used += mpack_store_##name(writer->buffer + writer->used, __VA_ARGS__); \
+        writer->used += mpack_encode_##name(writer->buffer + writer->used, __VA_ARGS__); \
     } else if (mpack_writer_error(writer) == mpack_ok) {                                \
         if (writer->flush)                                                              \
             mpack_writer_flush_unchecked(writer);                                       \
         char buf[maximum_possible_bytes];                                               \
-        mpack_write_native(writer, buf, mpack_store_##name(buf, __VA_ARGS__));          \
+        mpack_write_native(writer, buf, mpack_encode_##name(buf, __VA_ARGS__));          \
     }
 
 void mpack_write_u8 (mpack_writer_t* writer, uint8_t value)  {MPACK_WRITE_WRAPPER(u8,  2, value);}
