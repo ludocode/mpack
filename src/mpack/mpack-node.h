@@ -127,9 +127,13 @@ struct mpack_node_t {
 struct mpack_node_data_t {
     mpack_type_t type;
 
-    int8_t exttype; /**< \internal The extension type if the type is mpack_type_ext. */
+    /*
+     * The element count if the type is an array;
+     * the number of key/value pairs if the type is map;
+     * or the number of bytes if the type is str, bin or ext.
+     */
+    uint32_t len;
 
-    /* The value for non-compound types. */
     union
     {
         bool     b; /* The value if the type is bool. */
@@ -137,18 +141,8 @@ struct mpack_node_data_t {
         double   d; /* The value if the type is double. */
         int64_t  i; /* The value if the type is signed int. */
         uint64_t u; /* The value if the type is unsigned int. */
-
-        struct {
-            uint32_t l; /* The number of bytes if the type is str, bin or ext. */
-            const char* bytes;
-        } data;
-
-        struct {
-            /* The element count if the type is an array, or the number of
-               key/value pairs if the type is map. */
-            uint32_t n;
-            mpack_node_data_t* children;
-        } content;
+        const char* bytes; /* The byte pointer for str, bin and ext */
+        mpack_node_data_t* children; /* The children for map or array */
     } value;
 };
 
@@ -180,7 +174,7 @@ MPACK_INLINE mpack_node_t mpack_node(mpack_tree_t* tree, mpack_node_data_t* data
 }
 
 MPACK_INLINE mpack_node_data_t* mpack_node_child(mpack_node_t node, size_t child) {
-    return node.data->value.content.children + child;
+    return node.data->value.children + child;
 }
 
 MPACK_INLINE mpack_node_t mpack_tree_nil_node(mpack_tree_t* tree) {
@@ -347,7 +341,8 @@ MPACK_INLINE mpack_error_t mpack_node_error(mpack_node_t node) {
 }
 
 /**
- * Returns a tag describing the given node.
+ * Returns a tag describing the given node, or a nil tag if the
+ * tree is in an error state.
  */
 mpack_tag_t mpack_node_tag(mpack_node_t node);
 
@@ -771,8 +766,9 @@ MPACK_INLINE_SPEED int8_t mpack_node_exttype(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
+    // the exttype of an ext node is stored in the byte preceding the data
     if (node.data->type == mpack_type_ext)
-        return node.data->exttype;
+        return (int8_t)*(node.data->value.bytes - 1);
 
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
@@ -791,7 +787,7 @@ MPACK_INLINE_SPEED uint32_t mpack_node_data_len(mpack_node_t node) {
 
     mpack_type_t type = node.data->type;
     if (type == mpack_type_str || type == mpack_type_bin || type == mpack_type_ext)
-        return (uint32_t)node.data->value.data.l;
+        return (uint32_t)node.data->len;
 
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
@@ -810,7 +806,7 @@ MPACK_INLINE_SPEED size_t mpack_node_strlen(mpack_node_t node) {
         return 0;
 
     if (node.data->type == mpack_type_str)
-        return (size_t)node.data->value.data.l;
+        return (size_t)node.data->len;
 
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
@@ -841,7 +837,7 @@ MPACK_INLINE_SPEED const char* mpack_node_data(mpack_node_t node) {
 
     mpack_type_t type = node.data->type;
     if (type == mpack_type_str || type == mpack_type_bin || type == mpack_type_ext)
-        return node.data->value.data.bytes;
+        return node.data->value.bytes;
 
     mpack_node_flag_error(node, mpack_error_type);
     return NULL;
@@ -941,7 +937,7 @@ MPACK_INLINE_SPEED size_t mpack_node_array_length(mpack_node_t node) {
         return 0;
     }
 
-    return (size_t)node.data->value.content.n;
+    return (size_t)node.data->len;
 }
 #endif
 
@@ -963,7 +959,7 @@ MPACK_INLINE_SPEED mpack_node_t mpack_node_array_at(mpack_node_t node, size_t in
         return mpack_tree_nil_node(node.tree);
     }
 
-    if (index >= node.data->value.content.n) {
+    if (index >= node.data->len) {
         mpack_node_flag_error(node, mpack_error_data);
         return mpack_tree_nil_node(node.tree);
     }
@@ -988,7 +984,7 @@ MPACK_INLINE_SPEED size_t mpack_node_map_count(mpack_node_t node) {
         return 0;
     }
 
-    return node.data->value.content.n;
+    return node.data->len;
 }
 #endif
 
@@ -1005,7 +1001,7 @@ MPACK_INLINE_SPEED mpack_node_t mpack_node_map_at(mpack_node_t node, size_t inde
         return mpack_tree_nil_node(node.tree);
     }
 
-    if (index >= node.data->value.content.n) {
+    if (index >= node.data->len) {
         mpack_node_flag_error(node, mpack_error_data);
         return mpack_tree_nil_node(node.tree);
     }
