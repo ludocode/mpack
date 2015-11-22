@@ -31,6 +31,20 @@
  * Tree Parsing
  */
 
+// fix up the alloc size to make sure it exactly fits the
+// maximum number of nodes it can contain (the allocator will
+// waste it back anyway, but we round it down just in case)
+
+#ifdef MPACK_MALLOC
+
+#define MPACK_NODES_PER_PAGE \
+    ((MPACK_NODE_PAGE_SIZE - sizeof(mpack_tree_page_t)) / sizeof(mpack_node_data_t) + 1)
+
+#define MPACK_PAGE_ALLOC_SIZE \
+    (sizeof(mpack_tree_page_t) + sizeof(mpack_node_data_t) * (MPACK_NODES_PER_PAGE - 1))
+
+#endif
+
 typedef struct mpack_level_t {
     mpack_node_data_t* child;
     size_t left; // children left in level
@@ -39,8 +53,11 @@ typedef struct mpack_level_t {
 typedef struct mpack_tree_parser_t {
     mpack_tree_t* tree;
     const char* data;
-    size_t left; // bytes left in data
+    size_t bytes_left; // bytes left in data
     size_t possible_nodes_left;
+
+    mpack_node_data_t* nodes;
+    size_t nodes_left; // nodes left in current page/pool
 
     size_t level;
     size_t depth;
@@ -55,7 +72,7 @@ MPACK_STATIC_INLINE_SPEED uint8_t mpack_tree_u8(mpack_tree_parser_t* parser) {
     }
     uint8_t val = mpack_load_native_u8(parser->data);
     parser->data += sizeof(uint8_t);
-    parser->left -= sizeof(uint8_t);
+    parser->bytes_left -= sizeof(uint8_t);
     parser->possible_nodes_left -= sizeof(uint8_t);
     return val;
 }
@@ -67,7 +84,7 @@ MPACK_STATIC_INLINE_SPEED uint16_t mpack_tree_u16(mpack_tree_parser_t* parser) {
     }
     uint16_t val = mpack_load_native_u16(parser->data);
     parser->data += sizeof(uint16_t);
-    parser->left -= sizeof(uint16_t);
+    parser->bytes_left -= sizeof(uint16_t);
     parser->possible_nodes_left -= sizeof(uint16_t);
     return val;
 }
@@ -79,7 +96,7 @@ MPACK_STATIC_INLINE_SPEED uint32_t mpack_tree_u32(mpack_tree_parser_t* parser) {
     }
     uint32_t val = mpack_load_native_u32(parser->data);
     parser->data += sizeof(uint32_t);
-    parser->left -= sizeof(uint32_t);
+    parser->bytes_left -= sizeof(uint32_t);
     parser->possible_nodes_left -= sizeof(uint32_t);
     return val;
 }
@@ -91,7 +108,7 @@ MPACK_STATIC_INLINE_SPEED uint64_t mpack_tree_u64(mpack_tree_parser_t* parser) {
     }
     uint64_t val = mpack_load_native_u64(parser->data);
     parser->data += sizeof(uint64_t);
-    parser->left -= sizeof(uint64_t);
+    parser->bytes_left -= sizeof(uint64_t);
     parser->possible_nodes_left -= sizeof(uint64_t);
     return val;
 }
@@ -184,17 +201,17 @@ static void mpack_tree_parse_children(mpack_tree_parser_t* parser, mpack_node_da
     parser->possible_nodes_left -= total;
 
     // If there are enough nodes left in the current page, no need to grow
-    if (total <= parser->tree->page.left) {
-        node->value.children = parser->tree->page.nodes + parser->tree->page.pos;
-        parser->tree->page.pos += total;
-        parser->tree->page.left -= total;
+    if (total <= parser->nodes_left) {
+        node->value.children = parser->nodes;
+        parser->nodes += total;
+        parser->nodes_left -= total;
 
     } else {
 
         #ifdef MPACK_MALLOC
 
-        // We can't grow if we're using a fixed pool
-        if (!parser->tree->owned) {
+        // We can't grow if we're using a fixed pool (i.e. we didn't start with a page)
+        if (!parser->tree->next) {
             mpack_tree_flag_error(parser->tree, mpack_error_too_big);
             parser->level = 0;
             return;
@@ -209,51 +226,38 @@ static void mpack_tree_parse_children(mpack_tree_parser_t* parser, mpack_node_da
         // here. This heuristic could use some improvement, especially with custom
         // page sizes.
 
-        // Allocate the new link first. The two cases below put it into the list before trying
-        // to allocate its nodes so it gets freed later in case of allocation failure.
-        mpack_tree_link_t* link = (mpack_tree_link_t*)MPACK_MALLOC(sizeof(mpack_tree_link_t));
-        if (link == NULL) {
-            mpack_tree_flag_error(parser->tree, mpack_error_memory);
-            parser->level = 0;
-            return;
-        }
+        mpack_tree_page_t* page;
 
-        if (total > MPACK_NODE_PAGE_SIZE || parser->tree->page.left > MPACK_NODE_PAGE_SIZE / 8) {
-            mpack_log("allocating seperate page for %i children, %i left in page of size %i\n",
-                    (int)total, (int)parser->tree->page.left, (int)MPACK_NODE_PAGE_SIZE);
-
-            // Allocate only this node's children and insert it after the current page
-            link->next = parser->tree->page.next;
-            parser->tree->page.next = link;
-            link->nodes = (mpack_node_data_t*)MPACK_MALLOC(sizeof(mpack_node_data_t) * total);
-            if (link->nodes == NULL) {
+        if (total > MPACK_NODES_PER_PAGE || parser->nodes_left > MPACK_NODES_PER_PAGE / 8) {
+            page = (mpack_tree_page_t*)MPACK_MALLOC(
+                    sizeof(mpack_tree_page_t) + sizeof(mpack_node_data_t) * (total - 1));
+            if (page == NULL) {
                 mpack_tree_flag_error(parser->tree, mpack_error_memory);
                 parser->level = 0;
                 return;
             }
+            mpack_log("allocated seperate page %p for %i children, %i left in page of %i total\n",
+                    page, (int)total, (int)parser->nodes_left, (int)MPACK_NODES_PER_PAGE);
 
-            // Use the new page for the node's children. pos and left are not used.
-            node->value.children = link->nodes;
+            node->value.children = page->nodes;
 
         } else {
-            mpack_log("allocating new page for %i children, wasting %i in page of size %i\n",
-                    (int)total, (int)parser->tree->page.left, (int)MPACK_NODE_PAGE_SIZE);
-
-            // Move the current page into the new link, and allocate a new page
-            *link = parser->tree->page;
-            parser->tree->page.next = link;
-            parser->tree->page.nodes = (mpack_node_data_t*)MPACK_MALLOC(sizeof(mpack_node_data_t) * MPACK_NODE_PAGE_SIZE);
-            if (parser->tree->page.nodes == NULL) {
+            page = (mpack_tree_page_t*)MPACK_MALLOC(MPACK_PAGE_ALLOC_SIZE);
+            if (page == NULL) {
                 mpack_tree_flag_error(parser->tree, mpack_error_memory);
                 parser->level = 0;
                 return;
             }
+            mpack_log("allocated new page %p for %i children, wasting %i in page of %i total\n",
+                    page, (int)total, (int)parser->nodes_left, (int)MPACK_NODES_PER_PAGE);
 
-            // Take this node's children from the page
-            node->value.children = parser->tree->page.nodes;
-            parser->tree->page.pos = total;
-            parser->tree->page.left = MPACK_NODE_PAGE_SIZE - total;
+            node->value.children = page->nodes;
+            parser->nodes = page->nodes + total;
+            parser->nodes_left = MPACK_NODES_PER_PAGE - total;
         }
+
+        page->next = parser->tree->next;
+        parser->tree->next = page;
 
         #else
         // We can't grow if we don't have an allocator
@@ -278,11 +282,13 @@ static void mpack_tree_parse_bytes(mpack_tree_parser_t* parser, mpack_node_data_
     }
     node->value.bytes = parser->data;
     parser->data += length;
-    parser->left -= length;
+    parser->bytes_left -= length;
     parser->possible_nodes_left -= length;
 }
 
-static void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length) {
+static void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length,
+        mpack_node_data_t* initial_nodes, size_t initial_nodes_count)
+{
     mpack_log("starting parse\n");
 
     // This function is unfortunately huge and ugly, but there isn't
@@ -290,24 +296,24 @@ static void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length
     // well-commented to try to make up for it.
 
     if (length == 0) {
-        mpack_tree_init_error(tree, mpack_error_invalid);
+        mpack_tree_flag_error(tree, mpack_error_invalid);
         return;
     }
-    if (tree->page.left == 0) {
+    if (initial_nodes_count == 0) {
         mpack_break("initial page has no nodes!");
-        mpack_tree_init_error(tree, mpack_error_bug);
+        mpack_tree_flag_error(tree, mpack_error_bug);
         return;
     }
-    tree->root = tree->page.nodes + tree->page.pos;
-    ++tree->page.pos;
-    --tree->page.left;
+    tree->root = initial_nodes;
 
     // Setup parser
     mpack_tree_parser_t parser;
     mpack_memset(&parser, 0, sizeof(parser));
     parser.tree = tree;
     parser.data = data;
-    parser.left = length;
+    parser.nodes = initial_nodes + 1;
+    parser.nodes_left = initial_nodes_count - 1;
+    parser.bytes_left = length;
 
     // We read nodes in a loop instead of recursively for maximum
     // performance. The stack holds the amount of children left to
@@ -634,9 +640,9 @@ static void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length
         MPACK_FREE(parser.stack);
     #endif
 
-    tree->size = length - parser.left;
-    mpack_log("parsed tree of %i bytes, %i bytes left\n", (int)tree->size, (int)parser.left);
-    mpack_log("%i nodes in final page\n", (int)tree->page.pos);
+    tree->size = length - parser.bytes_left;
+    mpack_log("parsed tree of %i bytes, %i bytes left\n", (int)tree->size, (int)parser.bytes_left);
+    mpack_log("%i nodes in final page\n", (int)parser.nodes_left);
 
     // This seems like a bug / performance flaw in GCC. In release the
     // below assert would compile to:
@@ -651,9 +657,9 @@ static void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length
     // Leaving a TODO: here to explore this further. In the meantime we preproc it
     // under MPACK_DEBUG.
     #if MPACK_DEBUG
-    mpack_assert(mpack_tree_error(parser.tree) != mpack_ok || parser.possible_nodes_left == parser.left,
+    mpack_assert(mpack_tree_error(parser.tree) != mpack_ok || parser.possible_nodes_left == parser.bytes_left,
             "incorrect calculation of possible nodes! %i possible nodes, but %i bytes remaining",
-            (int)parser.possible_nodes_left, (int)parser.left);
+            (int)parser.possible_nodes_left, (int)parser.bytes_left);
     #endif
 }
 
@@ -675,32 +681,36 @@ static void mpack_tree_init_clear(mpack_tree_t* tree) {
 #ifdef MPACK_MALLOC
 void mpack_tree_init(mpack_tree_t* tree, const char* data, size_t length) {
     mpack_tree_init_clear(tree);
-    tree->owned = true;
+
+    MPACK_STATIC_ASSERT(MPACK_NODE_PAGE_SIZE >= sizeof(mpack_tree_page_t),
+            "MPACK_NODE_PAGE_SIZE is too small");
+
+    MPACK_STATIC_ASSERT(MPACK_PAGE_ALLOC_SIZE <= MPACK_NODE_PAGE_SIZE,
+            "incorrect page rounding?");
 
     // allocate first page
-    mpack_log("allocating initial page of size %i\n", (int)MPACK_NODE_PAGE_SIZE);
-    tree->page.nodes = (mpack_node_data_t*)MPACK_MALLOC(sizeof(mpack_node_data_t) * MPACK_NODE_PAGE_SIZE);
-    if (tree->page.nodes == NULL) {
+    mpack_tree_page_t* page = (mpack_tree_page_t*)MPACK_MALLOC(MPACK_PAGE_ALLOC_SIZE);
+    mpack_log("allocated initial page %p of size %i count %i\n",
+            page, (int)MPACK_PAGE_ALLOC_SIZE, (int)MPACK_NODES_PER_PAGE);
+    if (page == NULL) {
         tree->error = mpack_error_memory;
         return;
     }
-    tree->page.next = NULL;
-    tree->page.pos = 0;
-    tree->page.left = MPACK_NODE_PAGE_SIZE;
+    page->next = NULL;
 
-    mpack_tree_parse(tree, data, length);
+    tree->next = page;
+    mpack_tree_parse(tree, data, length, page->nodes, MPACK_NODES_PER_PAGE);
 }
 #endif
 
-void mpack_tree_init_pool(mpack_tree_t* tree, const char* data, size_t length, mpack_node_data_t* node_pool, size_t node_pool_count) {
+void mpack_tree_init_pool(mpack_tree_t* tree, const char* data, size_t length,
+        mpack_node_data_t* node_pool, size_t node_pool_count)
+{
     mpack_tree_init_clear(tree);
-
-    tree->page.next = NULL;
-    tree->page.nodes = node_pool;
-    tree->page.pos = 0;
-    tree->page.left = node_pool_count;
-
-    mpack_tree_parse(tree, data, length);
+    #ifdef MPACK_MALLOC
+    tree->next = NULL;
+    #endif
+    mpack_tree_parse(tree, data, length, node_pool, node_pool_count);
 }
 
 void mpack_tree_init_error(mpack_tree_t* tree, mpack_error_t error) {
@@ -816,17 +826,12 @@ void mpack_tree_init_file(mpack_tree_t* tree, const char* filename, size_t max_s
 
 mpack_error_t mpack_tree_destroy(mpack_tree_t* tree) {
     #ifdef MPACK_MALLOC
-    if (tree->owned) {
-        if (tree->page.nodes)
-            MPACK_FREE(tree->page.nodes);
-        mpack_tree_link_t* link = tree->page.next;
-        while (link) {
-            mpack_tree_link_t* next = link->next;
-            if (link->nodes)
-                MPACK_FREE(link->nodes);
-            MPACK_FREE(link);
-            link = next;
-        }
+    mpack_tree_page_t* page = tree->next;
+    while (page) {
+        mpack_tree_page_t* next = page->next;
+        mpack_log("freeing page %p\n", page);
+        MPACK_FREE(page);
+        page = next;
     }
     #endif
 

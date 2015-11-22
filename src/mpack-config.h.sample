@@ -199,8 +199,8 @@
 #endif
 
 /**
- * Stack space to use when initializing a reader or writer with a
- * stack-allocated buffer.
+ * Stack space in bytes to use when initializing a reader or writer
+ * with a stack-allocated buffer.
  */
 #ifndef MPACK_STACK_SIZE
 #define MPACK_STACK_SIZE 4096
@@ -219,7 +219,11 @@
 #endif
 
 /**
- * Number of nodes in each allocated node page.
+ * Size of an allocated node page in bytes.
+ *
+ * The children for a given compound element must be contiguous, so
+ * larger pages than this may be allocated as needed. (Safety checks
+ * exist to prevent malicious data from causing too large allocations.)
  *
  * Nodes are 12 bytes when compiled for a 32-bit architecture and
  * 16 bytes when compiled for a 64-bit architecture.
@@ -229,7 +233,7 @@
  * messages.
  */
 #ifndef MPACK_NODE_PAGE_SIZE
-#define MPACK_NODE_PAGE_SIZE (4096 / sizeof(mpack_node_t))
+#define MPACK_NODE_PAGE_SIZE 4096
 #endif
 
 /**

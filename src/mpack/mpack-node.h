@@ -47,8 +47,8 @@ MPACK_HEADER_START
  * A handle to node in a parsed MPack tree. Note that mpack_node_t is passed by value.
  *
  * Nodes represent either primitive values or compound types. If a
- * node is a compound type, it contains a link to its child nodes, or
- * a pointer to its underlying data.
+ * node is a compound type, it contains a pointer to its child nodes,
+ * or a pointer to its underlying data.
  *
  * Nodes are immutable.
  */
@@ -106,19 +106,6 @@ typedef void (*mpack_tree_teardown_t)(mpack_tree_t* tree);
 /* Hide internals from documentation */
 /** @cond */
 
-/*
- * mpack_tree_link_t forms a linked list of node pages. It is allocated
- * separately from the page so that we can store the first link internally
- * without a malloc (the only link in a pooled tree), and we don't
- * affect the size of page pools or violate strict aliasing.
- */
-typedef struct mpack_tree_link_t {
-    struct mpack_tree_link_t* next;
-    mpack_node_data_t* nodes;
-    size_t pos;
-    size_t left;
-} mpack_tree_link_t;
-
 struct mpack_node_t {
     mpack_node_data_t* data;
     mpack_tree_t* tree;
@@ -146,6 +133,11 @@ struct mpack_node_data_t {
     } value;
 };
 
+typedef struct mpack_tree_page_t {
+    struct mpack_tree_page_t* next;
+    mpack_node_data_t nodes[1]; // variable size
+} mpack_tree_page_t;
+
 struct mpack_tree_t {
     mpack_tree_error_t error_fn;    /* Function to call on error */
     mpack_tree_teardown_t teardown; /* Function to teardown the context on destroy */
@@ -156,11 +148,11 @@ struct mpack_tree_t {
 
     size_t node_count;
     size_t size;
+
     mpack_node_data_t* root;
 
-    mpack_tree_link_t page;
     #ifdef MPACK_MALLOC
-    bool owned;
+    mpack_tree_page_t* next;
     #endif
 };
 
