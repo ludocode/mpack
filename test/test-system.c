@@ -156,6 +156,7 @@ void test_free(void* p) {
 #undef fwrite
 #undef fseek
 #undef ftell
+#undef ferror
 
 static size_t test_files_active = 0;
 
@@ -234,6 +235,17 @@ long test_ftell(FILE* stream) {
     }
 
     return ftell(stream);
+}
+
+int test_ferror(FILE * stream) {
+    TEST_TRUE(stream != NULL);
+
+    if (test_system_should_fail()) {
+        errno = EACCES;
+        return -1;
+    }
+
+    return ferror(stream);
 }
 #endif
 

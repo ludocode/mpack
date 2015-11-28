@@ -25,6 +25,8 @@
 
 #if MPACK_READER
 
+static void mpack_reader_skip_using_fill(mpack_reader_t* reader, size_t count);
+
 void mpack_reader_init(mpack_reader_t* reader, char* buffer, size_t size, size_t count) {
     mpack_assert(buffer != NULL, "buffer is NULL");
 
@@ -70,6 +72,29 @@ static size_t mpack_file_reader_fill(mpack_reader_t* reader, char* buffer, size_
     return fread((void*)buffer, 1, count, file_reader->file);
 }
 
+static void mpack_file_reader_skip(mpack_reader_t* reader, size_t count) {
+    mpack_file_reader_t* file_reader = (mpack_file_reader_t*)reader->context;
+    if (mpack_reader_error(reader) != mpack_ok)
+        return;
+    FILE* file = file_reader->file;
+
+    // We call ftell() to test whether the stream is seekable
+    // without causing a file error.
+    if (ftell(file) >= 0) {
+        mpack_log("seeking forward %i bytes\n", (int)count);
+        if (fseek(file, (long int)count, SEEK_CUR) == 0)
+            return;
+        mpack_log("fseek() didn't return zero!\n");
+        if (ferror(file)) {
+            mpack_reader_flag_error(reader, mpack_error_io);
+            return;
+        }
+    }
+
+    // If the stream is not seekable, fall back to the fill function.
+    mpack_reader_skip_using_fill(reader, count);
+}
+
 static void mpack_file_reader_teardown(mpack_reader_t* reader) {
     mpack_file_reader_t* file_reader = (mpack_file_reader_t*)reader->context;
 
@@ -102,6 +127,7 @@ void mpack_reader_init_file(mpack_reader_t* reader, const char* filename) {
     mpack_reader_init(reader, file_reader->buffer, sizeof(file_reader->buffer), 0);
     mpack_reader_set_context(reader, file_reader);
     mpack_reader_set_fill(reader, mpack_file_reader_fill);
+    mpack_reader_set_skip(reader, mpack_file_reader_skip);
     mpack_reader_set_teardown(reader, mpack_file_reader_teardown);
 }
 #endif
@@ -236,15 +262,72 @@ void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count) {
 }
 
 void mpack_skip_bytes(mpack_reader_t* reader, size_t count) {
-    // TODO: This is currently very slow, potentially even slower than just
-    // reading the data. Skip needs to be implemented properly.
-    char c[128];
-    size_t i = 0;
-    while (i < count && mpack_reader_error(reader) == mpack_ok) {
-        size_t amount = ((count - i) > sizeof(c)) ? sizeof(c) : (count - i);
-        mpack_read_bytes(reader, c, amount);
-        i += amount;
+    if (mpack_reader_error(reader) != mpack_ok)
+        return;
+    mpack_log("skip requested for %i bytes\n", (int)count);
+    mpack_reader_track_bytes(reader, count);
+
+    // check if we have enough in the buffer already
+    if (reader->left >= count) {
+        mpack_log("skipping %i bytes still in buffer\n", (int)count);
+        reader->left -= count;
+        reader->pos += count;
+        return;
     }
+
+    // we'll need at least a fill function to skip more data. if there's
+    // no fill function, the buffer should contain an entire MessagePack
+    // object, so we raise mpack_error_invalid instead of mpack_error_io
+    // on truncated data. (see mpack_read_native_big())
+    if (reader->fill == NULL) {
+        mpack_log("reader has no fill function!\n");
+        mpack_reader_flag_error(reader, mpack_error_invalid);
+        return;
+    }
+
+    // discard whatever's left in the buffer
+    mpack_log("discarding %i bytes still in buffer\n", (int)reader->left);
+    count -= reader->left;
+    reader->pos += reader->left;
+    reader->left = 0;
+
+    // use the skip function if we've got one, and if we're trying
+    // to skip a lot of data. if we only need to skip some tiny
+    // fraction of the buffer size, it's probably better to just
+    // fill the buffer and jump past it instead of trying to seek.
+    if (reader->skip && count > reader->size / 16) {
+        mpack_log("calling skip function for %i bytes\n", (int)count);
+        reader->skip(reader, count);
+    } else {
+        mpack_reader_skip_using_fill(reader, count);
+    }
+}
+
+static void mpack_reader_skip_using_fill(mpack_reader_t* reader, size_t count) {
+    mpack_assert(reader->fill != NULL, "missing fill function!");
+    mpack_assert(reader->left == 0, "there are bytes left in the buffer!");
+    mpack_assert(reader->error == mpack_ok, "should not have called this in an error state (%i)", reader->error);
+    mpack_log("skip using fill for %i bytes\n", (int)count);
+
+    // fill and discard multiples of the buffer size
+    while (count > reader->size) {
+        mpack_log("filling and discarding buffer of %i bytes\n", (int)reader->size);
+        mpack_fill(reader, reader->buffer, reader->size);
+        if (mpack_fill(reader, reader->buffer, reader->size) < reader->size) {
+            mpack_reader_flag_error(reader, mpack_error_io);
+            return;
+        }
+        count -= reader->size;
+    }
+
+    // fill the buffer as much as possible
+    reader->pos = 0;
+    reader->left = mpack_fill(reader, reader->buffer, reader->size);
+    if (reader->left < count)
+        mpack_reader_flag_error(reader, mpack_error_io);
+    mpack_log("filled %i bytes into buffer; discarding %i bytes\n", (int)reader->left, (int)count);
+    reader->pos += count;
+    reader->left -= count;
 }
 
 void mpack_read_bytes(mpack_reader_t* reader, char* p, size_t count) {

@@ -32,6 +32,7 @@
 #define fwrite test_fwrite
 #define fseek  test_fseek
 #define ftell  test_ftell
+#define ferror test_ferror
 #endif
 
 // Tracking matches the default config, except the test suite

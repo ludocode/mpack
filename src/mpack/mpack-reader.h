@@ -72,6 +72,14 @@ typedef struct mpack_reader_t mpack_reader_t;
 typedef size_t (*mpack_reader_fill_t)(mpack_reader_t* reader, char* buffer, size_t count);
 
 /**
+ * The MPack reader's skip function. It should discard the given number
+ * of bytes from the source (for example by seeking forward.)
+ *
+ * In case of error, it should flag an appropriate error on the reader.
+ */
+typedef void (*mpack_reader_skip_t)(mpack_reader_t* reader, size_t count);
+
+/**
  * An error handler function to be called when an error is flagged on
  * the reader.
  *
@@ -104,6 +112,7 @@ typedef void (*mpack_reader_teardown_t)(mpack_reader_t* reader);
 
 struct mpack_reader_t {
     mpack_reader_fill_t fill;         /* Function to read bytes into the buffer */
+    mpack_reader_skip_t skip;         /* Function to skip bytes from the source */
     mpack_reader_error_t error_fn;    /* Function to call on error */
     mpack_reader_teardown_t teardown; /* Function to teardown the context on destroy */
     void* context;                    /* Context for reader callbacks */
@@ -223,6 +232,24 @@ MPACK_INLINE void mpack_reader_set_context(mpack_reader_t* reader, void* context
 MPACK_INLINE void mpack_reader_set_fill(mpack_reader_t* reader, mpack_reader_fill_t fill) {
     mpack_assert(reader->size != 0, "cannot use fill function without a writeable buffer!");
     reader->fill = fill;
+}
+
+/**
+ * Sets the skip function to discard bytes from the source stream.
+ *
+ * It's not necessary to implement this function. If the stream is not
+ * seekable, don't set a skip callback. The reader will fall back to
+ * using the fill function instead.
+ *
+ * This should normally be used with mpack_reader_set_context() to register
+ * a custom pointer to pass to the skip function.
+ *
+ * @param reader The MPack reader.
+ * @param skip The function to discard bytes from the source stream.
+ */
+MPACK_INLINE void mpack_reader_set_skip(mpack_reader_t* reader, mpack_reader_skip_t skip) {
+    mpack_assert(reader->size != 0, "cannot use skip function without a writeable buffer!");
+    reader->skip = skip;
 }
 
 /**
