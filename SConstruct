@@ -106,6 +106,8 @@ if ARGUMENTS.get('more') or ARGUMENTS.get('all'):
     AddBuild("release", allfeatures + allconfigs + releaseflags + cflags)
     AddBuilds("embed", allfeatures + cflags)
     AddBuilds("noio", allfeatures + noioconfigs + cflags)
+    AddBuild("debug-size", ["-DMPACK_OPTIMIZE_FOR_SIZE=1"] + debugflags + allfeatures + allconfigs + cflags)
+    AddBuild("release-size", ["-Os"] + allfeatures + allconfigs + cflags)
 
 
 # Run "scons all=1" to run all builds. This is what the CI runs.
@@ -141,8 +143,6 @@ if ARGUMENTS.get('all'):
     AddBuilds("realloc", allfeatures + allconfigs + debugflags + cflags + ["-DMPACK_REALLOC=test_realloc"])
     if hasOg:
         AddBuild("debug-O0", allfeatures + allconfigs + ["-DDEBUG", "-O0"] + cflags)
-    AddBuild("debug-size", ["-DMPACK_OPTIMIZE_FOR_SIZE=1"] + debugflags + allfeatures + allconfigs + cflags)
-    AddBuild("release-size", ["-Os"] + allfeatures + allconfigs + cflags)
 
     # other language standards (C11, various C++ versions)
     if conf.CheckFlags(["-std=c11"]):

@@ -576,7 +576,7 @@ MPACK_INLINE_SPEED void mpack_read_native_nojump(mpack_reader_t* reader, char* p
 }
 #endif
 
-MPACK_ALWAYS_INLINE uint8_t mpack_read_native_u8(mpack_reader_t* reader) {
+MPACK_INLINE uint8_t mpack_read_native_u8(mpack_reader_t* reader) {
     if (reader->left >= sizeof(uint8_t)) {
         uint8_t ret = mpack_load_native_u8(reader->buffer + reader->pos);
         reader->pos += sizeof(uint8_t);
@@ -589,7 +589,7 @@ MPACK_ALWAYS_INLINE uint8_t mpack_read_native_u8(mpack_reader_t* reader) {
     return mpack_load_native_u8(c);
 }
 
-MPACK_ALWAYS_INLINE uint16_t mpack_read_native_u16(mpack_reader_t* reader) {
+MPACK_INLINE uint16_t mpack_read_native_u16(mpack_reader_t* reader) {
     if (reader->left >= sizeof(uint16_t)) {
         uint16_t ret = mpack_load_native_u16(reader->buffer + reader->pos);
         reader->pos += sizeof(uint16_t);
@@ -602,7 +602,7 @@ MPACK_ALWAYS_INLINE uint16_t mpack_read_native_u16(mpack_reader_t* reader) {
     return mpack_load_native_u16(c);
 }
 
-MPACK_ALWAYS_INLINE uint32_t mpack_read_native_u32(mpack_reader_t* reader) {
+MPACK_INLINE uint32_t mpack_read_native_u32(mpack_reader_t* reader) {
     if (reader->left >= sizeof(uint32_t)) {
         uint32_t ret = mpack_load_native_u32(reader->buffer + reader->pos);
         reader->pos += sizeof(uint32_t);
@@ -615,7 +615,7 @@ MPACK_ALWAYS_INLINE uint32_t mpack_read_native_u32(mpack_reader_t* reader) {
     return mpack_load_native_u32(c);
 }
 
-MPACK_ALWAYS_INLINE uint64_t mpack_read_native_u64(mpack_reader_t* reader) {
+MPACK_INLINE uint64_t mpack_read_native_u64(mpack_reader_t* reader) {
     if (reader->left >= sizeof(uint64_t)) {
         uint64_t ret = mpack_load_native_u64(reader->buffer + reader->pos);
         reader->pos += sizeof(uint64_t);
