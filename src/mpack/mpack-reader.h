@@ -111,11 +111,13 @@ typedef void (*mpack_reader_error_t)(mpack_reader_t* reader, mpack_error_t error
 typedef void (*mpack_reader_teardown_t)(mpack_reader_t* reader);
 
 struct mpack_reader_t {
+    void* context;                    /* Context for reader callbacks */
     mpack_reader_fill_t fill;         /* Function to read bytes into the buffer */
-    mpack_reader_skip_t skip;         /* Function to skip bytes from the source */
     mpack_reader_error_t error_fn;    /* Function to call on error */
     mpack_reader_teardown_t teardown; /* Function to teardown the context on destroy */
-    void* context;                    /* Context for reader callbacks */
+    #if !MPACK_OPTIMIZE_FOR_SIZE
+    mpack_reader_skip_t skip;         /* Function to skip bytes from the source */
+    #endif
 
     char* buffer;       /* Byte buffer */
     size_t size;        /* Size of the buffer, or zero if it's const */
@@ -244,12 +246,20 @@ MPACK_INLINE void mpack_reader_set_fill(mpack_reader_t* reader, mpack_reader_fil
  * This should normally be used with mpack_reader_set_context() to register
  * a custom pointer to pass to the skip function.
  *
+ * The skip function is ignored in size-optimized builds to reduce code
+ * size. Data will be skipped with the fill function when necessary.
+ *
  * @param reader The MPack reader.
  * @param skip The function to discard bytes from the source stream.
  */
 MPACK_INLINE void mpack_reader_set_skip(mpack_reader_t* reader, mpack_reader_skip_t skip) {
     mpack_assert(reader->size != 0, "cannot use skip function without a writeable buffer!");
+    #if MPACK_OPTIMIZE_FOR_SIZE
+    MPACK_UNUSED(reader);
+    MPACK_UNUSED(skip);
+    #else
     reader->skip = skip;
+    #endif
 }
 
 /**

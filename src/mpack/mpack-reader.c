@@ -81,6 +81,7 @@ static size_t mpack_file_reader_fill(mpack_reader_t* reader, char* buffer, size_
     return fread((void*)buffer, 1, count, file_reader->file);
 }
 
+#if !MPACK_OPTIMIZE_FOR_SIZE
 static void mpack_file_reader_skip(mpack_reader_t* reader, size_t count) {
     mpack_file_reader_t* file_reader = (mpack_file_reader_t*)reader->context;
     if (mpack_reader_error(reader) != mpack_ok)
@@ -103,6 +104,7 @@ static void mpack_file_reader_skip(mpack_reader_t* reader, size_t count) {
     // If the stream is not seekable, fall back to the fill function.
     mpack_reader_skip_using_fill(reader, count);
 }
+#endif
 
 static void mpack_file_reader_teardown(mpack_reader_t* reader) {
     mpack_file_reader_t* file_reader = (mpack_file_reader_t*)reader->context;
@@ -136,7 +138,9 @@ void mpack_reader_init_file(mpack_reader_t* reader, const char* filename) {
     mpack_reader_init(reader, file_reader->buffer, sizeof(file_reader->buffer), 0);
     mpack_reader_set_context(reader, file_reader);
     mpack_reader_set_fill(reader, mpack_file_reader_fill);
+    #if !MPACK_OPTIMIZE_FOR_SIZE
     mpack_reader_set_skip(reader, mpack_file_reader_skip);
+    #endif
     mpack_reader_set_teardown(reader, mpack_file_reader_teardown);
 }
 #endif
@@ -300,6 +304,7 @@ void mpack_skip_bytes(mpack_reader_t* reader, size_t count) {
     reader->pos += reader->left;
     reader->left = 0;
 
+    #if !MPACK_OPTIMIZE_FOR_SIZE
     // use the skip function if we've got one, and if we're trying
     // to skip a lot of data. if we only need to skip some tiny
     // fraction of the buffer size, it's probably better to just
@@ -307,9 +312,11 @@ void mpack_skip_bytes(mpack_reader_t* reader, size_t count) {
     if (reader->skip && count > reader->size / 16) {
         mpack_log("calling skip function for %i bytes\n", (int)count);
         reader->skip(reader, count);
-    } else {
-        mpack_reader_skip_using_fill(reader, count);
+        return;
     }
+    #endif
+
+    mpack_reader_skip_using_fill(reader, count);
 }
 
 static void mpack_reader_skip_using_fill(mpack_reader_t* reader, size_t count) {
