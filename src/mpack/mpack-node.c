@@ -292,7 +292,7 @@ static void mpack_tree_parse_node(mpack_tree_parser_t* parser, mpack_node_data_t
     uint8_t type = mpack_tree_u8(parser);
 
     // as with mpack_read_tag(), the fastest way to parse a node is to switch
-    // on the first byte, and to explicitly list every possible byte. we jump
+    // on the first byte, and to explicitly list every possible byte. we switch
     // on the first four bits in size-optimized builds.
 
     #if MPACK_OPTIMIZE_FOR_SIZE

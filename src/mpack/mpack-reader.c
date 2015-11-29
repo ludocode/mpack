@@ -318,7 +318,7 @@ void mpack_skip_bytes(mpack_reader_t* reader, size_t count) {
     // use the skip function if we've got one, and if we're trying
     // to skip a lot of data. if we only need to skip some tiny
     // fraction of the buffer size, it's probably better to just
-    // fill the buffer and jump past it instead of trying to seek.
+    // fill the buffer and skip from it instead of trying to seek.
     if (reader->skip && count > reader->size / 16) {
         mpack_log("calling skip function for %i bytes\n", (int)count);
         reader->skip(reader, count);
@@ -363,6 +363,17 @@ void mpack_read_bytes(mpack_reader_t* reader, char* p, size_t count) {
 }
 
 #ifdef MPACK_MALLOC
+// Reads native bytes with error callback disabled. This allows MPack reader functions
+// to hold an allocated buffer and read native data into it without leaking it in
+// case of a non-local jump out of an error handler.
+static void mpack_read_native_nojump(mpack_reader_t* reader, char* p, size_t count) {
+    mpack_assert(reader->error == mpack_ok, "cannot call nojump if an error is already flagged!");
+    mpack_reader_error_t error_fn = reader->error_fn;
+    reader->error_fn = NULL;
+    mpack_read_native(reader, p, count);
+    reader->error_fn = error_fn;
+}
+
 char* mpack_read_bytes_alloc_size(mpack_reader_t* reader, size_t count, size_t alloc_size) {
     mpack_assert(count <= alloc_size, "count %i is less than alloc_size %i", (int)count, (int)alloc_size);
     if (alloc_size == 0)

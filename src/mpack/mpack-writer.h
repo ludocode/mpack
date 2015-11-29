@@ -75,8 +75,8 @@ typedef void (*mpack_writer_flush_t)(mpack_writer_t* writer, const char* buffer,
  * permanently in that error state.
  *
  * MPack is safe against non-local jumps out of error handler callbacks.
- * This means you are allowed to longjmp or throw an exception (in C++
- * or with SEH) out of this callback.
+ * This means you are allowed to longjmp or throw an exception (in C++,
+ * Objective-C, or with SEH) out of this callback.
  *
  * Bear in mind when using longjmp that local non-volatile variables that
  * have changed are undefined when setjmp() returns, so you can't put the
@@ -313,7 +313,8 @@ MPACK_INLINE size_t mpack_writer_buffer_left(mpack_writer_t* writer) {
 }
 
 /**
- * Places the writer in the given error state, jumping if a jump target is set.
+ * Places the writer in the given error state, calling the error callback if one
+ * is set.
  *
  * This allows you to externally flag errors, for example if you are validating
  * data as you write it, or if you want to cancel writing in the middle of a
@@ -321,8 +322,8 @@ MPACK_INLINE size_t mpack_writer_buffer_left(mpack_writer_t* writer) {
  * with unclosed compound types. In this case you should flag mpack_error_data
  * before destroying it.)
  *
- * If the writer is already in an error state, this call is ignored and no jump
- * is performed.
+ * If the writer is already in an error state, this call is ignored and no
+ * error callback is called.
  *
  * @see mpack_writer_destroy
  * @see mpack_error_data

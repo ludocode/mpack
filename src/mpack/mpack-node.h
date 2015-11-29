@@ -79,8 +79,8 @@ typedef struct mpack_tree_t mpack_tree_t;
  * permanently in that error state.
  *
  * MPack is safe against non-local jumps out of error handler callbacks.
- * This means you are allowed to longjmp or throw an exception (in C++
- * or with SEH) out of this callback.
+ * This means you are allowed to longjmp or throw an exception (in C++,
+ * Objective-C, or with SEH) out of this callback.
  *
  * Bear in mind when using longjmp that local non-volatile variables that
  * have changed are undefined when setjmp() returns, so you can't put the
@@ -295,24 +295,26 @@ MPACK_INLINE void mpack_tree_set_teardown(mpack_tree_t* tree, mpack_tree_teardow
 }
 
 /**
- * Places the tree in the given error state, jumping if a jump target is set.
+ * Places the tree in the given error state, calling the error callback if one
+ * is set.
  *
  * This allows you to externally flag errors, for example if you are validating
  * data as you read it.
  *
- * If the tree is already in an error state, this call is ignored and no jump
- * is performed.
+ * If the tree is already in an error state, this call is ignored and no
+ * error callback is called.
  */
 void mpack_tree_flag_error(mpack_tree_t* tree, mpack_error_t error);
 
 /**
- * Places the node's tree in the given error state, jumping if a jump target is set.
+ * Places the node's tree in the given error state, calling the error callback
+ * if one is set.
  *
  * This allows you to externally flag errors, for example if you are validating
  * data as you read it.
  *
- * If the tree is already in an error state, this call is ignored and no jump
- * is performed.
+ * If the tree is already in an error state, this call is ignored and no
+ * error callback is called.
  */
 void mpack_node_flag_error(mpack_node_t node, mpack_error_t error);
 

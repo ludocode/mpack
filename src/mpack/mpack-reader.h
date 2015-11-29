@@ -88,8 +88,8 @@ typedef void (*mpack_reader_skip_t)(mpack_reader_t* reader, size_t count);
  * permanently in that error state.
  *
  * MPack is safe against non-local jumps out of error handler callbacks.
- * This means you are allowed to longjmp or throw an exception (in C++
- * or with SEH) out of this callback.
+ * This means you are allowed to longjmp or throw an exception (in C++,
+ * Objective-C, or with SEH) out of this callback.
  *
  * Bear in mind when using longjmp that local non-volatile variables that
  * have changed are undefined when setjmp() returns, so you can't put the
@@ -298,13 +298,14 @@ MPACK_INLINE mpack_error_t mpack_reader_error(mpack_reader_t* reader) {
 }
 
 /**
- * Places the reader in the given error state, jumping if a jump target is set.
+ * Places the reader in the given error state, calling the error callback if one
+ * is set.
  *
  * This allows you to externally flag errors, for example if you are validating
  * data as you read it.
  *
- * If the reader is already in an error state, this call is ignored and no jump
- * is performed.
+ * If the reader is already in an error state, this call is ignored and no
+ * error callback is called.
  */
 void mpack_reader_flag_error(mpack_reader_t* reader, mpack_error_t error);
 
@@ -553,21 +554,6 @@ MPACK_INLINE_SPEED void mpack_read_native(mpack_reader_t* reader, char* p, size_
         reader->pos += count;
         reader->left -= count;
     }
-}
-#endif
-
-// Reads native bytes with error callback disabled. This allows MPack reader functions
-// to hold an allocated buffer and read native data into it without leaking it in
-// case of a non-local jump out of an error handler.
-MPACK_INLINE_SPEED void mpack_read_native_nojump(mpack_reader_t* reader, char* p, size_t count);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED void mpack_read_native_nojump(mpack_reader_t* reader, char* p, size_t count) {
-    mpack_assert(reader->error == mpack_ok, "cannot call nojump if an error is already flagged!");
-    mpack_reader_error_t error_fn = reader->error_fn;
-    reader->error_fn = NULL;
-    mpack_read_native(reader, p, count);
-    reader->error_fn = error_fn;
 }
 #endif
 
