@@ -2,7 +2,7 @@
 # updates documentation in gh-pages
 
 "`dirname $0`"/clean.sh
-. "`dirname $0`"/gendocs.sh || exit $?
+. "`dirname $0`"/gendocs.sh
 
 git checkout gh-pages || exit $?
 git pull

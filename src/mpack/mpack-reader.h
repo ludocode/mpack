@@ -72,6 +72,14 @@ typedef struct mpack_reader_t mpack_reader_t;
 typedef size_t (*mpack_reader_fill_t)(mpack_reader_t* reader, char* buffer, size_t count);
 
 /**
+ * The MPack reader's skip function. It should discard the given number
+ * of bytes from the source (for example by seeking forward.)
+ *
+ * In case of error, it should flag an appropriate error on the reader.
+ */
+typedef void (*mpack_reader_skip_t)(mpack_reader_t* reader, size_t count);
+
+/**
  * An error handler function to be called when an error is flagged on
  * the reader.
  *
@@ -80,8 +88,8 @@ typedef size_t (*mpack_reader_fill_t)(mpack_reader_t* reader, char* buffer, size
  * permanently in that error state.
  *
  * MPack is safe against non-local jumps out of error handler callbacks.
- * This means you are allowed to longjmp or throw an exception (in C++
- * or with SEH) out of this callback.
+ * This means you are allowed to longjmp or throw an exception (in C++,
+ * Objective-C, or with SEH) out of this callback.
  *
  * Bear in mind when using longjmp that local non-volatile variables that
  * have changed are undefined when setjmp() returns, so you can't put the
@@ -103,10 +111,16 @@ typedef void (*mpack_reader_error_t)(mpack_reader_t* reader, mpack_error_t error
 typedef void (*mpack_reader_teardown_t)(mpack_reader_t* reader);
 
 struct mpack_reader_t {
+    void* context;                    /* Context for reader callbacks */
     mpack_reader_fill_t fill;         /* Function to read bytes into the buffer */
     mpack_reader_error_t error_fn;    /* Function to call on error */
     mpack_reader_teardown_t teardown; /* Function to teardown the context on destroy */
-    void* context;                    /* Context for reader callbacks */
+
+    // The skip function may be unused, but we don't preproc it
+    // out on MPACK_OPTIMIZE_FOR_SIZE in case calling code is compiled
+    // with different optimization options. MPACK_OPTIMIZE_FOR_SIZE
+    // should never be used in header files.
+    mpack_reader_skip_t skip;         /* Function to skip bytes from the source */
 
     char* buffer;       /* Byte buffer */
     size_t size;        /* Size of the buffer, or zero if it's const */
@@ -181,22 +195,16 @@ void mpack_reader_init_file(mpack_reader_t* reader, const char* filename);
  * have been completely read. Returns the final error state of the
  * reader.
  *
- * This will assert in tracking mode if the reader has any incomplete
- * reads. If you want to cancel reading in the middle of a compound
- * element and don't care about the rest of the document, call
- * mpack_reader_destroy_cancel() instead.
+ * This will assert in tracking mode if the reader is not in an error
+ * state and has any incomplete reads. If you want to cancel reading
+ * in the middle of a document, you need to flag an error on the reader
+ * before destroying it (such as mpack_error_data).
  *
- * @see mpack_reader_destroy_cancel()
+ * @see mpack_read_tag()
+ * @see mpack_reader_flag_error()
+ * @see mpack_error_data
  */
 mpack_error_t mpack_reader_destroy(mpack_reader_t* reader);
-
-/**
- * Cleans up the MPack reader, discarding any open reads.
- *
- * This should be used if you decide to cancel reading in the middle
- * of the document.
- */
-void mpack_reader_destroy_cancel(mpack_reader_t* reader);
 
 /**
  * Sets the custom pointer to pass to the reader callbacks, such as fill
@@ -230,6 +238,24 @@ MPACK_INLINE void mpack_reader_set_fill(mpack_reader_t* reader, mpack_reader_fil
     mpack_assert(reader->size != 0, "cannot use fill function without a writeable buffer!");
     reader->fill = fill;
 }
+
+/**
+ * Sets the skip function to discard bytes from the source stream.
+ *
+ * It's not necessary to implement this function. If the stream is not
+ * seekable, don't set a skip callback. The reader will fall back to
+ * using the fill function instead.
+ *
+ * This should normally be used with mpack_reader_set_context() to register
+ * a custom pointer to pass to the skip function.
+ *
+ * The skip function is ignored in size-optimized builds to reduce code
+ * size. Data will be skipped with the fill function when necessary.
+ *
+ * @param reader The MPack reader.
+ * @param skip The function to discard bytes from the source stream.
+ */
+void mpack_reader_set_skip(mpack_reader_t* reader, mpack_reader_skip_t skip);
 
 /**
  * Sets the error function to call when an error is flagged on the reader.
@@ -272,13 +298,14 @@ MPACK_INLINE mpack_error_t mpack_reader_error(mpack_reader_t* reader) {
 }
 
 /**
- * Places the reader in the given error state, jumping if a jump target is set.
+ * Places the reader in the given error state, calling the error callback if one
+ * is set.
  *
  * This allows you to externally flag errors, for example if you are validating
  * data as you read it.
  *
- * If the reader is already in an error state, this call is ignored and no jump
- * is performed.
+ * If the reader is already in an error state, this call is ignored and no
+ * error callback is called.
  */
 void mpack_reader_flag_error(mpack_reader_t* reader, mpack_error_t error);
 
@@ -328,9 +355,8 @@ size_t mpack_reader_remaining(mpack_reader_t* reader, const char** data);
  * nil tag is returned.
  *
  * If the type is compound (i.e. is a map, array, string, binary or
- * extension type), additional reads are required to get the actual data,
- * and the corresponding done function (or cancel) should be called when
- * done.
+ * extension type), additional reads are required to get the contained
+ * data, and the corresponding done function must be called when done.
  *
  * Note that maps in JSON are unordered, so it is recommended not to expect
  * a specific ordering for your map values in case your data is converted
@@ -342,7 +368,6 @@ size_t mpack_reader_remaining(mpack_reader_t* reader, const char** data);
  * @see mpack_done_str()
  * @see mpack_done_bin()
  * @see mpack_done_ext()
- * @see mpack_cancel()
  */
 mpack_tag_t mpack_read_tag(mpack_reader_t* reader);
 
@@ -520,6 +545,8 @@ MPACK_INLINE_SPEED void mpack_read_native(mpack_reader_t* reader, char* p, size_
 
 #if MPACK_DEFINE_INLINE_SPEED
 MPACK_INLINE_SPEED void mpack_read_native(mpack_reader_t* reader, char* p, size_t count) {
+    mpack_assert(count == 0 || p != NULL, "data pointer for %i bytes is NULL", (int)count);
+
     if (count > reader->left) {
         mpack_read_native_big(reader, p, count);
     } else {
@@ -530,79 +557,37 @@ MPACK_INLINE_SPEED void mpack_read_native(mpack_reader_t* reader, char* p, size_
 }
 #endif
 
-// Reads native bytes with error callback disabled. This allows MPack reader functions
-// to hold an allocated buffer and read native data into it without leaking it in
-// case of a non-local jump out of an error handler.
-MPACK_INLINE_SPEED void mpack_read_native_nojump(mpack_reader_t* reader, char* p, size_t count);
+/** @cond */
 
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED void mpack_read_native_nojump(mpack_reader_t* reader, char* p, size_t count) {
-    mpack_assert(reader->error == mpack_ok, "cannot call nojump if an error is already flagged!");
-    mpack_reader_error_t error_fn = reader->error_fn;
-    reader->error_fn = NULL;
-    mpack_read_native(reader, p, count);
-    reader->error_fn = error_fn;
-}
-#endif
+// The read native wrappers are all the same, so we implement
+// them with this wrapper macro.
 
-MPACK_ALWAYS_INLINE uint8_t mpack_read_native_u8(mpack_reader_t* reader) {
-    if (reader->left >= sizeof(uint8_t)) {
-        uint8_t ret = mpack_load_native_u8(reader->buffer + reader->pos);
-        reader->pos += sizeof(uint8_t);
-        reader->left -= sizeof(uint8_t);
-        return ret;
-    }
+#define MPACK_READ_NATIVE_IMPL(load_fn, type_t)             \
+    if (reader->left >= sizeof(type_t)) {                   \
+        type_t ret = load_fn(reader->buffer + reader->pos); \
+        reader->pos += sizeof(type_t);                      \
+        reader->left -= sizeof(type_t);                     \
+        return ret;                                         \
+    }                                                       \
+                                                            \
+    char c[sizeof(type_t)];                                 \
+    mpack_read_native_big(reader, c, sizeof(c));            \
+    return load_fn(c);
 
-    char c[sizeof(uint8_t)];
-    mpack_read_native_big(reader, c, sizeof(c));
-    return mpack_load_native_u8(c);
-}
+/** @endcond */
 
-MPACK_ALWAYS_INLINE uint16_t mpack_read_native_u16(mpack_reader_t* reader) {
-    if (reader->left >= sizeof(uint16_t)) {
-        uint16_t ret = mpack_load_native_u16(reader->buffer + reader->pos);
-        reader->pos += sizeof(uint16_t);
-        reader->left -= sizeof(uint16_t);
-        return ret;
-    }
+MPACK_INLINE uint8_t  mpack_read_native_u8 (mpack_reader_t* reader) {MPACK_READ_NATIVE_IMPL(mpack_load_native_u8,  uint8_t);}
+MPACK_INLINE uint16_t mpack_read_native_u16(mpack_reader_t* reader) {MPACK_READ_NATIVE_IMPL(mpack_load_native_u16, uint16_t);}
+MPACK_INLINE uint32_t mpack_read_native_u32(mpack_reader_t* reader) {MPACK_READ_NATIVE_IMPL(mpack_load_native_u32, uint32_t);}
+MPACK_INLINE uint64_t mpack_read_native_u64(mpack_reader_t* reader) {MPACK_READ_NATIVE_IMPL(mpack_load_native_u64, uint64_t);}
 
-    char c[sizeof(uint16_t)];
-    mpack_read_native_big(reader, c, sizeof(c));
-    return mpack_load_native_u16(c);
-}
+MPACK_INLINE int8_t  mpack_read_native_i8  (mpack_reader_t* reader) {return (int8_t) mpack_read_native_u8 (reader);}
+MPACK_INLINE int16_t mpack_read_native_i16 (mpack_reader_t* reader) {return (int16_t)mpack_read_native_u16(reader);}
+MPACK_INLINE int32_t mpack_read_native_i32 (mpack_reader_t* reader) {return (int32_t)mpack_read_native_u32(reader);}
+MPACK_INLINE int64_t mpack_read_native_i64 (mpack_reader_t* reader) {return (int64_t)mpack_read_native_u64(reader);}
 
-MPACK_ALWAYS_INLINE uint32_t mpack_read_native_u32(mpack_reader_t* reader) {
-    if (reader->left >= sizeof(uint32_t)) {
-        uint32_t ret = mpack_load_native_u32(reader->buffer + reader->pos);
-        reader->pos += sizeof(uint32_t);
-        reader->left -= sizeof(uint32_t);
-        return ret;
-    }
-
-    char c[sizeof(uint32_t)];
-    mpack_read_native_big(reader, c, sizeof(c));
-    return mpack_load_native_u32(c);
-}
-
-MPACK_ALWAYS_INLINE uint64_t mpack_read_native_u64(mpack_reader_t* reader) {
-    if (reader->left >= sizeof(uint64_t)) {
-        uint64_t ret = mpack_load_native_u64(reader->buffer + reader->pos);
-        reader->pos += sizeof(uint64_t);
-        reader->left -= sizeof(uint64_t);
-        return ret;
-    }
-
-    char c[sizeof(uint64_t)];
-    mpack_read_native_big(reader, c, sizeof(c));
-    return mpack_load_native_u64(c);
-}
-
-MPACK_ALWAYS_INLINE int8_t  mpack_read_native_i8  (mpack_reader_t* reader) {return (int8_t) mpack_read_native_u8  (reader);}
-MPACK_ALWAYS_INLINE int16_t mpack_read_native_i16 (mpack_reader_t* reader) {return (int16_t)mpack_read_native_u16 (reader);}
-MPACK_ALWAYS_INLINE int32_t mpack_read_native_i32 (mpack_reader_t* reader) {return (int32_t)mpack_read_native_u32 (reader);}
-MPACK_ALWAYS_INLINE int64_t mpack_read_native_i64 (mpack_reader_t* reader) {return (int64_t)mpack_read_native_u64 (reader);}
-
-MPACK_ALWAYS_INLINE float mpack_read_native_float(mpack_reader_t* reader) {
+MPACK_INLINE float mpack_read_native_float(mpack_reader_t* reader) {
+    MPACK_CHECK_FLOAT_ORDER();
     union {
         float f;
         uint32_t i;
@@ -611,7 +596,8 @@ MPACK_ALWAYS_INLINE float mpack_read_native_float(mpack_reader_t* reader) {
     return u.f;
 }
 
-MPACK_ALWAYS_INLINE double mpack_read_native_double(mpack_reader_t* reader) {
+MPACK_INLINE double mpack_read_native_double(mpack_reader_t* reader) {
+    MPACK_CHECK_FLOAT_ORDER();
     union {
         double d;
         uint64_t i;

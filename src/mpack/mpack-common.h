@@ -38,7 +38,7 @@ MPACK_HEADER_START
 
 #define MPACK_VERSION_MAJOR 0  /**< The major version number of MPack. */
 #define MPACK_VERSION_MINOR 7  /**< The minor version number of MPack. */
-#define MPACK_VERSION_PATCH 0  /**< The patch version number of MPack. */
+#define MPACK_VERSION_PATCH 1  /**< The patch version number of MPack. */
 
 /** A number containing the version number of MPack for comparison purposes. */
 #define MPACK_VERSION ((MPACK_VERSION_MAJOR * 10000) + \
@@ -67,7 +67,7 @@ MPACK_HEADER_START
  *
  * A string containing the MPack version.
  */
-#if MPACK_AMALGAMATED
+#if MPACK_RELEASE_VERSION
 #define MPACK_VERSION_STRING MPACK_VERSION_STRING_BASE
 #else
 #define MPACK_VERSION_STRING MPACK_VERSION_STRING_BASE "dev"
@@ -331,9 +331,22 @@ MPACK_INLINE bool mpack_tag_equal(mpack_tag_t left, mpack_tag_t right) {
 
 
 
-/* Helpers for fetching an arbitrarily sized int from a memory
- * location, regardless of endianness or alignment. */
 /** @cond */
+
+/*
+ * Helpers to perform unaligned network-endian loads and stores
+ * at arbitrary addresses.
+ *
+ * These will remain available in the public API so feel free to
+ * use them for other purposes, but they are undocumented. (Note
+ * also that they are static always-inline; they do not follow
+ * the normal MPack inline linkage.)
+ *
+ * The bswap builtins are used when needed and available. With
+ * GCC 5.2 they appear to give better performance and smaller
+ * code size on little-endian ARM while compiling to the same
+ * assembly as the bit-shifting code on x86_64.
+ */
 
 MPACK_ALWAYS_INLINE uint8_t mpack_load_native_u8(const char* p) {
     return (uint8_t)p[0];
@@ -345,13 +358,24 @@ MPACK_ALWAYS_INLINE uint16_t mpack_load_native_u16(const char* p) {
 }
 
 MPACK_ALWAYS_INLINE uint32_t mpack_load_native_u32(const char* p) {
+    #ifdef MPACK_NHSWAP32
+    uint32_t val;
+    mpack_memcpy(&val, p, sizeof(val));
+    return MPACK_NHSWAP32(val);
+    #else
     return (((uint32_t)(uint8_t)p[0]) << 24) |
            (((uint32_t)(uint8_t)p[1]) << 16) |
            (((uint32_t)(uint8_t)p[2]) <<  8) |
             ((uint32_t)(uint8_t)p[3]);
+    #endif
 }
 
 MPACK_ALWAYS_INLINE uint64_t mpack_load_native_u64(const char* p) {
+    #ifdef MPACK_NHSWAP64
+    uint64_t val;
+    mpack_memcpy(&val, p, sizeof(val));
+    return MPACK_NHSWAP64(val);
+    #else
     return (((uint64_t)(uint8_t)p[0]) << 56) |
            (((uint64_t)(uint8_t)p[1]) << 48) |
            (((uint64_t)(uint8_t)p[2]) << 40) |
@@ -360,6 +384,76 @@ MPACK_ALWAYS_INLINE uint64_t mpack_load_native_u64(const char* p) {
            (((uint64_t)(uint8_t)p[5]) << 16) |
            (((uint64_t)(uint8_t)p[6]) <<  8) |
             ((uint64_t)(uint8_t)p[7]);
+    #endif
+}
+
+MPACK_ALWAYS_INLINE void mpack_store_native_u8(char* p, uint8_t val) {
+    uint8_t* u = (uint8_t*)p;
+    u[0] = val;
+}
+
+MPACK_ALWAYS_INLINE void mpack_store_native_u16(char* p, uint16_t val) {
+    uint8_t* u = (uint8_t*)p;
+    u[0] = (uint8_t)((val >> 8) & 0xFF);
+    u[1] = (uint8_t)( val       & 0xFF);
+}
+
+MPACK_ALWAYS_INLINE void mpack_store_native_u32(char* p, uint32_t val) {
+    #ifdef MPACK_NHSWAP32
+    val = MPACK_NHSWAP32(val);
+    mpack_memcpy(p, &val, sizeof(val));
+    #else
+    uint8_t* u = (uint8_t*)p;
+    u[0] = (uint8_t)((val >> 24) & 0xFF);
+    u[1] = (uint8_t)((val >> 16) & 0xFF);
+    u[2] = (uint8_t)((val >>  8) & 0xFF);
+    u[3] = (uint8_t)( val        & 0xFF);
+    #endif
+}
+
+MPACK_ALWAYS_INLINE void mpack_store_native_u64(char* p, uint64_t val) {
+    #ifdef MPACK_NHSWAP64
+    val = MPACK_NHSWAP64(val);
+    mpack_memcpy(p, &val, sizeof(val));
+    #else
+    uint8_t* u = (uint8_t*)p;
+    u[0] = (uint8_t)((val >> 56) & 0xFF);
+    u[1] = (uint8_t)((val >> 48) & 0xFF);
+    u[2] = (uint8_t)((val >> 40) & 0xFF);
+    u[3] = (uint8_t)((val >> 32) & 0xFF);
+    u[4] = (uint8_t)((val >> 24) & 0xFF);
+    u[5] = (uint8_t)((val >> 16) & 0xFF);
+    u[6] = (uint8_t)((val >>  8) & 0xFF);
+    u[7] = (uint8_t)( val        & 0xFF);
+    #endif
+}
+
+// These are the same as the unsigned versions; they're just
+// implemented to better document what's signed versus unsigned
+// in the writer store functions.
+MPACK_ALWAYS_INLINE void mpack_store_native_i8 (char* p, int8_t  val) {mpack_store_native_u8 (p, (uint8_t) val);}
+MPACK_ALWAYS_INLINE void mpack_store_native_i16(char* p, int16_t val) {mpack_store_native_u16(p, (uint16_t)val);}
+MPACK_ALWAYS_INLINE void mpack_store_native_i32(char* p, int32_t val) {mpack_store_native_u32(p, (uint32_t)val);}
+MPACK_ALWAYS_INLINE void mpack_store_native_i64(char* p, int64_t val) {mpack_store_native_u64(p, (uint64_t)val);}
+
+MPACK_ALWAYS_INLINE void mpack_store_native_float(char* p, float value) {
+    MPACK_CHECK_FLOAT_ORDER();
+    union {
+        float f;
+        uint32_t i;
+    } u;
+    u.f = value;
+    mpack_store_native_u32(p, u.i);
+}
+
+MPACK_ALWAYS_INLINE void mpack_store_native_double(char* p, double value) {
+    MPACK_CHECK_FLOAT_ORDER();
+    union {
+        double d;
+        uint64_t i;
+    } u;
+    u.d = value;
+    mpack_store_native_u64(p, u.i);
 }
 
 /** @endcond */
@@ -403,55 +497,22 @@ mpack_error_t mpack_track_destroy(mpack_track_t* track, bool cancel);
 
 
 
-/* The below code is from Bjoern Hoehrmann's Flexible and Economical */
-/* UTF-8 decoder, modified to support MPack inlining and add the mpack prefix. */
-
-/* Copyright (c) 2008-2010 Bjoern Hoehrmann <bjoern@hoehrmann.de> */
-/* See http://bjoern.hoehrmann.de/utf-8/decoder/dfa/ for details. */
-
-#define MPACK_UTF8_ACCEPT 0
-#define MPACK_UTF8_REJECT 12
-
-/**
- * Parses one byte from a UTF-8 stream.
- *
- * Returns and sets state to:
- *   - MPACK_UTF8_ACCEPT if the byte completes a valid unicode code point, placing it in codep
- *   - MPACK_UTF8_REJECT if the byte is invalid UTF-8
- *   - something else if more bytes are needed to form a valid character
- *
- * If more bytes are needed, this should be called again with the next byte
- * in the string. state and codep should not be modified, since they will
- * contain the partially read code point.
- *
- * The initial state should be set to MPACK_UTF8_ACCEPT before parsing a string.
- *
- * This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or
- * WTF-8. Overlong sequences and UTF-16 surrogates will be rejected. Only
- * pure UTF-8 is accepted.
- */
-uint32_t mpack_utf8_decode(uint32_t* state, uint32_t* codep, uint8_t byte);
-
-/* End of UTF-8 decoder code */
-
-
-
 /* Miscellaneous string functions */
 
 /**
  * Returns true if the given UTF-8 string is valid.
  */
-bool mpack_utf8_check(char* str, size_t bytes);
+bool mpack_utf8_check(const char* str, size_t bytes);
 
 /**
  * Returns true if the given UTF-8 string is valid and contains no null characters.
  */
-bool mpack_utf8_check_no_null(char* str, size_t bytes);
+bool mpack_utf8_check_no_null(const char* str, size_t bytes);
 
 /**
  * Returns true if the given string has no null bytes.
  */
-bool mpack_str_check_no_null(char* str, size_t bytes);
+bool mpack_str_check_no_null(const char* str, size_t bytes);
 
 
 

@@ -19,12 +19,14 @@ env = Environment()
 conf = Configure(env, custom_tests = {'CheckFlags': CheckFlags})
 
 for x in os.environ.keys():
-    if x in ["CC", "CXX", "PATH", "TRAVIS", "TERM"] or x.startswith("CLANG_") or x.startswith("CCC_"):
+    if x in ["CC", "CXX"]:
         env[x] = os.environ[x]
+    if x in ["PATH", "TRAVIS", "TERM"] or x.startswith("CLANG_") or x.startswith("CCC_"):
+        env["ENV"][x] = os.environ[x]
 
 env.Append(CPPFLAGS = [
     "-Wall", "-Wextra", "-Werror",
-    "-Wconversion", "-Wno-sign-conversion", "-Wundef",
+    "-Wconversion", "-Wno-sign-conversion", "-Wundef", "-Wshadow",
     "-Isrc", "-Itest",
     "-DMPACK_SCONS=1",
     "-g",
@@ -34,7 +36,7 @@ env.Append(LINKFLAGS = [
     ])
 # Additional warning flags are passed in SConscript based on the language (C/C++)
 
-if 'TRAVIS' not in env:
+if 'TRAVIS' not in env["ENV"]:
     # Travis-CI currently uses Clang 3.4 which does not support this option,
     # and it also appears to be incompatible with other GCC options on Travis-CI
     env.Append(CPPFLAGS = ["-Wno-float-conversion"])
@@ -60,7 +62,7 @@ if hasOg:
     debugflags = ["-DDEBUG", "-Og"]
 else:
     debugflags = ["-DDEBUG", "-O0"]
-releaseflags = ["-Os"]
+releaseflags = ["-O2"]
 cflags = ["-std=c99"]
 
 gcovflags = []
@@ -95,7 +97,6 @@ def AddBuilds(variant_dir, cppflags, linkflags = []):
 
 # The default build, everything in debug. This is the build used
 # for code coverage measurement and static analysis.
-
 AddBuild("debug", allfeatures + allconfigs + debugflags + cflags + gcovflags, gcovflags)
 
 
@@ -105,6 +106,8 @@ if ARGUMENTS.get('more') or ARGUMENTS.get('all'):
     AddBuild("release", allfeatures + allconfigs + releaseflags + cflags)
     AddBuilds("embed", allfeatures + cflags)
     AddBuilds("noio", allfeatures + noioconfigs + cflags)
+    AddBuild("debug-size", ["-DMPACK_OPTIMIZE_FOR_SIZE=1"] + debugflags + allfeatures + allconfigs + cflags)
+    AddBuild("release-size", ["-Os"] + allfeatures + allconfigs + cflags)
 
 
 # Run "scons all=1" to run all builds. This is what the CI runs.
@@ -113,8 +116,6 @@ if ARGUMENTS.get('all'):
     # various release builds
     AddBuild("release-unopt", allfeatures + allconfigs + cflags + ["-O0"])
     AddBuild("release-fastmath", allfeatures + allconfigs + releaseflags + cflags + ["-ffast-math"])
-    AddBuild("release-speed", ["-DMPACK_OPTIMIZE_FOR_SIZE=0"] +
-            allfeatures + allconfigs + releaseflags + cflags)
     if conf.CheckFlags(ltoflags, ltoflags, "-flto"):
         AddBuild("release-lto", allfeatures + allconfigs + ltoflags + cflags, ltoflags)
 

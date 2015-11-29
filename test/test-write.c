@@ -623,8 +623,8 @@ static void test_write_small_structure_trees() {
 
         mpack_write_cstr(&writer, "hello");
         mpack_start_array(&writer, 3);
-            mpack_write_cstr(&writer, "bonjour");
-            mpack_write_nil(&writer);
+            mpack_write_cstr_or_nil(&writer, "bonjour");
+            mpack_write_cstr_or_nil(&writer, NULL);
             mpack_write_int(&writer, -1);
         mpack_finish_array(&writer);
 
@@ -722,7 +722,8 @@ static void test_write_tracking() {
     mpack_writer_init(&writer, buf, sizeof(buf));
     mpack_start_map(&writer, 5);
     mpack_start_array(&writer, 5);
-    mpack_writer_destroy_cancel(&writer);
+    mpack_writer_flag_error(&writer, mpack_error_data);
+    TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_data);
 
     // finishing type when nothing was open
     mpack_writer_init(&writer, buf, sizeof(buf));
@@ -767,6 +768,91 @@ static void test_write_tracking() {
 }
 #endif
 
+static void test_write_utf8(void) {
+    char buf[4096];
+
+    // these test strings are mostly duplicated from test-expect.c, but
+    // without the MessagePack header
+
+    const char utf8_null[]            = "hello\x00world";
+    const char utf8_valid[]           = " \xCF\x80 \xe4\xb8\xad \xf0\xa0\x80\xb6";
+    const char utf8_trimmed[]         = "\xf0\xa0\x80\xb6";
+    const char utf8_invalid[]         = " \x80 ";
+    const char utf8_invalid_trimmed[] = "\xa0";
+    const char utf8_truncated[]       = "\xf0\xa0";
+    // we don't accept any of these UTF-8 variants; only pure UTF-8 is allowed.
+    const char utf8_modified[]        = " \xc0\x80 ";
+    const char utf8_cesu8[]           = " \xED\xA0\x81\xED\xB0\x80 ";
+    const char utf8_wobbly[]          = " \xED\xA0\x81 ";
+
+    // all non-UTF-8 writers should write these strings without error
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_null, sizeof(utf8_null)-1));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_valid, sizeof(utf8_valid)-1));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_trimmed, sizeof(utf8_trimmed)-1));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_invalid, sizeof(utf8_invalid)-1));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_invalid_trimmed, sizeof(utf8_invalid_trimmed)-1));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_truncated, sizeof(utf8_truncated)-1));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_modified, sizeof(utf8_modified)-1));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_cesu8, sizeof(utf8_cesu8)-1));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_wobbly, sizeof(utf8_wobbly)-1));
+
+    // as should the non-UTF-8 cstr writers
+    // (the utf8_null test here is writing up to the null-terminator which
+    // is not what is expected, but there is no way to test for that error.
+    // null-terminated strings are bad!)
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_cstr(&writer, utf8_null));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_cstr(&writer, utf8_valid));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_cstr(&writer, utf8_trimmed));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_cstr(&writer, utf8_invalid));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_cstr(&writer, utf8_invalid_trimmed));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_cstr(&writer, utf8_truncated));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_cstr(&writer, utf8_modified));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_cstr(&writer, utf8_cesu8));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_cstr(&writer, utf8_wobbly));
+
+    // test UTF-8 cstr writers
+    // NUL is valid in UTF-8, so we allow it by the non-cstr API. (If you're
+    // using it to write, you should also using some non-cstr API to
+    // read, so the NUL will be safely handled.)
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_utf8(&writer, utf8_null, sizeof(utf8_null)-1));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_utf8(&writer, utf8_valid, sizeof(utf8_valid)-1));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_utf8(&writer, utf8_trimmed, sizeof(utf8_trimmed)-1));
+    TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8(&writer, utf8_invalid, sizeof(utf8_invalid)-1), mpack_error_invalid);
+    TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8(&writer, utf8_invalid_trimmed, sizeof(utf8_invalid_trimmed)-1), mpack_error_invalid);
+    TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8(&writer, utf8_truncated, sizeof(utf8_truncated)-1), mpack_error_invalid);
+    TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8(&writer, utf8_modified, sizeof(utf8_modified)-1), mpack_error_invalid);
+    TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8(&writer, utf8_cesu8, sizeof(utf8_cesu8)-1), mpack_error_invalid);
+    TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8(&writer, utf8_wobbly, sizeof(utf8_wobbly)-1), mpack_error_invalid);
+
+    // test UTF-8 cstr writers
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_utf8_cstr(&writer, utf8_null)); // again, up to null-terminator, which is valid...
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_utf8_cstr(&writer, utf8_valid));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_utf8_cstr(&writer, utf8_trimmed));
+    TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8_cstr(&writer, utf8_invalid), mpack_error_invalid);
+    TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8_cstr(&writer, utf8_invalid_trimmed), mpack_error_invalid);
+    TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8_cstr(&writer, utf8_truncated), mpack_error_invalid);
+    TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8_cstr(&writer, utf8_modified), mpack_error_invalid);
+    TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8_cstr(&writer, utf8_cesu8), mpack_error_invalid);
+    TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8_cstr(&writer, utf8_wobbly), mpack_error_invalid);
+
+    // some basic tests for utf8_cstr_or_nil
+    TEST_SIMPLE_WRITE("\xa5hello", mpack_write_utf8_cstr_or_nil(&writer, "hello"));
+    TEST_SIMPLE_WRITE("\xc0", mpack_write_utf8_cstr_or_nil(&writer, NULL));
+    TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8_cstr_or_nil(&writer, utf8_invalid), mpack_error_invalid);
+}
+
+static void test_misc(void) {
+
+    // writing too much data without a flush callback
+    // should result in mpack_error_too_big
+    char shortbuf[10];
+    mpack_writer_t writer;
+    mpack_writer_init(&writer, shortbuf, sizeof(shortbuf));
+    mpack_write_cstr(&writer, "The quick brown fox jumps over the lazy dog.");
+    TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_too_big);
+
+}
+
 void test_writes() {
     /*
     const char c[] =
@@ -782,6 +868,7 @@ void test_writes() {
     test_write_simple_size_int();
     test_write_simple_tag_int();
     test_write_simple_misc();
+    test_write_utf8();
 
     #ifdef MPACK_MALLOC
     test_write_basic_structures();
@@ -792,6 +879,8 @@ void test_writes() {
     #if MPACK_WRITE_TRACKING
     test_write_tracking();
     #endif
+
+    test_misc();
 }
 
 #endif

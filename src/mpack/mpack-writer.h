@@ -60,7 +60,7 @@ typedef struct mpack_writer_t mpack_writer_t;
 /**
  * The MPack writer's flush function to flush the buffer to the output stream.
  * It should flag an appropriate error on the writer if flushing fails (usually
- * mpack_error_io.)
+ * mpack_error_io or mpack_error_memory.)
  *
  * The specified context for callbacks is at writer->context.
  */
@@ -75,8 +75,8 @@ typedef void (*mpack_writer_flush_t)(mpack_writer_t* writer, const char* buffer,
  * permanently in that error state.
  *
  * MPack is safe against non-local jumps out of error handler callbacks.
- * This means you are allowed to longjmp or throw an exception (in C++
- * or with SEH) out of this callback.
+ * This means you are allowed to longjmp or throw an exception (in C++,
+ * Objective-C, or with SEH) out of this callback.
  *
  * Bear in mind when using longjmp that local non-volatile variables that
  * have changed are undefined when setjmp() returns, so you can't put the
@@ -114,7 +114,7 @@ struct mpack_writer_t {
 };
 
 /**
- * @name Core Writer Functions
+ * @name Lifecycle Functions
  * @{
  */
 
@@ -122,10 +122,10 @@ struct mpack_writer_t {
  * Initializes an MPack writer with the given buffer. The writer
  * does not assume ownership of the buffer.
  *
- * Trying to write past the end of the buffer will result in mpack_error_io unless
- * a flush function is set with mpack_writer_set_flush(). To use the data without
- * flushing, call mpack_writer_buffer_used() to determine the number of bytes
- * written.
+ * Trying to write past the end of the buffer will result in mpack_error_too_big
+ * unless a flush function is set with mpack_writer_set_flush(). To use the data
+ * without flushing, call mpack_writer_buffer_used() to determine the number of
+ * bytes written.
  *
  * @param writer The MPack writer.
  * @param buffer The buffer into which to write MessagePack data.
@@ -145,7 +145,7 @@ void mpack_writer_init(mpack_writer_t* writer, char* buffer, size_t size);
  * if MPack's allocator hasn't been customized.)
  *
  * @throws mpack_error_memory if the buffer fails to grow when
- * flushing (not mpack_error_io)
+ * flushing.
  *
  * @param writer The MPack writer.
  * @param data Where to place the allocated data.
@@ -170,13 +170,7 @@ void mpack_writer_init_error(mpack_writer_t* writer, mpack_error_t error);
 void mpack_writer_init_file(mpack_writer_t* writer, const char* filename);
 #endif
 
-/**
- * @def mpack_writer_init_stack(writer, flush, context)
- * @hideinitializer
- *
- * Initializes an MPack writer using stack space as a buffer. A flush function
- * should be added to the writer to flush the buffer.
- */
+/** @cond */
 
 #define mpack_writer_init_stack_line_ex(line, writer) \
     char mpack_buf_##line[MPACK_STACK_SIZE]; \
@@ -185,31 +179,54 @@ void mpack_writer_init_file(mpack_writer_t* writer, const char* filename);
 #define mpack_writer_init_stack_line(line, writer) \
     mpack_writer_init_stack_line_ex(line, writer)
 
+/*
+ * Initializes an MPack writer using stack space as a buffer. A flush function
+ * should be added to the writer to flush the buffer.
+ *
+ * This is currently undocumented since it's not entirely useful on its own.
+ */
+
 #define mpack_writer_init_stack(writer) \
     mpack_writer_init_stack_line(__LINE__, (writer))
 
+/** @endcond */
+
 /**
- * Cleans up the MPack writer, flushing any buffered bytes to the
- * underlying stream, if any. Returns the final error state of the
- * writer in case an error occurred flushing. Causes an assert if
- * there are any unclosed compound types in tracking mode.
+ * Cleans up the MPack writer, flushing and closing the underlying stream,
+ * if any. Returns the final error state of the writer.
  *
- * Note that if a jump handler is set, a writer may jump during destroy if it
- * fails to flush any remaining data. In this case the writer will not be fully
- * destroyed; you can still get the error state, and you must call destroy as
- * usual in the jump handler.
+ * No flushing is performed if the writer is in an error state. The attached
+ * teardown function is called whether or not the writer is in an error state.
+ *
+ * This will assert in tracking mode if the writer is not in an error
+ * state and has any unclosed compound types. If you want to cancel
+ * writing in the middle of a document, you need to flag an error on
+ * the writer before destroying it (such as mpack_error_data).
+ *
+ * Note that a writer may raise an error and call your error handler during
+ * the final flush. It is safe to longjmp or throw out of this error handler,
+ * but if you do, the writer will not be destroyed, and the teardown function
+ * will not be called. You can still get the writer's error state, and you
+ * must call mpack_writer_destroy again. (The second call is guaranteed not
+ * to call your error handler again since the writer is already in an error
+ * state.)
+ *
+ * @see mpack_writer_set_error_handler
+ * @see mpack_writer_set_flush
+ * @see mpack_writer_set_teardown
+ * @see mpack_writer_flag_error
+ * @see mpack_error_data
  */
 mpack_error_t mpack_writer_destroy(mpack_writer_t* writer);
 
 /**
- * Cleans up the MPack writer, discarding any open writes and unflushed data.
- *
- * Use this to cancel writing in the middle of writing a document (for example
- * in case an error occurred.) This should be used instead of mpack_writer_destroy()
- * because the former will assert in tracking mode if there are any unclosed
- * compound types.
+ * @}
  */
-void mpack_writer_destroy_cancel(mpack_writer_t* writer);
+
+/**
+ * @name Callbacks
+ * @{
+ */
 
 /**
  * Sets the custom pointer to pass to the writer callbacks, such as flush
@@ -226,7 +243,7 @@ MPACK_INLINE void mpack_writer_set_context(mpack_writer_t* writer, void* context
  * Sets the flush function to write out the data when the buffer is full.
  *
  * If no flush function is used, trying to write past the end of the
- * buffer will result in mpack_error_io.
+ * buffer will result in mpack_error_too_big.
  *
  * This should normally be used with mpack_writer_set_context() to register
  * a custom pointer to pass to the flush function.
@@ -270,6 +287,15 @@ MPACK_INLINE void mpack_writer_set_teardown(mpack_writer_t* writer, mpack_writer
 }
 
 /**
+ * @}
+ */
+
+/**
+ * @name Core Writer Functions
+ * @{
+ */
+
+/**
  * Returns the number of bytes currently stored in the buffer. This
  * may be less than the total number of bytes written if bytes have
  * been flushed to an underlying stream.
@@ -279,13 +305,28 @@ MPACK_INLINE size_t mpack_writer_buffer_used(mpack_writer_t* writer) {
 }
 
 /**
- * Places the writer in the given error state, jumping if a jump target is set.
+ * Returns the amount of space left in the buffer. This may be reset
+ * after a write if bytes are flushed to an underlying stream.
+ */
+MPACK_INLINE size_t mpack_writer_buffer_left(mpack_writer_t* writer) {
+    return writer->size - writer->used;
+}
+
+/**
+ * Places the writer in the given error state, calling the error callback if one
+ * is set.
  *
  * This allows you to externally flag errors, for example if you are validating
- * data as you read it.
+ * data as you write it, or if you want to cancel writing in the middle of a
+ * document. (The writer will assert if you try to destroy it without error and
+ * with unclosed compound types. In this case you should flag mpack_error_data
+ * before destroying it.)
  *
- * If the writer is already in an error state, this call is ignored and no jump
- * is performed.
+ * If the writer is already in an error state, this call is ignored and no
+ * error callback is called.
+ *
+ * @see mpack_writer_destroy
+ * @see mpack_error_data
  */
 void mpack_writer_flag_error(mpack_writer_t* writer, mpack_error_t error);
 
@@ -306,69 +347,166 @@ MPACK_INLINE mpack_error_t mpack_writer_error(mpack_writer_t* writer) {
  * containing elements or bytes must be written separately and the
  * appropriate finish function must be called (as though one of the
  * mpack_start_*() functions was called.)
+ *
+ * @see mpack_finish_map()
+ * @see mpack_finish_array()
+ * @see mpack_finish_str()
+ * @see mpack_finish_bin()
+ * @see mpack_finish_ext()
+ * @see mpack_finish_type()
  */
 void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t tag);
+
+#if MPACK_WRITE_TRACKING
+/**
+ * Finishes writing the given compound type.
+ *
+ * This will track writes to ensure that the correct number of elements
+ * or bytes are written.
+ *
+ * This can be called with the appropriate type instead the corresponding
+ * mpack_finish_*() function if you want to finish a dynamic type.
+ */
+void mpack_finish_type(mpack_writer_t* writer, mpack_type_t type);
+#endif
 
 /**
  * @}
  */
 
 /**
- * @name Typed Write Functions
+ * @name Integers
  * @{
  */
 
-/*! Writes an 8-bit integer in the most efficient packing available. */
+/** Writes an 8-bit integer in the most efficient packing available. */
 void mpack_write_i8(mpack_writer_t* writer, int8_t value);
 
-/*! Writes a 16-bit integer in the most efficient packing available. */
+/** Writes a 16-bit integer in the most efficient packing available. */
 void mpack_write_i16(mpack_writer_t* writer, int16_t value);
 
-/*! Writes a 32-bit integer in the most efficient packing available. */
+/** Writes a 32-bit integer in the most efficient packing available. */
 void mpack_write_i32(mpack_writer_t* writer, int32_t value);
 
-/*! Writes a 64-bit integer in the most efficient packing available. */
+/** Writes a 64-bit integer in the most efficient packing available. */
 void mpack_write_i64(mpack_writer_t* writer, int64_t value);
 
-/*! Writes an integer in the most efficient packing available. */
+/** Writes an integer in the most efficient packing available. */
 MPACK_INLINE void mpack_write_int(mpack_writer_t* writer, int64_t value) {
     mpack_write_i64(writer, value);
 }
 
-/*! Writes an 8-bit unsigned integer in the most efficient packing available. */
+/** Writes an 8-bit unsigned integer in the most efficient packing available. */
 void mpack_write_u8(mpack_writer_t* writer, uint8_t value);
 
-/*! Writes an 16-bit unsigned integer in the most efficient packing available. */
+/** Writes an 16-bit unsigned integer in the most efficient packing available. */
 void mpack_write_u16(mpack_writer_t* writer, uint16_t value);
 
-/*! Writes an 32-bit unsigned integer in the most efficient packing available. */
+/** Writes an 32-bit unsigned integer in the most efficient packing available. */
 void mpack_write_u32(mpack_writer_t* writer, uint32_t value);
 
-/*! Writes an 64-bit unsigned integer in the most efficient packing available. */
+/** Writes an 64-bit unsigned integer in the most efficient packing available. */
 void mpack_write_u64(mpack_writer_t* writer, uint64_t value);
 
-/*! Writes an unsigned integer in the most efficient packing available. */
+/** Writes an unsigned integer in the most efficient packing available. */
 MPACK_INLINE void mpack_write_uint(mpack_writer_t* writer, uint64_t value) {
     mpack_write_u64(writer, value);
 }
 
-/*! Writes a float. */
+/**
+ * @}
+ */
+
+/**
+ * @name Other Basic Types
+ * @{
+ */
+
+/** Writes a float. */
 void mpack_write_float(mpack_writer_t* writer, float value);
 
-/*! Writes a double. */
+/** Writes a double. */
 void mpack_write_double(mpack_writer_t* writer, double value);
 
-/*! Writes a boolean. */
+/** Writes a boolean. */
 void mpack_write_bool(mpack_writer_t* writer, bool value);
 
-/*! Writes a boolean with value true. */
+/** Writes a boolean with value true. */
 void mpack_write_true(mpack_writer_t* writer);
 
-/*! Writes a boolean with value false. */
+/** Writes a boolean with value false. */
 void mpack_write_false(mpack_writer_t* writer);
 
-/*! Writes a nil. */
+/** Writes a nil. */
 void mpack_write_nil(mpack_writer_t* writer);
+
+/**
+ * @}
+ */
+
+/**
+ * @name Map and Array Functions
+ * @{
+ */
+
+/**
+ * Opens an array.
+ *
+ * `count` elements must follow, and mpack_finish_array() must be called
+ * when done.
+ *
+ * @see mpack_finish_array()
+ */
+void mpack_start_array(mpack_writer_t* writer, uint32_t count);
+
+/**
+ * Opens a map.
+ *
+ * `count * 2` elements must follow, and mpack_finish_map() must be called
+ * when done.
+ *
+ * Remember that while map elements in MessagePack are implicitly ordered,
+ * they are not ordered in JSON. If you need elements to be read back
+ * in the order they are written, consider use an array instead.
+ *
+ * @see mpack_finish_map()
+ */
+void mpack_start_map(mpack_writer_t* writer, uint32_t count);
+
+#if MPACK_WRITE_TRACKING
+/**
+ * Finishes writing an array.
+ *
+ * This should be called only after a corresponding call to mpack_start_array()
+ * and after the array contents are written.
+ *
+ * This will track writes to ensure that the correct number of elements are written.
+ *
+ * @see mpack_start_array()
+ */
+void mpack_finish_array(mpack_writer_t* writer);
+
+/**
+ * Finishes writing a map.
+ *
+ * This should be called only after a corresponding call to mpack_start_map()
+ * and after the map contents are written.
+ *
+ * This will track writes to ensure that the correct number of elements are written.
+ *
+ * @see mpack_start_map()
+ */
+void mpack_finish_map(mpack_writer_t* writer);
+#endif
+
+/**
+ * @}
+ */
+
+/**
+ * @name Data Helpers
+ * @{
+ */
 
 /**
  * Writes a string.
@@ -376,14 +514,87 @@ void mpack_write_nil(mpack_writer_t* writer);
  * To stream a string in chunks, use mpack_start_str() instead.
  *
  * MPack does not care about the underlying encoding, but UTF-8 is highly
- * recommended, especially for compatibility with JSON.
+ * recommended, especially for compatibility with JSON. You should consider
+ * calling mpack_write_utf8() instead, especially if you will be reading
+ * it back as UTF-8.
+ *
+ * You should not call mpack_finish_str() after calling this; this
+ * performs both start and finish.
  */
 void mpack_write_str(mpack_writer_t* writer, const char* str, uint32_t length);
+
+/**
+ * Writes a string, ensuring that it is valid UTF-8.
+ *
+ * This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or
+ * WTF-8. Only pure UTF-8 is allowed.
+ *
+ * You should not call mpack_finish_str() after calling this; this
+ * performs both start and finish.
+ *
+ * @throws mpack_error_invalid if the string is not valid UTF-8
+ */
+void mpack_write_utf8(mpack_writer_t* writer, const char* str, uint32_t length);
+
+/**
+ * Writes a null-terminated string. (The null-terminator is not written.)
+ *
+ * MPack does not care about the underlying encoding, but UTF-8 is highly
+ * recommended, especially for compatibility with JSON.
+ *
+ * You should not call mpack_finish_str() after calling this; this
+ * performs both start and finish.
+ */
+void mpack_write_cstr(mpack_writer_t* writer, const char* cstr);
+
+/**
+ * Writes a null-terminated string, or a nil node if the given cstr pointer
+ * is NULL. (The null-terminator is not written.)
+ *
+ * MPack does not care about the underlying encoding, but UTF-8 is highly
+ * recommended, especially for compatibility with JSON.
+ *
+ * You should not call mpack_finish_str() after calling this; this
+ * performs both start and finish.
+ */
+void mpack_write_cstr_or_nil(mpack_writer_t* writer, const char* cstr);
+
+/**
+ * Writes a null-terminated string, ensuring that it is valid UTF-8. (The
+ * null-terminator is not written.)
+ *
+ * This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or
+ * WTF-8. Only pure UTF-8 is allowed.
+ *
+ * You should not call mpack_finish_str() after calling this; this
+ * performs both start and finish.
+ *
+ * @throws mpack_error_invalid if the string is not valid UTF-8
+ */
+void mpack_write_utf8_cstr(mpack_writer_t* writer, const char* cstr);
+
+/**
+ * Writes a null-terminated string ensuring that it is valid UTF-8, or
+ * writes nil if the given cstr pointer is NULL. (The null-terminator
+ * is not written.)
+ *
+ * This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or
+ * WTF-8. Only pure UTF-8 is allowed.
+ *
+ * You should not call mpack_finish_str() after calling this; this
+ * performs both start and finish.
+ *
+ * @throws mpack_error_invalid if the string is not valid UTF-8
+ */
+void mpack_write_utf8_cstr_or_nil(mpack_writer_t* writer, const char* cstr);
 
 /**
  * Writes a binary blob.
  *
  * To stream a binary blob in chunks, use mpack_start_bin() instead.
+ *
+ * You should not call mpack_finish_bin() after calling this; this
+ * performs both start and finish.
  */
 void mpack_write_bin(mpack_writer_t* writer, const char* data, uint32_t count);
 
@@ -394,27 +605,23 @@ void mpack_write_bin(mpack_writer_t* writer, const char* data, uint32_t count);
  *
  * Extension types [0, 127] are available for application-specific types. Extension
  * types [-128, -1] are reserved for future extensions of MessagePack.
+ *
+ * You should not call mpack_finish_ext() after calling this; this
+ * performs both start and finish.
  */
 void mpack_write_ext(mpack_writer_t* writer, int8_t exttype, const char* data, uint32_t count);
 
 /**
- * Opens an array. count elements should follow, and mpack_finish_array()
- * should be called when done.
+ * @}
  */
-void mpack_start_array(mpack_writer_t* writer, uint32_t count);
 
 /**
- * Opens a map. count*2 elements should follow, and mpack_finish_map()
- * should be called when done.
- *
- * Remember that while map elements in MessagePack are implicitly ordered,
- * they are not ordered in JSON. If you need elements to be read back
- * in the order they are written, consider use an array instead.
+ * @name Chunked Data Functions
+ * @{
  */
-void mpack_start_map(mpack_writer_t* writer, uint32_t count);
 
 /**
- * Opens a string. count bytes should be written with calls to 
+ * Opens a string. `count` bytes should be written with calls to
  * mpack_write_bytes(), and mpack_finish_str() should be called
  * when done.
  *
@@ -427,14 +634,14 @@ void mpack_start_map(mpack_writer_t* writer, uint32_t count);
 void mpack_start_str(mpack_writer_t* writer, uint32_t count);
 
 /**
- * Opens a binary blob. count bytes should be written with calls to 
+ * Opens a binary blob. `count` bytes should be written with calls to
  * mpack_write_bytes(), and mpack_finish_bin() should be called
  * when done.
  */
 void mpack_start_bin(mpack_writer_t* writer, uint32_t count);
 
 /**
- * Opens an extension type. count bytes should be written with calls
+ * Opens an extension type. `count` bytes should be written with calls
  * to mpack_write_bytes(), and mpack_finish_ext() should be called
  * when done.
  *
@@ -445,8 +652,13 @@ void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count);
 
 /**
  * Writes a portion of bytes for a string, binary blob or extension type which
- * was opened by one of the mpack_start_*() functions. The corresponding
- * mpack_finish_*() function should be called when done.
+ * was opened by one of the mpack_start_*() functions.
+ *
+ * This can be called multiple times to write the data in chunks, as long as
+ * the total amount of bytes written matches the count given when the compound
+ * type was started.
+ *
+ * The corresponding mpack_finish_*() function must be called when done.
  *
  * To write an entire string, binary blob or extension type at
  * once, use one of the mpack_write_*() functions instead.
@@ -457,56 +669,52 @@ void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count);
  * @see mpack_finish_str()
  * @see mpack_finish_bin()
  * @see mpack_finish_ext()
- * @see mpack_write_str()
- * @see mpack_write_bin()
- * @see mpack_write_ext()
+ * @see mpack_finish_type()
  */
 void mpack_write_bytes(mpack_writer_t* writer, const char* data, size_t count);
 
 #if MPACK_WRITE_TRACKING
 /**
- * Finishes writing an array.
- *
- * This will track writes to ensure that the correct number of elements are written.
- */
-void mpack_finish_array(mpack_writer_t* writer);
-
-/**
- * Finishes writing a map.
- *
- * This will track writes to ensure that the correct number of elements are written.
- */
-void mpack_finish_map(mpack_writer_t* writer);
-
-/**
  * Finishes writing a string.
  *
- * This will track writes to ensure that the correct number of bytes are written.
+ * This should be called only after a corresponding call to mpack_start_str()
+ * and after the string bytes are written with mpack_write_bytes().
+ *
+ * This will track writes to ensure that the correct number of elements are written.
+ *
+ * @see mpack_start_str()
+ * @see mpack_write_bytes()
  */
 void mpack_finish_str(mpack_writer_t* writer);
 
 /**
  * Finishes writing a binary blob.
  *
+ * This should be called only after a corresponding call to mpack_start_bin()
+ * and after the binary bytes are written with mpack_write_bytes().
+ *
  * This will track writes to ensure that the correct number of bytes are written.
+ *
+ * @see mpack_start_bin()
+ * @see mpack_write_bytes()
  */
 void mpack_finish_bin(mpack_writer_t* writer);
 
 /**
  * Finishes writing an extended type binary data blob.
  *
+ * This should be called only after a corresponding call to mpack_start_bin()
+ * and after the binary bytes are written with mpack_write_bytes().
+ *
  * This will track writes to ensure that the correct number of bytes are written.
+ *
+ * @see mpack_start_ext()
+ * @see mpack_write_bytes()
  */
 void mpack_finish_ext(mpack_writer_t* writer);
+#endif
 
-/**
- * Finishes writing the given compound type.
- *
- * This will track writes to ensure that the correct number of elements
- * or bytes are written.
- */
-void mpack_finish_type(mpack_writer_t* writer, mpack_type_t type);
-#else
+#if !MPACK_WRITE_TRACKING
 MPACK_INLINE void mpack_finish_array(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
 MPACK_INLINE void mpack_finish_map(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
 MPACK_INLINE void mpack_finish_str(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
@@ -514,14 +722,6 @@ MPACK_INLINE void mpack_finish_bin(mpack_writer_t* writer) {MPACK_UNUSED(writer)
 MPACK_INLINE void mpack_finish_ext(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
 MPACK_INLINE void mpack_finish_type(mpack_writer_t* writer, mpack_type_t type) {MPACK_UNUSED(writer); MPACK_UNUSED(type);}
 #endif
-
-/**
- * Writes a null-terminated string. (The null-terminator is not written.)
- *
- * MPack does not care about the underlying encoding, but UTF-8 is highly
- * recommended, especially for compatibility with JSON.
- */
-void mpack_write_cstr(mpack_writer_t* writer, const char* str);
 
 /**
  * @}

@@ -100,6 +100,9 @@
 #ifndef MPACK_AMALGAMATED
 #define MPACK_AMALGAMATED 0
 #endif
+#ifndef MPACK_RELEASE_VERSION
+#define MPACK_RELEASE_VERSION 0
+#endif
 #ifndef MPACK_INTERNAL
 #define MPACK_INTERNAL 0
 #endif
@@ -128,6 +131,7 @@
 #include <string.h>
 #include <stdlib.h>
 #endif
+
 #if MPACK_STDIO
 #include <stdio.h>
 #include <errno.h>
@@ -140,38 +144,59 @@
  */
 
 #ifdef __cplusplus
-#define MPACK_EXTERN_C_START extern "C" {
-#define MPACK_EXTERN_C_END   }
+    #define MPACK_EXTERN_C_START extern "C" {
+    #define MPACK_EXTERN_C_END   }
 #else
-#define MPACK_EXTERN_C_START /* nothing */
-#define MPACK_EXTERN_C_END   /* nothing */
+    #define MPACK_EXTERN_C_START /* nothing */
+    #define MPACK_EXTERN_C_END   /* nothing */
 #endif
 
 /* GCC versions from 4.6 to before 5.1 warn about defining a C99
  * non-static inline function before declaring it (see issue #20) */
-#if (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
-#ifdef __cplusplus
-#define MPACK_DECLARED_INLINE_WARNING_START \
-    _Pragma ("GCC diagnostic push") \
-    _Pragma ("GCC diagnostic ignored \"-Wmissing-declarations\"")
-#else
-#define MPACK_DECLARED_INLINE_WARNING_START \
-    _Pragma ("GCC diagnostic push") \
-    _Pragma ("GCC diagnostic ignored \"-Wmissing-prototypes\"")
+#ifdef __GNUC__
+    #if (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
+        #ifdef __cplusplus
+            #define MPACK_DECLARED_INLINE_WARNING_START \
+                _Pragma ("GCC diagnostic push") \
+                _Pragma ("GCC diagnostic ignored \"-Wmissing-declarations\"")
+        #else
+            #define MPACK_DECLARED_INLINE_WARNING_START \
+                _Pragma ("GCC diagnostic push") \
+                _Pragma ("GCC diagnostic ignored \"-Wmissing-prototypes\"")
+        #endif
+        #define MPACK_DECLARED_INLINE_WARNING_END \
+            _Pragma ("GCC diagnostic pop")
+    #endif
 #endif
-#define MPACK_DECLARED_INLINE_WARNING_END \
-    _Pragma ("GCC diagnostic pop")
-#else
-#define MPACK_DECLARED_INLINE_WARNING_START /* nothing */
-#define MPACK_DECLARED_INLINE_WARNING_END /* nothing */
+#ifndef MPACK_DECLARED_INLINE_WARNING_START
+    #define MPACK_DECLARED_INLINE_WARNING_START /* nothing */
+    #define MPACK_DECLARED_INLINE_WARNING_END /* nothing */
+#endif
+
+/* GCC versions before 4.8 warn about shadowing a function with a
+ * variable that isn't a function or function pointer (like "index") */
+#ifdef __GNUC__
+    #if (__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 8)
+        #define MPACK_WSHADOW_WARNING_START \
+            _Pragma ("GCC diagnostic push") \
+            _Pragma ("GCC diagnostic ignored \"-Wshadow\"")
+        #define MPACK_WSHADOW_WARNING_END \
+            _Pragma ("GCC diagnostic pop")
+    #endif
+#endif
+#ifndef MPACK_WSHADOW_WARNING_START
+    #define MPACK_WSHADOW_WARNING_START /* nothing */
+    #define MPACK_WSHADOW_WARNING_END /* nothing */
 #endif
 
 #define MPACK_HEADER_START \
     MPACK_EXTERN_C_START \
+    MPACK_WSHADOW_WARNING_START \
     MPACK_DECLARED_INLINE_WARNING_START
 
 #define MPACK_HEADER_END \
     MPACK_DECLARED_INLINE_WARNING_END \
+    MPACK_WSHADOW_WARNING_END \
     MPACK_EXTERN_C_END
 
 MPACK_HEADER_START
@@ -271,7 +296,7 @@ MPACK_HEADER_START
 #endif
 
 #ifdef MPACK_OPTIMIZE_FOR_SPEED
-#error "You should define MPACK_OPTIMIZE_FOR_SIZE, not MPACK_OPTIMIZE_FOR_SPEED."
+    #error "You should define MPACK_OPTIMIZE_FOR_SIZE, not MPACK_OPTIMIZE_FOR_SPEED."
 #endif
 
 
@@ -296,18 +321,154 @@ MPACK_HEADER_START
 #endif
 
 #ifndef MPACK_UNREACHABLE
-    #define MPACK_UNREACHABLE ((void)0)
+#define MPACK_UNREACHABLE ((void)0)
 #endif
 #ifndef MPACK_NORETURN
-    #define MPACK_NORETURN(fn) fn
+#define MPACK_NORETURN(fn) fn
 #endif
 #ifndef MPACK_ALWAYS_INLINE
-    #define MPACK_ALWAYS_INLINE MPACK_INLINE
+#define MPACK_ALWAYS_INLINE MPACK_INLINE
 #endif
 #ifndef MPACK_STATIC_ALWAYS_INLINE
-    #define MPACK_STATIC_ALWAYS_INLINE static inline
+#define MPACK_STATIC_ALWAYS_INLINE static inline
 #endif
 
+
+
+/* Static assert */
+
+#ifndef MPACK_STATIC_ASSERT
+    #ifdef __STDC_VERSION__
+        #if __STDC_VERSION__ >= 201112L
+            #define MPACK_STATIC_ASSERT _Static_assert
+        #endif
+    #endif
+#endif
+
+#ifndef MPACK_STATIC_ASSERT
+    #if defined(__has_feature)
+        #if __has_feature(cxx_static_assert)
+            #define MPACK_STATIC_ASSERT static_assert
+        #elif __has_feature(c_static_assert)
+            #define MPACK_STATIC_ASSERT _Static_assert
+        #endif
+    #endif
+#endif
+
+#ifndef MPACK_STATIC_ASSERT
+    #if defined(__cplusplus)
+        #if __cplusplus >= 201103L
+            #define MPACK_STATIC_ASSERT static_assert
+        #endif
+    #endif
+#endif
+
+#ifndef MPACK_STATIC_ASSERT
+    #if defined(__GNUC__)
+        #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
+            #ifndef __cplusplus
+                #define MPACK_STATIC_ASSERT(expr, str) do { \
+                    _Pragma ("GCC diagnostic push") \
+                    _Pragma ("GCC diagnostic ignored \"-pedantic\"") \
+                    _Pragma ("GCC diagnostic ignored \"-Wc++-compat\"") \
+                    _Static_assert(expr, str); \
+                    _Pragma ("GCC diagnostic pop") \
+                } while (0)
+            #endif
+        #endif
+    #endif
+#endif
+
+#ifndef MPACK_STATIC_ASSERT
+    #ifdef _MSC_VER
+        #if _MSC_VER >= 1600
+            #define MPACK_STATIC_ASSERT static_assert
+        #endif
+    #endif
+#endif
+
+#ifndef MPACK_STATIC_ASSERT
+    #define MPACK_STATIC_ASSERT(expr, str) (MPACK_UNUSED(sizeof(char[1 - 2*!(expr)])))
+#endif
+
+
+
+/*
+ * Endianness checks
+ *
+ * These define MPACK_NHSWAP*() which swap network<->host byte
+ * order when needed.
+ *
+ * We leave them undefined if we can't determine the endianness
+ * at compile-time, in which case we fall back to bit-shifts.
+ *
+ * See the notes in mpack-common.h.
+ */
+
+#if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && defined(__ORDER_BIG_ENDIAN__)
+    #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+        #define MPACK_NHSWAP32(x) (x)
+        #define MPACK_NHSWAP64(x) (x)
+    #elif __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
+
+        #if defined(__clang__)
+            #ifdef __has_builtin
+                #if __has_builtin(__builtin_bswap32)
+                    #define MPACK_NHSWAP32(x) __builtin_bswap32(x)
+                #endif
+                #if __has_builtin(__builtin_bswap64)
+                    #define MPACK_NHSWAP64(x) __builtin_bswap64(x)
+                #endif
+            #endif
+
+        #elif defined(__GNUC__)
+
+            // The GCC bswap builtins are apparently poorly optimized on older
+            // versions of GCC, so we set a minimum version here just in case
+            //     http://hardwarebug.org/2010/01/14/beware-the-builtins/
+
+            #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
+                #define MPACK_NHSWAP32(x) __builtin_bswap32(x)
+                #define MPACK_NHSWAP64(x) __builtin_bswap64(x)
+            #endif
+
+        #endif
+    #endif
+
+#elif defined(_MSC_VER) && defined(_WIN32)
+
+    // On Windows, we assume x86 and x86_64 are always little-endian.
+    // We make no assumptions about ARM even though all current
+    // Windows Phone devices are little-endian just in case they
+    // release one that isn't.
+
+    #if defined(_M_IX86) || defined(_M_X64) || defined(_M_AMD64)
+        #define MPACK_NHSWAP32(x) _byteswap_ulong(x)
+        #define MPACK_NHSWAP64(x) _byteswap_uint64(x)
+    #endif
+
+#endif
+
+#if defined(__FLOAT_WORD_ORDER__) && defined(__BYTE_ORDER__)
+
+    // We check where possible that the float byte order matches the
+    // integer byte order. This is extremely unlikely to fail, but
+    // we check anyway just in case.
+    //
+    // (The static assert is placed in float/double encoders instead
+    // of here because our static assert fallback doesn't work at
+    // file scope)
+
+    #define MPACK_CHECK_FLOAT_ORDER() \
+        MPACK_STATIC_ASSERT(__FLOAT_WORD_ORDER__ == __BYTE_ORDER__, \
+            "float byte order does not match int byte order! float/double " \
+            "encoding is not properly implemented on this platform.")
+
+#endif
+
+#ifndef MPACK_CHECK_FLOAT_ORDER
+    #define MPACK_CHECK_FLOAT_ORDER() /* nothing */
+#endif
 
 
 /*
@@ -378,26 +539,26 @@ MPACK_HEADER_START
 
 /* Wrap some needed libc functions */
 #if MPACK_STDLIB
-#define mpack_memset memset
-#define mpack_memcpy memcpy
-#define mpack_memmove memmove
-#define mpack_memcmp memcmp
-#define mpack_strlen strlen
+    #define mpack_memset memset
+    #define mpack_memcpy memcpy
+    #define mpack_memmove memmove
+    #define mpack_memcmp memcmp
+    #define mpack_strlen strlen
 #else
-void* mpack_memset(void *s, int c, size_t n);
-void* mpack_memcpy(void *s1, const void *s2, size_t n);
-void* mpack_memmove(void *s1, const void *s2, size_t n);
-int mpack_memcmp(const void* s1, const void* s2, size_t n);
-size_t mpack_strlen(const char *s);
+    void* mpack_memset(void *s, int c, size_t n);
+    void* mpack_memcpy(void *s1, const void *s2, size_t n);
+    void* mpack_memmove(void *s1, const void *s2, size_t n);
+    int mpack_memcmp(const void* s1, const void* s2, size_t n);
+    size_t mpack_strlen(const char *s);
 #endif
 
 
 
 /* Debug logging */
 #if 0
-#define mpack_log(...) printf(__VA_ARGS__);
+    #define mpack_log(...) printf(__VA_ARGS__);
 #else
-#define mpack_log(...) ((void)0)
+    #define mpack_log(...) ((void)0)
 #endif
 
 
@@ -417,13 +578,13 @@ size_t mpack_strlen(const char *s);
 #endif
 #ifndef MPACK_MALLOC
     #if MPACK_STDIO
-    #error "MPACK_STDIO requires preprocessor definitions for MPACK_MALLOC and MPACK_FREE."
+        #error "MPACK_STDIO requires preprocessor definitions for MPACK_MALLOC and MPACK_FREE."
     #endif
     #if MPACK_READ_TRACKING
-    #error "MPACK_READ_TRACKING requires preprocessor definitions for MPACK_MALLOC and MPACK_FREE."
+        #error "MPACK_READ_TRACKING requires preprocessor definitions for MPACK_MALLOC and MPACK_FREE."
     #endif
     #if MPACK_WRITE_TRACKING
-    #error "MPACK_WRITE_TRACKING requires preprocessor definitions for MPACK_MALLOC and MPACK_FREE."
+        #error "MPACK_WRITE_TRACKING requires preprocessor definitions for MPACK_MALLOC and MPACK_FREE."
     #endif
 #endif
 
@@ -432,12 +593,12 @@ size_t mpack_strlen(const char *s);
 /* Implement realloc if unavailable */
 #ifdef MPACK_MALLOC
     #ifdef MPACK_REALLOC
-    MPACK_ALWAYS_INLINE void* mpack_realloc(void* old_ptr, size_t used_size, size_t new_size) {
-        MPACK_UNUSED(used_size);
-        return MPACK_REALLOC(old_ptr, new_size);
-    }
+        MPACK_ALWAYS_INLINE void* mpack_realloc(void* old_ptr, size_t used_size, size_t new_size) {
+            MPACK_UNUSED(used_size);
+            return MPACK_REALLOC(old_ptr, new_size);
+        }
     #else
-    void* mpack_realloc(void* old_ptr, size_t used_size, size_t new_size);
+        void* mpack_realloc(void* old_ptr, size_t used_size, size_t new_size);
     #endif
 #endif
 

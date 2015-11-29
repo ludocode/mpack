@@ -7,7 +7,6 @@ PROJECT_NUMBER = develop
 
 INPUT = \
     README.md \
-    src/mpack/mpack-platform.h \
     src/mpack/mpack-common.h \
     src/mpack/mpack-reader.h \
     src/mpack/mpack-writer.h \
@@ -22,8 +21,9 @@ STRIP_FROM_PATH = . ./src
 
 PREDEFINED = \
     inline= \
-    MPACK_INLINE= \
     MPACK_ALWAYS_INLINE= \
+    MPACK_INLINE= \
+    MPACK_INLINE_SPEED= \
     \
     MPACK_READER=1 \
     MPACK_WRITER=1 \

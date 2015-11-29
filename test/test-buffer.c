@@ -270,12 +270,12 @@ static void test_expect_buffer(void) {
 #if MPACK_WRITER
 static void test_write_buffer(void) {
     for (size_t i = 0; i < sizeof(test_buffer_sizes) / sizeof(test_buffer_sizes[0]); ++i) {
+        size_t size = test_buffer_sizes[i];
         size_t output_size = 0xffff;
         char* output = (char*)malloc(output_size);
 
         // initialize the writer with our buffer writer function
         mpack_writer_t writer;
-        size_t size = test_buffer_sizes[i];
         char* buffer = (char*)malloc(size);
         char* pos = output;
         test_flush_state_t state = {output, output_size};

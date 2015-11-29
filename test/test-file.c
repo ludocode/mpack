@@ -50,14 +50,14 @@ static char* test_file_fetch(const char* filename, size_t* out_size) {
     // read the file
     long total = 0;
     while (total < size) {
-        size_t read = fread(data + total, 1, (size_t)(size - total), file);
-        if (read <= 0) {
+        size_t count = fread(data + total, 1, (size_t)(size - total), file);
+        if (count <= 0) {
             TEST_TRUE(false, "failed to read from file %s", filename);
             fclose(file);
             MPACK_FREE(data);
             return NULL;
         }
-        total += read;
+        total += count;
     }
 
     fclose(file);
@@ -283,16 +283,17 @@ static void test_file_discard(void) {
 #if MPACK_EXPECT
 static void test_file_expect_bytes(mpack_reader_t* reader, mpack_tag_t tag) {
     mpack_expect_tag(reader, tag);
+    TEST_TRUE(mpack_reader_error(reader) == mpack_ok, "got error %i (%s)", (int)mpack_reader_error(reader), mpack_error_to_string(mpack_reader_error(reader)));
 
     char expected[1024];
     memset(expected, 0, sizeof(expected));
     char buf[sizeof(expected)];
     while (tag.v.l > 0) {
-        uint32_t read = (tag.v.l < (uint32_t)sizeof(buf)) ? tag.v.l : (uint32_t)sizeof(buf);
-        mpack_read_bytes(reader, buf, read);
-        TEST_TRUE(mpack_reader_error(reader) == mpack_ok);
-        TEST_TRUE(memcmp(buf, expected, read) == 0);
-        tag.v.l -= read;
+        uint32_t count = (tag.v.l < (uint32_t)sizeof(buf)) ? tag.v.l : (uint32_t)sizeof(buf);
+        mpack_read_bytes(reader, buf, count);
+        TEST_TRUE(mpack_reader_error(reader) == mpack_ok, "got error %i (%s)", (int)mpack_reader_error(reader), mpack_error_to_string(mpack_reader_error(reader)));
+        TEST_TRUE(memcmp(buf, expected, count) == 0, "data does not match!");
+        tag.v.l -= count;
     }
 
     mpack_done_type(reader, tag.type);
@@ -401,28 +402,36 @@ static bool test_file_expect_failure() {
     TEST_TRUE(str != NULL);
     const char* expected = "The quick brown fox jumps over a lazy dog.";
     TEST_TRUE(size == strlen(expected));
-    TEST_TRUE(memcmp(str, expected, size) == 0);
-    MPACK_FREE(str);
+    if (str) {
+        TEST_TRUE(memcmp(str, expected, size) == 0);
+        MPACK_FREE(str);
+    }
 
     str = mpack_expect_utf8_alloc(&reader, 100, &size);
     TEST_POSSIBLE_FAILURE();
     TEST_TRUE(str != NULL);
     expected = "one";
     TEST_TRUE(size == strlen(expected));
-    TEST_TRUE(memcmp(str, expected, size) == 0);
-    MPACK_FREE(str);
+    if (str) {
+        TEST_TRUE(memcmp(str, expected, size) == 0);
+        MPACK_FREE(str);
+    }
 
     str = mpack_expect_cstr_alloc(&reader, 100);
     TEST_POSSIBLE_FAILURE();
     TEST_TRUE(str != NULL);
-    TEST_TRUE(strcmp(str, "two") == 0);
-    MPACK_FREE(str);
+    if (str) {
+        TEST_TRUE(strcmp(str, "two") == 0);
+        MPACK_FREE(str);
+    }
 
     str = mpack_expect_utf8_cstr_alloc(&reader, 100);
     TEST_POSSIBLE_FAILURE();
     TEST_TRUE(str != NULL);
-    TEST_TRUE(strcmp(str, "three") == 0);
-    MPACK_FREE(str);
+    if (str) {
+        TEST_TRUE(strcmp(str, "three") == 0);
+        MPACK_FREE(str);
+    }
 
     mpack_discard(&reader);
     mpack_discard(&reader);
@@ -574,17 +583,21 @@ static bool test_file_node_failure() {
     TEST_TRUE(str != NULL);
     const char* expected = "The quick brown fox jumps over a lazy dog.";
     TEST_TRUE(mpack_node_strlen(node) == strlen(expected));
-    TEST_TRUE(memcmp(str, expected, mpack_node_strlen(node)) == 0);
-    MPACK_FREE(str);
+    if (str) {
+        TEST_TRUE(memcmp(str, expected, mpack_node_strlen(node)) == 0);
+        MPACK_FREE(str);
+    }
 
     node = mpack_node_array_at(root, 1);
     str = mpack_node_cstr_alloc(node, 100);
     TEST_POSSIBLE_FAILURE();
     TEST_TRUE(str != NULL);
     expected = "one";
-    TEST_TRUE(strlen(str) == strlen(expected));
-    TEST_TRUE(strcmp(str, expected) == 0);
-    MPACK_FREE(str);
+    if (str) {
+        TEST_TRUE(strlen(str) == strlen(expected));
+        TEST_TRUE(strcmp(str, expected) == 0);
+        MPACK_FREE(str);
+    }
 
     #undef TEST_POSSIBLE_FAILURE
 

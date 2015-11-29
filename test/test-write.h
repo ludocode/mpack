@@ -64,7 +64,7 @@ void test_write_error_handler(mpack_writer_t* writer, mpack_error_t error);
     TEST_TRUE(sizeof(data)-1 == size, \
             "written data length %i does not match length %i of expected", \
             (int)size, (int)(sizeof(data)-1)); \
-    TEST_TRUE(memcmp((data), buf, size) == 0, \
+    TEST_TRUE(memcmp(data, buf, size) == 0, \
             "written data does not match expected"); \
 } while (0)
 
@@ -81,6 +81,29 @@ void test_write_error_handler(mpack_writer_t* writer, mpack_error_t error);
     (write_op); \
     TEST_DESTROY_MATCH_SIZE(expect, mpack_writer_buffer_used(&writer)); \
     TEST_TRUE(test_write_error == mpack_ok); \
+    test_write_error = mpack_ok; \
+} while (0)
+
+// runs a simple writer test, ensuring it does not cause an error and ignoring the result
+#define TEST_SIMPLE_WRITE_NOERROR(write_op) do { \
+    mpack_writer_t writer; \
+    mpack_writer_init(&writer, buf, sizeof(buf)); \
+    mpack_writer_set_error_handler(&writer, test_write_error_handler); \
+    (write_op); \
+    TEST_WRITER_DESTROY_NOERROR(&writer); \
+    TEST_TRUE(test_write_error == mpack_ok); \
+    test_write_error = mpack_ok; \
+} while (0)
+
+// runs a simple writer test, ensuring it does causes the given error
+#define TEST_SIMPLE_WRITE_ERROR(write_op, error) do { \
+    mpack_error_t expected2 = (error); \
+    mpack_writer_t writer; \
+    mpack_writer_init(&writer, buf, sizeof(buf)); \
+    mpack_writer_set_error_handler(&writer, test_write_error_handler); \
+    (write_op); \
+    TEST_WRITER_DESTROY_ERROR(&writer, expected2); \
+    TEST_TRUE(test_write_error == expected2); \
     test_write_error = mpack_ok; \
 } while (0)
 

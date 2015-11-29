@@ -49,13 +49,6 @@ void test_read_error_handler(mpack_reader_t* reader, mpack_error_t error);
     mpack_reader_destroy(reader); \
 } while (0)
 
-// tears down a reader with tracking cancelling, ensuring it has no errors
-#define TEST_READER_DESTROY_CANCEL_NOERROR(reader) do { \
-    TEST_TRUE(mpack_reader_error(reader) == mpack_ok, "reader is in error state %i (%s)", \
-            (int)mpack_reader_error(reader), mpack_error_to_string(mpack_reader_error(reader))); \
-    mpack_reader_destroy_cancel(reader); \
-} while (0)
-
 // tears down a reader, ensuring it is in the given error state
 #define TEST_READER_DESTROY_ERROR(reader, error) do { \
     mpack_error_t e = (error); \
@@ -100,7 +93,8 @@ void test_read_error_handler(mpack_reader_t* reader, mpack_error_t error);
     mpack_reader_t reader; \
     TEST_READER_INIT_STR(&reader, data); \
     TEST_TRUE((read_expr), "simple read test did not pass: " #read_expr); \
-    TEST_READER_DESTROY_CANCEL_NOERROR(&reader); \
+    mpack_reader_flag_error(&reader, mpack_error_data); \
+    TEST_READER_DESTROY_ERROR(&reader, mpack_error_data); \
 } while (0)
 
 // runs a simple reader test, ensuring the expression is true and the given error is raised
@@ -120,22 +114,24 @@ void test_read_error_handler(mpack_reader_t* reader, mpack_error_t error);
 
 // runs a simple reader test, ensuring it causes an assert.
 // (note about volatile, see TEST_ASSERT())
-// (we cancel in case the mpack_error_bug is compiled out in release mode)
+// (the mpack_error_bug may be compiled out in release mode so we cancel by flagging mpack_error_data)
 #define TEST_SIMPLE_READ_ASSERT(data, read_expr) do { \
     volatile mpack_reader_t v_reader; \
     mpack_reader_t* reader = (mpack_reader_t*)&v_reader; \
     mpack_reader_init_data(reader, data, sizeof(data) - 1); \
     TEST_ASSERT(read_expr); \
-    mpack_reader_destroy_cancel(reader); \
+    mpack_reader_flag_error(reader, mpack_error_data); \
+    mpack_reader_destroy(reader); \
 } while (0)
 
 // runs a simple reader test, ensuring it causes a break.
-// (we cancel in case the mpack_error_bug is compiled out in release mode)
+// (the mpack_error_bug may be compiled out in release mode so we cancel by flagging mpack_error_data)
 #define TEST_SIMPLE_READ_BREAK(data, read_expr) do { \
     mpack_reader_t reader; \
     mpack_reader_init_data(&reader, data, sizeof(data) - 1); \
     TEST_BREAK(read_expr); \
-    mpack_reader_destroy_cancel(&reader); \
+    mpack_reader_flag_error(&reader, mpack_error_data); \
+    mpack_reader_destroy(&reader); \
 } while (0)
 
 

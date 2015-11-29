@@ -53,7 +53,7 @@ static bool test_system_should_fail(void) {
 
 void test_system_fail_until_ok(bool (*test)(void)) {
     #ifdef MPACK_MALLOC
-    TEST_TRUE(test_malloc_count() == 0, "allocations exist before starting failure test");
+    TEST_TRUE(test_malloc_active_count() == 0, "allocations exist before starting failure test");
     #endif
     #if MPACK_STDIO
     TEST_TRUE(test_files_count() == 0, "files are open before starting failure test");
@@ -64,7 +64,7 @@ void test_system_fail_until_ok(bool (*test)(void)) {
         bool ok = test();
 
         #ifdef MPACK_MALLOC
-        TEST_TRUE(test_malloc_count() == 0, "test leaked memory on iteration %i!", i);
+        TEST_TRUE(test_malloc_active_count() == 0, "test leaked memory on iteration %i!", i);
         #endif
         #if MPACK_STDIO
         TEST_TRUE(test_files_count() == 0, "test leaked file on iteration %i!", i);
@@ -82,11 +82,11 @@ void test_system_fail_until_ok(bool (*test)(void)) {
 
 void test_system(void) {
     #ifdef MPACK_MALLOC
-    TEST_TRUE(test_malloc_count() == 0);
+    TEST_TRUE(test_malloc_active_count() == 0);
     TEST_TRUE(NULL == mpack_realloc(NULL, 0, 0));
     void* p = MPACK_MALLOC(1);
     TEST_TRUE(NULL == mpack_realloc(p, 1, 0));
-    TEST_TRUE(test_malloc_count() == 0, "realloc leaked");
+    TEST_TRUE(test_malloc_active_count() == 0, "realloc leaked");
     #endif
 }
 
@@ -94,9 +94,14 @@ void test_system(void) {
 
 #ifdef MPACK_MALLOC
 static size_t test_malloc_active = 0;
+static size_t test_malloc_total = 0;
 
-size_t test_malloc_count(void) {
+size_t test_malloc_active_count(void) {
     return test_malloc_active;
+}
+
+size_t test_malloc_total_count(void) {
+    return test_malloc_total;
 }
 
 void* test_malloc(size_t size) {
@@ -107,6 +112,7 @@ void* test_malloc(size_t size) {
     if (test_system_should_fail())
         return NULL;
 
+    ++test_malloc_total;
     ++test_malloc_active;
     return malloc(size);
 }
@@ -123,6 +129,7 @@ void* test_realloc(void* p, size_t size) {
     if (test_system_should_fail())
         return NULL;
 
+    ++test_malloc_total;
     if (!p)
         ++test_malloc_active;
     return realloc(p, size);
@@ -149,6 +156,7 @@ void test_free(void* p) {
 #undef fwrite
 #undef fseek
 #undef ftell
+#undef ferror
 
 static size_t test_files_active = 0;
 
@@ -227,6 +235,17 @@ long test_ftell(FILE* stream) {
     }
 
     return ftell(stream);
+}
+
+int test_ferror(FILE * stream) {
+    TEST_TRUE(stream != NULL);
+
+    if (test_system_should_fail()) {
+        errno = EACCES;
+        return -1;
+    }
+
+    return ferror(stream);
 }
 #endif
 

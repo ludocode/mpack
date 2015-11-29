@@ -25,20 +25,32 @@
 
 #if MPACK_READER
 
+static void mpack_reader_skip_using_fill(mpack_reader_t* reader, size_t count);
+
 void mpack_reader_init(mpack_reader_t* reader, char* buffer, size_t size, size_t count) {
+    mpack_assert(buffer != NULL, "buffer is NULL");
+
     mpack_memset(reader, 0, sizeof(*reader));
     reader->buffer = buffer;
     reader->size = size;
     reader->left = count;
     MPACK_UNUSED(MPACK_READER_TRACK(reader, mpack_track_init(&reader->track)));
+
+    mpack_log("===========================\n");
+    mpack_log("initializing reader with buffer size %i\n", (int)size);
 }
 
 void mpack_reader_init_error(mpack_reader_t* reader, mpack_error_t error) {
     mpack_memset(reader, 0, sizeof(*reader));
     reader->error = error;
+
+    mpack_log("===========================\n");
+    mpack_log("initializing reader error state %i\n", (int)error);
 }
 
 void mpack_reader_init_data(mpack_reader_t* reader, const char* data, size_t count) {
+    mpack_assert(data != NULL, "data is NULL");
+
     mpack_memset(reader, 0, sizeof(*reader));
     reader->left = count;
 
@@ -53,6 +65,19 @@ void mpack_reader_init_data(mpack_reader_t* reader, const char* data, size_t cou
     #endif
 
     MPACK_UNUSED(MPACK_READER_TRACK(reader, mpack_track_init(&reader->track)));
+
+    mpack_log("===========================\n");
+    mpack_log("initializing reader with data size %i\n", (int)count);
+}
+
+void mpack_reader_set_skip(mpack_reader_t* reader, mpack_reader_skip_t skip) {
+    mpack_assert(reader->size != 0, "cannot use skip function without a writeable buffer!");
+    #if MPACK_OPTIMIZE_FOR_SIZE
+    MPACK_UNUSED(reader);
+    MPACK_UNUSED(skip);
+    #else
+    reader->skip = skip;
+    #endif
 }
 
 #if MPACK_STDIO
@@ -65,6 +90,31 @@ static size_t mpack_file_reader_fill(mpack_reader_t* reader, char* buffer, size_
     mpack_file_reader_t* file_reader = (mpack_file_reader_t*)reader->context;
     return fread((void*)buffer, 1, count, file_reader->file);
 }
+
+#if !MPACK_OPTIMIZE_FOR_SIZE
+static void mpack_file_reader_skip(mpack_reader_t* reader, size_t count) {
+    mpack_file_reader_t* file_reader = (mpack_file_reader_t*)reader->context;
+    if (mpack_reader_error(reader) != mpack_ok)
+        return;
+    FILE* file = file_reader->file;
+
+    // We call ftell() to test whether the stream is seekable
+    // without causing a file error.
+    if (ftell(file) >= 0) {
+        mpack_log("seeking forward %i bytes\n", (int)count);
+        if (fseek(file, (long int)count, SEEK_CUR) == 0)
+            return;
+        mpack_log("fseek() didn't return zero!\n");
+        if (ferror(file)) {
+            mpack_reader_flag_error(reader, mpack_error_io);
+            return;
+        }
+    }
+
+    // If the stream is not seekable, fall back to the fill function.
+    mpack_reader_skip_using_fill(reader, count);
+}
+#endif
 
 static void mpack_file_reader_teardown(mpack_reader_t* reader) {
     mpack_file_reader_t* file_reader = (mpack_file_reader_t*)reader->context;
@@ -80,6 +130,8 @@ static void mpack_file_reader_teardown(mpack_reader_t* reader) {
 }
 
 void mpack_reader_init_file(mpack_reader_t* reader, const char* filename) {
+    mpack_assert(filename != NULL, "filename is NULL");
+
     mpack_file_reader_t* file_reader = (mpack_file_reader_t*) MPACK_MALLOC(sizeof(mpack_file_reader_t));
     if (file_reader == NULL) {
         mpack_reader_init_error(reader, mpack_error_memory);
@@ -96,17 +148,18 @@ void mpack_reader_init_file(mpack_reader_t* reader, const char* filename) {
     mpack_reader_init(reader, file_reader->buffer, sizeof(file_reader->buffer), 0);
     mpack_reader_set_context(reader, file_reader);
     mpack_reader_set_fill(reader, mpack_file_reader_fill);
+    #if !MPACK_OPTIMIZE_FOR_SIZE
+    mpack_reader_set_skip(reader, mpack_file_reader_skip);
+    #endif
     mpack_reader_set_teardown(reader, mpack_file_reader_teardown);
 }
 #endif
 
-static mpack_error_t mpack_reader_destroy_impl(mpack_reader_t* reader, bool cancel) {
+mpack_error_t mpack_reader_destroy(mpack_reader_t* reader) {
 
     // clean up tracking, asserting if we're not already in an error state
-    cancel |= reader->error != mpack_ok;
-    MPACK_UNUSED(cancel);
     #if MPACK_READ_TRACKING
-    mpack_track_destroy(&reader->track, cancel);
+    mpack_track_destroy(&reader->track, reader->error != mpack_ok);
     #endif
 
     if (reader->teardown)
@@ -114,14 +167,6 @@ static mpack_error_t mpack_reader_destroy_impl(mpack_reader_t* reader, bool canc
     reader->teardown = NULL;
 
     return reader->error;
-}
-
-void mpack_reader_destroy_cancel(mpack_reader_t* reader) {
-    mpack_reader_destroy_impl(reader, true);
-}
-
-mpack_error_t mpack_reader_destroy(mpack_reader_t* reader) {
-    return mpack_reader_destroy_impl(reader, false);
 }
 
 size_t mpack_reader_remaining(mpack_reader_t* reader, const char** data) {
@@ -156,6 +201,8 @@ MPACK_STATIC_INLINE_SPEED size_t mpack_fill(mpack_reader_t* reader, char* p, siz
 // Reads count bytes into p. Used when there are not enough bytes
 // left in the buffer to satisfy a read.
 void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count) {
+    mpack_assert(count == 0 || p != NULL, "data pointer for %i bytes is NULL", (int)count);
+
     if (mpack_reader_error(reader) != mpack_ok) {
         mpack_memset(p, 0, count);
         return;
@@ -238,23 +285,95 @@ void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count) {
 }
 
 void mpack_skip_bytes(mpack_reader_t* reader, size_t count) {
-    // TODO: This is currently very slow, potentially even slower than just
-    // reading the data. Skip needs to be implemented properly.
-    char c[128];
-    size_t i = 0;
-    while (i < count && mpack_reader_error(reader) == mpack_ok) {
-        size_t amount = ((count - i) > sizeof(c)) ? sizeof(c) : (count - i);
-        mpack_read_bytes(reader, c, amount);
-        i += amount;
+    if (mpack_reader_error(reader) != mpack_ok)
+        return;
+    mpack_log("skip requested for %i bytes\n", (int)count);
+    mpack_reader_track_bytes(reader, count);
+
+    // check if we have enough in the buffer already
+    if (reader->left >= count) {
+        mpack_log("skipping %i bytes still in buffer\n", (int)count);
+        reader->left -= count;
+        reader->pos += count;
+        return;
     }
+
+    // we'll need at least a fill function to skip more data. if there's
+    // no fill function, the buffer should contain an entire MessagePack
+    // object, so we raise mpack_error_invalid instead of mpack_error_io
+    // on truncated data. (see mpack_read_native_big())
+    if (reader->fill == NULL) {
+        mpack_log("reader has no fill function!\n");
+        mpack_reader_flag_error(reader, mpack_error_invalid);
+        return;
+    }
+
+    // discard whatever's left in the buffer
+    mpack_log("discarding %i bytes still in buffer\n", (int)reader->left);
+    count -= reader->left;
+    reader->pos += reader->left;
+    reader->left = 0;
+
+    #if !MPACK_OPTIMIZE_FOR_SIZE
+    // use the skip function if we've got one, and if we're trying
+    // to skip a lot of data. if we only need to skip some tiny
+    // fraction of the buffer size, it's probably better to just
+    // fill the buffer and skip from it instead of trying to seek.
+    if (reader->skip && count > reader->size / 16) {
+        mpack_log("calling skip function for %i bytes\n", (int)count);
+        reader->skip(reader, count);
+        return;
+    }
+    #endif
+
+    mpack_reader_skip_using_fill(reader, count);
+}
+
+static void mpack_reader_skip_using_fill(mpack_reader_t* reader, size_t count) {
+    mpack_assert(reader->fill != NULL, "missing fill function!");
+    mpack_assert(reader->left == 0, "there are bytes left in the buffer!");
+    mpack_assert(reader->error == mpack_ok, "should not have called this in an error state (%i)", reader->error);
+    mpack_log("skip using fill for %i bytes\n", (int)count);
+
+    // fill and discard multiples of the buffer size
+    while (count > reader->size) {
+        mpack_log("filling and discarding buffer of %i bytes\n", (int)reader->size);
+        mpack_fill(reader, reader->buffer, reader->size);
+        if (mpack_fill(reader, reader->buffer, reader->size) < reader->size) {
+            mpack_reader_flag_error(reader, mpack_error_io);
+            return;
+        }
+        count -= reader->size;
+    }
+
+    // fill the buffer as much as possible
+    reader->pos = 0;
+    reader->left = mpack_fill(reader, reader->buffer, reader->size);
+    if (reader->left < count)
+        mpack_reader_flag_error(reader, mpack_error_io);
+    mpack_log("filled %i bytes into buffer; discarding %i bytes\n", (int)reader->left, (int)count);
+    reader->pos += count;
+    reader->left -= count;
 }
 
 void mpack_read_bytes(mpack_reader_t* reader, char* p, size_t count) {
+    mpack_assert(p != NULL, "destination for read of %i bytes is NULL", (int)count);
     mpack_reader_track_bytes(reader, count);
     mpack_read_native(reader, p, count);
 }
 
 #ifdef MPACK_MALLOC
+// Reads native bytes with error callback disabled. This allows MPack reader functions
+// to hold an allocated buffer and read native data into it without leaking it in
+// case of a non-local jump out of an error handler.
+static void mpack_read_native_nojump(mpack_reader_t* reader, char* p, size_t count) {
+    mpack_assert(reader->error == mpack_ok, "cannot call nojump if an error is already flagged!");
+    mpack_reader_error_t error_fn = reader->error_fn;
+    reader->error_fn = NULL;
+    mpack_read_native(reader, p, count);
+    reader->error_fn = error_fn;
+}
+
 char* mpack_read_bytes_alloc_size(mpack_reader_t* reader, size_t count, size_t alloc_size) {
     mpack_assert(count <= alloc_size, "count %i is less than alloc_size %i", (int)count, (int)alloc_size);
     if (alloc_size == 0)
@@ -355,10 +474,62 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
 
     // unfortunately, by far the fastest way to parse a tag is to switch
     // on the first byte, and to explicitly list every possible byte. so for
-    // infix types, the list of cases is quite large. the compiler optimizes
-    // this nicely (and it takes very little space.)
+    // infix types, the list of cases is quite large.
+    //
+    // in size-optimized builds, we switch on the top four bits first to
+    // handle most infix types with a smaller jump table to save space.
+
+    #if MPACK_OPTIMIZE_FOR_SIZE
+    switch (type >> 4) {
+
+        // positive fixnum
+        case 0x0: case 0x1: case 0x2: case 0x3:
+        case 0x4: case 0x5: case 0x6: case 0x7:
+            var.type = mpack_type_uint;
+            var.v.u = type;
+            return var;
+
+        // negative fixnum
+        case 0xe: case 0xf:
+            var.type = mpack_type_int;
+            var.v.i = (int32_t)(int8_t)type;
+            return var;
+
+        // fixmap
+        case 0x8:
+            var.type = mpack_type_map;
+            var.v.n = type & ~0xf0;
+            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_map, var.v.l)) != mpack_ok)
+                return mpack_tag_nil();
+            return var;
+
+        // fixarray
+        case 0x9:
+            var.type = mpack_type_array;
+            var.v.n = type & ~0xf0;
+            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_array, var.v.l)) != mpack_ok)
+                return mpack_tag_nil();
+            return var;
+
+        // fixstr
+        case 0xa: case 0xb:
+            var.type = mpack_type_str;
+            var.v.l = type & ~0xe0;
+            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_str, var.v.l)) != mpack_ok)
+                return mpack_tag_nil();
+            return var;
+
+        // not one of the common infix types
+        default:
+            break;
+
+    }
+    #endif
+
+    // handle individual type tags
     switch (type) {
 
+        #if !MPACK_OPTIMIZE_FOR_SIZE
         // positive fixnum
         case 0x00: case 0x01: case 0x02: case 0x03: case 0x04: case 0x05: case 0x06: case 0x07:
         case 0x08: case 0x09: case 0x0a: case 0x0b: case 0x0c: case 0x0d: case 0x0e: case 0x0f:
@@ -417,6 +588,7 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
             if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_str, var.v.l)) != mpack_ok)
                 return mpack_tag_nil();
             return var;
+        #endif
 
         // nil
         case 0xc0:
@@ -643,6 +815,13 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
         // reserved
         case 0xc1:
             break;
+
+        #if MPACK_OPTIMIZE_FOR_SIZE
+        // any other bytes should have been handled by the infix switch
+        default:
+            mpack_assert(0, "unreachable");
+            break;
+        #endif
     }
 
     // unrecognized type
@@ -818,6 +997,9 @@ static void mpack_print_element(mpack_reader_t* reader, size_t depth, FILE* file
 }
 
 void mpack_print_file(const char* data, size_t len, FILE* file) {
+    mpack_assert(data != NULL, "data is NULL");
+    mpack_assert(file != NULL, "file is NULL");
+
     mpack_reader_t reader;
     mpack_reader_init_data(&reader, data, len);
 
