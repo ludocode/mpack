@@ -180,15 +180,14 @@
  */
 
 /**
- * Whether to optimize for size or speed. Optimizing for size causes
- * very few functions to be declared inline, and can save a couple
- * kilobytes of space in the resulting executable.
+ * Whether to optimize for size or speed.
+ *
+ * Optimizing for size simplifies some parsing and encoding algorithms
+ * at the expense of speed, and saves a few kilobytes of space in the
+ * resulting executable.
  *
  * This automatically detects -Os with GCC/Clang. Unfortunately there
  * doesn't seem to be a macro defined for /Os under MSVC.
- *
- * This feature is currently experimental and may be removed in a
- * future release.
  */
 #ifndef MPACK_OPTIMIZE_FOR_SIZE
 #ifdef __OPTIMIZE_SIZE__

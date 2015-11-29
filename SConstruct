@@ -62,7 +62,7 @@ if hasOg:
     debugflags = ["-DDEBUG", "-Og"]
 else:
     debugflags = ["-DDEBUG", "-O0"]
-releaseflags = ["-Os"]
+releaseflags = ["-O2"]
 cflags = ["-std=c99"]
 
 gcovflags = []
@@ -97,7 +97,6 @@ def AddBuilds(variant_dir, cppflags, linkflags = []):
 
 # The default build, everything in debug. This is the build used
 # for code coverage measurement and static analysis.
-
 AddBuild("debug", allfeatures + allconfigs + debugflags + cflags + gcovflags, gcovflags)
 
 
@@ -115,8 +114,6 @@ if ARGUMENTS.get('all'):
     # various release builds
     AddBuild("release-unopt", allfeatures + allconfigs + cflags + ["-O0"])
     AddBuild("release-fastmath", allfeatures + allconfigs + releaseflags + cflags + ["-ffast-math"])
-    AddBuild("release-speed", ["-DMPACK_OPTIMIZE_FOR_SIZE=0"] +
-            allfeatures + allconfigs + releaseflags + cflags)
     if conf.CheckFlags(ltoflags, ltoflags, "-flto"):
         AddBuild("release-lto", allfeatures + allconfigs + ltoflags + cflags, ltoflags)
 
@@ -144,6 +141,8 @@ if ARGUMENTS.get('all'):
     AddBuilds("realloc", allfeatures + allconfigs + debugflags + cflags + ["-DMPACK_REALLOC=test_realloc"])
     if hasOg:
         AddBuild("debug-O0", allfeatures + allconfigs + ["-DDEBUG", "-O0"] + cflags)
+    AddBuild("debug-size", ["-DMPACK_OPTIMIZE_FOR_SIZE=1"] + debugflags + allfeatures + allconfigs + cflags)
+    AddBuild("release-size", ["-Os"] + allfeatures + allconfigs + cflags)
 
     # other language standards (C11, various C++ versions)
     if conf.CheckFlags(["-std=c11"]):
