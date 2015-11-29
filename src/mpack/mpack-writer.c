@@ -269,14 +269,11 @@ static void mpack_write_native_big(mpack_writer_t* writer, const char* p, size_t
     
     // fill the remaining space in the buffer
     size_t n = writer->size - writer->used;
-    if (count < n)
-        n = count;
     mpack_memcpy(writer->buffer + writer->used, p, n);
     writer->used += n;
     p += n;
     count -= n;
-    if (count == 0)
-        return;
+    mpack_assert(count > 0, "no bytes left to flush??");
 
     // flush the buffer
     mpack_writer_flush_unchecked(writer);
@@ -298,7 +295,6 @@ static void mpack_write_native_big(mpack_writer_t* writer, const char* p, size_t
     }
 }
 
-// TODO obsolete remove, just always call big
 MPACK_STATIC_INLINE_SPEED void mpack_write_native(mpack_writer_t* writer, const char* p, size_t count) {
     mpack_assert(count == 0 || p != NULL, "data pointer for %i bytes is NULL", (int)count);
 
@@ -515,7 +511,7 @@ static size_t mpack_encode_i64(char* p, int64_t value) {
     return 9;
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_write_byte_element(mpack_writer_t* writer, char value) {
+MPACK_STATIC_INLINE_SPEED void mpack_write_byte_element(mpack_writer_t* writer, char value) {
     mpack_writer_track_element(writer);
     mpack_write_native(writer, &value, 1);
 }
