@@ -24,7 +24,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">MPack
-   &#160;<span id="projectnumber">0.7</span>
+   &#160;<span id="projectnumber">0.7.1</span>
    </div>
    <div id="projectbrief">A C encoding/decoding library for the MessagePack serialization format.</div>
   </td>
@@ -279,12 +279,12 @@ String Functions</h2></td></tr>
 <tr class="memitem:ga8c44c450649514ee1a31e567d39f0bf0"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga8c44c450649514ee1a31e567d39f0bf0">mpack_expect_utf8</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, char *buf, size_t bufsize)</td></tr>
 <tr class="memdesc:ga8c44c450649514ee1a31e567d39f0bf0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a string into the given buffer, ensuring it is a valid UTF-8 string and returning its size in bytes.  <a href="#ga8c44c450649514ee1a31e567d39f0bf0">More...</a><br /></td></tr>
 <tr class="separator:ga8c44c450649514ee1a31e567d39f0bf0"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaea5d6e47485092366b64d7667fc93916"><td class="memItemLeft" align="right" valign="top">MPACK_INLINE_SPEED uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#gaea5d6e47485092366b64d7667fc93916">mpack_expect_str_max</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t maxsize)</td></tr>
-<tr class="memdesc:gaea5d6e47485092366b64d7667fc93916"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of a string, raising an error if its length is not at most the given number of bytes (not including any null-terminator.)  <a href="#gaea5d6e47485092366b64d7667fc93916">More...</a><br /></td></tr>
-<tr class="separator:gaea5d6e47485092366b64d7667fc93916"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga2125706c0ccfa05074f2a0551fbf2cf1"><td class="memItemLeft" align="right" valign="top">MPACK_INLINE_SPEED void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga2125706c0ccfa05074f2a0551fbf2cf1">mpack_expect_str_length</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t count)</td></tr>
-<tr class="memdesc:ga2125706c0ccfa05074f2a0551fbf2cf1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of a string, raising an error if its length is not exactly the given number of bytes (not including any null-terminator.)  <a href="#ga2125706c0ccfa05074f2a0551fbf2cf1">More...</a><br /></td></tr>
-<tr class="separator:ga2125706c0ccfa05074f2a0551fbf2cf1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga00a055c4e4c68485757e1eee17f8db85"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga00a055c4e4c68485757e1eee17f8db85">mpack_expect_str_max</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t maxsize)</td></tr>
+<tr class="memdesc:ga00a055c4e4c68485757e1eee17f8db85"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of a string, raising an error if its length is not at most the given number of bytes (not including any null-terminator.)  <a href="#ga00a055c4e4c68485757e1eee17f8db85">More...</a><br /></td></tr>
+<tr class="separator:ga00a055c4e4c68485757e1eee17f8db85"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gac189c3ea2b957e594854fc2c8cae3cbd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#gac189c3ea2b957e594854fc2c8cae3cbd">mpack_expect_str_length</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t count)</td></tr>
+<tr class="memdesc:gac189c3ea2b957e594854fc2c8cae3cbd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of a string, raising an error if its length is not exactly the given number of bytes (not including any null-terminator.)  <a href="#gac189c3ea2b957e594854fc2c8cae3cbd">More...</a><br /></td></tr>
+<tr class="separator:gac189c3ea2b957e594854fc2c8cae3cbd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga0d720d03002423e764c55b9370d89caf"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga0d720d03002423e764c55b9370d89caf">mpack_expect_str_alloc</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, size_t maxsize, size_t *size)</td></tr>
 <tr class="memdesc:ga0d720d03002423e764c55b9370d89caf"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a string with the given total maximum size, allocating storage for it.  <a href="#ga0d720d03002423e764c55b9370d89caf">More...</a><br /></td></tr>
 <tr class="separator:ga0d720d03002423e764c55b9370d89caf"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -298,29 +298,29 @@ String Functions</h2></td></tr>
 <tr class="memdesc:ga94489d03628c1fb1a3d0ac6971600fe8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a string into the given buffer, ensures it has no null bytes, and adds a null-terminator at the end.  <a href="#ga94489d03628c1fb1a3d0ac6971600fe8">More...</a><br /></td></tr>
 <tr class="separator:ga94489d03628c1fb1a3d0ac6971600fe8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga62be63032f3c84181eeed4609f0dddb4"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga62be63032f3c84181eeed4609f0dddb4">mpack_expect_utf8_cstr</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, char *buf, size_t size)</td></tr>
-<tr class="memdesc:ga62be63032f3c84181eeed4609f0dddb4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a string into the given buffer, ensures it is a valid UTF-8 string without null characters, and adds a null-terminator at the end.  <a href="#ga62be63032f3c84181eeed4609f0dddb4">More...</a><br /></td></tr>
+<tr class="memdesc:ga62be63032f3c84181eeed4609f0dddb4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a string into the given buffer, ensures it is a valid UTF-8 string without NUL characters, and adds a null-terminator at the end.  <a href="#ga62be63032f3c84181eeed4609f0dddb4">More...</a><br /></td></tr>
 <tr class="separator:ga62be63032f3c84181eeed4609f0dddb4"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gab6d2d920a0ed7d39e251ac8d6f077998"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#gab6d2d920a0ed7d39e251ac8d6f077998">mpack_expect_cstr_alloc</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, size_t maxsize)</td></tr>
 <tr class="memdesc:gab6d2d920a0ed7d39e251ac8d6f077998"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a string with the given total maximum size (including space for a null-terminator), allocates storage for it, ensures it has no null-bytes, and adds a null-terminator at the end.  <a href="#gab6d2d920a0ed7d39e251ac8d6f077998">More...</a><br /></td></tr>
 <tr class="separator:gab6d2d920a0ed7d39e251ac8d6f077998"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga5acb7f64d13ce1a09670377cbbbf68c7"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga5acb7f64d13ce1a09670377cbbbf68c7"></a>
-char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_utf8_cstr_alloc</b> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, size_t maxsize)</td></tr>
+<tr class="memitem:ga5acb7f64d13ce1a09670377cbbbf68c7"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga5acb7f64d13ce1a09670377cbbbf68c7">mpack_expect_utf8_cstr_alloc</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, size_t maxsize)</td></tr>
+<tr class="memdesc:ga5acb7f64d13ce1a09670377cbbbf68c7"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a string with the given total maximum size (including space for a null-terminator), allocates storage for it, ensures it is valid UTF-8 with no null-bytes, and adds a null-terminator at the end.  <a href="#ga5acb7f64d13ce1a09670377cbbbf68c7">More...</a><br /></td></tr>
 <tr class="separator:ga5acb7f64d13ce1a09670377cbbbf68c7"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga45a0891f890670e68efeaf1e0772d4b1"><td class="memItemLeft" align="right" valign="top">MPACK_INLINE_SPEED void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga45a0891f890670e68efeaf1e0772d4b1">mpack_expect_cstr_match</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, const char *str)</td></tr>
-<tr class="memdesc:ga45a0891f890670e68efeaf1e0772d4b1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a string, ensuring it exactly matches the given null-terminated string.  <a href="#ga45a0891f890670e68efeaf1e0772d4b1">More...</a><br /></td></tr>
-<tr class="separator:ga45a0891f890670e68efeaf1e0772d4b1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga8f16d7ec771277e1be2a35ea0573db31"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga8f16d7ec771277e1be2a35ea0573db31">mpack_expect_cstr_match</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, const char *str)</td></tr>
+<tr class="memdesc:ga8f16d7ec771277e1be2a35ea0573db31"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a string, ensuring it exactly matches the given null-terminated string.  <a href="#ga8f16d7ec771277e1be2a35ea0573db31">More...</a><br /></td></tr>
+<tr class="separator:ga8f16d7ec771277e1be2a35ea0573db31"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
 Binary Data / Extension Functions</h2></td></tr>
 <tr class="memitem:gadcf7fc94ae30ed5c3752291a0efd43c5"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#gadcf7fc94ae30ed5c3752291a0efd43c5">mpack_expect_bin</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader)</td></tr>
 <tr class="memdesc:gadcf7fc94ae30ed5c3752291a0efd43c5"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of a binary blob, returning its size in bytes.  <a href="#gadcf7fc94ae30ed5c3752291a0efd43c5">More...</a><br /></td></tr>
 <tr class="separator:gadcf7fc94ae30ed5c3752291a0efd43c5"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gac2050120f7cc80ca7ef8748774cc80ed"><td class="memItemLeft" align="right" valign="top">MPACK_INLINE_SPEED uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#gac2050120f7cc80ca7ef8748774cc80ed">mpack_expect_bin_max</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t maxsize)</td></tr>
-<tr class="memdesc:gac2050120f7cc80ca7ef8748774cc80ed"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of a binary blob, raising an error if its length is not at most the given number of bytes.  <a href="#gac2050120f7cc80ca7ef8748774cc80ed">More...</a><br /></td></tr>
-<tr class="separator:gac2050120f7cc80ca7ef8748774cc80ed"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gace8202406ef14871b82ee0b4f3a1da21"><td class="memItemLeft" align="right" valign="top">MPACK_INLINE_SPEED void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#gace8202406ef14871b82ee0b4f3a1da21">mpack_expect_bin_size</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t count)</td></tr>
-<tr class="memdesc:gace8202406ef14871b82ee0b4f3a1da21"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of a binary blob, raising an error if its length is not exactly the given number of bytes.  <a href="#gace8202406ef14871b82ee0b4f3a1da21">More...</a><br /></td></tr>
-<tr class="separator:gace8202406ef14871b82ee0b4f3a1da21"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga443df58ec3a12d76502dad5864f793e2"><td class="memItemLeft" align="right" valign="top">uint32_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga443df58ec3a12d76502dad5864f793e2">mpack_expect_bin_max</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t maxsize)</td></tr>
+<tr class="memdesc:ga443df58ec3a12d76502dad5864f793e2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of a binary blob, raising an error if its length is not at most the given number of bytes.  <a href="#ga443df58ec3a12d76502dad5864f793e2">More...</a><br /></td></tr>
+<tr class="separator:ga443df58ec3a12d76502dad5864f793e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gae83eff20642825f13771a2cdceaa7cbd"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#gae83eff20642825f13771a2cdceaa7cbd">mpack_expect_bin_size</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, uint32_t count)</td></tr>
+<tr class="memdesc:gae83eff20642825f13771a2cdceaa7cbd"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads the start of a binary blob, raising an error if its length is not exactly the given number of bytes.  <a href="#gae83eff20642825f13771a2cdceaa7cbd">More...</a><br /></td></tr>
+<tr class="separator:gae83eff20642825f13771a2cdceaa7cbd"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga98004c26b9ebc1b80b4bdec5a1d4b093"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga98004c26b9ebc1b80b4bdec5a1d4b093">mpack_expect_bin_buf</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, char *buf, size_t size)</td></tr>
 <tr class="memdesc:ga98004c26b9ebc1b80b4bdec5a1d4b093"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a binary blob into the given buffer, returning its size in bytes.  <a href="#ga98004c26b9ebc1b80b4bdec5a1d4b093">More...</a><br /></td></tr>
 <tr class="separator:ga98004c26b9ebc1b80b4bdec5a1d4b093"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -743,12 +743,12 @@ Special Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="gac2050120f7cc80ca7ef8748774cc80ed"></a>
+<a class="anchor" id="ga443df58ec3a12d76502dad5864f793e2"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">MPACK_INLINE_SPEED uint32_t mpack_expect_bin_max </td>
+          <td class="memname">uint32_t mpack_expect_bin_max </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
           <td class="paramname"><em>reader</em>, </td>
@@ -773,12 +773,12 @@ Special Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="gace8202406ef14871b82ee0b4f3a1da21"></a>
+<a class="anchor" id="gae83eff20642825f13771a2cdceaa7cbd"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">MPACK_INLINE_SPEED void mpack_expect_bin_size </td>
+          <td class="memname">void mpack_expect_bin_size </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
           <td class="paramname"><em>reader</em>, </td>
@@ -884,16 +884,22 @@ Special Functions</h2></td></tr>
 <p>Reads a string with the given total maximum size (including space for a null-terminator), allocates storage for it, ensures it has no null-bytes, and adds a null-terminator at the end. </p>
 <p>You assume ownership of the returned pointer if reading succeeds.</p>
 <p>The allocated string must be freed with MPACK_FREE() (or simply free() if MPack's allocator hasn't been customized.)</p>
-<p>Raises mpack_error_too_big if the string plus null-terminator is larger than the given maxsize. Raises mpack_error_invalid if the value is not a string or contains a null byte. </p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_too_big</td><td>if the string plus null-terminator is larger than the given maxsize. </td></tr>
+    <tr><td class="paramname">mpack_error_invalid</td><td>if the value is not a string or contains a null byte. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
-<a class="anchor" id="ga45a0891f890670e68efeaf1e0772d4b1"></a>
+<a class="anchor" id="ga8f16d7ec771277e1be2a35ea0573db31"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">MPACK_INLINE_SPEED void mpack_expect_cstr_match </td>
+          <td class="memname">void mpack_expect_cstr_match </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
           <td class="paramname"><em>reader</em>, </td>
@@ -1836,6 +1842,7 @@ Special Functions</h2></td></tr>
 
 <p>Reads the start of a string, returning its size in bytes. </p>
 <p>The bytes follow and must be read separately with <a class="el" href="group__reader.html#gaeb91e8d4e2a7b7f6562d8bbb7400275c" title="Reads bytes from a string, binary blob or extension object. ">mpack_read_bytes()</a> or <a class="el" href="group__reader.html#ga654d697da6a0eaf25246adf3ed343572" title="Reads bytes from a string, binary blob or extension object in-place in the buffer. ">mpack_read_bytes_inplace()</a>. <a class="el" href="group__reader.html#gaaad37015e0c53704d9356de06b493de6">mpack_done_str()</a> must be called once all bytes have been read.</p>
+<p>NUL bytes are allowed in the string, and no encoding checks are done.</p>
 <p>mpack_error_type is raised if the value is not a string. </p>
 
 </div>
@@ -1909,16 +1916,17 @@ Special Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Reads a string of at most the given size, writing it into the given buffer and returning its size in bytes. </p>
-<p>Note that this does not add a null-terminator! No null-terminator is written, even if the string fits. Use <a class="el" href="group__expect.html#ga94489d03628c1fb1a3d0ac6971600fe8" title="Reads a string into the given buffer, ensures it has no null bytes, and adds a null-terminator at the...">mpack_expect_cstr()</a> to get a null-terminator. </p>
+<p>This does not add a null-terminator! No null-terminator is written, even if the string fits. Use <a class="el" href="group__expect.html#ga94489d03628c1fb1a3d0ac6971600fe8" title="Reads a string into the given buffer, ensures it has no null bytes, and adds a null-terminator at the...">mpack_expect_cstr()</a> to get a null-terminator.</p>
+<p>NUL bytes are allowed in the string, and no encoding checks are done. </p>
 
 </div>
 </div>
-<a class="anchor" id="ga2125706c0ccfa05074f2a0551fbf2cf1"></a>
+<a class="anchor" id="gac189c3ea2b957e594854fc2c8cae3cbd"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">MPACK_INLINE_SPEED void mpack_expect_str_length </td>
+          <td class="memname">void mpack_expect_str_length </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
           <td class="paramname"><em>reader</em>, </td>
@@ -1978,12 +1986,12 @@ Special Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="gaea5d6e47485092366b64d7667fc93916"></a>
+<a class="anchor" id="ga00a055c4e4c68485757e1eee17f8db85"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">MPACK_INLINE_SPEED uint32_t mpack_expect_str_max </td>
+          <td class="memname">uint32_t mpack_expect_str_max </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
           <td class="paramname"><em>reader</em>, </td>
@@ -2033,7 +2041,7 @@ Special Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Reads a MessagePack object header (an MPack tag), expecting it to exactly match the given tag. </p>
-<p>If the type is compound (i.e. is a map, array, string, binary or extension type), additional reads are required to get the actual data, and the corresponding done function (or cancel) should be called when done.</p>
+<p>If the type is compound (i.e. is a map, array, string, binary or extension type), additional reads are required to get the contained data, and the corresponding done function must be called when done.</p>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
     <tr><td class="paramname">mpack_error_type</td><td>if the tag does not match</td></tr>
@@ -2050,9 +2058,7 @@ Special Functions</h2></td></tr>
 <dd>
 <a class="el" href="group__reader.html#gaa4676c4b0761de4f864fd81c347a15a0" title="Finishes reading a binary data blob. ">mpack_done_bin()</a> </dd>
 <dd>
-<a class="el" href="group__reader.html#ga5ebed90f6fe9c1d324256d827032702b" title="Finishes reading an extended type binary data blob. ">mpack_done_ext()</a> </dd>
-<dd>
-mpack_cancel() </dd></dl>
+<a class="el" href="group__reader.html#ga5ebed90f6fe9c1d324256d827032702b" title="Finishes reading an extended type binary data blob. ">mpack_done_ext()</a> </dd></dl>
 
 </div>
 </div>
@@ -2565,6 +2571,7 @@ mpack_cancel() </dd></dl>
 
 <p>Reads a string into the given buffer, ensuring it is a valid UTF-8 string and returning its size in bytes. </p>
 <p>This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or WTF-8. Only pure UTF-8 is allowed.</p>
+<p>NUL bytes are allowed in the string (as they are in UTF-8.)</p>
 <p>Raises mpack_error_too_big if there is not enough room for the string. Raises mpack_error_type if the value is not a string or is not a valid UTF-8 string. </p>
 
 </div>
@@ -2602,6 +2609,7 @@ mpack_cancel() </dd></dl>
 <p>Reads a string with the given total maximum size, allocating storage for it and ensuring it is valid UTF-8. </p>
 <p>The length in bytes of the string, not including the null-terminator, will be written to size.</p>
 <p>This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or WTF-8. Only pure UTF-8 is allowed.</p>
+<p>NUL bytes are allowed in the string (as they are in UTF-8.)</p>
 <p>The allocated string must be freed with MPACK_FREE() (or simply free() if MPack's allocator hasn't been customized.)</p>
 <p>No null-terminator will be added to the string. Use <a class="el" href="group__expect.html#gab6d2d920a0ed7d39e251ac8d6f077998">mpack_expect_cstr_alloc()</a> if you want a null-terminator. </p>
 
@@ -2637,9 +2645,48 @@ mpack_cancel() </dd></dl>
       </table>
 </div><div class="memdoc">
 
-<p>Reads a string into the given buffer, ensures it is a valid UTF-8 string without null characters, and adds a null-terminator at the end. </p>
-<p>This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or WTF-8. Only pure UTF-8 is allowed, but without the null character, since it cannot be represented in a null-terminated string.</p>
+<p>Reads a string into the given buffer, ensures it is a valid UTF-8 string without NUL characters, and adds a null-terminator at the end. </p>
+<p>This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or WTF-8. Only pure UTF-8 is allowed, but without the NUL character, since it cannot be represented in a null-terminated string.</p>
 <p>Raises mpack_error_too_big if there is not enough room for the string and null-terminator. Raises mpack_error_type if the value is not a string or is not a valid UTF-8 string. </p>
+
+</div>
+</div>
+<a class="anchor" id="ga5acb7f64d13ce1a09670377cbbbf68c7"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char* mpack_expect_utf8_cstr_alloc </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
+          <td class="paramname"><em>reader</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>maxsize</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Reads a string with the given total maximum size (including space for a null-terminator), allocates storage for it, ensures it is valid UTF-8 with no null-bytes, and adds a null-terminator at the end. </p>
+<p>You assume ownership of the returned pointer if reading succeeds.</p>
+<p>The length in bytes of the string, not including the null-terminator, will be written to size.</p>
+<p>This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or WTF-8. Only pure UTF-8 is allowed, but without the NUL character, since it cannot be represented in a null-terminated string.</p>
+<p>The allocated string must be freed with MPACK_FREE() (or simply free() if MPack's allocator hasn't been customized.) if you want a null-terminator.</p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_too_big</td><td>if the string plus null-terminator is larger than the given maxsize. </td></tr>
+    <tr><td class="paramname">mpack_error_invalid</td><td>if the value is not a string or contains invalid UTF-8 or a null byte. </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>

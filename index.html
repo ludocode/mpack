@@ -24,7 +24,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">MPack
-   &#160;<span id="projectnumber">0.7</span>
+   &#160;<span id="projectnumber">0.7.1</span>
    </div>
    <div id="projectbrief">A C encoding/decoding library for the MessagePack serialization format.</div>
   </td>
@@ -92,50 +92,49 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <p>The core of MPack contains a buffered reader and writer with a custom callback to fill or flush the buffer. Helper functions can be enabled to read values of expected type, to work with files, to allocate strings automatically, to check UTF-8 encoding, and more. The MPack featureset can be configured at compile-time to set which features, components and debug checks are compiled, and what dependencies are available.</p>
 <p>The MPack code is small enough to be embedded directly into your codebase. The easiest way to use it is to download the <a href="https://github.com/ludocode/mpack/releases">amalgamation package</a> and insert the source files directly into your project. Copy <code><a class="el" href="mpack_8h.html" title="Includes the full MPack API. ">mpack.h</a></code> and <code>mpack.c</code> into to your codebase, and copy <code>mpack-config.h.sample</code> as <code>mpack-config.h</code>. You can use the defaults or edit it if you'd like to customize the MPack featureset.</p>
 <p>MPack is written in the portable intersection of C99 and C++. In other words, it's written in C99, but if you are stuck using a certain popular compiler from a certain unpopular vendor that refuses to support C99, you can compile it as C++ instead.</p>
-<h2>Build Status</h2>
-<p>MPack is beta software under development.</p>
-<p>| <a href="https://travis-ci.org/">Travis-CI</a> | <a href="https://coveralls.io/">Coveralls.io</a> | | :----&mdash;: | :-------&mdash;: |</p>
 <h2>The Node Reader API</h2>
-<p>The Node API parses a chunk of MessagePack data into an immutable tree of dynamically-typed nodes. A series of helper functions can be used to extract data of specific types from each node. </p><pre class="fragment">// parse a file into a node tree
-mpack_tree_t tree;
-mpack_tree_init_file(&amp;tree, "homepage-example.mp", 0);
-mpack_node_t root = mpack_tree_root(&amp;tree);
-
-// extract the example data on the msgpack homepage
-bool compact = mpack_node_bool(mpack_node_map_cstr(root, "compact"));
-int schema = mpack_node_i32(mpack_node_map_cstr(root, "schema"));
-
-// clean up and check for errors
-if (mpack_tree_destroy(tree) != mpack_ok) {
-    fprintf(stderr, "An error occurred decoding the data!\n");
-    return;
-}
-</pre><p>Note that no additional error handling is needed in the above code. If the file is missing or corrupt, if map keys are missing or if nodes are not in the expected types, special "nil" nodes and false/zero values are returned and the tree is placed in an error state. An error check is only needed before using the data.</p>
+<p>The Node API parses a chunk of MessagePack data into an immutable tree of dynamically-typed nodes. A series of helper functions can be used to extract data of specific types from each node.</p>
+<div class="fragment"><div class="line"><span class="comment">// parse a file into a node tree</span></div>
+<div class="line"><a class="code" href="group__node.html#ga9c76cfdb08042d6412b5c745bca928a7">mpack_tree_t</a> tree;</div>
+<div class="line"><a class="code" href="group__node.html#ga2f8327cf4ebc79d9358ee0a1643af66c">mpack_tree_init_file</a>(&amp;tree, <span class="stringliteral">&quot;homepage-example.mp&quot;</span>, 0);</div>
+<div class="line"><a class="code" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a> root = <a class="code" href="group__node.html#ga2c49262ce28699d5ec90db09b5fd2eee">mpack_tree_root</a>(&amp;tree);</div>
+<div class="line"></div>
+<div class="line"><span class="comment">// extract the example data on the msgpack homepage</span></div>
+<div class="line"><span class="keywordtype">bool</span> compact = <a class="code" href="group__node.html#gad15f3dba3fe1c0b5b7d9ed5d2c34215a">mpack_node_bool</a>(<a class="code" href="group__node.html#ga6ce515ec366036b1602bafe65a56ef7e">mpack_node_map_cstr</a>(root, <span class="stringliteral">&quot;compact&quot;</span>));</div>
+<div class="line"><span class="keywordtype">int</span> schema = <a class="code" href="group__node.html#ga0180b62e35f1438807cec5f1dc747f3d">mpack_node_i32</a>(<a class="code" href="group__node.html#ga6ce515ec366036b1602bafe65a56ef7e">mpack_node_map_cstr</a>(root, <span class="stringliteral">&quot;schema&quot;</span>));</div>
+<div class="line"></div>
+<div class="line"><span class="comment">// clean up and check for errors</span></div>
+<div class="line"><span class="keywordflow">if</span> (<a class="code" href="group__node.html#gabf57acbc8356be8fab13a64f78986fdc">mpack_tree_destroy</a>(tree) != <a class="code" href="group__common.html#gga9d9f282ca4183ab5190e09d04c1f74c4a642a07519ef145fc9dd1068230c4a661">mpack_ok</a>) {</div>
+<div class="line">    fprintf(stderr, <span class="stringliteral">&quot;An error occurred decoding the data!\n&quot;</span>);</div>
+<div class="line">    <span class="keywordflow">return</span>;</div>
+<div class="line">}</div>
+</div><!-- fragment --><p>Note that no additional error handling is needed in the above code. If the file is missing or corrupt, if map keys are missing or if nodes are not in the expected types, special "nil" nodes and false/zero values are returned and the tree is placed in an error state. An error check is only needed before using the data.</p>
 <h2>The Write API</h2>
-<p>The MPack Write API encodes structured data to MessagePack. </p><pre class="fragment">// encode to memory buffer
-char* data;
-size_t size;
-mpack_writer_t writer;
-mpack_writer_init_growable(&amp;writer, &amp;data, &amp;size);
-
-// write the example on the msgpack homepage
-mpack_start_map(&amp;writer, 2);
-mpack_write_cstr(&amp;writer, "compact");
-mpack_write_bool(&amp;writer, true);
-mpack_write_cstr(&amp;writer, "schema");
-mpack_write_uint(&amp;writer, 0);
-mpack_finish_map(&amp;writer);
-
-// finish writing
-if (mpack_writer_destroy(&amp;writer) != mpack_ok) {
-    fprintf(stderr, "An error occurred encoding the data!\n");
-    return;
-}
-
-// use the data
-do_something_with_data(data, size);
-free(data);
-</pre><p>In the above example, we encode to a growable memory buffer. The writer can instead write to a pre-allocated or stack-allocated buffer, avoiding the need for memory allocation. The writer can also be provided with a flush function (such as a file or socket write function) to call when the buffer is full or when writing is done.</p>
+<p>The MPack Write API encodes structured data to MessagePack.</p>
+<div class="fragment"><div class="line"><span class="comment">// encode to memory buffer</span></div>
+<div class="line"><span class="keywordtype">char</span>* data;</div>
+<div class="line"><span class="keywordtype">size_t</span> size;</div>
+<div class="line"><a class="code" href="group__writer.html#structmpack__writer__t">mpack_writer_t</a> writer;</div>
+<div class="line"><a class="code" href="group__writer.html#ga0aa3b265fb5ece9c4cba0f2b1bfbdb53">mpack_writer_init_growable</a>(&amp;writer, &amp;data, &amp;size);</div>
+<div class="line"></div>
+<div class="line"><span class="comment">// write the example on the msgpack homepage</span></div>
+<div class="line"><a class="code" href="group__writer.html#ga5c54c857ce7f0bdcea9b2df349cbcc61">mpack_start_map</a>(&amp;writer, 2);</div>
+<div class="line"><a class="code" href="group__writer.html#ga3bd01df04f36b5feb770f449b83995b6">mpack_write_cstr</a>(&amp;writer, <span class="stringliteral">&quot;compact&quot;</span>);</div>
+<div class="line"><a class="code" href="group__writer.html#ga5d8fa89f571534f5ddbdf81f5bbd5de8">mpack_write_bool</a>(&amp;writer, <span class="keyword">true</span>);</div>
+<div class="line"><a class="code" href="group__writer.html#ga3bd01df04f36b5feb770f449b83995b6">mpack_write_cstr</a>(&amp;writer, <span class="stringliteral">&quot;schema&quot;</span>);</div>
+<div class="line"><a class="code" href="group__writer.html#gab2e3cd22bad53b31bed85d7b46d135c9">mpack_write_uint</a>(&amp;writer, 0);</div>
+<div class="line"><a class="code" href="group__writer.html#gabf0ab209845e7c9c3df7aa00b0d59a03">mpack_finish_map</a>(&amp;writer);</div>
+<div class="line"></div>
+<div class="line"><span class="comment">// finish writing</span></div>
+<div class="line"><span class="keywordflow">if</span> (<a class="code" href="group__writer.html#ga1cf5a2d9b687d94f637a36123ef7cec0">mpack_writer_destroy</a>(&amp;writer) != <a class="code" href="group__common.html#gga9d9f282ca4183ab5190e09d04c1f74c4a642a07519ef145fc9dd1068230c4a661">mpack_ok</a>) {</div>
+<div class="line">    fprintf(stderr, <span class="stringliteral">&quot;An error occurred encoding the data!\n&quot;</span>);</div>
+<div class="line">    <span class="keywordflow">return</span>;</div>
+<div class="line">}</div>
+<div class="line"></div>
+<div class="line"><span class="comment">// use the data</span></div>
+<div class="line">do_something_with_data(data, size);</div>
+<div class="line">free(data);</div>
+</div><!-- fragment --><p>In the above example, we encode to a growable memory buffer. The writer can instead write to a pre-allocated or stack-allocated buffer, avoiding the need for memory allocation. The writer can also be provided with a flush function (such as a file or socket write function) to call when the buffer is full or when writing is done.</p>
 <p>If any error occurs, the writer is placed in an error state. The writer will flag an error if too much data is written, if the wrong number of elements are written, if the data could not be flushed, etc. No additional error handling is needed in the above code; any subsequent writes are ignored when the writer is in an error state, so you don't need to check every write for errors.</p>
 <p>Note in particular that in debug mode, the <code><a class="el" href="group__writer.html#gabf0ab209845e7c9c3df7aa00b0d59a03" title="Finishes writing a map. ">mpack_finish_map()</a></code> call above ensures that two key/value pairs were actually written as claimed, something that other MessagePack C/C++ libraries may not do.</p>
 <h2>Why Not Just Use JSON?</h2>

@@ -24,7 +24,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">MPack
-   &#160;<span id="projectnumber">0.7</span>
+   &#160;<span id="projectnumber">0.7.1</span>
    </div>
    <div id="projectbrief">A C encoding/decoding library for the MessagePack serialization format.</div>
   </td>
@@ -110,6 +110,9 @@ Typedefs</h2></td></tr>
 <tr class="memitem:ga97503ca06d41d58c60226b2732661eda"><td class="memItemLeft" align="right" valign="top">typedef size_t(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga97503ca06d41d58c60226b2732661eda">mpack_reader_fill_t</a>) (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, char *buffer, size_t count)</td></tr>
 <tr class="memdesc:ga97503ca06d41d58c60226b2732661eda"><td class="mdescLeft">&#160;</td><td class="mdescRight">The MPack reader's fill function.  <a href="#ga97503ca06d41d58c60226b2732661eda">More...</a><br /></td></tr>
 <tr class="separator:ga97503ca06d41d58c60226b2732661eda"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga6a0b236c7befe9cb959dabce15acd23b"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga6a0b236c7befe9cb959dabce15acd23b">mpack_reader_skip_t</a>) (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, size_t count)</td></tr>
+<tr class="memdesc:ga6a0b236c7befe9cb959dabce15acd23b"><td class="mdescLeft">&#160;</td><td class="mdescRight">The MPack reader's skip function.  <a href="#ga6a0b236c7befe9cb959dabce15acd23b">More...</a><br /></td></tr>
+<tr class="separator:ga6a0b236c7befe9cb959dabce15acd23b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gadda6baaccdcf0ad9c5e212be9992cf5b"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#gadda6baaccdcf0ad9c5e212be9992cf5b">mpack_reader_teardown_t</a>) (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader)</td></tr>
 <tr class="memdesc:gadda6baaccdcf0ad9c5e212be9992cf5b"><td class="mdescLeft">&#160;</td><td class="mdescRight">A teardown function to be called when the reader is destroyed.  <a href="#gadda6baaccdcf0ad9c5e212be9992cf5b">More...</a><br /></td></tr>
 <tr class="separator:gadda6baaccdcf0ad9c5e212be9992cf5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -161,18 +164,15 @@ char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_read_bytes_al
 <tr class="memitem:gac04666405e21eea6e8819182571f0d20"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#gac04666405e21eea6e8819182571f0d20">mpack_reader_destroy</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader)</td></tr>
 <tr class="memdesc:gac04666405e21eea6e8819182571f0d20"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cleans up the MPack reader, ensuring that all compound elements have been completely read.  <a href="#gac04666405e21eea6e8819182571f0d20">More...</a><br /></td></tr>
 <tr class="separator:gac04666405e21eea6e8819182571f0d20"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gad7752b631c5f4e6e56b4a38781aca876"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#gad7752b631c5f4e6e56b4a38781aca876">mpack_reader_destroy_cancel</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader)</td></tr>
-<tr class="memdesc:gad7752b631c5f4e6e56b4a38781aca876"><td class="mdescLeft">&#160;</td><td class="mdescRight">Cleans up the MPack reader, discarding any open reads.  <a href="#gad7752b631c5f4e6e56b4a38781aca876">More...</a><br /></td></tr>
-<tr class="separator:gad7752b631c5f4e6e56b4a38781aca876"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga79050efd2a581e8216f58d4946e7abc2"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga79050efd2a581e8216f58d4946e7abc2">mpack_reader_error</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader)</td></tr>
 <tr class="memdesc:ga79050efd2a581e8216f58d4946e7abc2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Queries the error state of the MPack reader.  <a href="#ga79050efd2a581e8216f58d4946e7abc2">More...</a><br /></td></tr>
 <tr class="separator:ga79050efd2a581e8216f58d4946e7abc2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga5c45c2e0592f16ae671cd509d8d8c512"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga5c45c2e0592f16ae671cd509d8d8c512">mpack_reader_flag_error</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, <a class="el" href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a> error)</td></tr>
-<tr class="memdesc:ga5c45c2e0592f16ae671cd509d8d8c512"><td class="mdescLeft">&#160;</td><td class="mdescRight">Places the reader in the given error state, jumping if a jump target is set.  <a href="#ga5c45c2e0592f16ae671cd509d8d8c512">More...</a><br /></td></tr>
+<tr class="memdesc:ga5c45c2e0592f16ae671cd509d8d8c512"><td class="mdescLeft">&#160;</td><td class="mdescRight">Places the reader in the given error state, calling the error callback if one is set.  <a href="#ga5c45c2e0592f16ae671cd509d8d8c512">More...</a><br /></td></tr>
 <tr class="separator:ga5c45c2e0592f16ae671cd509d8d8c512"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga514df2b80292690e7ead02d6713b5f64"><td class="memItemLeft" align="right" valign="top">MPACK_INLINE_SPEED <a class="el" href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga514df2b80292690e7ead02d6713b5f64">mpack_reader_flag_if_error</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, <a class="el" href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a> error)</td></tr>
-<tr class="memdesc:ga514df2b80292690e7ead02d6713b5f64"><td class="mdescLeft">&#160;</td><td class="mdescRight">Places the reader in the given error state if the given error is not mpack_ok, returning the resulting error state of the reader.  <a href="#ga514df2b80292690e7ead02d6713b5f64">More...</a><br /></td></tr>
-<tr class="separator:ga514df2b80292690e7ead02d6713b5f64"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga09da1e5abbce2b9f7f70d82924eefa3f"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga09da1e5abbce2b9f7f70d82924eefa3f">mpack_reader_flag_if_error</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, <a class="el" href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a> error)</td></tr>
+<tr class="memdesc:ga09da1e5abbce2b9f7f70d82924eefa3f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Places the reader in the given error state if the given error is not mpack_ok, returning the resulting error state of the reader.  <a href="#ga09da1e5abbce2b9f7f70d82924eefa3f">More...</a><br /></td></tr>
+<tr class="separator:ga09da1e5abbce2b9f7f70d82924eefa3f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga1d79c00c6c013b879b164c26753b3e83"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga1d79c00c6c013b879b164c26753b3e83">mpack_reader_init</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, char *buffer, size_t size, size_t count)</td></tr>
 <tr class="memdesc:ga1d79c00c6c013b879b164c26753b3e83"><td class="mdescLeft">&#160;</td><td class="mdescRight">Initializes an MPack reader with the given buffer.  <a href="#ga1d79c00c6c013b879b164c26753b3e83">More...</a><br /></td></tr>
 <tr class="separator:ga1d79c00c6c013b879b164c26753b3e83"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -197,12 +197,15 @@ char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_read_bytes_al
 <tr class="memitem:gaf4eab68e9d1751ff9c6c853d563d9a0e"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#gaf4eab68e9d1751ff9c6c853d563d9a0e">mpack_reader_set_fill</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, <a class="el" href="group__reader.html#ga97503ca06d41d58c60226b2732661eda">mpack_reader_fill_t</a> fill)</td></tr>
 <tr class="memdesc:gaf4eab68e9d1751ff9c6c853d563d9a0e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the fill function to refill the data buffer when it runs out of data.  <a href="#gaf4eab68e9d1751ff9c6c853d563d9a0e">More...</a><br /></td></tr>
 <tr class="separator:gaf4eab68e9d1751ff9c6c853d563d9a0e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa925114414e77ff809fcaaba399c8162"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#gaa925114414e77ff809fcaaba399c8162">mpack_reader_set_skip</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, <a class="el" href="group__reader.html#ga6a0b236c7befe9cb959dabce15acd23b">mpack_reader_skip_t</a> skip)</td></tr>
+<tr class="memdesc:gaa925114414e77ff809fcaaba399c8162"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the skip function to discard bytes from the source stream.  <a href="#gaa925114414e77ff809fcaaba399c8162">More...</a><br /></td></tr>
+<tr class="separator:gaa925114414e77ff809fcaaba399c8162"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gad04ce10afce7422697d861f46e5aee86"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#gad04ce10afce7422697d861f46e5aee86">mpack_reader_set_teardown</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, <a class="el" href="group__reader.html#gadda6baaccdcf0ad9c5e212be9992cf5b">mpack_reader_teardown_t</a> teardown)</td></tr>
 <tr class="memdesc:gad04ce10afce7422697d861f46e5aee86"><td class="mdescLeft">&#160;</td><td class="mdescRight">Sets the teardown function to call when the reader is destroyed.  <a href="#gad04ce10afce7422697d861f46e5aee86">More...</a><br /></td></tr>
 <tr class="separator:gad04ce10afce7422697d861f46e5aee86"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gadf2633610efea2372d4b7fe6b201b312"><td class="memItemLeft" align="right" valign="top">MPACK_INLINE_SPEED bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#gadf2633610efea2372d4b7fe6b201b312">mpack_should_read_bytes_inplace</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, size_t count)</td></tr>
-<tr class="memdesc:gadf2633610efea2372d4b7fe6b201b312"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns true if it's a good idea to read the given number of bytes in-place.  <a href="#gadf2633610efea2372d4b7fe6b201b312">More...</a><br /></td></tr>
-<tr class="separator:gadf2633610efea2372d4b7fe6b201b312"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa69e23a50f63c84b45f9247db9c22ad0"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#gaa69e23a50f63c84b45f9247db9c22ad0">mpack_should_read_bytes_inplace</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, size_t count)</td></tr>
+<tr class="memdesc:gaa69e23a50f63c84b45f9247db9c22ad0"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns true if it's a good idea to read the given number of bytes in-place.  <a href="#gaa69e23a50f63c84b45f9247db9c22ad0">More...</a><br /></td></tr>
+<tr class="separator:gaa69e23a50f63c84b45f9247db9c22ad0"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga0c7e1dd2be56ce3d596326c4463e7229"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__reader.html#ga0c7e1dd2be56ce3d596326c4463e7229">mpack_skip_bytes</a> (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, size_t count)</td></tr>
 <tr class="memdesc:ga0c7e1dd2be56ce3d596326c4463e7229"><td class="mdescLeft">&#160;</td><td class="mdescRight">Skips bytes from the underlying stream.  <a href="#ga0c7e1dd2be56ce3d596326c4463e7229">More...</a><br /></td></tr>
 <tr class="separator:ga0c7e1dd2be56ce3d596326c4463e7229"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -275,6 +278,12 @@ size</td>
 <td class="fielddoc">
 </td></tr>
 <tr><td class="fieldtype">
+<a class="anchor" id="ad02c0af1658bc1f1cfc86741ba14844d"></a><a class="el" href="group__reader.html#ga6a0b236c7befe9cb959dabce15acd23b">mpack_reader_skip_t</a></td>
+<td class="fieldname">
+skip</td>
+<td class="fielddoc">
+</td></tr>
+<tr><td class="fieldtype">
 <a class="anchor" id="a4dbb991c7629687d280ae93164d84d96"></a><a class="el" href="group__reader.html#gadda6baaccdcf0ad9c5e212be9992cf5b">mpack_reader_teardown_t</a></td>
 <td class="fieldname">
 teardown</td>
@@ -324,7 +333,7 @@ track</td>
 
 <p>An error handler function to be called when an error is flagged on the reader. </p>
 <p>The error handler will only be called once on the first error flagged; any subsequent reads and errors are ignored, and the reader is permanently in that error state.</p>
-<p>MPack is safe against non-local jumps out of error handler callbacks. This means you are allowed to longjmp or throw an exception (in C++ or with SEH) out of this callback.</p>
+<p>MPack is safe against non-local jumps out of error handler callbacks. This means you are allowed to longjmp or throw an exception (in C++, Objective-C, or with SEH) out of this callback.</p>
 <p>Bear in mind when using longjmp that local non-volatile variables that have changed are undefined when setjmp() returns, so you can't put the reader on the stack in the same activation frame as the setjmp without declaring it volatile.)</p>
 <p>You must still eventually destroy the reader. It is not destroyed automatically when an error is flagged. It is safe to destroy the reader within this error callback, but you will either need to perform a non-local jump, or store something in your context to identify that the reader is destroyed since any future accesses to it cause undefined behavior. </p>
 
@@ -342,6 +351,22 @@ track</td>
 
 <p>The MPack reader's fill function. </p>
 <p>It should fill the buffer as much as possible, returning the number of bytes put into the buffer.</p>
+<p>In case of error, it should flag an appropriate error on the reader. </p>
+
+</div>
+</div>
+<a class="anchor" id="ga6a0b236c7befe9cb959dabce15acd23b"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">typedef void(* mpack_reader_skip_t) (<a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *reader, size_t count)</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The MPack reader's skip function. </p>
+<p>It should discard the given number of bytes from the source (for example by seeking forward.)</p>
 <p>In case of error, it should flag an appropriate error on the reader. </p>
 
 </div>
@@ -658,9 +683,9 @@ track</td>
 <p>This can be used to avoid copying the data.</p>
 <p>The returned pointer is invalidated the next time the reader's fill function is called, or when the buffer is destroyed.</p>
 <p>The size requested must be at most the buffer size. If the requested size is larger than the buffer size, mpack_error_too_big is raised and the return value is undefined.</p>
-<p>The reader will move data around in the buffer if needed to ensure that the pointer can always be returned, so it is unlikely to be faster unless count is very small compared to the buffer size. If you need to check whether a small size is reasonable (for example you intend to handle small and large sizes differently), you can call <a class="el" href="group__reader.html#gadf2633610efea2372d4b7fe6b201b312" title="Returns true if it&#39;s a good idea to read the given number of bytes in-place. ">mpack_should_read_bytes_inplace()</a>.</p>
+<p>The reader will move data around in the buffer if needed to ensure that the pointer can always be returned, so it is unlikely to be faster unless count is very small compared to the buffer size. If you need to check whether a small size is reasonable (for example you intend to handle small and large sizes differently), you can call <a class="el" href="group__reader.html#gaa69e23a50f63c84b45f9247db9c22ad0" title="Returns true if it&#39;s a good idea to read the given number of bytes in-place. ">mpack_should_read_bytes_inplace()</a>.</p>
 <p>As with all read functions, the return value is undefined if the reader is in an error state.</p>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__reader.html#gadf2633610efea2372d4b7fe6b201b312" title="Returns true if it&#39;s a good idea to read the given number of bytes in-place. ">mpack_should_read_bytes_inplace()</a> </dd></dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__reader.html#gaa69e23a50f63c84b45f9247db9c22ad0" title="Returns true if it&#39;s a good idea to read the given number of bytes in-place. ">mpack_should_read_bytes_inplace()</a> </dd></dl>
 
 </div>
 </div>
@@ -680,7 +705,7 @@ track</td>
 
 <p>Reads a MessagePack object header (an MPack tag.) </p>
 <p>If an error occurs, the <a class="el" href="group__reader.html#structmpack__reader__t" title="A buffered MessagePack decoder. ">mpack_reader_t</a> is placed in an error state and a nil tag is returned. If the reader is already in an error state, a nil tag is returned.</p>
-<p>If the type is compound (i.e. is a map, array, string, binary or extension type), additional reads are required to get the actual data, and the corresponding done function (or cancel) should be called when done.</p>
+<p>If the type is compound (i.e. is a map, array, string, binary or extension type), additional reads are required to get the contained data, and the corresponding done function must be called when done.</p>
 <p>Note that maps in JSON are unordered, so it is recommended not to expect a specific ordering for your map values in case your data is converted to/from JSON.</p>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="group__reader.html#gaeb91e8d4e2a7b7f6562d8bbb7400275c" title="Reads bytes from a string, binary blob or extension object. ">mpack_read_bytes()</a> </dd>
 <dd>
@@ -692,9 +717,7 @@ track</td>
 <dd>
 <a class="el" href="group__reader.html#gaa4676c4b0761de4f864fd81c347a15a0" title="Finishes reading a binary data blob. ">mpack_done_bin()</a> </dd>
 <dd>
-<a class="el" href="group__reader.html#ga5ebed90f6fe9c1d324256d827032702b" title="Finishes reading an extended type binary data blob. ">mpack_done_ext()</a> </dd>
-<dd>
-mpack_cancel() </dd></dl>
+<a class="el" href="group__reader.html#ga5ebed90f6fe9c1d324256d827032702b" title="Finishes reading an extended type binary data blob. ">mpack_done_ext()</a> </dd></dl>
 
 </div>
 </div>
@@ -714,27 +737,12 @@ mpack_cancel() </dd></dl>
 
 <p>Cleans up the MPack reader, ensuring that all compound elements have been completely read. </p>
 <p>Returns the final error state of the reader.</p>
-<p>This will assert in tracking mode if the reader has any incomplete reads. If you want to cancel reading in the middle of a compound element and don't care about the rest of the document, call <a class="el" href="group__reader.html#gad7752b631c5f4e6e56b4a38781aca876" title="Cleans up the MPack reader, discarding any open reads. ">mpack_reader_destroy_cancel()</a> instead.</p>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__reader.html#gad7752b631c5f4e6e56b4a38781aca876" title="Cleans up the MPack reader, discarding any open reads. ">mpack_reader_destroy_cancel()</a> </dd></dl>
-
-</div>
-</div>
-<a class="anchor" id="gad7752b631c5f4e6e56b4a38781aca876"></a>
-<div class="memitem">
-<div class="memproto">
-      <table class="memname">
-        <tr>
-          <td class="memname">void mpack_reader_destroy_cancel </td>
-          <td>(</td>
-          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
-          <td class="paramname"><em>reader</em></td><td>)</td>
-          <td></td>
-        </tr>
-      </table>
-</div><div class="memdoc">
-
-<p>Cleans up the MPack reader, discarding any open reads. </p>
-<p>This should be used if you decide to cancel reading in the middle of the document. </p>
+<p>This will assert in tracking mode if the reader is not in an error state and has any incomplete reads. If you want to cancel reading in the middle of a document, you need to flag an error on the reader before destroying it (such as mpack_error_data).</p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__reader.html#ga70c00ecaf381e9711f6c1d0fa92f0c2f" title="Reads a MessagePack object header (an MPack tag.) ">mpack_read_tag()</a> </dd>
+<dd>
+<a class="el" href="group__reader.html#ga5c45c2e0592f16ae671cd509d8d8c512" title="Places the reader in the given error state, calling the error callback if one is set. ">mpack_reader_flag_error()</a> </dd>
+<dd>
+<a class="el" href="group__common.html#gga9d9f282ca4183ab5190e09d04c1f74c4ae53cbed8fcc42915d71ae37d121b22e8" title="The contained data is not valid. ">mpack_error_data</a> </dd></dl>
 
 </div>
 </div>
@@ -781,18 +789,18 @@ mpack_cancel() </dd></dl>
       </table>
 </div><div class="memdoc">
 
-<p>Places the reader in the given error state, jumping if a jump target is set. </p>
+<p>Places the reader in the given error state, calling the error callback if one is set. </p>
 <p>This allows you to externally flag errors, for example if you are validating data as you read it.</p>
-<p>If the reader is already in an error state, this call is ignored and no jump is performed. </p>
+<p>If the reader is already in an error state, this call is ignored and no error callback is called. </p>
 
 </div>
 </div>
-<a class="anchor" id="ga514df2b80292690e7ead02d6713b5f64"></a>
+<a class="anchor" id="ga09da1e5abbce2b9f7f70d82924eefa3f"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">MPACK_INLINE_SPEED <a class="el" href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a> mpack_reader_flag_if_error </td>
+          <td class="memname"><a class="el" href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a> mpack_reader_flag_if_error </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
           <td class="paramname"><em>reader</em>, </td>
@@ -1116,6 +1124,44 @@ mpack_cancel() </dd></dl>
 
 </div>
 </div>
+<a class="anchor" id="gaa925114414e77ff809fcaaba399c8162"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void mpack_reader_set_skip </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
+          <td class="paramname"><em>reader</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype"><a class="el" href="group__reader.html#ga6a0b236c7befe9cb959dabce15acd23b">mpack_reader_skip_t</a>&#160;</td>
+          <td class="paramname"><em>skip</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Sets the skip function to discard bytes from the source stream. </p>
+<p>It's not necessary to implement this function. If the stream is not seekable, don't set a skip callback. The reader will fall back to using the fill function instead.</p>
+<p>This should normally be used with <a class="el" href="group__reader.html#gafc76e77e7431f13ba7ff6a6a83fffe07" title="Sets the custom pointer to pass to the reader callbacks, such as fill or teardown. ">mpack_reader_set_context()</a> to register a custom pointer to pass to the skip function.</p>
+<p>The skip function is ignored in size-optimized builds to reduce code size. Data will be skipped with the fill function when necessary.</p>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">reader</td><td>The MPack reader. </td></tr>
+    <tr><td class="paramname">skip</td><td>The function to discard bytes from the source stream. </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a class="anchor" id="gad04ce10afce7422697d861f46e5aee86"></a>
 <div class="memitem">
 <div class="memproto">
@@ -1152,12 +1198,12 @@ mpack_cancel() </dd></dl>
 
 </div>
 </div>
-<a class="anchor" id="gadf2633610efea2372d4b7fe6b201b312"></a>
+<a class="anchor" id="gaa69e23a50f63c84b45f9247db9c22ad0"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
-          <td class="memname">MPACK_INLINE_SPEED bool mpack_should_read_bytes_inplace </td>
+          <td class="memname">bool mpack_should_read_bytes_inplace </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="group__reader.html#structmpack__reader__t">mpack_reader_t</a> *&#160;</td>
           <td class="paramname"><em>reader</em>, </td>
