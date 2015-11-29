@@ -62,7 +62,7 @@ if hasOg:
     debugflags = ["-DDEBUG", "-Og"]
 else:
     debugflags = ["-DDEBUG", "-O0"]
-releaseflags = ["-Os"]
+releaseflags = ["-O2"]
 cflags = ["-std=c99"]
 
 gcovflags = []
@@ -97,7 +97,6 @@ def AddBuilds(variant_dir, cppflags, linkflags = []):
 
 # The default build, everything in debug. This is the build used
 # for code coverage measurement and static analysis.
-
 AddBuild("debug", allfeatures + allconfigs + debugflags + cflags + gcovflags, gcovflags)
 
 
@@ -107,6 +106,8 @@ if ARGUMENTS.get('more') or ARGUMENTS.get('all'):
     AddBuild("release", allfeatures + allconfigs + releaseflags + cflags)
     AddBuilds("embed", allfeatures + cflags)
     AddBuilds("noio", allfeatures + noioconfigs + cflags)
+    AddBuild("debug-size", ["-DMPACK_OPTIMIZE_FOR_SIZE=1"] + debugflags + allfeatures + allconfigs + cflags)
+    AddBuild("release-size", ["-Os"] + allfeatures + allconfigs + cflags)
 
 
 # Run "scons all=1" to run all builds. This is what the CI runs.
@@ -115,8 +116,6 @@ if ARGUMENTS.get('all'):
     # various release builds
     AddBuild("release-unopt", allfeatures + allconfigs + cflags + ["-O0"])
     AddBuild("release-fastmath", allfeatures + allconfigs + releaseflags + cflags + ["-ffast-math"])
-    AddBuild("release-speed", ["-DMPACK_OPTIMIZE_FOR_SIZE=0"] +
-            allfeatures + allconfigs + releaseflags + cflags)
     if conf.CheckFlags(ltoflags, ltoflags, "-flto"):
         AddBuild("release-lto", allfeatures + allconfigs + ltoflags + cflags, ltoflags)
 

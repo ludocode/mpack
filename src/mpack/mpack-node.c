@@ -286,14 +286,342 @@ static void mpack_tree_parse_bytes(mpack_tree_parser_t* parser, mpack_node_data_
     parser->possible_nodes_left -= length;
 }
 
+static void mpack_tree_parse_node(mpack_tree_parser_t* parser, mpack_node_data_t* node) {
+
+    // read the type
+    uint8_t type = mpack_tree_u8(parser);
+
+    // as with mpack_read_tag(), the fastest way to parse a node is to switch
+    // on the first byte, and to explicitly list every possible byte. we jump
+    // on the first four bits in size-optimized builds.
+
+    #if MPACK_OPTIMIZE_FOR_SIZE
+    switch (type >> 4) {
+
+        // positive fixnum
+        case 0x0: case 0x1: case 0x2: case 0x3:
+        case 0x4: case 0x5: case 0x6: case 0x7:
+            node->type = mpack_type_uint;
+            node->value.u = type;
+            return;
+
+        // negative fixnum
+        case 0xe: case 0xf:
+            node->type = mpack_type_int;
+            node->value.i = (int8_t)type;
+            return;
+
+        // fixmap
+        case 0x8:
+            node->type = mpack_type_map;
+            node->len = type & ~0xf0;
+            mpack_tree_parse_children(parser, node);
+            return;
+
+        // fixarray
+        case 0x9:
+            node->type = mpack_type_array;
+            node->len = type & ~0xf0;
+            mpack_tree_parse_children(parser, node);
+            return;
+
+        // fixstr
+        case 0xa: case 0xb:
+            node->type = mpack_type_str;
+            node->len = type & ~0xe0;
+            mpack_tree_parse_bytes(parser, node);
+            return;
+
+        // not one of the common infix types
+        default:
+            break;
+    }
+    #endif
+
+    switch (type) {
+
+        #if !MPACK_OPTIMIZE_FOR_SIZE
+        // positive fixnum
+        case 0x00: case 0x01: case 0x02: case 0x03: case 0x04: case 0x05: case 0x06: case 0x07:
+        case 0x08: case 0x09: case 0x0a: case 0x0b: case 0x0c: case 0x0d: case 0x0e: case 0x0f:
+        case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15: case 0x16: case 0x17:
+        case 0x18: case 0x19: case 0x1a: case 0x1b: case 0x1c: case 0x1d: case 0x1e: case 0x1f:
+        case 0x20: case 0x21: case 0x22: case 0x23: case 0x24: case 0x25: case 0x26: case 0x27:
+        case 0x28: case 0x29: case 0x2a: case 0x2b: case 0x2c: case 0x2d: case 0x2e: case 0x2f:
+        case 0x30: case 0x31: case 0x32: case 0x33: case 0x34: case 0x35: case 0x36: case 0x37:
+        case 0x38: case 0x39: case 0x3a: case 0x3b: case 0x3c: case 0x3d: case 0x3e: case 0x3f:
+        case 0x40: case 0x41: case 0x42: case 0x43: case 0x44: case 0x45: case 0x46: case 0x47:
+        case 0x48: case 0x49: case 0x4a: case 0x4b: case 0x4c: case 0x4d: case 0x4e: case 0x4f:
+        case 0x50: case 0x51: case 0x52: case 0x53: case 0x54: case 0x55: case 0x56: case 0x57:
+        case 0x58: case 0x59: case 0x5a: case 0x5b: case 0x5c: case 0x5d: case 0x5e: case 0x5f:
+        case 0x60: case 0x61: case 0x62: case 0x63: case 0x64: case 0x65: case 0x66: case 0x67:
+        case 0x68: case 0x69: case 0x6a: case 0x6b: case 0x6c: case 0x6d: case 0x6e: case 0x6f:
+        case 0x70: case 0x71: case 0x72: case 0x73: case 0x74: case 0x75: case 0x76: case 0x77:
+        case 0x78: case 0x79: case 0x7a: case 0x7b: case 0x7c: case 0x7d: case 0x7e: case 0x7f:
+            node->type = mpack_type_uint;
+            node->value.u = type;
+            return;
+
+        // negative fixnum
+        case 0xe0: case 0xe1: case 0xe2: case 0xe3: case 0xe4: case 0xe5: case 0xe6: case 0xe7:
+        case 0xe8: case 0xe9: case 0xea: case 0xeb: case 0xec: case 0xed: case 0xee: case 0xef:
+        case 0xf0: case 0xf1: case 0xf2: case 0xf3: case 0xf4: case 0xf5: case 0xf6: case 0xf7:
+        case 0xf8: case 0xf9: case 0xfa: case 0xfb: case 0xfc: case 0xfd: case 0xfe: case 0xff:
+            node->type = mpack_type_int;
+            node->value.i = (int8_t)type;
+            return;
+
+        // fixmap
+        case 0x80: case 0x81: case 0x82: case 0x83: case 0x84: case 0x85: case 0x86: case 0x87:
+        case 0x88: case 0x89: case 0x8a: case 0x8b: case 0x8c: case 0x8d: case 0x8e: case 0x8f:
+            node->type = mpack_type_map;
+            node->len = type & ~0xf0;
+            mpack_tree_parse_children(parser, node);
+            return;
+
+        // fixarray
+        case 0x90: case 0x91: case 0x92: case 0x93: case 0x94: case 0x95: case 0x96: case 0x97:
+        case 0x98: case 0x99: case 0x9a: case 0x9b: case 0x9c: case 0x9d: case 0x9e: case 0x9f:
+            node->type = mpack_type_array;
+            node->len = type & ~0xf0;
+            mpack_tree_parse_children(parser, node);
+            return;
+
+        // fixstr
+        case 0xa0: case 0xa1: case 0xa2: case 0xa3: case 0xa4: case 0xa5: case 0xa6: case 0xa7:
+        case 0xa8: case 0xa9: case 0xaa: case 0xab: case 0xac: case 0xad: case 0xae: case 0xaf:
+        case 0xb0: case 0xb1: case 0xb2: case 0xb3: case 0xb4: case 0xb5: case 0xb6: case 0xb7:
+        case 0xb8: case 0xb9: case 0xba: case 0xbb: case 0xbc: case 0xbd: case 0xbe: case 0xbf:
+            node->type = mpack_type_str;
+            node->len = type & ~0xe0;
+            mpack_tree_parse_bytes(parser, node);
+            return;
+        #endif
+
+        // nil
+        case 0xc0:
+            node->type = mpack_type_nil;
+            return;
+
+        // bool
+        case 0xc2: case 0xc3:
+            node->type = mpack_type_bool;
+            node->value.b = type & 1;
+            return;
+
+        // bin8
+        case 0xc4:
+            node->type = mpack_type_bin;
+            node->len = mpack_tree_u8(parser);
+            mpack_tree_parse_bytes(parser, node);
+            return;
+
+        // bin16
+        case 0xc5:
+            node->type = mpack_type_bin;
+            node->len = mpack_tree_u16(parser);
+            mpack_tree_parse_bytes(parser, node);
+            return;
+
+        // bin32
+        case 0xc6:
+            node->type = mpack_type_bin;
+            node->len = mpack_tree_u32(parser);
+            mpack_tree_parse_bytes(parser, node);
+            return;
+
+        // ext8
+        case 0xc7:
+            node->type = mpack_type_ext;
+            node->len = mpack_tree_u8(parser);
+            mpack_skip_exttype(parser);
+            mpack_tree_parse_bytes(parser, node);
+            return;
+
+        // ext16
+        case 0xc8:
+            node->type = mpack_type_ext;
+            node->len = mpack_tree_u16(parser);
+            mpack_skip_exttype(parser);
+            mpack_tree_parse_bytes(parser, node);
+            return;
+
+        // ext32
+        case 0xc9:
+            node->type = mpack_type_ext;
+            node->len = mpack_tree_u32(parser);
+            mpack_skip_exttype(parser);
+            mpack_tree_parse_bytes(parser, node);
+            return;
+
+        // float
+        case 0xca:
+            node->type = mpack_type_float;
+            node->value.f = mpack_tree_float(parser);
+            return;
+
+        // double
+        case 0xcb:
+            node->type = mpack_type_double;
+            node->value.d = mpack_tree_double(parser);
+            return;
+
+        // uint8
+        case 0xcc:
+            node->type = mpack_type_uint;
+            node->value.u = mpack_tree_u8(parser);
+            return;
+
+        // uint16
+        case 0xcd:
+            node->type = mpack_type_uint;
+            node->value.u = mpack_tree_u16(parser);
+            return;
+
+        // uint32
+        case 0xce:
+            node->type = mpack_type_uint;
+            node->value.u = mpack_tree_u32(parser);
+            return;
+
+        // uint64
+        case 0xcf:
+            node->type = mpack_type_uint;
+            node->value.u = mpack_tree_u64(parser);
+            return;
+
+        // int8
+        case 0xd0:
+            node->type = mpack_type_int;
+            node->value.i = mpack_tree_i8(parser);
+            return;
+
+        // int16
+        case 0xd1:
+            node->type = mpack_type_int;
+            node->value.i = mpack_tree_i16(parser);
+            return;
+
+        // int32
+        case 0xd2:
+            node->type = mpack_type_int;
+            node->value.i = mpack_tree_i32(parser);
+            return;
+
+        // int64
+        case 0xd3:
+            node->type = mpack_type_int;
+            node->value.i = mpack_tree_i64(parser);
+            return;
+
+        // fixext1
+        case 0xd4:
+            node->type = mpack_type_ext;
+            node->len = 1;
+            mpack_skip_exttype(parser);
+            mpack_tree_parse_bytes(parser, node);
+            return;
+
+        // fixext2
+        case 0xd5:
+            node->type = mpack_type_ext;
+            node->len = 2;
+            mpack_skip_exttype(parser);
+            mpack_tree_parse_bytes(parser, node);
+            return;
+
+        // fixext4
+        case 0xd6:
+            node->type = mpack_type_ext;
+            node->len = 4;
+            mpack_skip_exttype(parser);
+            mpack_tree_parse_bytes(parser, node);
+            return;
+
+        // fixext8
+        case 0xd7:
+            node->type = mpack_type_ext;
+            node->len = 8;
+            mpack_skip_exttype(parser);
+            mpack_tree_parse_bytes(parser, node);
+            return;
+
+        // fixext16
+        case 0xd8:
+            node->type = mpack_type_ext;
+            node->len = 16;
+            mpack_skip_exttype(parser);
+            mpack_tree_parse_bytes(parser, node);
+            return;
+
+        // str8
+        case 0xd9:
+            node->type = mpack_type_str;
+            node->len = mpack_tree_u8(parser);
+            mpack_tree_parse_bytes(parser, node);
+            return;
+
+        // str16
+        case 0xda:
+            node->type = mpack_type_str;
+            node->len = mpack_tree_u16(parser);
+            mpack_tree_parse_bytes(parser, node);
+            return;
+
+        // str32
+        case 0xdb:
+            node->type = mpack_type_str;
+            node->len = mpack_tree_u32(parser);
+            mpack_tree_parse_bytes(parser, node);
+            return;
+
+        // array16
+        case 0xdc:
+            node->type = mpack_type_array;
+            node->len = mpack_tree_u16(parser);
+            mpack_tree_parse_children(parser, node);
+            return;
+
+        // array32
+        case 0xdd:
+            node->type = mpack_type_array;
+            node->len = mpack_tree_u32(parser);
+            mpack_tree_parse_children(parser, node);
+            return;
+
+        // map16
+        case 0xde:
+            node->type = mpack_type_map;
+            node->len = mpack_tree_u16(parser);
+            mpack_tree_parse_children(parser, node);
+            return;
+
+        // map32
+        case 0xdf:
+            node->type = mpack_type_map;
+            node->len = mpack_tree_u32(parser);
+            mpack_tree_parse_children(parser, node);
+            return;
+
+        // reserved
+        case 0xc1:
+            mpack_tree_flag_error(parser->tree, mpack_error_invalid);
+            return;
+
+        #if MPACK_OPTIMIZE_FOR_SIZE
+        // any other bytes should have been handled by the infix switch
+        default:
+            mpack_assert(0, "unreachable");
+            return;
+        #endif
+    }
+
+}
+
 static void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length,
         mpack_node_data_t* initial_nodes, size_t initial_nodes_count)
 {
     mpack_log("starting parse\n");
-
-    // This function is unfortunately huge and ugly, but there isn't
-    // a good way to break it apart without losing performance. It's
-    // well-commented to try to make up for it.
 
     if (length == 0) {
         mpack_tree_flag_error(tree, mpack_error_invalid);
@@ -355,280 +683,12 @@ static void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length
         --parser.stack[parser.level].left;
         ++parser.stack[parser.level].child;
 
-        // read the type (we've already counted this byte in possible_nodes_left)
+        // We've already counted this byte in possible_nodes_left; add the
+        // initial type byte back in before reading it
         ++parser.possible_nodes_left;
-        uint8_t type = mpack_tree_u8(&parser);
 
-        // as with mpack_read_tag(), the fastest way to parse a node is to switch
-        // on the first byte, and to explicitly list every possible byte.
-        switch (type) {
-
-            // positive fixnum
-            case 0x00: case 0x01: case 0x02: case 0x03: case 0x04: case 0x05: case 0x06: case 0x07:
-            case 0x08: case 0x09: case 0x0a: case 0x0b: case 0x0c: case 0x0d: case 0x0e: case 0x0f:
-            case 0x10: case 0x11: case 0x12: case 0x13: case 0x14: case 0x15: case 0x16: case 0x17:
-            case 0x18: case 0x19: case 0x1a: case 0x1b: case 0x1c: case 0x1d: case 0x1e: case 0x1f:
-            case 0x20: case 0x21: case 0x22: case 0x23: case 0x24: case 0x25: case 0x26: case 0x27:
-            case 0x28: case 0x29: case 0x2a: case 0x2b: case 0x2c: case 0x2d: case 0x2e: case 0x2f:
-            case 0x30: case 0x31: case 0x32: case 0x33: case 0x34: case 0x35: case 0x36: case 0x37:
-            case 0x38: case 0x39: case 0x3a: case 0x3b: case 0x3c: case 0x3d: case 0x3e: case 0x3f:
-            case 0x40: case 0x41: case 0x42: case 0x43: case 0x44: case 0x45: case 0x46: case 0x47:
-            case 0x48: case 0x49: case 0x4a: case 0x4b: case 0x4c: case 0x4d: case 0x4e: case 0x4f:
-            case 0x50: case 0x51: case 0x52: case 0x53: case 0x54: case 0x55: case 0x56: case 0x57:
-            case 0x58: case 0x59: case 0x5a: case 0x5b: case 0x5c: case 0x5d: case 0x5e: case 0x5f:
-            case 0x60: case 0x61: case 0x62: case 0x63: case 0x64: case 0x65: case 0x66: case 0x67:
-            case 0x68: case 0x69: case 0x6a: case 0x6b: case 0x6c: case 0x6d: case 0x6e: case 0x6f:
-            case 0x70: case 0x71: case 0x72: case 0x73: case 0x74: case 0x75: case 0x76: case 0x77:
-            case 0x78: case 0x79: case 0x7a: case 0x7b: case 0x7c: case 0x7d: case 0x7e: case 0x7f:
-                node->type = mpack_type_uint;
-                node->value.u = type;
-                break;
-
-            // negative fixnum
-            case 0xe0: case 0xe1: case 0xe2: case 0xe3: case 0xe4: case 0xe5: case 0xe6: case 0xe7:
-            case 0xe8: case 0xe9: case 0xea: case 0xeb: case 0xec: case 0xed: case 0xee: case 0xef:
-            case 0xf0: case 0xf1: case 0xf2: case 0xf3: case 0xf4: case 0xf5: case 0xf6: case 0xf7:
-            case 0xf8: case 0xf9: case 0xfa: case 0xfb: case 0xfc: case 0xfd: case 0xfe: case 0xff:
-                node->type = mpack_type_int;
-                node->value.i = (int8_t)type;
-                break;
-
-            // fixmap
-            case 0x80: case 0x81: case 0x82: case 0x83: case 0x84: case 0x85: case 0x86: case 0x87:
-            case 0x88: case 0x89: case 0x8a: case 0x8b: case 0x8c: case 0x8d: case 0x8e: case 0x8f:
-                node->type = mpack_type_map;
-                node->len = type & ~0xf0;
-                mpack_tree_parse_children(&parser, node);
-                break;
-
-            // fixarray
-            case 0x90: case 0x91: case 0x92: case 0x93: case 0x94: case 0x95: case 0x96: case 0x97:
-            case 0x98: case 0x99: case 0x9a: case 0x9b: case 0x9c: case 0x9d: case 0x9e: case 0x9f:
-                node->type = mpack_type_array;
-                node->len = type & ~0xf0;
-                mpack_tree_parse_children(&parser, node);
-                break;
-
-            // fixstr
-            case 0xa0: case 0xa1: case 0xa2: case 0xa3: case 0xa4: case 0xa5: case 0xa6: case 0xa7:
-            case 0xa8: case 0xa9: case 0xaa: case 0xab: case 0xac: case 0xad: case 0xae: case 0xaf:
-            case 0xb0: case 0xb1: case 0xb2: case 0xb3: case 0xb4: case 0xb5: case 0xb6: case 0xb7:
-            case 0xb8: case 0xb9: case 0xba: case 0xbb: case 0xbc: case 0xbd: case 0xbe: case 0xbf:
-                node->type = mpack_type_str;
-                node->len = type & ~0xe0;
-                mpack_tree_parse_bytes(&parser, node);
-                break;
-
-            // nil
-            case 0xc0:
-                node->type = mpack_type_nil;
-                break;
-
-            // bool
-            case 0xc2: case 0xc3:
-                node->type = mpack_type_bool;
-                node->value.b = type & 1;
-                break;
-
-            // bin8
-            case 0xc4:
-                node->type = mpack_type_bin;
-                node->len = mpack_tree_u8(&parser);
-                mpack_tree_parse_bytes(&parser, node);
-                break;
-
-            // bin16
-            case 0xc5:
-                node->type = mpack_type_bin;
-                node->len = mpack_tree_u16(&parser);
-                mpack_tree_parse_bytes(&parser, node);
-                break;
-
-            // bin32
-            case 0xc6:
-                node->type = mpack_type_bin;
-                node->len = mpack_tree_u32(&parser);
-                mpack_tree_parse_bytes(&parser, node);
-                break;
-
-            // ext8
-            case 0xc7:
-                node->type = mpack_type_ext;
-                node->len = mpack_tree_u8(&parser);
-                mpack_skip_exttype(&parser);
-                mpack_tree_parse_bytes(&parser, node);
-                break;
-
-            // ext16
-            case 0xc8:
-                node->type = mpack_type_ext;
-                node->len = mpack_tree_u16(&parser);
-                mpack_skip_exttype(&parser);
-                mpack_tree_parse_bytes(&parser, node);
-                break;
-
-            // ext32
-            case 0xc9:
-                node->type = mpack_type_ext;
-                node->len = mpack_tree_u32(&parser);
-                mpack_skip_exttype(&parser);
-                mpack_tree_parse_bytes(&parser, node);
-                break;
-
-            // float
-            case 0xca:
-                node->type = mpack_type_float;
-                node->value.f = mpack_tree_float(&parser);
-                break;
-
-            // double
-            case 0xcb:
-                node->type = mpack_type_double;
-                node->value.d = mpack_tree_double(&parser);
-                break;
-
-            // uint8
-            case 0xcc:
-                node->type = mpack_type_uint;
-                node->value.u = mpack_tree_u8(&parser);
-                break;
-
-            // uint16
-            case 0xcd:
-                node->type = mpack_type_uint;
-                node->value.u = mpack_tree_u16(&parser);
-                break;
-
-            // uint32
-            case 0xce:
-                node->type = mpack_type_uint;
-                node->value.u = mpack_tree_u32(&parser);
-                break;
-
-            // uint64
-            case 0xcf:
-                node->type = mpack_type_uint;
-                node->value.u = mpack_tree_u64(&parser);
-                break;
-
-            // int8
-            case 0xd0:
-                node->type = mpack_type_int;
-                node->value.i = mpack_tree_i8(&parser);
-                break;
-
-            // int16
-            case 0xd1:
-                node->type = mpack_type_int;
-                node->value.i = mpack_tree_i16(&parser);
-                break;
-
-            // int32
-            case 0xd2:
-                node->type = mpack_type_int;
-                node->value.i = mpack_tree_i32(&parser);
-                break;
-
-            // int64
-            case 0xd3:
-                node->type = mpack_type_int;
-                node->value.i = mpack_tree_i64(&parser);
-                break;
-
-            // fixext1
-            case 0xd4:
-                node->type = mpack_type_ext;
-                node->len = 1;
-                mpack_skip_exttype(&parser);
-                mpack_tree_parse_bytes(&parser, node);
-                break;
-
-            // fixext2
-            case 0xd5:
-                node->type = mpack_type_ext;
-                node->len = 2;
-                mpack_skip_exttype(&parser);
-                mpack_tree_parse_bytes(&parser, node);
-                break;
-
-            // fixext4
-            case 0xd6:
-                node->type = mpack_type_ext;
-                node->len = 4;
-                mpack_skip_exttype(&parser);
-                mpack_tree_parse_bytes(&parser, node);
-                break;
-
-            // fixext8
-            case 0xd7:
-                node->type = mpack_type_ext;
-                node->len = 8;
-                mpack_skip_exttype(&parser);
-                mpack_tree_parse_bytes(&parser, node);
-                break;
-
-            // fixext16
-            case 0xd8:
-                node->type = mpack_type_ext;
-                node->len = 16;
-                mpack_skip_exttype(&parser);
-                mpack_tree_parse_bytes(&parser, node);
-                break;
-
-            // str8
-            case 0xd9:
-                node->type = mpack_type_str;
-                node->len = mpack_tree_u8(&parser);
-                mpack_tree_parse_bytes(&parser, node);
-                break;
-
-            // str16
-            case 0xda:
-                node->type = mpack_type_str;
-                node->len = mpack_tree_u16(&parser);
-                mpack_tree_parse_bytes(&parser, node);
-                break;
-
-            // str32
-            case 0xdb:
-                node->type = mpack_type_str;
-                node->len = mpack_tree_u32(&parser);
-                mpack_tree_parse_bytes(&parser, node);
-                break;
-
-            // array16
-            case 0xdc:
-                node->type = mpack_type_array;
-                node->len = mpack_tree_u16(&parser);
-                mpack_tree_parse_children(&parser, node);
-                break;
-
-            // array32
-            case 0xdd:
-                node->type = mpack_type_array;
-                node->len = mpack_tree_u32(&parser);
-                mpack_tree_parse_children(&parser, node);
-                break;
-
-            // map16
-            case 0xde:
-                node->type = mpack_type_map;
-                node->len = mpack_tree_u16(&parser);
-                mpack_tree_parse_children(&parser, node);
-                break;
-
-            // map32
-            case 0xdf:
-                node->type = mpack_type_map;
-                node->len = mpack_tree_u32(&parser);
-                mpack_tree_parse_children(&parser, node);
-                break;
-
-            // reserved
-            case 0xc1:
-                mpack_tree_flag_error(tree, mpack_error_invalid);
-                break;
-        }
+        // Read the node contents
+        mpack_tree_parse_node(&parser, node);
 
         // Pop any empty compound types from the stack
         while (parser.level != 0 && parser.stack[parser.level].left == 0)
@@ -697,8 +757,11 @@ void mpack_tree_init(mpack_tree_t* tree, const char* data, size_t length) {
         return;
     }
     page->next = NULL;
-
     tree->next = page;
+
+    mpack_log("===========================\n");
+    mpack_log("initializing tree with data of size %i\n", (int)length);
+
     mpack_tree_parse(tree, data, length, page->nodes, MPACK_NODES_PER_PAGE);
 }
 #endif
@@ -710,12 +773,19 @@ void mpack_tree_init_pool(mpack_tree_t* tree, const char* data, size_t length,
     #ifdef MPACK_MALLOC
     tree->next = NULL;
     #endif
+
+    mpack_log("===========================\n");
+    mpack_log("initializing tree with data of size %i and pool of count %i\n", (int)length, (int)node_pool_count);
+
     mpack_tree_parse(tree, data, length, node_pool, node_pool_count);
 }
 
 void mpack_tree_init_error(mpack_tree_t* tree, mpack_error_t error) {
     mpack_tree_init_clear(tree);
     tree->error = error;
+
+    mpack_log("===========================\n");
+    mpack_log("initializing tree error state %i\n", (int)error);
 }
 
 #if MPACK_STDIO

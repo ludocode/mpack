@@ -35,11 +35,17 @@ void mpack_reader_init(mpack_reader_t* reader, char* buffer, size_t size, size_t
     reader->size = size;
     reader->left = count;
     MPACK_UNUSED(MPACK_READER_TRACK(reader, mpack_track_init(&reader->track)));
+
+    mpack_log("===========================\n");
+    mpack_log("initializing reader with buffer size %i\n", (int)size);
 }
 
 void mpack_reader_init_error(mpack_reader_t* reader, mpack_error_t error) {
     mpack_memset(reader, 0, sizeof(*reader));
     reader->error = error;
+
+    mpack_log("===========================\n");
+    mpack_log("initializing reader error state %i\n", (int)error);
 }
 
 void mpack_reader_init_data(mpack_reader_t* reader, const char* data, size_t count) {
@@ -59,6 +65,9 @@ void mpack_reader_init_data(mpack_reader_t* reader, const char* data, size_t cou
     #endif
 
     MPACK_UNUSED(MPACK_READER_TRACK(reader, mpack_track_init(&reader->track)));
+
+    mpack_log("===========================\n");
+    mpack_log("initializing reader with data size %i\n", (int)count);
 }
 
 #if MPACK_STDIO
@@ -72,6 +81,7 @@ static size_t mpack_file_reader_fill(mpack_reader_t* reader, char* buffer, size_
     return fread((void*)buffer, 1, count, file_reader->file);
 }
 
+#if !MPACK_OPTIMIZE_FOR_SIZE
 static void mpack_file_reader_skip(mpack_reader_t* reader, size_t count) {
     mpack_file_reader_t* file_reader = (mpack_file_reader_t*)reader->context;
     if (mpack_reader_error(reader) != mpack_ok)
@@ -94,6 +104,7 @@ static void mpack_file_reader_skip(mpack_reader_t* reader, size_t count) {
     // If the stream is not seekable, fall back to the fill function.
     mpack_reader_skip_using_fill(reader, count);
 }
+#endif
 
 static void mpack_file_reader_teardown(mpack_reader_t* reader) {
     mpack_file_reader_t* file_reader = (mpack_file_reader_t*)reader->context;
@@ -127,7 +138,9 @@ void mpack_reader_init_file(mpack_reader_t* reader, const char* filename) {
     mpack_reader_init(reader, file_reader->buffer, sizeof(file_reader->buffer), 0);
     mpack_reader_set_context(reader, file_reader);
     mpack_reader_set_fill(reader, mpack_file_reader_fill);
+    #if !MPACK_OPTIMIZE_FOR_SIZE
     mpack_reader_set_skip(reader, mpack_file_reader_skip);
+    #endif
     mpack_reader_set_teardown(reader, mpack_file_reader_teardown);
 }
 #endif
@@ -291,6 +304,7 @@ void mpack_skip_bytes(mpack_reader_t* reader, size_t count) {
     reader->pos += reader->left;
     reader->left = 0;
 
+    #if !MPACK_OPTIMIZE_FOR_SIZE
     // use the skip function if we've got one, and if we're trying
     // to skip a lot of data. if we only need to skip some tiny
     // fraction of the buffer size, it's probably better to just
@@ -298,9 +312,11 @@ void mpack_skip_bytes(mpack_reader_t* reader, size_t count) {
     if (reader->skip && count > reader->size / 16) {
         mpack_log("calling skip function for %i bytes\n", (int)count);
         reader->skip(reader, count);
-    } else {
-        mpack_reader_skip_using_fill(reader, count);
+        return;
     }
+    #endif
+
+    mpack_reader_skip_using_fill(reader, count);
 }
 
 static void mpack_reader_skip_using_fill(mpack_reader_t* reader, size_t count) {
@@ -437,10 +453,62 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
 
     // unfortunately, by far the fastest way to parse a tag is to switch
     // on the first byte, and to explicitly list every possible byte. so for
-    // infix types, the list of cases is quite large. the compiler optimizes
-    // this nicely (and it takes very little space.)
+    // infix types, the list of cases is quite large.
+    //
+    // in size-optimized builds, we switch on the top four bits first to
+    // handle most infix types with a smaller jump table to save space.
+
+    #if MPACK_OPTIMIZE_FOR_SIZE
+    switch (type >> 4) {
+
+        // positive fixnum
+        case 0x0: case 0x1: case 0x2: case 0x3:
+        case 0x4: case 0x5: case 0x6: case 0x7:
+            var.type = mpack_type_uint;
+            var.v.u = type;
+            return var;
+
+        // negative fixnum
+        case 0xe: case 0xf:
+            var.type = mpack_type_int;
+            var.v.i = (int32_t)(int8_t)type;
+            return var;
+
+        // fixmap
+        case 0x8:
+            var.type = mpack_type_map;
+            var.v.n = type & ~0xf0;
+            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_map, var.v.l)) != mpack_ok)
+                return mpack_tag_nil();
+            return var;
+
+        // fixarray
+        case 0x9:
+            var.type = mpack_type_array;
+            var.v.n = type & ~0xf0;
+            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_array, var.v.l)) != mpack_ok)
+                return mpack_tag_nil();
+            return var;
+
+        // fixstr
+        case 0xa: case 0xb:
+            var.type = mpack_type_str;
+            var.v.l = type & ~0xe0;
+            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_str, var.v.l)) != mpack_ok)
+                return mpack_tag_nil();
+            return var;
+
+        // not one of the common infix types
+        default:
+            break;
+
+    }
+    #endif
+
+    // handle individual type tags
     switch (type) {
 
+        #if !MPACK_OPTIMIZE_FOR_SIZE
         // positive fixnum
         case 0x00: case 0x01: case 0x02: case 0x03: case 0x04: case 0x05: case 0x06: case 0x07:
         case 0x08: case 0x09: case 0x0a: case 0x0b: case 0x0c: case 0x0d: case 0x0e: case 0x0f:
@@ -499,6 +567,7 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
             if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_str, var.v.l)) != mpack_ok)
                 return mpack_tag_nil();
             return var;
+        #endif
 
         // nil
         case 0xc0:
@@ -725,6 +794,13 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
         // reserved
         case 0xc1:
             break;
+
+        #if MPACK_OPTIMIZE_FOR_SIZE
+        // any other bytes should have been handled by the infix switch
+        default:
+            mpack_assert(0, "unreachable");
+            break;
+        #endif
     }
 
     // unrecognized type
