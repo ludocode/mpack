@@ -115,9 +115,12 @@ struct mpack_reader_t {
     mpack_reader_fill_t fill;         /* Function to read bytes into the buffer */
     mpack_reader_error_t error_fn;    /* Function to call on error */
     mpack_reader_teardown_t teardown; /* Function to teardown the context on destroy */
-    #if !MPACK_OPTIMIZE_FOR_SIZE
+
+    // The skip function may be unused, but we don't preproc it
+    // out on MPACK_OPTIMIZE_FOR_SIZE in case calling code is compiled
+    // with different optimization options. MPACK_OPTIMIZE_FOR_SIZE
+    // should never be used in header files.
     mpack_reader_skip_t skip;         /* Function to skip bytes from the source */
-    #endif
 
     char* buffer;       /* Byte buffer */
     size_t size;        /* Size of the buffer, or zero if it's const */
@@ -252,15 +255,7 @@ MPACK_INLINE void mpack_reader_set_fill(mpack_reader_t* reader, mpack_reader_fil
  * @param reader The MPack reader.
  * @param skip The function to discard bytes from the source stream.
  */
-MPACK_INLINE void mpack_reader_set_skip(mpack_reader_t* reader, mpack_reader_skip_t skip) {
-    mpack_assert(reader->size != 0, "cannot use skip function without a writeable buffer!");
-    #if MPACK_OPTIMIZE_FOR_SIZE
-    MPACK_UNUSED(reader);
-    MPACK_UNUSED(skip);
-    #else
-    reader->skip = skip;
-    #endif
-}
+void mpack_reader_set_skip(mpack_reader_t* reader, mpack_reader_skip_t skip);
 
 /**
  * Sets the error function to call when an error is flagged on the reader.

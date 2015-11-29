@@ -70,6 +70,16 @@ void mpack_reader_init_data(mpack_reader_t* reader, const char* data, size_t cou
     mpack_log("initializing reader with data size %i\n", (int)count);
 }
 
+void mpack_reader_set_skip(mpack_reader_t* reader, mpack_reader_skip_t skip) {
+    mpack_assert(reader->size != 0, "cannot use skip function without a writeable buffer!");
+    #if MPACK_OPTIMIZE_FOR_SIZE
+    MPACK_UNUSED(reader);
+    MPACK_UNUSED(skip);
+    #else
+    reader->skip = skip;
+    #endif
+}
+
 #if MPACK_STDIO
 typedef struct mpack_file_reader_t {
     FILE* file;
