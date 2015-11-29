@@ -497,39 +497,6 @@ mpack_error_t mpack_track_destroy(mpack_track_t* track, bool cancel);
 
 
 
-/* The below code is from Bjoern Hoehrmann's Flexible and Economical */
-/* UTF-8 decoder, modified to support MPack inlining and add the mpack prefix. */
-
-/* Copyright (c) 2008-2010 Bjoern Hoehrmann <bjoern@hoehrmann.de> */
-/* See http://bjoern.hoehrmann.de/utf-8/decoder/dfa/ for details. */
-
-#define MPACK_UTF8_ACCEPT 0
-#define MPACK_UTF8_REJECT 12
-
-/**
- * Parses one byte from a UTF-8 stream.
- *
- * Returns and sets state to:
- *   - MPACK_UTF8_ACCEPT if the byte completes a valid unicode code point, placing it in codep
- *   - MPACK_UTF8_REJECT if the byte is invalid UTF-8
- *   - something else if more bytes are needed to form a valid character
- *
- * If more bytes are needed, this should be called again with the next byte
- * in the string. state and codep should not be modified, since they will
- * contain the partially read code point.
- *
- * The initial state should be set to MPACK_UTF8_ACCEPT before parsing a string.
- *
- * This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or
- * WTF-8. Overlong sequences and UTF-16 surrogates will be rejected. Only
- * pure UTF-8 is accepted.
- */
-uint32_t mpack_utf8_decode(uint32_t* state, uint32_t* codep, uint8_t byte);
-
-/* End of UTF-8 decoder code */
-
-
-
 /* Miscellaneous string functions */
 
 /**
