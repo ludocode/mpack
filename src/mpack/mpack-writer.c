@@ -754,56 +754,67 @@ void mpack_write_utf8_cstr_or_nil(mpack_writer_t* writer, const char* cstr) {
         mpack_write_nil(writer);
 }
 
-// We use a macro to define the content of type wrappers since they are
-// almost all identical. The function definitions are still spelled
-// out for intellisense/etc.
-
-#define MPACK_WRITE_WRAPPER(name, maximum_possible_bytes, ...)                          \
-    mpack_writer_track_element(writer);                                                 \
-    if (mpack_writer_buffer_left(writer) >= maximum_possible_bytes) {                   \
-        writer->used += mpack_encode_##name(writer->buffer + writer->used, __VA_ARGS__); \
-    } else if (mpack_writer_error(writer) == mpack_ok) {                                \
-        if (writer->flush)                                                              \
-            mpack_writer_flush_unchecked(writer);                                       \
-        char buf[maximum_possible_bytes];                                               \
-        mpack_write_native(writer, buf, mpack_encode_##name(buf, __VA_ARGS__));          \
+/*
+ * We use a macro to define the content of type wrappers since they are
+ * almost all identical. The function definitions are still spelled
+ * out for intellisense/etc.
+ *
+ * The speed-optimized versions write directly into the buffer when
+ * possible to avoid the extra memcpy().
+ */
+#if MPACK_OPTIMIZE_FOR_SIZE
+#define MPACK_WRITE_WRAPPER(encode_fn, maximum_possible_bytes, ...)              \
+    mpack_writer_track_element(writer);                                          \
+    char buf[maximum_possible_bytes];                                            \
+    mpack_write_native(writer, buf, encode_fn(buf, __VA_ARGS__));
+#else
+#define MPACK_WRITE_WRAPPER(encode_fn, maximum_possible_bytes, ...)              \
+    mpack_writer_track_element(writer);                                          \
+    if (mpack_writer_buffer_left(writer) >= maximum_possible_bytes) {            \
+        writer->used += encode_fn(writer->buffer + writer->used, __VA_ARGS__);   \
+    } else if (mpack_writer_error(writer) == mpack_ok) {                         \
+        if (writer->flush)                                                       \
+            mpack_writer_flush_unchecked(writer);                                \
+        char buf[maximum_possible_bytes];                                        \
+        mpack_write_native(writer, buf, encode_fn(buf, __VA_ARGS__));            \
     }
+#endif
 
-void mpack_write_u8 (mpack_writer_t* writer, uint8_t value)  {MPACK_WRITE_WRAPPER(u8,  2, value);}
-void mpack_write_u16(mpack_writer_t* writer, uint16_t value) {MPACK_WRITE_WRAPPER(u16, 3, value);}
-void mpack_write_u32(mpack_writer_t* writer, uint32_t value) {MPACK_WRITE_WRAPPER(u32, 5, value);}
-void mpack_write_u64(mpack_writer_t* writer, uint64_t value) {MPACK_WRITE_WRAPPER(u64, 9, value);}
+void mpack_write_u8 (mpack_writer_t* writer, uint8_t value)  {MPACK_WRITE_WRAPPER(mpack_encode_u8,  2, value);}
+void mpack_write_u16(mpack_writer_t* writer, uint16_t value) {MPACK_WRITE_WRAPPER(mpack_encode_u16, 3, value);}
+void mpack_write_u32(mpack_writer_t* writer, uint32_t value) {MPACK_WRITE_WRAPPER(mpack_encode_u32, 5, value);}
+void mpack_write_u64(mpack_writer_t* writer, uint64_t value) {MPACK_WRITE_WRAPPER(mpack_encode_u64, 9, value);}
 
-void mpack_write_i8 (mpack_writer_t* writer, int8_t value)   {MPACK_WRITE_WRAPPER(i8,  2, value);}
-void mpack_write_i16(mpack_writer_t* writer, int16_t value)  {MPACK_WRITE_WRAPPER(i16, 3, value);}
-void mpack_write_i32(mpack_writer_t* writer, int32_t value)  {MPACK_WRITE_WRAPPER(i32, 5, value);}
-void mpack_write_i64(mpack_writer_t* writer, int64_t value)  {MPACK_WRITE_WRAPPER(i64, 9, value);}
+void mpack_write_i8 (mpack_writer_t* writer, int8_t value)   {MPACK_WRITE_WRAPPER(mpack_encode_i8,  2, value);}
+void mpack_write_i16(mpack_writer_t* writer, int16_t value)  {MPACK_WRITE_WRAPPER(mpack_encode_i16, 3, value);}
+void mpack_write_i32(mpack_writer_t* writer, int32_t value)  {MPACK_WRITE_WRAPPER(mpack_encode_i32, 5, value);}
+void mpack_write_i64(mpack_writer_t* writer, int64_t value)  {MPACK_WRITE_WRAPPER(mpack_encode_i64, 9, value);}
 
-void mpack_write_float(mpack_writer_t* writer, float value)   {MPACK_WRITE_WRAPPER(float, 5, value);}
-void mpack_write_double(mpack_writer_t* writer, double value) {MPACK_WRITE_WRAPPER(double, 9, value);}
+void mpack_write_float(mpack_writer_t* writer, float value)   {MPACK_WRITE_WRAPPER(mpack_encode_float, 5, value);}
+void mpack_write_double(mpack_writer_t* writer, double value) {MPACK_WRITE_WRAPPER(mpack_encode_double, 9, value);}
 
 void mpack_start_array(mpack_writer_t* writer, uint32_t count) {
-    MPACK_WRITE_WRAPPER(array, 5, count);
+    MPACK_WRITE_WRAPPER(mpack_encode_array, 5, count);
     MPACK_WRITER_TRACK(writer, mpack_track_push(&writer->track, mpack_type_array, count));
 }
 
 void mpack_start_map(mpack_writer_t* writer, uint32_t count) {
-    MPACK_WRITE_WRAPPER(map, 5, count);
+    MPACK_WRITE_WRAPPER(mpack_encode_map, 5, count);
     MPACK_WRITER_TRACK(writer, mpack_track_push(&writer->track, mpack_type_map, count));
 }
 
 void mpack_start_str(mpack_writer_t* writer, uint32_t count) {
-    MPACK_WRITE_WRAPPER(str, 5, count);
+    MPACK_WRITE_WRAPPER(mpack_encode_str, 5, count);
     MPACK_WRITER_TRACK(writer, mpack_track_push(&writer->track, mpack_type_str, count));
 }
 
 void mpack_start_bin(mpack_writer_t* writer, uint32_t count) {
-    MPACK_WRITE_WRAPPER(bin, 5, count);
+    MPACK_WRITE_WRAPPER(mpack_encode_bin, 5, count);
     MPACK_WRITER_TRACK(writer, mpack_track_push(&writer->track, mpack_type_bin, count));
 }
 
 void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count) {
-    MPACK_WRITE_WRAPPER(ext, 6, exttype, count);
+    MPACK_WRITE_WRAPPER(mpack_encode_ext, 6, exttype, count);
     MPACK_WRITER_TRACK(writer, mpack_track_push(&writer->track, mpack_type_ext, count));
 }
 
