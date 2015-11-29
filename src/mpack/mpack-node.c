@@ -697,8 +697,11 @@ void mpack_tree_init(mpack_tree_t* tree, const char* data, size_t length) {
         return;
     }
     page->next = NULL;
-
     tree->next = page;
+
+    mpack_log("===========================\n");
+    mpack_log("initializing tree with data of size %i\n", (int)length);
+
     mpack_tree_parse(tree, data, length, page->nodes, MPACK_NODES_PER_PAGE);
 }
 #endif
@@ -710,12 +713,19 @@ void mpack_tree_init_pool(mpack_tree_t* tree, const char* data, size_t length,
     #ifdef MPACK_MALLOC
     tree->next = NULL;
     #endif
+
+    mpack_log("===========================\n");
+    mpack_log("initializing tree with data of size %i and pool of count %i\n", (int)length, (int)node_pool_count);
+
     mpack_tree_parse(tree, data, length, node_pool, node_pool_count);
 }
 
 void mpack_tree_init_error(mpack_tree_t* tree, mpack_error_t error) {
     mpack_tree_init_clear(tree);
     tree->error = error;
+
+    mpack_log("===========================\n");
+    mpack_log("initializing tree error state %i\n", (int)error);
 }
 
 #if MPACK_STDIO

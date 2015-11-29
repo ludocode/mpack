@@ -47,11 +47,17 @@ void mpack_writer_init(mpack_writer_t* writer, char* buffer, size_t size) {
     writer->buffer = buffer;
     writer->size = size;
     MPACK_WRITER_TRACK(writer, mpack_track_init(&writer->track));
+
+    mpack_log("===========================\n");
+    mpack_log("initializing writer with buffer size %i\n", (int)size);
 }
 
 void mpack_writer_init_error(mpack_writer_t* writer, mpack_error_t error) {
     mpack_memset(writer, 0, sizeof(*writer));
     writer->error = error;
+
+    mpack_log("===========================\n");
+    mpack_log("initializing writer in error state %i\n", (int)error);
 }
 
 #ifdef MPACK_MALLOC

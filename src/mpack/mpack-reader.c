@@ -35,11 +35,17 @@ void mpack_reader_init(mpack_reader_t* reader, char* buffer, size_t size, size_t
     reader->size = size;
     reader->left = count;
     MPACK_UNUSED(MPACK_READER_TRACK(reader, mpack_track_init(&reader->track)));
+
+    mpack_log("===========================\n");
+    mpack_log("initializing reader with buffer size %i\n", (int)size);
 }
 
 void mpack_reader_init_error(mpack_reader_t* reader, mpack_error_t error) {
     mpack_memset(reader, 0, sizeof(*reader));
     reader->error = error;
+
+    mpack_log("===========================\n");
+    mpack_log("initializing reader error state %i\n", (int)error);
 }
 
 void mpack_reader_init_data(mpack_reader_t* reader, const char* data, size_t count) {
@@ -59,6 +65,9 @@ void mpack_reader_init_data(mpack_reader_t* reader, const char* data, size_t cou
     #endif
 
     MPACK_UNUSED(MPACK_READER_TRACK(reader, mpack_track_init(&reader->track)));
+
+    mpack_log("===========================\n");
+    mpack_log("initializing reader with data size %i\n", (int)count);
 }
 
 #if MPACK_STDIO
