@@ -376,6 +376,23 @@ size_t mpack_reader_remaining(mpack_reader_t* reader, const char** data);
 mpack_tag_t mpack_read_tag(mpack_reader_t* reader);
 
 /**
+ * Parses the next MessagePack object header (an MPack tag) without
+ * advancing the reader.
+ *
+ * If an error occurs, the mpack_reader_t is placed in an error state and
+ * a nil tag is returned. If the reader is already in an error state, a
+ * nil tag is returned.
+ *
+ * Note that maps in JSON are unordered, so it is recommended not to expect
+ * a specific ordering for your map values in case your data is converted
+ * to/from JSON.
+ *
+ * @see mpack_read_tag()
+ * @see mpack_discard()
+ */
+mpack_tag_t mpack_peek_tag(mpack_reader_t* reader);
+
+/**
  * Skips bytes from the underlying stream. This is used only to
  * skip the contents of a string, binary blob or extension object.
  */
@@ -568,22 +585,18 @@ MPACK_INLINE_SPEED void mpack_read_native(mpack_reader_t* reader, char* p, size_
 #define MPACK_READER_TRACK(reader, error_expr) (MPACK_UNUSED(reader), mpack_ok)
 #endif
 
-MPACK_INLINE_SPEED mpack_error_t mpack_reader_track_element(mpack_reader_t* reader);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED mpack_error_t mpack_reader_track_element(mpack_reader_t* reader) {
+MPACK_INLINE mpack_error_t mpack_reader_track_element(mpack_reader_t* reader) {
     return MPACK_READER_TRACK(reader, mpack_track_element(&reader->track, true));
 }
-#endif
 
-MPACK_INLINE_SPEED mpack_error_t mpack_reader_track_bytes(mpack_reader_t* reader, uint64_t count);
+MPACK_INLINE mpack_error_t mpack_reader_track_peek_element(mpack_reader_t* reader) {
+    return MPACK_READER_TRACK(reader, mpack_track_peek_element(&reader->track, true));
+}
 
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED mpack_error_t mpack_reader_track_bytes(mpack_reader_t* reader, uint64_t count) {
+MPACK_INLINE mpack_error_t mpack_reader_track_bytes(mpack_reader_t* reader, uint64_t count) {
     MPACK_UNUSED(count);
     return MPACK_READER_TRACK(reader, mpack_track_bytes(&reader->track, true, count));
 }
-#endif
 
 #endif
 

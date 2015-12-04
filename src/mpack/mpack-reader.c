@@ -488,7 +488,7 @@ const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count) {
 // Decodes a tag from bytes, pushing the appropriate tracking info
 // and flagging errors if found. The size of the bytes buffer must
 // be at least MPACK_MINIMUM_TAG_SIZE.
-static size_t mpack_decode_tag(mpack_reader_t* reader, const char* bytes, mpack_tag_t* tag) {
+static size_t mpack_decode_tag(mpack_reader_t* reader, const char* bytes, mpack_tag_t* tag, bool push) {
     uint8_t type = mpack_load_native_u8(bytes++);
 
     // unfortunately, by far the fastest way to parse a tag is to switch
@@ -518,7 +518,7 @@ static size_t mpack_decode_tag(mpack_reader_t* reader, const char* bytes, mpack_
         case 0x8:
             tag->type = mpack_type_map;
             tag->v.n = type & ~0xf0;
-            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_map, tag->v.l)) != mpack_ok)
+            if (push && (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_map, tag->v.l)) != mpack_ok))
                 return 0;
             return 1;
 
@@ -526,7 +526,7 @@ static size_t mpack_decode_tag(mpack_reader_t* reader, const char* bytes, mpack_
         case 0x9:
             tag->type = mpack_type_array;
             tag->v.n = type & ~0xf0;
-            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_array, tag->v.l)) != mpack_ok)
+            if (push && (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_array, tag->v.l)) != mpack_ok))
                 return 0;
             return 1;
 
@@ -534,7 +534,7 @@ static size_t mpack_decode_tag(mpack_reader_t* reader, const char* bytes, mpack_
         case 0xa: case 0xb:
             tag->type = mpack_type_str;
             tag->v.l = type & ~0xe0;
-            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_str, tag->v.l)) != mpack_ok)
+            if (push && (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_str, tag->v.l)) != mpack_ok))
                 return 0;
             return 1;
 
@@ -584,7 +584,7 @@ static size_t mpack_decode_tag(mpack_reader_t* reader, const char* bytes, mpack_
         case 0x88: case 0x89: case 0x8a: case 0x8b: case 0x8c: case 0x8d: case 0x8e: case 0x8f:
             tag->type = mpack_type_map;
             tag->v.n = type & ~0xf0;
-            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_map, tag->v.n)) != mpack_ok)
+            if (push && (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_map, tag->v.n)) != mpack_ok))
                 return 0;
             return 1;
 
@@ -593,7 +593,7 @@ static size_t mpack_decode_tag(mpack_reader_t* reader, const char* bytes, mpack_
         case 0x98: case 0x99: case 0x9a: case 0x9b: case 0x9c: case 0x9d: case 0x9e: case 0x9f:
             tag->type = mpack_type_array;
             tag->v.n = type & ~0xf0;
-            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_array, tag->v.n)) != mpack_ok)
+            if (push && (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_array, tag->v.n)) != mpack_ok))
                 return 0;
             return 1;
 
@@ -604,7 +604,7 @@ static size_t mpack_decode_tag(mpack_reader_t* reader, const char* bytes, mpack_
         case 0xb8: case 0xb9: case 0xba: case 0xbb: case 0xbc: case 0xbd: case 0xbe: case 0xbf:
             tag->type = mpack_type_str;
             tag->v.l = type & ~0xe0;
-            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_str, tag->v.l)) != mpack_ok)
+            if (push && (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_str, tag->v.l)) != mpack_ok))
                 return 0;
             return 1;
         #endif
@@ -624,7 +624,7 @@ static size_t mpack_decode_tag(mpack_reader_t* reader, const char* bytes, mpack_
         case 0xc4:
             tag->type = mpack_type_bin;
             tag->v.l = mpack_load_native_u8(bytes);
-            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_bin, tag->v.l)) != mpack_ok)
+            if (push && (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_bin, tag->v.l)) != mpack_ok))
                 return 0;
             return 2;
 
@@ -632,7 +632,7 @@ static size_t mpack_decode_tag(mpack_reader_t* reader, const char* bytes, mpack_
         case 0xc5:
             tag->type = mpack_type_bin;
             tag->v.l = mpack_load_native_u16(bytes);
-            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_bin, tag->v.l)) != mpack_ok)
+            if (push && (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_bin, tag->v.l)) != mpack_ok))
                 return 0;
             return 3;
 
@@ -640,7 +640,7 @@ static size_t mpack_decode_tag(mpack_reader_t* reader, const char* bytes, mpack_
         case 0xc6:
             tag->type = mpack_type_bin;
             tag->v.l = mpack_load_native_u32(bytes);
-            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_bin, tag->v.l)) != mpack_ok)
+            if (push && (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_bin, tag->v.l)) != mpack_ok))
                 return 0;
             return 5;
 
@@ -649,7 +649,7 @@ static size_t mpack_decode_tag(mpack_reader_t* reader, const char* bytes, mpack_
             tag->type = mpack_type_ext;
             tag->v.l = mpack_load_native_u8(bytes);
             tag->exttype = mpack_load_native_i8(bytes + 1);
-            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_ext, tag->v.l)) != mpack_ok)
+            if (push && (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_ext, tag->v.l)) != mpack_ok))
                 return 0;
             return 3;
 
@@ -658,7 +658,7 @@ static size_t mpack_decode_tag(mpack_reader_t* reader, const char* bytes, mpack_
             tag->type = mpack_type_ext;
             tag->v.l = mpack_load_native_u16(bytes);
             tag->exttype = mpack_load_native_i8(bytes + 2);
-            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_ext, tag->v.l)) != mpack_ok)
+            if (push && (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_ext, tag->v.l)) != mpack_ok))
                 return 0;
             return 4;
 
@@ -667,7 +667,7 @@ static size_t mpack_decode_tag(mpack_reader_t* reader, const char* bytes, mpack_
             tag->type = mpack_type_ext;
             tag->v.l = mpack_load_native_u32(bytes);
             tag->exttype = mpack_load_native_i8(bytes + 4);
-            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_ext, tag->v.l)) != mpack_ok)
+            if (push && (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_ext, tag->v.l)) != mpack_ok))
                 return 0;
             return 6;
 
@@ -736,7 +736,7 @@ static size_t mpack_decode_tag(mpack_reader_t* reader, const char* bytes, mpack_
             tag->type = mpack_type_ext;
             tag->v.l = 1;
             tag->exttype = mpack_load_native_i8(bytes);
-            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_ext, tag->v.l)) != mpack_ok)
+            if (push && (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_ext, tag->v.l)) != mpack_ok))
                 return 0;
             return 2;
 
@@ -745,7 +745,7 @@ static size_t mpack_decode_tag(mpack_reader_t* reader, const char* bytes, mpack_
             tag->type = mpack_type_ext;
             tag->v.l = 2;
             tag->exttype = mpack_load_native_i8(bytes);
-            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_ext, tag->v.l)) != mpack_ok)
+            if (push && (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_ext, tag->v.l)) != mpack_ok))
                 return 0;
             return 2;
 
@@ -754,7 +754,7 @@ static size_t mpack_decode_tag(mpack_reader_t* reader, const char* bytes, mpack_
             tag->type = mpack_type_ext;
             tag->v.l = 4;
             tag->exttype = mpack_load_native_i8(bytes);
-            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_ext, tag->v.l)) != mpack_ok)
+            if (push && (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_ext, tag->v.l)) != mpack_ok))
                 return 0;
             return 2;
 
@@ -763,7 +763,7 @@ static size_t mpack_decode_tag(mpack_reader_t* reader, const char* bytes, mpack_
             tag->type = mpack_type_ext;
             tag->v.l = 8;
             tag->exttype = mpack_load_native_i8(bytes);
-            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_ext, tag->v.l)) != mpack_ok)
+            if (push && (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_ext, tag->v.l)) != mpack_ok))
                 return 0;
             return 2;
 
@@ -772,7 +772,7 @@ static size_t mpack_decode_tag(mpack_reader_t* reader, const char* bytes, mpack_
             tag->type = mpack_type_ext;
             tag->v.l = 16;
             tag->exttype = mpack_load_native_i8(bytes);
-            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_ext, tag->v.l)) != mpack_ok)
+            if (push && (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_ext, tag->v.l)) != mpack_ok))
                 return 0;
             return 2;
 
@@ -780,7 +780,7 @@ static size_t mpack_decode_tag(mpack_reader_t* reader, const char* bytes, mpack_
         case 0xd9:
             tag->type = mpack_type_str;
             tag->v.l = mpack_load_native_u8(bytes);
-            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_str, tag->v.l)) != mpack_ok)
+            if (push && (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_str, tag->v.l)) != mpack_ok))
                 return 0;
             return 2;
 
@@ -788,7 +788,7 @@ static size_t mpack_decode_tag(mpack_reader_t* reader, const char* bytes, mpack_
         case 0xda:
             tag->type = mpack_type_str;
             tag->v.l = mpack_load_native_u16(bytes);
-            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_str, tag->v.l)) != mpack_ok)
+            if (push && (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_str, tag->v.l)) != mpack_ok))
                 return 0;
             return 3;
 
@@ -796,7 +796,7 @@ static size_t mpack_decode_tag(mpack_reader_t* reader, const char* bytes, mpack_
         case 0xdb:
             tag->type = mpack_type_str;
             tag->v.l = mpack_load_native_u32(bytes);
-            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_str, tag->v.l)) != mpack_ok)
+            if (push && (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_str, tag->v.l)) != mpack_ok))
                 return 0;
             return 5;
 
@@ -804,7 +804,7 @@ static size_t mpack_decode_tag(mpack_reader_t* reader, const char* bytes, mpack_
         case 0xdc:
             tag->type = mpack_type_array;
             tag->v.n = mpack_load_native_u16(bytes);
-            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_array, tag->v.n)) != mpack_ok)
+            if (push && (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_array, tag->v.n)) != mpack_ok))
                 return 0;
             return 3;
 
@@ -812,7 +812,7 @@ static size_t mpack_decode_tag(mpack_reader_t* reader, const char* bytes, mpack_
         case 0xdd:
             tag->type = mpack_type_array;
             tag->v.n = mpack_load_native_u32(bytes);
-            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_array, tag->v.n)) != mpack_ok)
+            if (push && (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_array, tag->v.n)) != mpack_ok))
                 return 0;
             return 5;
 
@@ -820,7 +820,7 @@ static size_t mpack_decode_tag(mpack_reader_t* reader, const char* bytes, mpack_
         case 0xde:
             tag->type = mpack_type_map;
             tag->v.n = mpack_load_native_u16(bytes);
-            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_map, tag->v.n)) != mpack_ok)
+            if (push && (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_map, tag->v.n)) != mpack_ok))
                 return 0;
             return 3;
 
@@ -828,7 +828,7 @@ static size_t mpack_decode_tag(mpack_reader_t* reader, const char* bytes, mpack_
         case 0xdf:
             tag->type = mpack_type_map;
             tag->v.n = mpack_load_native_u32(bytes);
-            if (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_map, tag->v.n)) != mpack_ok)
+            if (push && (MPACK_READER_TRACK(reader, mpack_track_push(&reader->track, mpack_type_map, tag->v.n)) != mpack_ok))
                 return 0;
             return 5;
 
@@ -849,10 +849,10 @@ static size_t mpack_decode_tag(mpack_reader_t* reader, const char* bytes, mpack_
     return 0;
 }
 
-mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
+static mpack_tag_t mpack_read_tag_impl(mpack_reader_t* reader, bool advance) {
 
     // make sure we can read a tag
-    if (mpack_reader_track_element(reader) != mpack_ok)
+    if ((advance ? mpack_reader_track_element(reader) : mpack_reader_track_peek_element(reader)) != mpack_ok)
         return mpack_tag_nil();
 
     // refill the buffer if needed
@@ -865,12 +865,15 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
     mpack_tag_t tag = mpack_tag_nil();
     if (reader->left >= MPACK_MAXIMUM_TAG_SIZE) {
         mpack_log("decoding tag in-place, %i left\n", (int)reader->left);
-        size_t count = mpack_decode_tag(reader, reader->buffer + reader->pos, &tag);
+        size_t count = mpack_decode_tag(reader, reader->buffer + reader->pos, &tag, advance);
         mpack_log("tag took %i bytes\n", (int)count);
         if (count == 0)
             return mpack_tag_nil();
-        reader->pos += count;
-        reader->left -= count;
+
+        if (advance) {
+            reader->pos += count;
+            reader->left -= count;
+        }
         return tag;
     }
 
@@ -879,7 +882,7 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
     mpack_memcpy(buf, reader->buffer + reader->pos, reader->left);
     mpack_memset(buf + reader->left, 0, sizeof(buf) - reader->left);
     mpack_log("decoding tag from local buffer, %i left\n", (int)reader->left);
-    size_t count = mpack_decode_tag(reader, buf, &tag);
+    size_t count = mpack_decode_tag(reader, buf, &tag, advance);
     mpack_log("tag took %i bytes, %i left\n", (int)count, (int)reader->left);
 
     // if we have a fill function and don't have enough data, it's an io error
@@ -893,9 +896,22 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
         mpack_reader_flag_error(reader, mpack_error_invalid);
         return mpack_tag_nil();
     }
-    reader->pos += count;
-    reader->left -= count;
+
+    if (advance) {
+        reader->pos += count;
+        reader->left -= count;
+    }
     return tag;
+}
+
+mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
+    mpack_log("reading tag\n");
+    return mpack_read_tag_impl(reader, true);
+}
+
+mpack_tag_t mpack_peek_tag(mpack_reader_t* reader) {
+    mpack_log("peeking tag\n");
+    return mpack_read_tag_impl(reader, false);
 }
 
 void mpack_discard(mpack_reader_t* reader) {

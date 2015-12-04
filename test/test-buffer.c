@@ -328,7 +328,9 @@ static void test_inplace_buffer(void) {
         const char* val;
         char r[15];
         for (size_t j = 0; j < 15; ++j) {
+            mpack_tag_t peek = mpack_peek_tag(&reader);
             tag = mpack_read_tag(&reader);
+            TEST_TRUE(mpack_tag_equal(peek, tag), "peeked tag does not match read tag");
             TEST_TRUE(tag.type == mpack_type_str, "wrong type: %i %s", (int)tag.type, mpack_type_to_string(tag.type));
             TEST_TRUE(tag.v.l == j, "string is the wrong length: %i bytes", (int)tag.v.l);
             if (tag.v.l <= reader.size) {
