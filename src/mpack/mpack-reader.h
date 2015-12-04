@@ -39,6 +39,13 @@ struct mpack_track_t;
 #endif
 
 /**
+ * @def MPACK_READER_MINIMUM_BUFFER_SIZE
+ *
+ * The minimum buffer size for a reader with a fill function.
+ */
+#define MPACK_READER_MINIMUM_BUFFER_SIZE 32
+
+/**
  * @defgroup reader Core Reader API
  *
  * The MPack Core Reader API contains functions for imperatively reading
@@ -234,10 +241,7 @@ MPACK_INLINE void mpack_reader_set_context(mpack_reader_t* reader, void* context
  * @param reader The MPack reader.
  * @param fill The function to fetch additional data into the buffer.
  */
-MPACK_INLINE void mpack_reader_set_fill(mpack_reader_t* reader, mpack_reader_fill_t fill) {
-    mpack_assert(reader->size != 0, "cannot use fill function without a writeable buffer!");
-    reader->fill = fill;
-}
+void mpack_reader_set_fill(mpack_reader_t* reader, mpack_reader_fill_t fill);
 
 /**
  * Sets the skip function to discard bytes from the source stream.
@@ -556,55 +560,6 @@ MPACK_INLINE_SPEED void mpack_read_native(mpack_reader_t* reader, char* p, size_
     }
 }
 #endif
-
-/** @cond */
-
-// The read native wrappers are all the same, so we implement
-// them with this wrapper macro.
-
-#define MPACK_READ_NATIVE_IMPL(load_fn, type_t)             \
-    if (reader->left >= sizeof(type_t)) {                   \
-        type_t ret = load_fn(reader->buffer + reader->pos); \
-        reader->pos += sizeof(type_t);                      \
-        reader->left -= sizeof(type_t);                     \
-        return ret;                                         \
-    }                                                       \
-                                                            \
-    char c[sizeof(type_t)];                                 \
-    mpack_read_native_big(reader, c, sizeof(c));            \
-    return load_fn(c);
-
-/** @endcond */
-
-MPACK_INLINE uint8_t  mpack_read_native_u8 (mpack_reader_t* reader) {MPACK_READ_NATIVE_IMPL(mpack_load_native_u8,  uint8_t);}
-MPACK_INLINE uint16_t mpack_read_native_u16(mpack_reader_t* reader) {MPACK_READ_NATIVE_IMPL(mpack_load_native_u16, uint16_t);}
-MPACK_INLINE uint32_t mpack_read_native_u32(mpack_reader_t* reader) {MPACK_READ_NATIVE_IMPL(mpack_load_native_u32, uint32_t);}
-MPACK_INLINE uint64_t mpack_read_native_u64(mpack_reader_t* reader) {MPACK_READ_NATIVE_IMPL(mpack_load_native_u64, uint64_t);}
-
-MPACK_INLINE int8_t  mpack_read_native_i8  (mpack_reader_t* reader) {return (int8_t) mpack_read_native_u8 (reader);}
-MPACK_INLINE int16_t mpack_read_native_i16 (mpack_reader_t* reader) {return (int16_t)mpack_read_native_u16(reader);}
-MPACK_INLINE int32_t mpack_read_native_i32 (mpack_reader_t* reader) {return (int32_t)mpack_read_native_u32(reader);}
-MPACK_INLINE int64_t mpack_read_native_i64 (mpack_reader_t* reader) {return (int64_t)mpack_read_native_u64(reader);}
-
-MPACK_INLINE float mpack_read_native_float(mpack_reader_t* reader) {
-    MPACK_CHECK_FLOAT_ORDER();
-    union {
-        float f;
-        uint32_t i;
-    } u;
-    u.i = mpack_read_native_u32(reader);
-    return u.f;
-}
-
-MPACK_INLINE double mpack_read_native_double(mpack_reader_t* reader) {
-    MPACK_CHECK_FLOAT_ORDER();
-    union {
-        double d;
-        uint64_t i;
-    } u;
-    u.i = mpack_read_native_u64(reader);
-    return u.d;
-}
 
 #if MPACK_READ_TRACKING
 #define MPACK_READER_TRACK(reader, error_expr) \
