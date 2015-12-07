@@ -361,10 +361,12 @@ static void test_node_read_misc() {
     TEST_SIMPLE_TREE_READ("\xc3", mpack_tag_equal(mpack_tag_true(), mpack_node_tag(node)));
 
     // test missing space for cstr null-terminator
-    char buf[1];
     mpack_tree_t tree;
     mpack_tree_init_pool(&tree, "\xa0", 1, pool, sizeof(pool) / sizeof(*pool));
+    #if MPACK_DEBUG
+    char buf[1];
     TEST_ASSERT(mpack_node_copy_cstr(mpack_tree_root(&tree), buf, 0));
+    #endif
     #ifdef MPACK_MALLOC
     TEST_BREAK(NULL == mpack_node_cstr_alloc(mpack_tree_root(&tree), 0));
     TEST_TREE_DESTROY_ERROR(&tree, mpack_error_bug);

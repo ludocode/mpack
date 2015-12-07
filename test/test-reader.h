@@ -110,11 +110,13 @@ void test_read_error_handler(mpack_reader_t* reader, mpack_error_t error);
 
 
 
-// simple read assertion test
+// simple read bug tests
+
+#if MPACK_DEBUG
 
 // runs a simple reader test, ensuring it causes an assert.
+// we flag mpack_error_data to cancel out of any tracking.
 // (note about volatile, see TEST_ASSERT())
-// (the mpack_error_bug may be compiled out in release mode so we cancel by flagging mpack_error_data)
 #define TEST_SIMPLE_READ_ASSERT(data, read_expr) do { \
     volatile mpack_reader_t v_reader; \
     mpack_reader_t* reader = (mpack_reader_t*)&v_reader; \
@@ -124,15 +126,24 @@ void test_read_error_handler(mpack_reader_t* reader, mpack_error_t error);
     mpack_reader_destroy(reader); \
 } while (0)
 
-// runs a simple reader test, ensuring it causes a break.
-// (the mpack_error_bug may be compiled out in release mode so we cancel by flagging mpack_error_data)
+#else
+
+// we cannot test asserts in release mode because they are
+// compiled away; code would continue to run and cause
+// undefined behavior.
+#define TEST_SIMPLE_READ_ASSERT(data, read_expr) ((void)0)
+
+#endif
+
+// runs a simple reader test, ensuring it causes a break in
+// debug mode and flags mpack_error_bug in both debug and release.
 #define TEST_SIMPLE_READ_BREAK(data, read_expr) do { \
     mpack_reader_t reader; \
     mpack_reader_init_data(&reader, data, sizeof(data) - 1); \
     TEST_BREAK(read_expr); \
-    mpack_reader_flag_error(&reader, mpack_error_data); \
-    mpack_reader_destroy(&reader); \
+    TEST_READER_DESTROY_ERROR(&reader, mpack_error_bug); \
 } while (0)
+
 
 
 

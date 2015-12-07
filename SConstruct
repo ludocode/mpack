@@ -107,7 +107,6 @@ if ARGUMENTS.get('more') or ARGUMENTS.get('all'):
     AddBuilds("embed", allfeatures + cflags)
     AddBuilds("noio", allfeatures + noioconfigs + cflags)
     AddBuild("debug-size", ["-DMPACK_OPTIMIZE_FOR_SIZE=1"] + debugflags + allfeatures + allconfigs + cflags)
-    AddBuild("release-size", ["-Os"] + allfeatures + allconfigs + cflags)
 
 
 # Run "scons all=1" to run all builds. This is what the CI runs.
@@ -118,6 +117,7 @@ if ARGUMENTS.get('all'):
     AddBuild("release-fastmath", allfeatures + allconfigs + releaseflags + cflags + ["-ffast-math"])
     if conf.CheckFlags(ltoflags, ltoflags, "-flto"):
         AddBuild("release-lto", allfeatures + allconfigs + ltoflags + cflags, ltoflags)
+    AddBuild("release-size", ["-Os"] + allfeatures + allconfigs + cflags)
 
     # feature subsets with default configuration
     AddBuilds("empty", allconfigs + cflags)
