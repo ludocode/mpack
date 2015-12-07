@@ -85,6 +85,13 @@ MPACK_HEADER_START
 #define MPACK_LIBRARY_STRING "MPack " MPACK_VERSION_STRING
 #endif
 
+/**
+ * @def MPACK_MAXIMUM_TAG_SIZE
+ *
+ * The maximum size of a tag in bytes, as of the "new" MessagePack spec.
+ */
+#define MPACK_MAXIMUM_TAG_SIZE 9
+
 
 
 /**
@@ -428,32 +435,53 @@ MPACK_ALWAYS_INLINE void mpack_store_native_u64(char* p, uint64_t val) {
     #endif
 }
 
-// These are the same as the unsigned versions; they're just
-// implemented to better document what's signed versus unsigned
-// in the writer store functions.
+MPACK_ALWAYS_INLINE int8_t  mpack_load_native_i8  (const char* p) {return (int8_t) mpack_load_native_u8 (p);}
+MPACK_ALWAYS_INLINE int16_t mpack_load_native_i16 (const char* p) {return (int16_t)mpack_load_native_u16(p);}
+MPACK_ALWAYS_INLINE int32_t mpack_load_native_i32 (const char* p) {return (int32_t)mpack_load_native_u32(p);}
+MPACK_ALWAYS_INLINE int64_t mpack_load_native_i64 (const char* p) {return (int64_t)mpack_load_native_u64(p);}
 MPACK_ALWAYS_INLINE void mpack_store_native_i8 (char* p, int8_t  val) {mpack_store_native_u8 (p, (uint8_t) val);}
 MPACK_ALWAYS_INLINE void mpack_store_native_i16(char* p, int16_t val) {mpack_store_native_u16(p, (uint16_t)val);}
 MPACK_ALWAYS_INLINE void mpack_store_native_i32(char* p, int32_t val) {mpack_store_native_u32(p, (uint32_t)val);}
 MPACK_ALWAYS_INLINE void mpack_store_native_i64(char* p, int64_t val) {mpack_store_native_u64(p, (uint64_t)val);}
 
+MPACK_ALWAYS_INLINE float mpack_load_native_float(const char* p) {
+    MPACK_CHECK_FLOAT_ORDER();
+    union {
+        float f;
+        uint32_t u;
+    } v;
+    v.u = mpack_load_native_u32(p);
+    return v.f;
+}
+
+MPACK_ALWAYS_INLINE double mpack_load_native_double(const char* p) {
+    MPACK_CHECK_FLOAT_ORDER();
+    union {
+        double d;
+        uint64_t u;
+    } v;
+    v.u = mpack_load_native_u64(p);
+    return v.d;
+}
+
 MPACK_ALWAYS_INLINE void mpack_store_native_float(char* p, float value) {
     MPACK_CHECK_FLOAT_ORDER();
     union {
         float f;
-        uint32_t i;
-    } u;
-    u.f = value;
-    mpack_store_native_u32(p, u.i);
+        uint32_t u;
+    } v;
+    v.f = value;
+    mpack_store_native_u32(p, v.u);
 }
 
 MPACK_ALWAYS_INLINE void mpack_store_native_double(char* p, double value) {
     MPACK_CHECK_FLOAT_ORDER();
     union {
         double d;
-        uint64_t i;
-    } u;
-    u.d = value;
-    mpack_store_native_u64(p, u.i);
+        uint64_t u;
+    } v;
+    v.d = value;
+    mpack_store_native_u64(p, v.u);
 }
 
 /** @endcond */
@@ -482,6 +510,7 @@ mpack_error_t mpack_track_grow(mpack_track_t* track);
 mpack_error_t mpack_track_push(mpack_track_t* track, mpack_type_t type, uint64_t count);
 mpack_error_t mpack_track_pop(mpack_track_t* track, mpack_type_t type);
 mpack_error_t mpack_track_element(mpack_track_t* track, bool read);
+mpack_error_t mpack_track_peek_element(mpack_track_t* track, bool read);
 mpack_error_t mpack_track_bytes(mpack_track_t* track, bool read, uint64_t count);
 mpack_error_t mpack_track_check_empty(mpack_track_t* track);
 mpack_error_t mpack_track_destroy(mpack_track_t* track, bool cancel);

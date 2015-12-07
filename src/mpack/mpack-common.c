@@ -237,7 +237,7 @@ mpack_error_t mpack_track_pop(mpack_track_t* track, mpack_type_t type) {
     return mpack_ok;
 }
 
-mpack_error_t mpack_track_element(mpack_track_t* track, bool read) {
+mpack_error_t mpack_track_peek_element(mpack_track_t* track, bool read) {
     MPACK_UNUSED(read);
     mpack_assert(track->elements, "null track elements!");
 
@@ -259,8 +259,14 @@ mpack_error_t mpack_track_element(mpack_track_t* track, bool read) {
         return mpack_error_bug;
     }
 
-    --element->left;
     return mpack_ok;
+}
+
+mpack_error_t mpack_track_element(mpack_track_t* track, bool read) {
+    mpack_error_t error = mpack_track_peek_element(track, read);
+    if (track->count > 0 && error == mpack_ok)
+        --track->elements[track->count - 1].left;
+    return error;
 }
 
 mpack_error_t mpack_track_bytes(mpack_track_t* track, bool read, uint64_t count) {

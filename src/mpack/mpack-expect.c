@@ -26,6 +26,21 @@
 #if MPACK_EXPECT
 
 
+// Helpers
+
+static inline uint8_t mpack_expect_native_u8(mpack_reader_t* reader) {
+    if (reader->left >= 1) {
+        uint8_t val = mpack_load_native_u8(reader->buffer + reader->pos);
+        ++reader->pos;
+        --reader->left;
+        return val;
+    }
+    char c[1];
+    mpack_read_native_big(reader, c, sizeof(c));
+    return mpack_load_native_u8(c);
+}
+
+
 // Basic Number Functions
 
 uint8_t mpack_expect_u8(mpack_reader_t* reader) {
@@ -237,7 +252,7 @@ void mpack_expect_int_match(mpack_reader_t* reader, int64_t value) {
 
 void mpack_expect_nil(mpack_reader_t* reader) {
     mpack_reader_track_element(reader);
-    uint8_t type = mpack_read_native_u8(reader);
+    uint8_t type = mpack_expect_native_u8(reader);
     if (reader->error != mpack_ok)
         return;
     if (type != 0xc0)
@@ -246,7 +261,7 @@ void mpack_expect_nil(mpack_reader_t* reader) {
 
 bool mpack_expect_bool(mpack_reader_t* reader) {
     mpack_reader_track_element(reader);
-    uint8_t type = mpack_read_native_u8(reader);
+    uint8_t type = mpack_expect_native_u8(reader);
     if (reader->error != mpack_ok)
         return false;
     if ((type & ~1) != 0xc2)
@@ -588,11 +603,11 @@ void mpack_expect_str_match(mpack_reader_t* reader, const char* str, size_t len)
     mpack_expect_str_length(reader, (uint32_t)len);
     if (mpack_reader_error(reader))
         return;
+    mpack_reader_track_bytes(reader, len);
 
-    // check each byte
-    for (size_t i = 0; i < len; ++i) {
-        mpack_reader_track_bytes(reader, 1);
-        if (mpack_read_native_u8(reader) != *str++) {
+    // check each byte one by one (matched strings are likely to be very small)
+    for (; len > 0; --len) {
+        if (mpack_expect_native_u8(reader) != *str++) {
             mpack_reader_flag_error(reader, mpack_error_type);
             return;
         }

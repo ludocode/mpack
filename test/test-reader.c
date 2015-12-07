@@ -39,6 +39,17 @@ void test_reader() {
     // 0xc1 is reserved; it should always raise mpack_error_invalid
     TEST_SIMPLE_READ_ERROR("\xc1", mpack_tag_equal(mpack_read_tag(&reader), mpack_tag_nil()), mpack_error_invalid);
 
+    // simple truncated tags (testing discard of additional
+    // temporary data in mpack_parse_tag())
+    TEST_SIMPLE_READ_ERROR("\xcc", mpack_tag_equal(mpack_read_tag(&reader), mpack_tag_nil()), mpack_error_invalid);
+    TEST_SIMPLE_READ_ERROR("\xcd", mpack_tag_equal(mpack_read_tag(&reader), mpack_tag_nil()), mpack_error_invalid);
+    TEST_SIMPLE_READ_ERROR("\xce", mpack_tag_equal(mpack_read_tag(&reader), mpack_tag_nil()), mpack_error_invalid);
+    TEST_SIMPLE_READ_ERROR("\xcf", mpack_tag_equal(mpack_read_tag(&reader), mpack_tag_nil()), mpack_error_invalid);
+    TEST_SIMPLE_READ_ERROR("\xd0", mpack_tag_equal(mpack_read_tag(&reader), mpack_tag_nil()), mpack_error_invalid);
+    TEST_SIMPLE_READ_ERROR("\xd1", mpack_tag_equal(mpack_read_tag(&reader), mpack_tag_nil()), mpack_error_invalid);
+    TEST_SIMPLE_READ_ERROR("\xd2", mpack_tag_equal(mpack_read_tag(&reader), mpack_tag_nil()), mpack_error_invalid);
+    TEST_SIMPLE_READ_ERROR("\xd3", mpack_tag_equal(mpack_read_tag(&reader), mpack_tag_nil()), mpack_error_invalid);
+
     // truncated discard errors
     TEST_SIMPLE_READ_ERROR("\x91", (mpack_discard(&reader), true), mpack_error_invalid); // array
     TEST_SIMPLE_READ_ERROR("\x81", (mpack_discard(&reader), true), mpack_error_invalid); // map
