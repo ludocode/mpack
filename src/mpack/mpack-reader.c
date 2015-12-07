@@ -799,27 +799,43 @@ static size_t mpack_decode_tag(const char* bytes, mpack_tag_t* tag) {
     return 0;
 }
 
+static inline size_t mpack_parse_tag_in_place(mpack_reader_t* reader, mpack_tag_t* tag) {
+    mpack_log("decoding tag in-place, %i left\n", (int)reader->left);
+    size_t count = mpack_decode_tag(reader->buffer + reader->pos, tag);
+    mpack_log("tag took %i bytes\n", (int)count);
+    if (count == 0)
+        mpack_reader_flag_error(reader, mpack_error_invalid);
+    return count;
+}
+
 // Parses a tag from the reader, returning its size in the reader buffer.
 // Returns 0 and flags an error if an error occurs.
 static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
 
-    // refill the buffer if needed
+    // if there is enough data in the buffer to parse the largest
+    // possible tag, we can decode the tag in-place straight from
+    // the buffer. this is by far the most common case.
+    if (reader->left >= MPACK_MAXIMUM_TAG_SIZE)
+        return mpack_parse_tag_in_place(reader, tag);
+
+    // if we have a fill function, we refill the buffer and try
+    // to decode in-place again. (it's faster not to do the
+    // refill check first)
     if (reader->fill && reader->left < MPACK_MAXIMUM_TAG_SIZE) {
         mpack_log("only %i bytes left to read tag, trying to refill\n", (int)reader->left);
         mpack_partial_fill(reader);
+        if (reader->left >= MPACK_MAXIMUM_TAG_SIZE)
+            return mpack_parse_tag_in_place(reader, tag);
     }
 
-    // decode the tag in-place if possible
-    if (reader->left >= MPACK_MAXIMUM_TAG_SIZE) {
-        mpack_log("decoding tag in-place, %i left\n", (int)reader->left);
-        size_t count = mpack_decode_tag(reader->buffer + reader->pos, tag);
-        mpack_log("tag took %i bytes\n", (int)count);
-        if (count == 0)
-            mpack_reader_flag_error(reader, mpack_error_invalid);
-        return count;
-    }
-
-    // decode the tag from a local buffer
+    // if there is not enough data left in the buffer for the largest
+    // possible tag, we copy the remaining data into a large enough
+    // temporary and zero out the extra space. we can then parse any
+    // tag from it and flag an error if more bytes were used from the
+    // temporary than are available in the original data.
+    // (technically, zeroing out the extra data is not necessary because
+    // we're going to discard it if it's used, but valgrind doesn't
+    // know that so it's better to just zero it so it doesn't complain.)
     char buf[MPACK_MAXIMUM_TAG_SIZE];
     mpack_memcpy(buf, reader->buffer + reader->pos, reader->left);
     mpack_memset(buf + reader->left, 0, sizeof(buf) - reader->left);
@@ -850,6 +866,7 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
         return mpack_tag_nil();
 
     mpack_tag_t tag;
+    mpack_memset(&tag, 0, sizeof(tag));
     size_t count = mpack_parse_tag(reader, &tag);
     if (count == 0)
         return mpack_tag_nil();
@@ -892,6 +909,7 @@ mpack_tag_t mpack_peek_tag(mpack_reader_t* reader) {
         return mpack_tag_nil();
 
     mpack_tag_t tag;
+    mpack_memset(&tag, 0, sizeof(tag));
     if (mpack_parse_tag(reader, &tag) == 0)
         return mpack_tag_nil();
     return tag;
