@@ -31,8 +31,8 @@ static void test_tags_special(void) {
     TEST_TRUE(fn_mpack_tag_nil == &mpack_tag_nil);
 
     // test comparison with invalid tags
-    // (invalid enum values are not allowed in C++)
-    #ifndef __cplusplus
+    // (invalid enum values cause undefined behavior in C++)
+    #if MPACK_DEBUG && !defined(__cplusplus)
     mpack_tag_t invalid = mpack_tag_nil();
     invalid.type = (mpack_type_t)-1;
     TEST_ASSERT(mpack_tag_cmp(invalid, invalid));
@@ -270,8 +270,8 @@ static void test_strings() {
     #undef TEST_ERROR_TYPE
 
     // test strings for invalid enum values
-    // (invalid enum values are not allowed in C++)
-    #ifndef __cplusplus
+    // (invalid enum values cause undefined behavior in C++)
+    #if MPACK_DEBUG && !defined(__cplusplus)
     TEST_ASSERT(mpack_error_to_string((mpack_error_t)-1));
     TEST_ASSERT(mpack_type_to_string((mpack_type_t)-1));
     #endif

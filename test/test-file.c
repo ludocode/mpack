@@ -537,10 +537,12 @@ static void test_file_node(void) {
     TEST_TRUE(error == mpack_ok, "file tree failed with error %s", mpack_error_to_string(error));
 
     // test file size out of bounds
+    #if MPACK_DEBUG
     if (sizeof(size_t) >= sizeof(long)) {
         TEST_BREAK((mpack_tree_init_file(&tree, "invalid-filename", ((size_t)LONG_MAX) + 1), true));
         TEST_TREE_DESTROY_ERROR(&tree, mpack_error_bug);
     }
+    #endif
 
     // test missing file
     mpack_tree_init_file(&tree, "invalid-filename", 0);
