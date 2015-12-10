@@ -1,0 +1,188 @@
+
+# The Expect API
+
+The Expect API is used to imperatively parse data of a fixed (hardcoded) schema. It is most useful when parsing very large MessagePack files, parsing in memory-constrained environments, or generating parsing code from a schema. The API is similar to [CMP](https://github.com/camgunz/cmp), but has many helper functions especially for map keys and expected value ranges. Some of these will be covered below.
+
+If you are not writing code for an embedded device or generating parsing code from a schema, you should not follow this guide. You should most likely be using the Node API instead.
+
+## A simple example
+
+Suppose we have data that we know will have the following schema:
+
+```
+an array containing three elements
+  a UTF-8 string of less than 127 characters
+  a UTF-8 string of less than 127 characters
+  an array containing up to ten elements
+    where all elements are ints
+```
+
+For example, we could have the following bytes in a MessagePack file called `example.mp`:
+
+```Shell
+93                     # an array containing three elements
+  a5 68 65 6c 6c 6f    # "hello"
+  a6 77 6f 72 6c 64 21 # "world!"
+  94                   # an array containing four elements
+    01                 # 1
+    02                 # 2
+    03                 # 3
+    04                 # 4
+```
+
+In JSON this would look like this:
+
+```JSON
+[
+  "hello",
+  "world!",
+  [
+    1,
+    2,
+    3,
+    4
+  ]
+]
+```
+
+You can use [msgpack-tools](https://github.com/ludocode/msgpack-tools) with the above JSON to generate `example.mp`. The below code demonstrates reading this data from a file using the Expect API:
+
+```C
+#include "mpack.h"
+
+int main(void) {
+
+    // initialize a reader from a file
+    mpack_reader_t reader;
+    mpack_reader_init_file(&reader, "example.mp");
+
+    // the top-level array must have exactly three elements
+    mpack_expect_array_match(&reader, 3);
+
+    // the first two elements are short strings
+    char first[128];
+    char second[128];
+    mpack_expect_utf8_cstr(&reader, first, sizeof(first));
+    mpack_expect_utf8_cstr(&reader, second, sizeof(second));
+
+    // next we have an array of up to ten ints
+    int32_t numbers[10];
+    size_t count = mpack_expect_array_max(&reader, sizeof(numbers) / sizeof(numbers[0]));
+    for (size_t i = 0; i < count; ++i)
+        numbers[i] = mpack_expect_i32(&reader);
+    mpack_done_array(&reader);
+
+    // done reading the top-level array
+    mpack_done_array(&reader);
+
+    // clean up and handle errors
+    mpack_error_t error = mpack_reader_destroy(&reader);
+    if (error != mpack_ok) {
+        fprintf(stderr, "Error %i occurred reading data!\n", (int)error);
+        return EXIT_FAILURE;
+    }
+
+    // we now know the data was parsed correctly and can safely
+    // be used. the strings are null-terminated and valid UTF-8,
+    // the array contained at most ten elements, and the numbers
+    // are all within the range of an int32_t.
+    printf("%s\n", first);
+    printf("%s\n", second);
+    for (size_t i = 0; i < count; ++i)
+        printf("%i ", numbers[i]);
+    printf("\n");
+
+    return EXIT_SUCCESS;
+}
+```
+
+With the file given above, this example will print:
+
+```
+hello
+world!
+1 2 3 4 
+```
+
+Note that there is only a single error check in this example. In fact each call to the reader is checking for errors and storing any error in the reader. These could be errors from reading data from the file, from invalid or corrupt MessagePack, or from not matching our expected types or ranges. On any call to the reader, if the reader was already in error or an error occurs during the call, a safe value is returned.
+
+For example the `mpack_expect_array_max()` call above will return zero if the element is not an array, if it has more than ten elements, if the MessagePack data is corrupt, or even if the file does not exist. The `mpack_expect_utf8_cstr()` calls will also place a null-terminator at the start of the given buffer if any error occurs just in case the data is used without an error check. The error check can be performed later at a more convenient time.
+
+## Maps
+
+Maps can be more complicated to read because you usually want to safely handle keys being re-ordered. MessagePack itself does not specify whether maps can be re-ordered, so if you are sticking only to MessagePack implementations that preserve ordering, it may not be strictly necessary to handle this. (MPack always preserves map key ordering.) However many MessagePack implementations will ignore the order of map keys in the original data, especially in scripting languages where the data will be parsed into or encoded from an unordered map or dict. If you plan to interoperate with them, you will need to allow keys to be re-ordered.
+
+Suppose we expect to receive a map containing two key/value pairs: a key called "compact" with a boolean value, and a key called "schema" with an int value. The example on the MessagePack homepage fits this schema, which looks like this in JSON:
+
+```JSON
+{"compact": true, "schema": 0}
+```
+
+If we also expect the key called "compact" to always come first, then parsing this is straightforward:
+
+```C
+mpack_expect_map_match(&reader, 2);
+mpack_expect_cstr_match(&reader, "compact");
+bool compact = mpack_expect_bool(&reader);
+mpack_expect_cstr_match(&reader, "schema");
+int schema = mpack_expect_int(&reader);
+mpack_done_map(&reader);
+```
+
+If we expect the "schema" key to be optional, but always after "compact", then parsing this is longer but still straightforward:
+
+```C
+size_t count = mpack_expect_map_max(&reader, 2);
+
+mpack_expect_cstr_match(&reader, "compact");
+bool compact = mpack_expect_bool(&reader);
+
+bool has_schema = false;
+int schema = -1;
+if (count == 0) {
+    mpack_expect_cstr_match(&reader, "schema");
+    schema = mpack_expect_int(&reader);
+}
+
+mpack_done_map(&reader);
+```
+
+If however we want to allow keys to be re-ordered, then parsing this can become a lot more verbose. You need to switch on the key, but you also need to track whether each key has been used to prevent duplicate keys and ensure that required keys were found. Using the `mpack_expect_cstr()` directly for keys, this would look like this:
+
+```C
+bool has_compact = false;
+bool compact = false;
+bool has_schema = false;
+int schema = -1;
+
+for (size_t i = mpack_expect_map_max(&reader, 2); i > 0; --i) {
+    char key[20];
+    mpack_expect_cstr(&reader, key, sizeof(key));
+
+    if (strcmp(key, "compact") == 0) {
+        if (has_compact)
+            mpack_flag_error(&reader, mpack_error_data);
+        has_compact = true;
+        compact = mpack_expect_bool(&reader);
+
+    } else if (strcmp(key, "schema") == 0) {
+        if (has_schema)
+            mpack_flag_error(&reader, mpack_error_data);
+        has_schema = true;
+        schema = mpack_expect_int(&reader);
+
+    } else {
+        mpack_reader_flag_error(&reader, mpack_error_data);
+    }
+
+}
+mpack_done_map(&reader);
+
+// compact is not optional
+if (!has_compact)
+    mpack_reader_flag_error(&reader, mpack_error_data);
+```
+
+Note above the importance of using `mpack_expect_map_max()` rather than `mpack_expect_map()`. Without the maximum range, an attacker could craft a messaging declaring a map of a billion key-value pairs, forcing this code into an infinite loop. Alternatively you could check the reader for errors in each iteration of the loop.
+
+Of course if at all possible you should consider using the Node API which is much less error-prone and will handle all of this for you. It can be used with a fixed node pool even without an allocator or libc.
