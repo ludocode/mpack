@@ -640,5 +640,79 @@ char* mpack_expect_bin_alloc(mpack_reader_t* reader, size_t maxsize, size_t* siz
 }
 #endif
 
+size_t mpack_expect_key_uint(mpack_reader_t* reader, bool found[], size_t count) {
+    if (mpack_reader_error(reader) != mpack_ok)
+        return count;
+
+    if (count == 0) {
+        mpack_break("count cannot be zero; no keys are valid!");
+        mpack_reader_flag_error(reader, mpack_error_bug);
+        return count;
+    }
+    mpack_assert(found != NULL, "found cannot be NULL");
+
+    // read the key
+    uint64_t value = mpack_expect_u64(reader);
+    if (mpack_reader_error(reader) != mpack_ok)
+        return count;
+
+    // unrecognized keys are fine, we just return count
+    if (value >= count)
+        return count;
+
+    // check if this key is a duplicate
+    if (found[value]) {
+        mpack_reader_flag_error(reader, mpack_error_invalid);
+        return count;
+    }
+
+    found[value] = true;
+    return value;
+}
+
+size_t mpack_expect_key_cstr(mpack_reader_t* reader, const char* keys[], bool found[], size_t count) {
+    if (mpack_reader_error(reader) != mpack_ok)
+        return count;
+
+    if (count == 0) {
+        mpack_break("count cannot be zero; no keys are valid!");
+        mpack_reader_flag_error(reader, mpack_error_bug);
+        return count;
+    }
+    mpack_assert(keys != NULL, "keys cannot be NULL");
+    mpack_assert(found != NULL, "found cannot be NULL");
+
+    // read a string
+    char key[MPACK_EXPECT_KEY_STR_HELPER_LENGTH + 1];
+    mpack_expect_cstr(reader, key, sizeof(key));
+    if (mpack_reader_error(reader) != mpack_ok)
+        return count;
+    size_t keylen = mpack_strlen(key);
+
+    // find what key it matches
+    size_t i = 0;
+    for (; i < count; ++i) {
+        const char* other = keys[i];
+        size_t otherlen = mpack_strlen(other);
+        mpack_assert(otherlen <= MPACK_EXPECT_KEY_STR_HELPER_LENGTH, "key has length %i, but maximum length is %i",
+                (int)otherlen, (int)MPACK_EXPECT_KEY_STR_HELPER_LENGTH);
+        if (keylen == otherlen && mpack_memcmp(key, other, keylen) == 0)
+            break;
+    }
+
+    // unrecognized keys are fine, we just return count
+    if (i == count)
+        return count;
+
+    // check if this key is a duplicate
+    if (found[i]) {
+        mpack_reader_flag_error(reader, mpack_error_invalid);
+        return count;
+    }
+
+    found[i] = true;
+    return i;
+}
+
 #endif
 

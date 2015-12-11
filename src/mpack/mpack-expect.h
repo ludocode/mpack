@@ -1134,6 +1134,55 @@ char* mpack_expect_bin_alloc(mpack_reader_t* reader, size_t maxsize, size_t* siz
 void mpack_expect_tag(mpack_reader_t* reader, mpack_tag_t tag);
 
 /**
+ * Expects an unsigned integer map key between 0 and count-1, marking it
+ * as found in the given bool array and returning it.
+ *
+ * This is a helper for switching among int keys in a map. It is
+ * typically used with an enum to define the key values. It should
+ * be called in the expression of a switch() statement.
+ *
+ * The found array should be cleared before expecting a key. If the flag for
+ * a given key is already set when found (i.e. the map contains a duplicate
+ * key), mpack_error_invalid is flagged.
+ *
+ * If the key is count or larger, count is returned and no error is flagged.
+ * If you want an error on unrecognized keys, flag an error in the default
+ * case in your switch; otherwise you must call mpack_discard() to discard
+ * its content.
+ *
+ * @param reader The reader
+ * @param found An array of bool flags of length count
+ * @param count The number of values in the found array, and one more than the
+ *              maximum allowed key
+ */
+size_t mpack_expect_key_uint(mpack_reader_t* reader, bool found[], size_t count);
+
+/**
+ * Expects a string map key matching one of the strings in the given key list,
+ * marking it as found in the given bool array and returning its index.
+ *
+ * This is a helper for switching among string keys in a map. It is
+ * typically used with an enum with names matching the strings in the
+ * array to define the key indices. It should be called in the expression
+ * of a switch() statement.
+ *
+ * The found array should be cleared before expecting a key. If the flag for
+ * a given key is already set when found (i.e. the map contains a duplicate
+ * key), mpack_error_invalid is flagged.
+ *
+ * If the key is unrecognized, count is returned and no error is flagged. If
+ * you want an error on unrecognized keys, flag an error in the default case
+ * in your switch; otherwise you must call mpack_discard() to discard its content.
+ *
+ * @param reader The reader
+ * @param keys An array of expected string keys of length count
+ * @param found An array of bool flags of length count
+ * @param count The number of values in the keys and found arrays
+ */
+size_t mpack_expect_key_cstr(mpack_reader_t* reader, const char* keys[],
+        bool found[], size_t count);
+
+/**
  * @}
  */
 
