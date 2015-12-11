@@ -651,6 +651,12 @@ size_t mpack_expect_key_uint(mpack_reader_t* reader, bool found[], size_t count)
     }
     mpack_assert(found != NULL, "found cannot be NULL");
 
+    // the key is only recognized if it is an unsigned int
+    if (mpack_peek_tag(reader).type != mpack_type_uint) {
+        mpack_discard(reader);
+        return count;
+    }
+
     // read the key
     uint64_t value = mpack_expect_u64(reader);
     if (mpack_reader_error(reader) != mpack_ok)
@@ -681,6 +687,12 @@ size_t mpack_expect_key_cstr(mpack_reader_t* reader, const char* keys[], bool fo
     }
     mpack_assert(keys != NULL, "keys cannot be NULL");
     mpack_assert(found != NULL, "found cannot be NULL");
+
+    // the key is only recognized if it is a string
+    if (mpack_peek_tag(reader).type != mpack_type_str) {
+        mpack_discard(reader);
+        return count;
+    }
 
     // read the string in-place
     size_t keylen = mpack_expect_str(reader);

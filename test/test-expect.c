@@ -1065,14 +1065,14 @@ static void test_expect_key_cstr_duplicate() {
     TEST_TRUE(1 == mpack_expect_key_cstr(&reader, keys, found, key_count));
     mpack_expect_nil(&reader);
     TEST_TRUE(key_count == mpack_expect_key_cstr(&reader, keys, found, key_count)); // duplicate
-    mpack_discard(&reader); // should be no-op
+    mpack_discard(&reader); // should be no-op due to error
     TEST_TRUE(key_count == mpack_expect_key_cstr(&reader, keys, found, key_count)); // already in error, not valid
 
     TEST_READER_DESTROY_ERROR(&reader, mpack_error_invalid);
 }
 
 static void test_expect_key_uint() {
-    static const char data[] = "\x84\x02\xC0\x00\xC0\x03\xC0\x03\xC0";
+    static const char data[] = "\x85\x02\xC0\x00\xC0\xC3\xC0\x03\xC0\x03\xC0";
     mpack_reader_t reader;
     mpack_reader_init_data(&reader, data, sizeof(data)-1);
 
@@ -1080,11 +1080,13 @@ static void test_expect_key_uint() {
     bool found[key_count];
     memset(found, 0, sizeof(found));
 
-    TEST_TRUE(4 == mpack_expect_map(&reader));
+    TEST_TRUE(5 == mpack_expect_map(&reader));
     TEST_TRUE(2 == mpack_expect_key_uint(&reader, found, key_count));
     mpack_expect_nil(&reader);
     TEST_TRUE(0 == mpack_expect_key_uint(&reader, found, key_count));
     mpack_expect_nil(&reader);
+    TEST_TRUE(key_count == mpack_expect_key_uint(&reader, found, key_count)); // key has value "true", unrecognized
+    mpack_discard(&reader);
     TEST_TRUE(3 == mpack_expect_key_uint(&reader, found, key_count));
     mpack_expect_nil(&reader);
 
