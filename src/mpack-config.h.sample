@@ -252,16 +252,6 @@
 #define MPACK_NODE_MAX_DEPTH_WITHOUT_MALLOC 32
 #endif
 
-/**
- * The maximum allowed length of string keys for Expect string
- * comparison helpers.
- *
- * @see mpack_expect_key_cstr_switch
- */
-#ifndef MPACK_EXPECT_KEY_STR_HELPER_LENGTH
-#define MPACK_EXPECT_KEY_STR_HELPER_LENGTH 63
-#endif
-
 
 #endif
 

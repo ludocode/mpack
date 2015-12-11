@@ -682,20 +682,18 @@ size_t mpack_expect_key_cstr(mpack_reader_t* reader, const char* keys[], bool fo
     mpack_assert(keys != NULL, "keys cannot be NULL");
     mpack_assert(found != NULL, "found cannot be NULL");
 
-    // read a string
-    char key[MPACK_EXPECT_KEY_STR_HELPER_LENGTH + 1];
-    mpack_expect_cstr(reader, key, sizeof(key));
+    // read the string in-place
+    size_t keylen = mpack_expect_str(reader);
+    const char* key = mpack_read_bytes_inplace(reader, keylen);
     if (mpack_reader_error(reader) != mpack_ok)
         return count;
-    size_t keylen = mpack_strlen(key);
+    mpack_done_str(reader);
 
     // find what key it matches
     size_t i = 0;
     for (; i < count; ++i) {
         const char* other = keys[i];
         size_t otherlen = mpack_strlen(other);
-        mpack_assert(otherlen <= MPACK_EXPECT_KEY_STR_HELPER_LENGTH, "key has length %i, but maximum length is %i",
-                (int)otherlen, (int)MPACK_EXPECT_KEY_STR_HELPER_LENGTH);
         if (keylen == otherlen && mpack_memcmp(key, other, keylen) == 0)
             break;
     }

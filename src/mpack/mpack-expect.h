@@ -1174,6 +1174,8 @@ size_t mpack_expect_key_uint(mpack_reader_t* reader, bool found[], size_t count)
  * you want an error on unrecognized keys, flag an error in the default case
  * in your switch; otherwise you must call mpack_discard() to discard its content.
  *
+ * The maximum key length is the size of the buffer (keys are read in-place.)
+ *
  * @param reader The reader
  * @param keys An array of expected string keys of length count
  * @param found An array of bool flags of length count
