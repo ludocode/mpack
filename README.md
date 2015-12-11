@@ -81,6 +81,25 @@ If any error occurs, the writer is placed in an error state. The writer will fla
 
 Note in particular that in debug mode, the `mpack_finish_map()` call above ensures that two key/value pairs were actually written as claimed, something that other MessagePack C/C++ libraries may not do.
 
+## Comparison With Other Parsers
+
+MPack is rich in features while maintaining very high performance and a small code footprint. Here's a short feature table comparing it to other C parsers:
+
+| | [MPack](https://github.com/ludocode/mpack)<br>(v0.8) | [msgpack-c](https://github.com/msgpack/msgpack-c)<br>(v1.3.0) | [CMP](https://github.com/camgunz/cmp)<br>(v14) |
+|:------------------------------------|:---:|:---:|:---:|
+| No libc requirement                 | ✓   |     | ✓   |
+| Growable memory writer              | ✓   | ✓   |     |
+| File I/O helpers                    | ✓   | ✓   |     |
+| DOM-style parser                    | ✓   | ✓   |     |
+| Propagating errors                  | ✓   |     | ✓   |
+| Compound size tracking              | ✓   |     |     |
+| Incremental parser                  | ✓   |     | ✓   |
+| Incremental range/match helpers     | ✓   |     |     |
+| DOM stream parser                   |     | ✓   |     |
+| UTF-8 verification                  | ✓   |     |     |
+
+A larger feature comparison table is available [here](docs/features.md) which includes descriptions of the various entries in the table.
+
 ## Why Not Just Use JSON?
 
 Conceptually, MessagePack stores data similarly to JSON: they are both composed of simple values such as numbers and strings, stored hierarchically in maps and arrays. So why not just use JSON instead? The main reason is that JSON is designed to be human-readable, so it is not as efficient as a binary serialization format:

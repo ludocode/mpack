@@ -1,5 +1,6 @@
 
 # build files
+/build
 *.o
 *.swp
 *.gcov
@@ -10,10 +11,12 @@ mpack-test-file
 /mpack-test-dir/
 /analysis/
 
-# folders
-/tags
-/build
-/docs
+# docs
+/docs/*.png
+/docs/*.html
+/docs/*.css
+/docs/*.js
+/docs/search/
 
 # visual studio project
 *.suo
@@ -29,4 +32,5 @@ xcuserdata/
 
 # other junk
 .directory
+/tags
 
