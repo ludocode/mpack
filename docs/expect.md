@@ -172,7 +172,7 @@ for (size_t i = mpack_expect_map_max(&reader, 2); i > 0; --i) {
         schema = mpack_expect_int(&reader);
 
     } else {
-        mpack_reader_flag_error(&reader, mpack_error_data);
+        mpack_discard(&reader);
     }
 
 }
@@ -183,6 +183,33 @@ if (!has_compact)
     mpack_reader_flag_error(&reader, mpack_error_data);
 ```
 
-Note above the importance of using `mpack_expect_map_max()` rather than `mpack_expect_map()`. Without the maximum range, an attacker could craft a messaging declaring a map of a billion key-value pairs, forcing this code into an infinite loop. Alternatively you could check the reader for errors in each iteration of the loop.
+Note above the importance of using `mpack_expect_map_max()` rather than `mpack_expect_map()`. Without the maximum range, an attacker could craft a messaging declaring an array of a billion elements, forcing this code into an infinite loop. Alternatively you could check the reader for errors in each iteration of the loop.
 
-Of course if at all possible you should consider using the Node API which is much less error-prone and will handle all of this for you. It can be used with a fixed node pool even without an allocator or libc.
+In order to simplify this code, MPack includes an Expect function called `mpack_expect_key_cstr()` to switch on string keys. This function should be passed an array of key strings and an array of bool flags storing whether each key was found. It will parse the key and check for duplicate keys, and returns the index of the found key (or the key count if it is unrecognized or if an error occurs.) You would use it with an `enum` and a `switch`, like this:
+
+```C
+enum key_names       {KEY_COMPACT, KEY_SCHEMA, KEY_COUNT};
+const char* keys[] = {"compact"  , "schema"  };
+
+bool found[KEY_COUNT] = {0};
+bool compact = false;
+int schema = -1;
+
+for (size_t i = mpack_expect_map_max(&reader, KEY_COUNT); i > 0; --i) {
+    switch (mpack_expect_key_cstr(&reader, keys, found, key_count)) {
+        case KEY_COMPACT: compact = mpack_expect_bool(&reader); break;
+        case KEY_SCHEMA:  schema  = mpack_expect_int(&reader);  break;
+        default: mpack_discard(&reader); break;
+    }
+}
+
+// compact is not optional
+if (!found[KEY_COMPACT])
+    mpack_reader_flag_error(&reader, mpack_error_data);
+```
+
+In both of the above examples, the call to `mpack_discard(&reader);` skips over the value of unrecognized keys, allowing the data to be extensible and providing forwards-compatibility. If you want to forbid unrecognized keys, you can flag an error (e.g. `mpack_reader_flag_error(&reader, mpack_error_data);`) instead of discarding the value.
+
+Unlike JSON, MessagePack supports any type as a map key, so the enum integer values can themselves be used as keys. This reduces message size at some expense of debuggability (losing some of the value of a schemaless format.) There is a simpler function `mpack_expect_key_uint()` which can be used to switch on small non-negative enum values directly.
+
+On the surface this doesn't appear much shorter than the previous code, but it becomes much nicer when you have many possible keys in a map. (Of course if at all possible you should consider using the Node API which is much less error-prone and will handle all of this for you. It can be used with a fixed node pool even without an allocator or libc.)
