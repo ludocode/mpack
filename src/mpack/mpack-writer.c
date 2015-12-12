@@ -29,7 +29,7 @@
 #define MPACK_WRITER_TRACK(writer, error_expr) \
     (((writer)->error == mpack_ok) ? mpack_writer_flag_if_error((writer), (error_expr)) : ((void)0))
 
-MPACK_STATIC_INLINE_SPEED void mpack_writer_flag_if_error(mpack_writer_t* writer, mpack_error_t error) {
+static void mpack_writer_flag_if_error(mpack_writer_t* writer, mpack_error_t error) {
     if (error != mpack_ok)
         mpack_writer_flag_error(writer, error);
 }
@@ -37,7 +37,7 @@ MPACK_STATIC_INLINE_SPEED void mpack_writer_flag_if_error(mpack_writer_t* writer
 #define MPACK_WRITER_TRACK(writer, error_expr) MPACK_UNUSED(writer)
 #endif
 
-MPACK_STATIC_INLINE_SPEED void mpack_writer_track_element(mpack_writer_t* writer) {
+static inline void mpack_writer_track_element(mpack_writer_t* writer) {
     MPACK_WRITER_TRACK(writer, mpack_track_element(&writer->track, false));
 }
 
@@ -295,7 +295,7 @@ static void mpack_write_native_big(mpack_writer_t* writer, const char* p, size_t
     }
 }
 
-MPACK_STATIC_INLINE_SPEED void mpack_write_native(mpack_writer_t* writer, const char* p, size_t count) {
+static void mpack_write_native(mpack_writer_t* writer, const char* p, size_t count) {
     mpack_assert(count == 0 || p != NULL, "data pointer for %i bytes is NULL", (int)count);
 
     if (writer->size - writer->used < count) {
@@ -511,7 +511,7 @@ static size_t mpack_encode_i64(char* p, int64_t value) {
     return 9;
 }
 
-MPACK_STATIC_INLINE_SPEED void mpack_write_byte_element(mpack_writer_t* writer, char value) {
+static inline void mpack_write_byte_element(mpack_writer_t* writer, char value) {
     mpack_writer_track_element(writer);
     mpack_write_native(writer, &value, 1);
 }
@@ -759,21 +759,28 @@ void mpack_write_utf8_cstr_or_nil(mpack_writer_t* writer, const char* cstr) {
  * possible to avoid the extra memcpy().
  */
 #if MPACK_OPTIMIZE_FOR_SIZE
-#define MPACK_WRITE_WRAPPER(encode_fn, maximum_possible_bytes, ...)              \
-    mpack_writer_track_element(writer);                                          \
-    char buf[maximum_possible_bytes];                                            \
-    mpack_write_native(writer, buf, encode_fn(buf, __VA_ARGS__));
+#define MPACK_WRITE_WRAPPER(encode_fn, maximum_possible_bytes, ...) do {  \
+    mpack_writer_track_element(writer);                                   \
+    char buf[maximum_possible_bytes];                                     \
+    mpack_write_native(writer, buf, encode_fn(buf, __VA_ARGS__));         \
+} while (0)
 #else
-#define MPACK_WRITE_WRAPPER(encode_fn, maximum_possible_bytes, ...)              \
-    mpack_writer_track_element(writer);                                          \
-    if (mpack_writer_buffer_left(writer) >= maximum_possible_bytes) {            \
-        writer->used += encode_fn(writer->buffer + writer->used, __VA_ARGS__);   \
-    } else if (mpack_writer_error(writer) == mpack_ok) {                         \
-        if (writer->flush)                                                       \
-            mpack_writer_flush_unchecked(writer);                                \
-        char buf[maximum_possible_bytes];                                        \
-        mpack_write_native(writer, buf, encode_fn(buf, __VA_ARGS__));            \
-    }
+#define MPACK_WRITE_WRAPPER(encode_fn, maximum_possible_bytes, ...) do {        \
+    mpack_writer_track_element(writer);                                         \
+                                                                                \
+    if (mpack_writer_buffer_left(writer) >= maximum_possible_bytes) {           \
+        writer->used += encode_fn(writer->buffer + writer->used, __VA_ARGS__);  \
+        break;                                                                 \
+    }                                                                           \
+                                                                                \
+    if (mpack_writer_error(writer) != mpack_ok)                                 \
+        break;                                                                 \
+    if (writer->flush)                                                          \
+        mpack_writer_flush_unchecked(writer);                                   \
+                                                                                \
+    char buf[maximum_possible_bytes];                                           \
+    mpack_write_native(writer, buf, encode_fn(buf, __VA_ARGS__));               \
+} while (0)
 #endif
 
 void mpack_write_u8 (mpack_writer_t* writer, uint8_t value)  {MPACK_WRITE_WRAPPER(mpack_encode_u8,  2, value);}
