@@ -113,6 +113,32 @@ struct mpack_writer_t {
     #endif
 };
 
+/** @cond */
+#if MPACK_WRITE_TRACKING
+void mpack_writer_track_push(mpack_writer_t* writer, mpack_type_t type, uint64_t count);
+void mpack_writer_track_pop(mpack_writer_t* writer, mpack_type_t type);
+void mpack_writer_track_element(mpack_writer_t* writer);
+void mpack_writer_track_bytes(mpack_writer_t* writer, size_t count);
+#else
+MPACK_INLINE void mpack_writer_track_push(mpack_writer_t* writer, mpack_type_t type, uint64_t count) {
+    MPACK_UNUSED(writer);
+    MPACK_UNUSED(type);
+    MPACK_UNUSED(count);
+}
+MPACK_INLINE void mpack_writer_track_pop(mpack_writer_t* writer, mpack_type_t type) {
+    MPACK_UNUSED(writer);
+    MPACK_UNUSED(type);
+}
+MPACK_INLINE void mpack_writer_track_element(mpack_writer_t* writer) {
+    MPACK_UNUSED(writer);
+}
+MPACK_INLINE void mpack_writer_track_bytes(mpack_writer_t* writer, size_t count) {
+    MPACK_UNUSED(writer);
+    MPACK_UNUSED(count);
+}
+#endif
+/** @endcond */
+
 /**
  * @name Lifecycle Functions
  * @{
@@ -357,7 +383,6 @@ MPACK_INLINE mpack_error_t mpack_writer_error(mpack_writer_t* writer) {
  */
 void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t tag);
 
-#if MPACK_WRITE_TRACKING
 /**
  * Finishes writing the given compound type.
  *
@@ -367,8 +392,9 @@ void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t tag);
  * This can be called with the appropriate type instead the corresponding
  * mpack_finish_*() function if you want to finish a dynamic type.
  */
-void mpack_finish_type(mpack_writer_t* writer, mpack_type_t type);
-#endif
+MPACK_INLINE void mpack_finish_type(mpack_writer_t* writer, mpack_type_t type) {
+    mpack_writer_track_pop(writer, type);
+}
 
 /**
  * @}
@@ -473,7 +499,6 @@ void mpack_start_array(mpack_writer_t* writer, uint32_t count);
  */
 void mpack_start_map(mpack_writer_t* writer, uint32_t count);
 
-#if MPACK_WRITE_TRACKING
 /**
  * Finishes writing an array.
  *
@@ -484,7 +509,9 @@ void mpack_start_map(mpack_writer_t* writer, uint32_t count);
  *
  * @see mpack_start_array()
  */
-void mpack_finish_array(mpack_writer_t* writer);
+MPACK_INLINE void mpack_finish_array(mpack_writer_t* writer) {
+    mpack_writer_track_pop(writer, mpack_type_array);
+}
 
 /**
  * Finishes writing a map.
@@ -496,8 +523,9 @@ void mpack_finish_array(mpack_writer_t* writer);
  *
  * @see mpack_start_map()
  */
-void mpack_finish_map(mpack_writer_t* writer);
-#endif
+MPACK_INLINE void mpack_finish_map(mpack_writer_t* writer) {
+    mpack_writer_track_pop(writer, mpack_type_map);
+}
 
 /**
  * @}
@@ -673,7 +701,6 @@ void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count);
  */
 void mpack_write_bytes(mpack_writer_t* writer, const char* data, size_t count);
 
-#if MPACK_WRITE_TRACKING
 /**
  * Finishes writing a string.
  *
@@ -685,7 +712,9 @@ void mpack_write_bytes(mpack_writer_t* writer, const char* data, size_t count);
  * @see mpack_start_str()
  * @see mpack_write_bytes()
  */
-void mpack_finish_str(mpack_writer_t* writer);
+MPACK_INLINE void mpack_finish_str(mpack_writer_t* writer) {
+    mpack_writer_track_pop(writer, mpack_type_str);
+}
 
 /**
  * Finishes writing a binary blob.
@@ -698,7 +727,9 @@ void mpack_finish_str(mpack_writer_t* writer);
  * @see mpack_start_bin()
  * @see mpack_write_bytes()
  */
-void mpack_finish_bin(mpack_writer_t* writer);
+MPACK_INLINE void mpack_finish_bin(mpack_writer_t* writer) {
+    mpack_writer_track_pop(writer, mpack_type_bin);
+}
 
 /**
  * Finishes writing an extended type binary data blob.
@@ -711,17 +742,9 @@ void mpack_finish_bin(mpack_writer_t* writer);
  * @see mpack_start_ext()
  * @see mpack_write_bytes()
  */
-void mpack_finish_ext(mpack_writer_t* writer);
-#endif
-
-#if !MPACK_WRITE_TRACKING
-MPACK_INLINE void mpack_finish_array(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
-MPACK_INLINE void mpack_finish_map(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
-MPACK_INLINE void mpack_finish_str(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
-MPACK_INLINE void mpack_finish_bin(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
-MPACK_INLINE void mpack_finish_ext(mpack_writer_t* writer) {MPACK_UNUSED(writer);}
-MPACK_INLINE void mpack_finish_type(mpack_writer_t* writer, mpack_type_t type) {MPACK_UNUSED(writer); MPACK_UNUSED(type);}
-#endif
+MPACK_INLINE void mpack_finish_ext(mpack_writer_t* writer) {
+    mpack_writer_track_pop(writer, mpack_type_ext);
+}
 
 /**
  * @}

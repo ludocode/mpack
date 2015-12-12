@@ -26,27 +26,41 @@
 #if MPACK_WRITER
 
 #if MPACK_WRITE_TRACKING
-#define MPACK_WRITER_TRACK(writer, error_expr) \
-    (((writer)->error == mpack_ok) ? mpack_writer_flag_if_error((writer), (error_expr)) : ((void)0))
-
 static void mpack_writer_flag_if_error(mpack_writer_t* writer, mpack_error_t error) {
     if (error != mpack_ok)
         mpack_writer_flag_error(writer, error);
 }
-#else
-#define MPACK_WRITER_TRACK(writer, error_expr) MPACK_UNUSED(writer)
-#endif
 
-static inline void mpack_writer_track_element(mpack_writer_t* writer) {
-    MPACK_WRITER_TRACK(writer, mpack_track_element(&writer->track, false));
+void mpack_writer_track_push(mpack_writer_t* writer, mpack_type_t type, uint64_t count) {
+    if (writer->error == mpack_ok)
+        mpack_writer_flag_if_error(writer, mpack_track_push(&writer->track, type, count));
 }
+
+void mpack_writer_track_pop(mpack_writer_t* writer, mpack_type_t type) {
+    if (writer->error == mpack_ok)
+        mpack_writer_flag_if_error(writer, mpack_track_pop(&writer->track, type));
+}
+
+void mpack_writer_track_element(mpack_writer_t* writer) {
+    if (writer->error == mpack_ok)
+        mpack_writer_flag_if_error(writer, mpack_track_element(&writer->track, false));
+}
+
+void mpack_writer_track_bytes(mpack_writer_t* writer, size_t count) {
+    if (writer->error == mpack_ok)
+        mpack_writer_flag_if_error(writer, mpack_track_bytes(&writer->track, false, count));
+}
+#endif
 
 void mpack_writer_init(mpack_writer_t* writer, char* buffer, size_t size) {
     mpack_assert(buffer != NULL, "cannot initialize writer with empty buffer");
     mpack_memset(writer, 0, sizeof(*writer));
     writer->buffer = buffer;
     writer->size = size;
-    MPACK_WRITER_TRACK(writer, mpack_track_init(&writer->track));
+
+    #if MPACK_WRITE_TRACKING
+    mpack_writer_flag_if_error(writer, mpack_track_init(&writer->track));
+    #endif
 
     mpack_log("===========================\n");
     mpack_log("initializing writer with buffer size %i\n", (int)size);
@@ -544,32 +558,6 @@ MPACK_STATIC_INLINE size_t mpack_encode_double(char* p, double value) {
     return 9;
 }
 
-#if MPACK_WRITE_TRACKING
-void mpack_finish_array(mpack_writer_t* writer) {
-    MPACK_WRITER_TRACK(writer, mpack_track_pop(&writer->track, mpack_type_array));
-}
-
-void mpack_finish_map(mpack_writer_t* writer) {
-    MPACK_WRITER_TRACK(writer, mpack_track_pop(&writer->track, mpack_type_map));
-}
-
-void mpack_finish_str(mpack_writer_t* writer) {
-    MPACK_WRITER_TRACK(writer, mpack_track_pop(&writer->track, mpack_type_str));
-}
-
-void mpack_finish_bin(mpack_writer_t* writer) {
-    MPACK_WRITER_TRACK(writer, mpack_track_pop(&writer->track, mpack_type_bin));
-}
-
-void mpack_finish_ext(mpack_writer_t* writer) {
-    MPACK_WRITER_TRACK(writer, mpack_track_pop(&writer->track, mpack_type_ext));
-}
-
-void mpack_finish_type(mpack_writer_t* writer, mpack_type_t type) {
-    MPACK_WRITER_TRACK(writer, mpack_track_pop(&writer->track, type));
-}
-#endif
-
 static size_t mpack_encode_array(char* p, uint32_t count) {
     if (count <= 15) {
         mpack_store_native_u8(p, (uint8_t)(0x90 | count));
@@ -705,7 +693,7 @@ void mpack_write_ext(mpack_writer_t* writer, int8_t exttype, const char* data, u
 
 void mpack_write_bytes(mpack_writer_t* writer, const char* data, size_t count) {
     mpack_assert(data != NULL, "data pointer for %i bytes is NULL", (int)count);
-    MPACK_WRITER_TRACK(writer, mpack_track_bytes(&writer->track, false, count));
+    mpack_writer_track_bytes(writer, count);
     if (mpack_writer_error(writer) != mpack_ok)
         return;
     mpack_write_native(writer, data, count);
@@ -798,27 +786,27 @@ void mpack_write_double(mpack_writer_t* writer, double value) {MPACK_WRITE_WRAPP
 
 void mpack_start_array(mpack_writer_t* writer, uint32_t count) {
     MPACK_WRITE_WRAPPER(mpack_encode_array, 5, count);
-    MPACK_WRITER_TRACK(writer, mpack_track_push(&writer->track, mpack_type_array, count));
+    mpack_writer_track_push(writer, mpack_type_array, count);
 }
 
 void mpack_start_map(mpack_writer_t* writer, uint32_t count) {
     MPACK_WRITE_WRAPPER(mpack_encode_map, 5, count);
-    MPACK_WRITER_TRACK(writer, mpack_track_push(&writer->track, mpack_type_map, count));
+    mpack_writer_track_push(writer, mpack_type_map, count);
 }
 
 void mpack_start_str(mpack_writer_t* writer, uint32_t count) {
     MPACK_WRITE_WRAPPER(mpack_encode_str, 5, count);
-    MPACK_WRITER_TRACK(writer, mpack_track_push(&writer->track, mpack_type_str, count));
+    mpack_writer_track_push(writer, mpack_type_str, count);
 }
 
 void mpack_start_bin(mpack_writer_t* writer, uint32_t count) {
     MPACK_WRITE_WRAPPER(mpack_encode_bin, 5, count);
-    MPACK_WRITER_TRACK(writer, mpack_track_push(&writer->track, mpack_type_bin, count));
+    mpack_writer_track_push(writer, mpack_type_bin, count);
 }
 
 void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count) {
     MPACK_WRITE_WRAPPER(mpack_encode_ext, 6, exttype, count);
-    MPACK_WRITER_TRACK(writer, mpack_track_push(&writer->track, mpack_type_ext, count));
+    mpack_writer_track_push(writer, mpack_type_ext, count);
 }
 
 #endif
