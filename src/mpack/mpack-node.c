@@ -65,7 +65,7 @@ typedef struct mpack_tree_parser_t {
     bool stack_allocated;
 } mpack_tree_parser_t;
 
-MPACK_STATIC_INLINE_SPEED uint8_t mpack_tree_u8(mpack_tree_parser_t* parser) {
+static inline uint8_t mpack_tree_u8(mpack_tree_parser_t* parser) {
     if (parser->possible_nodes_left < sizeof(uint8_t)) {
         mpack_tree_flag_error(parser->tree, mpack_error_invalid);
         return 0;
@@ -77,7 +77,7 @@ MPACK_STATIC_INLINE_SPEED uint8_t mpack_tree_u8(mpack_tree_parser_t* parser) {
     return val;
 }
 
-MPACK_STATIC_INLINE_SPEED uint16_t mpack_tree_u16(mpack_tree_parser_t* parser) {
+static inline uint16_t mpack_tree_u16(mpack_tree_parser_t* parser) {
     if (parser->possible_nodes_left < sizeof(uint16_t)) {
         mpack_tree_flag_error(parser->tree, mpack_error_invalid);
         return 0;
@@ -89,7 +89,7 @@ MPACK_STATIC_INLINE_SPEED uint16_t mpack_tree_u16(mpack_tree_parser_t* parser) {
     return val;
 }
 
-MPACK_STATIC_INLINE_SPEED uint32_t mpack_tree_u32(mpack_tree_parser_t* parser) {
+static inline uint32_t mpack_tree_u32(mpack_tree_parser_t* parser) {
     if (parser->possible_nodes_left < sizeof(uint32_t)) {
         mpack_tree_flag_error(parser->tree, mpack_error_invalid);
         return 0;
@@ -101,7 +101,7 @@ MPACK_STATIC_INLINE_SPEED uint32_t mpack_tree_u32(mpack_tree_parser_t* parser) {
     return val;
 }
 
-MPACK_STATIC_INLINE_SPEED uint64_t mpack_tree_u64(mpack_tree_parser_t* parser) {
+static inline uint64_t mpack_tree_u64(mpack_tree_parser_t* parser) {
     if (parser->possible_nodes_left < sizeof(uint64_t)) {
         mpack_tree_flag_error(parser->tree, mpack_error_invalid);
         return 0;
@@ -113,18 +113,18 @@ MPACK_STATIC_INLINE_SPEED uint64_t mpack_tree_u64(mpack_tree_parser_t* parser) {
     return val;
 }
 
-MPACK_STATIC_INLINE int8_t  mpack_tree_i8 (mpack_tree_parser_t* parser) {return (int8_t) mpack_tree_u8(parser); }
-MPACK_STATIC_INLINE int16_t mpack_tree_i16(mpack_tree_parser_t* parser) {return (int16_t)mpack_tree_u16(parser);}
-MPACK_STATIC_INLINE int32_t mpack_tree_i32(mpack_tree_parser_t* parser) {return (int32_t)mpack_tree_u32(parser);}
-MPACK_STATIC_INLINE int64_t mpack_tree_i64(mpack_tree_parser_t* parser) {return (int64_t)mpack_tree_u64(parser);}
+static inline int8_t  mpack_tree_i8 (mpack_tree_parser_t* parser) {return (int8_t) mpack_tree_u8(parser); }
+static inline int16_t mpack_tree_i16(mpack_tree_parser_t* parser) {return (int16_t)mpack_tree_u16(parser);}
+static inline int32_t mpack_tree_i32(mpack_tree_parser_t* parser) {return (int32_t)mpack_tree_u32(parser);}
+static inline int64_t mpack_tree_i64(mpack_tree_parser_t* parser) {return (int64_t)mpack_tree_u64(parser);}
 
-MPACK_STATIC_INLINE void mpack_skip_exttype(mpack_tree_parser_t* parser) {
+static inline void mpack_skip_exttype(mpack_tree_parser_t* parser) {
     // the exttype is stored right before the data. we
     // skip it and get it out of the data when needed.
     mpack_tree_i8(parser);
 }
 
-MPACK_STATIC_INLINE_SPEED float mpack_tree_float(mpack_tree_parser_t* parser) {
+static inline float mpack_tree_float(mpack_tree_parser_t* parser) {
     union {
         float f;
         uint32_t i;
@@ -133,7 +133,7 @@ MPACK_STATIC_INLINE_SPEED float mpack_tree_float(mpack_tree_parser_t* parser) {
     return u.f;
 }
 
-MPACK_STATIC_INLINE_SPEED double mpack_tree_double(mpack_tree_parser_t* parser) {
+static inline double mpack_tree_double(mpack_tree_parser_t* parser) {
     union {
         double d;
         uint64_t i;

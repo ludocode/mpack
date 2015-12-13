@@ -864,10 +864,7 @@ size_t mpack_expect_utf8(mpack_reader_t* reader, char* buf, size_t bufsize);
  * mpack_error_type is raised if the value is not a string or if its
  * length does not match.
  */
-MPACK_INLINE_SPEED uint32_t mpack_expect_str_max(mpack_reader_t* reader, uint32_t maxsize);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED uint32_t mpack_expect_str_max(mpack_reader_t* reader, uint32_t maxsize) {
+MPACK_INLINE uint32_t mpack_expect_str_max(mpack_reader_t* reader, uint32_t maxsize) {
     uint32_t length = mpack_expect_str(reader);
     if (length > maxsize) {
         mpack_reader_flag_error(reader, mpack_error_type);
@@ -875,7 +872,6 @@ MPACK_INLINE_SPEED uint32_t mpack_expect_str_max(mpack_reader_t* reader, uint32_
     }
     return length;
 }
-#endif
 
 /**
  * Reads the start of a string, raising an error if its length is not
@@ -888,14 +884,10 @@ MPACK_INLINE_SPEED uint32_t mpack_expect_str_max(mpack_reader_t* reader, uint32_
  * mpack_error_type is raised if the value is not a string or if its
  * length does not match.
  */
-MPACK_INLINE_SPEED void mpack_expect_str_length(mpack_reader_t* reader, uint32_t count);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED void mpack_expect_str_length(mpack_reader_t* reader, uint32_t count) {
+MPACK_INLINE void mpack_expect_str_length(mpack_reader_t* reader, uint32_t count) {
     if (mpack_expect_str(reader) != count)
         mpack_reader_flag_error(reader, mpack_error_type);
 }
-#endif
 
 
 #ifdef MPACK_MALLOC
@@ -1013,17 +1005,13 @@ char* mpack_expect_utf8_cstr_alloc(mpack_reader_t* reader, size_t maxsize);
  * Remember that maps are unordered in JSON. Don't use this for map keys
  * unless the map has only a single key!
  */
-MPACK_INLINE_SPEED void mpack_expect_cstr_match(mpack_reader_t* reader, const char* str);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED void mpack_expect_cstr_match(mpack_reader_t* reader, const char* str) {
+MPACK_INLINE void mpack_expect_cstr_match(mpack_reader_t* reader, const char* str) {
     if (mpack_strlen(str) > UINT32_MAX) {
         mpack_reader_flag_error(reader, mpack_error_type);
         return;
     }
     mpack_expect_str_match(reader, str, mpack_strlen(str));
 }
-#endif
 
 /**
  * @}
@@ -1056,10 +1044,7 @@ uint32_t mpack_expect_bin(mpack_reader_t* reader);
  * mpack_error_type is raised if the value is not a binary blob or if its
  * length does not match.
  */
-MPACK_INLINE_SPEED uint32_t mpack_expect_bin_max(mpack_reader_t* reader, uint32_t maxsize);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED uint32_t mpack_expect_bin_max(mpack_reader_t* reader, uint32_t maxsize) {
+MPACK_INLINE uint32_t mpack_expect_bin_max(mpack_reader_t* reader, uint32_t maxsize) {
     uint32_t length = mpack_expect_bin(reader);
     if (length > maxsize) {
         mpack_reader_flag_error(reader, mpack_error_type);
@@ -1067,7 +1052,6 @@ MPACK_INLINE_SPEED uint32_t mpack_expect_bin_max(mpack_reader_t* reader, uint32_
     }
     return length;
 }
-#endif
 
 /**
  * Reads the start of a binary blob, raising an error if its length is not
@@ -1080,14 +1064,10 @@ MPACK_INLINE_SPEED uint32_t mpack_expect_bin_max(mpack_reader_t* reader, uint32_
  * mpack_error_type is raised if the value is not a binary blob or if its
  * length does not match.
  */
-MPACK_INLINE_SPEED void mpack_expect_bin_size(mpack_reader_t* reader, uint32_t count);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED void mpack_expect_bin_size(mpack_reader_t* reader, uint32_t count) {
+MPACK_INLINE void mpack_expect_bin_size(mpack_reader_t* reader, uint32_t count) {
     if (mpack_expect_bin(reader) != count)
         mpack_reader_flag_error(reader, mpack_error_type);
 }
-#endif
 
 /**
  * Reads a binary blob into the given buffer, returning its size in bytes.

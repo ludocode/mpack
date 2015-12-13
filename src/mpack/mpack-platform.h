@@ -215,10 +215,6 @@ MPACK_HEADER_START
 /*
  * Definition of inline macros.
  *
- * MPack supports two different modes for inline functions:
- *   - functions declared inline regardless of optimization options (MPACK_INLINE)
- *   - functions declared inline only in builds optimized for speed (MPACK_INLINE_SPEED)
- *
  * MPack does not use static inline in header files; only one non-inline definition
  * of each function should exist in the final build. This can reduce the binary size
  * in cases where the compiler cannot or chooses not to inline a function.
@@ -243,10 +239,7 @@ MPACK_HEADER_START
  * files have a single non-inline definition emitted in the compilation of
  * mpack-platform.c. All inline declarations and definitions use the same MPACK_INLINE
  * specification to simplify the rules on when standalone functions are emitted.
- *
- * Inline functions in source files are defined static, so MPACK_STATIC_INLINE
- * is used for small functions and MPACK_STATIC_INLINE_SPEED is used for
- * larger optionally inline functions.
+ * Inline functions in source files are defined "static inline".
  *
  * Additional reading:
  *     http://www.greenend.org.uk/rjk/tech/inline.html
@@ -276,22 +269,6 @@ MPACK_HEADER_START
     #else
         #define MPACK_INLINE inline
     #endif
-#endif
-
-#define MPACK_STATIC_INLINE static inline
-
-#if MPACK_OPTIMIZE_FOR_SIZE
-    #define MPACK_STATIC_INLINE_SPEED static
-    #define MPACK_INLINE_SPEED /* nothing */
-    #if MPACK_EMIT_INLINE_DEFS
-        #define MPACK_DEFINE_INLINE_SPEED 1
-    #else
-        #define MPACK_DEFINE_INLINE_SPEED 0
-    #endif
-#else
-    #define MPACK_STATIC_INLINE_SPEED static inline
-    #define MPACK_INLINE_SPEED MPACK_INLINE
-    #define MPACK_DEFINE_INLINE_SPEED 1
 #endif
 
 #ifdef MPACK_OPTIMIZE_FOR_SPEED

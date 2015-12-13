@@ -323,15 +323,11 @@ void mpack_reader_flag_error(mpack_reader_t* reader, mpack_error_t error);
  * If the given error is mpack_ok or if the reader is already in an error state,
  * this call is ignored and the actual error state of the reader is returned.
  */
-MPACK_INLINE_SPEED mpack_error_t mpack_reader_flag_if_error(mpack_reader_t* reader, mpack_error_t error);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED mpack_error_t mpack_reader_flag_if_error(mpack_reader_t* reader, mpack_error_t error) {
+MPACK_INLINE mpack_error_t mpack_reader_flag_if_error(mpack_reader_t* reader, mpack_error_t error) {
     if (error != mpack_ok)
         mpack_reader_flag_error(reader, error);
     return mpack_reader_error(reader);
 }
-#endif
 
 /**
  * Returns bytes left in the reader's buffer.
@@ -458,13 +454,9 @@ const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count);
  *
  * @see mpack_read_bytes_inplace()
  */
-MPACK_INLINE_SPEED bool mpack_should_read_bytes_inplace(mpack_reader_t* reader, size_t count);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED bool mpack_should_read_bytes_inplace(mpack_reader_t* reader, size_t count) {
+MPACK_INLINE bool mpack_should_read_bytes_inplace(mpack_reader_t* reader, size_t count) {
     return (reader->size == 0 || count > reader->size / 8);
 }
-#endif
 
 #if MPACK_READ_TRACKING
 /**
@@ -562,10 +554,7 @@ void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count);
 
 // Reads count bytes into p, deferring to mpack_read_native_big() if more
 // bytes are needed than are available in the buffer.
-MPACK_INLINE_SPEED void mpack_read_native(mpack_reader_t* reader, char* p, size_t count);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED void mpack_read_native(mpack_reader_t* reader, char* p, size_t count) {
+MPACK_INLINE void mpack_read_native(mpack_reader_t* reader, char* p, size_t count) {
     mpack_assert(count == 0 || p != NULL, "data pointer for %i bytes is NULL", (int)count);
 
     if (count > reader->left) {
@@ -576,7 +565,6 @@ MPACK_INLINE_SPEED void mpack_read_native(mpack_reader_t* reader, char* p, size_
         reader->left -= count;
     }
 }
-#endif
 
 #if MPACK_READ_TRACKING
 #define MPACK_READER_TRACK(reader, error_expr) \

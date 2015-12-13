@@ -370,38 +370,27 @@ MPACK_INLINE void mpack_node_print(mpack_node_t node) {
 /**
  * Returns the type of the node.
  */
-MPACK_INLINE_SPEED mpack_type_t mpack_node_type(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED mpack_type_t mpack_node_type(mpack_node_t node) {
+MPACK_INLINE mpack_type_t mpack_node_type(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return mpack_type_nil;
     return node.data->type;
 }
-#endif
 
 /**
  * Checks if the given node is of nil type, raising mpack_error_type otherwise.
  */
-MPACK_INLINE_SPEED void mpack_node_nil(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED void mpack_node_nil(mpack_node_t node) {
+MPACK_INLINE void mpack_node_nil(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return;
     if (node.data->type != mpack_type_nil)
         mpack_node_flag_error(node, mpack_error_type);
 }
-#endif
 
 /**
  * Returns the bool value of the node. If this node is not of the correct
  * type, mpack_error_type is raised, and the return value should be discarded.
  */
-MPACK_INLINE_SPEED bool mpack_node_bool(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED bool mpack_node_bool(mpack_node_t node) {
+MPACK_INLINE bool mpack_node_bool(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return false;
 
@@ -411,43 +400,31 @@ MPACK_INLINE_SPEED bool mpack_node_bool(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return false;
 }
-#endif
 
 /**
  * Checks if the given node is of bool type with value true, raising
  * mpack_error_type otherwise.
  */
-MPACK_INLINE_SPEED void mpack_node_true(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED void mpack_node_true(mpack_node_t node) {
+MPACK_INLINE void mpack_node_true(mpack_node_t node) {
     if (mpack_node_bool(node) != true)
         mpack_node_flag_error(node, mpack_error_type);
 }
-#endif
 
 /**
  * Checks if the given node is of bool type with value false, raising
  * mpack_error_type otherwise.
  */
-MPACK_INLINE_SPEED void mpack_node_false(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED void mpack_node_false(mpack_node_t node) {
+MPACK_INLINE void mpack_node_false(mpack_node_t node) {
     if (mpack_node_bool(node) != false)
         mpack_node_flag_error(node, mpack_error_type);
 }
-#endif
 
 /**
  * Returns the 8-bit unsigned value of the node. If this node is not
  * of a compatible type, mpack_error_type is raised, and the
  * return value should be discarded.
  */
-MPACK_INLINE_SPEED uint8_t mpack_node_u8(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED uint8_t mpack_node_u8(mpack_node_t node) {
+MPACK_INLINE uint8_t mpack_node_u8(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
@@ -462,17 +439,13 @@ MPACK_INLINE_SPEED uint8_t mpack_node_u8(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
 }
-#endif
 
 /**
  * Returns the 8-bit signed value of the node. If this node is not
  * of a compatible type, mpack_error_type is raised, and the
  * return value should be discarded.
  */
-MPACK_INLINE_SPEED int8_t mpack_node_i8(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED int8_t mpack_node_i8(mpack_node_t node) {
+MPACK_INLINE int8_t mpack_node_i8(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
@@ -487,17 +460,13 @@ MPACK_INLINE_SPEED int8_t mpack_node_i8(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
 }
-#endif
 
 /**
  * Returns the 16-bit unsigned value of the node. If this node is not
  * of a compatible type, mpack_error_type is raised, and the
  * return value should be discarded.
  */
-MPACK_INLINE_SPEED uint16_t mpack_node_u16(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED uint16_t mpack_node_u16(mpack_node_t node) {
+MPACK_INLINE uint16_t mpack_node_u16(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
@@ -512,17 +481,13 @@ MPACK_INLINE_SPEED uint16_t mpack_node_u16(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
 }
-#endif
 
 /**
  * Returns the 16-bit signed value of the node. If this node is not
  * of a compatible type, mpack_error_type is raised, and the
  * return value should be discarded.
  */
-MPACK_INLINE_SPEED int16_t mpack_node_i16(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED int16_t mpack_node_i16(mpack_node_t node) {
+MPACK_INLINE int16_t mpack_node_i16(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
@@ -537,17 +502,13 @@ MPACK_INLINE_SPEED int16_t mpack_node_i16(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
 }
-#endif
 
 /**
  * Returns the 32-bit unsigned value of the node. If this node is not
  * of a compatible type, mpack_error_type is raised, and the
  * return value should be discarded.
  */
-MPACK_INLINE_SPEED uint32_t mpack_node_u32(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED uint32_t mpack_node_u32(mpack_node_t node) {
+MPACK_INLINE uint32_t mpack_node_u32(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
@@ -562,17 +523,13 @@ MPACK_INLINE_SPEED uint32_t mpack_node_u32(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
 }
-#endif
 
 /**
  * Returns the 32-bit signed value of the node. If this node is not
  * of a compatible type, mpack_error_type is raised, and the
  * return value should be discarded.
  */
-MPACK_INLINE_SPEED int32_t mpack_node_i32(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED int32_t mpack_node_i32(mpack_node_t node) {
+MPACK_INLINE int32_t mpack_node_i32(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
@@ -587,17 +544,13 @@ MPACK_INLINE_SPEED int32_t mpack_node_i32(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
 }
-#endif
 
 /**
  * Returns the 64-bit unsigned value of the node. If this node is not
  * of a compatible type, mpack_error_type is raised, and the
  * return value should be discarded.
  */
-MPACK_INLINE_SPEED uint64_t mpack_node_u64(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED uint64_t mpack_node_u64(mpack_node_t node) {
+MPACK_INLINE uint64_t mpack_node_u64(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
@@ -611,17 +564,13 @@ MPACK_INLINE_SPEED uint64_t mpack_node_u64(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
 }
-#endif
 
 /**
  * Returns the 64-bit signed value of the node. If this node is not
  * of a compatible type, mpack_error_type is raised, and the
  * return value should be discarded.
  */
-MPACK_INLINE_SPEED int64_t mpack_node_i64(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED int64_t mpack_node_i64(mpack_node_t node) {
+MPACK_INLINE int64_t mpack_node_i64(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
@@ -635,7 +584,6 @@ MPACK_INLINE_SPEED int64_t mpack_node_i64(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
 }
-#endif
 
 /**
  * Returns the float value of the node. The underlying value can be an
@@ -646,10 +594,7 @@ MPACK_INLINE_SPEED int64_t mpack_node_i64(mpack_node_t node) {
  *
  * @throws mpack_error_type if the underlying value is not a float, double or integer.
  */
-MPACK_INLINE_SPEED float mpack_node_float(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED float mpack_node_float(mpack_node_t node) {
+MPACK_INLINE float mpack_node_float(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0.0f;
 
@@ -665,7 +610,6 @@ MPACK_INLINE_SPEED float mpack_node_float(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return 0.0f;
 }
-#endif
 
 /**
  * Returns the double value of the node. The underlying value can be an
@@ -676,10 +620,7 @@ MPACK_INLINE_SPEED float mpack_node_float(mpack_node_t node) {
  *
  * @throws mpack_error_type if the underlying value is not a float, double or integer.
  */
-MPACK_INLINE_SPEED double mpack_node_double(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED double mpack_node_double(mpack_node_t node) {
+MPACK_INLINE double mpack_node_double(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0.0;
 
@@ -695,7 +636,6 @@ MPACK_INLINE_SPEED double mpack_node_double(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return 0.0;
 }
-#endif
 
 /**
  * Returns the float value of the node. The underlying value must be a float,
@@ -703,10 +643,7 @@ MPACK_INLINE_SPEED double mpack_node_double(mpack_node_t node) {
  *
  * @throws mpack_error_type if the underlying value is not a float.
  */
-MPACK_INLINE_SPEED float mpack_node_float_strict(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED float mpack_node_float_strict(mpack_node_t node) {
+MPACK_INLINE float mpack_node_float_strict(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0.0f;
 
@@ -716,7 +653,6 @@ MPACK_INLINE_SPEED float mpack_node_float_strict(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return 0.0f;
 }
-#endif
 
 /**
  * Returns the double value of the node. The underlying value must be a float
@@ -724,10 +660,7 @@ MPACK_INLINE_SPEED float mpack_node_float_strict(mpack_node_t node) {
  *
  * @throws mpack_error_type if the underlying value is not a float or double.
  */
-MPACK_INLINE_SPEED double mpack_node_double_strict(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED double mpack_node_double_strict(mpack_node_t node) {
+MPACK_INLINE double mpack_node_double_strict(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0.0;
 
@@ -739,7 +672,6 @@ MPACK_INLINE_SPEED double mpack_node_double_strict(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return 0.0;
 }
-#endif
 
 /**
  * @}
@@ -753,10 +685,7 @@ MPACK_INLINE_SPEED double mpack_node_double_strict(mpack_node_t node) {
 /**
  * Returns the extension type of the given ext node.
  */
-MPACK_INLINE_SPEED int8_t mpack_node_exttype(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED int8_t mpack_node_exttype(mpack_node_t node) {
+MPACK_INLINE int8_t mpack_node_exttype(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
@@ -767,15 +696,11 @@ MPACK_INLINE_SPEED int8_t mpack_node_exttype(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
 }
-#endif
 
 /**
  * Returns the length of the given str, bin or ext node.
  */
-MPACK_INLINE_SPEED uint32_t mpack_node_data_len(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED uint32_t mpack_node_data_len(mpack_node_t node) {
+MPACK_INLINE uint32_t mpack_node_data_len(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
@@ -786,16 +711,12 @@ MPACK_INLINE_SPEED uint32_t mpack_node_data_len(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
 }
-#endif
 
 /**
  * Returns the length in bytes of the given string node. This does not
  * include any null-terminator.
  */
-MPACK_INLINE_SPEED size_t mpack_node_strlen(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED size_t mpack_node_strlen(mpack_node_t node) {
+MPACK_INLINE size_t mpack_node_strlen(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
@@ -805,7 +726,6 @@ MPACK_INLINE_SPEED size_t mpack_node_strlen(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
 }
-#endif
 
 /**
  * Returns a pointer to the data contained by this node.
@@ -822,10 +742,7 @@ MPACK_INLINE_SPEED size_t mpack_node_strlen(mpack_node_t node) {
  * @see mpack_node_cstr_alloc()
  * @see mpack_node_utf8_cstr_alloc()
  */
-MPACK_INLINE_SPEED const char* mpack_node_data(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED const char* mpack_node_data(mpack_node_t node) {
+MPACK_INLINE const char* mpack_node_data(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return NULL;
 
@@ -836,7 +753,6 @@ MPACK_INLINE_SPEED const char* mpack_node_data(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return NULL;
 }
-#endif
 
 /**
  * Copies the bytes contained by this node into the given buffer, returning the
@@ -919,10 +835,7 @@ mpack_node_t mpack_node_map_uint_impl(mpack_node_t node, uint64_t num, bool opti
  * Returns the length of the given array node. Raises mpack_error_type
  * and returns 0 if the given node is not an array.
  */
-MPACK_INLINE_SPEED size_t mpack_node_array_length(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED size_t mpack_node_array_length(mpack_node_t node) {
+MPACK_INLINE size_t mpack_node_array_length(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
@@ -933,7 +846,6 @@ MPACK_INLINE_SPEED size_t mpack_node_array_length(mpack_node_t node) {
 
     return (size_t)node.data->len;
 }
-#endif
 
 /**
  * Returns the node in the given array at the given index. If the node
@@ -941,10 +853,7 @@ MPACK_INLINE_SPEED size_t mpack_node_array_length(mpack_node_t node) {
  * If the given index is out of bounds, mpack_error_data is raised and
  * a nil node is returned.
  */
-MPACK_INLINE_SPEED mpack_node_t mpack_node_array_at(mpack_node_t node, size_t index);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED mpack_node_t mpack_node_array_at(mpack_node_t node, size_t index) {
+MPACK_INLINE mpack_node_t mpack_node_array_at(mpack_node_t node, size_t index) {
     if (mpack_node_error(node) != mpack_ok)
         return mpack_tree_nil_node(node.tree);
 
@@ -960,16 +869,12 @@ MPACK_INLINE_SPEED mpack_node_t mpack_node_array_at(mpack_node_t node, size_t in
 
     return mpack_node(node.tree, mpack_node_child(node, index));
 }
-#endif
 
 /**
  * Returns the number of key/value pairs in the given map node. Raises
  * mpack_error_type and returns 0 if the given node is not a map.
  */
-MPACK_INLINE_SPEED size_t mpack_node_map_count(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED size_t mpack_node_map_count(mpack_node_t node) {
+MPACK_INLINE size_t mpack_node_map_count(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
@@ -980,13 +885,9 @@ MPACK_INLINE_SPEED size_t mpack_node_map_count(mpack_node_t node) {
 
     return node.data->len;
 }
-#endif
 
 // internal node map lookup
-MPACK_INLINE_SPEED mpack_node_t mpack_node_map_at(mpack_node_t node, size_t index, size_t offset);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED mpack_node_t mpack_node_map_at(mpack_node_t node, size_t index, size_t offset) {
+MPACK_INLINE mpack_node_t mpack_node_map_at(mpack_node_t node, size_t index, size_t offset) {
     if (mpack_node_error(node) != mpack_ok)
         return mpack_tree_nil_node(node.tree);
 
@@ -1002,7 +903,6 @@ MPACK_INLINE_SPEED mpack_node_t mpack_node_map_at(mpack_node_t node, size_t inde
 
     return mpack_node(node.tree, mpack_node_child(node, index * 2 + offset));
 }
-#endif
 
 /**
  * Returns the key node in the given map at the given index.

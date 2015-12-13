@@ -205,7 +205,7 @@ void mpack_reader_flag_error(mpack_reader_t* reader, mpack_error_t error) {
 
 // A helper to call the reader fill function. This makes sure it's
 // implemented and guards against overflow in case it returns -1.
-MPACK_STATIC_INLINE_SPEED size_t mpack_fill(mpack_reader_t* reader, char* p, size_t count) {
+static inline size_t mpack_fill(mpack_reader_t* reader, char* p, size_t count) {
     mpack_assert(reader->fill != NULL, "mpack_fill() called with no fill function?");
 
     size_t ret = reader->fill(reader, p, count);
