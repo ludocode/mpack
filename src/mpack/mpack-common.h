@@ -345,9 +345,7 @@ MPACK_INLINE bool mpack_tag_equal(mpack_tag_t left, mpack_tag_t right) {
  * at arbitrary addresses.
  *
  * These will remain available in the public API so feel free to
- * use them for other purposes, but they are undocumented. (Note
- * also that they are static always-inline; they do not follow
- * the normal MPack inline linkage.)
+ * use them for other purposes, but they are undocumented.
  *
  * The bswap builtins are used when needed and available. With
  * GCC 5.2 they appear to give better performance and smaller
@@ -483,6 +481,47 @@ MPACK_ALWAYS_INLINE void mpack_store_native_double(char* p, double value) {
     v.d = value;
     mpack_store_native_u64(p, v.u);
 }
+
+/** @endcond */
+
+
+
+/** @cond */
+
+// Sizes in bytes for the various possible tags
+#define MPACK_TAG_SIZE_FIXUINT  1
+#define MPACK_TAG_SIZE_U8       2
+#define MPACK_TAG_SIZE_U16      3
+#define MPACK_TAG_SIZE_U32      5
+#define MPACK_TAG_SIZE_U64      9
+#define MPACK_TAG_SIZE_FIXINT   1
+#define MPACK_TAG_SIZE_I8       2
+#define MPACK_TAG_SIZE_I16      3
+#define MPACK_TAG_SIZE_I32      5
+#define MPACK_TAG_SIZE_I64      9
+#define MPACK_TAG_SIZE_FLOAT    5
+#define MPACK_TAG_SIZE_DOUBLE   9
+#define MPACK_TAG_SIZE_FIXARRAY 1
+#define MPACK_TAG_SIZE_ARRAY16  3
+#define MPACK_TAG_SIZE_ARRAY32  5
+#define MPACK_TAG_SIZE_FIXMAP   1
+#define MPACK_TAG_SIZE_MAP16    3
+#define MPACK_TAG_SIZE_MAP32    5
+#define MPACK_TAG_SIZE_FIXSTR   1
+#define MPACK_TAG_SIZE_STR8     2
+#define MPACK_TAG_SIZE_STR16    3
+#define MPACK_TAG_SIZE_STR32    5
+#define MPACK_TAG_SIZE_BIN8     2
+#define MPACK_TAG_SIZE_BIN16    3
+#define MPACK_TAG_SIZE_BIN32    5
+#define MPACK_TAG_SIZE_FIXEXT1  2
+#define MPACK_TAG_SIZE_FIXEXT2  2
+#define MPACK_TAG_SIZE_FIXEXT4  2
+#define MPACK_TAG_SIZE_FIXEXT8  2
+#define MPACK_TAG_SIZE_FIXEXT16 2
+#define MPACK_TAG_SIZE_EXT8     3
+#define MPACK_TAG_SIZE_EXT16    4
+#define MPACK_TAG_SIZE_EXT32    6
 
 /** @endcond */
 

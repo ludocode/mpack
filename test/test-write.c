@@ -43,6 +43,7 @@ static void test_write_simple_auto_int() {
     TEST_SIMPLE_WRITE("\x02", mpack_write_uint(&writer, 2));
     TEST_SIMPLE_WRITE("\x0f", mpack_write_uint(&writer, 0x0f));
     TEST_SIMPLE_WRITE("\x10", mpack_write_uint(&writer, 0x10));
+    TEST_SIMPLE_WRITE("\x7e", mpack_write_uint(&writer, 0x7e));
     TEST_SIMPLE_WRITE("\x7f", mpack_write_uint(&writer, 0x7f));
 
     // positive fixnums with signed int functions
@@ -51,12 +52,14 @@ static void test_write_simple_auto_int() {
     TEST_SIMPLE_WRITE("\x02", mpack_write_int(&writer, 2));
     TEST_SIMPLE_WRITE("\x0f", mpack_write_int(&writer, 0x0f));
     TEST_SIMPLE_WRITE("\x10", mpack_write_int(&writer, 0x10));
+    TEST_SIMPLE_WRITE("\x7e", mpack_write_int(&writer, 0x7e));
     TEST_SIMPLE_WRITE("\x7f", mpack_write_int(&writer, 0x7f));
 
     // negative fixnums
     TEST_SIMPLE_WRITE("\xff", mpack_write_int(&writer, -1));
     TEST_SIMPLE_WRITE("\xfe", mpack_write_int(&writer, -2));
     TEST_SIMPLE_WRITE("\xf0", mpack_write_int(&writer, -16));
+    TEST_SIMPLE_WRITE("\xe1", mpack_write_int(&writer, -31));
     TEST_SIMPLE_WRITE("\xe0", mpack_write_int(&writer, -32));
 
     // uints
