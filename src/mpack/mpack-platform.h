@@ -215,8 +215,7 @@ MPACK_HEADER_START
 /*
  * Definition of inline macros.
  *
- * MPack supports several different modes for inline functions:
- *   - functions declared with a platform-specific always-inline (MPACK_ALWAYS_INLINE)
+ * MPack supports two different modes for inline functions:
  *   - functions declared inline regardless of optimization options (MPACK_INLINE)
  *   - functions declared inline only in builds optimized for speed (MPACK_INLINE_SPEED)
  *
@@ -306,18 +305,9 @@ MPACK_HEADER_START
 #if defined(__GNUC__) || defined(__clang__)
     #define MPACK_UNREACHABLE __builtin_unreachable()
     #define MPACK_NORETURN(fn) fn __attribute__((noreturn))
-
-    // gcov gets confused with always_inline, so we disable it under the unit tests
-    #ifndef MPACK_GCOV
-        #define MPACK_ALWAYS_INLINE __attribute__((always_inline)) MPACK_INLINE
-        #define MPACK_STATIC_ALWAYS_INLINE static __attribute__((always_inline)) inline
-    #endif
-
 #elif defined(_MSC_VER)
     #define MPACK_UNREACHABLE __assume(0)
     #define MPACK_NORETURN(fn) __declspec(noreturn) fn
-    #define MPACK_ALWAYS_INLINE __forceinline
-    #define MPACK_STATIC_ALWAYS_INLINE static __forceinline
 #endif
 
 #ifndef MPACK_UNREACHABLE
@@ -325,19 +315,6 @@ MPACK_HEADER_START
 #endif
 #ifndef MPACK_NORETURN
 #define MPACK_NORETURN(fn) fn
-#endif
-#ifndef MPACK_ALWAYS_INLINE
-#define MPACK_ALWAYS_INLINE MPACK_INLINE
-#endif
-#ifndef MPACK_STATIC_ALWAYS_INLINE
-#define MPACK_STATIC_ALWAYS_INLINE static inline
-#endif
-#ifndef MPACK_STATIC_ALWAYS_INLINE_SPEED
-#if MPACK_OPTIMIZE_FOR_SIZE
-#define MPACK_STATIC_ALWAYS_INLINE_SPEED static
-#else
-#define MPACK_STATIC_ALWAYS_INLINE_SPEED MPACK_STATIC_ALWAYS_INLINE
-#endif
 #endif
 
 
@@ -600,7 +577,7 @@ MPACK_HEADER_START
 /* Implement realloc if unavailable */
 #ifdef MPACK_MALLOC
     #ifdef MPACK_REALLOC
-        MPACK_ALWAYS_INLINE void* mpack_realloc(void* old_ptr, size_t used_size, size_t new_size) {
+        MPACK_INLINE void* mpack_realloc(void* old_ptr, size_t used_size, size_t new_size) {
             MPACK_UNUSED(used_size);
             return MPACK_REALLOC(old_ptr, new_size);
         }

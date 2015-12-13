@@ -369,7 +369,7 @@ void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t value) {
     }
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_write_byte_element(mpack_writer_t* writer, char value) {
+static inline void mpack_write_byte_element(mpack_writer_t* writer, char value) {
     mpack_writer_track_element(writer);
     mpack_write_native(writer, &value, 1);
 }
@@ -396,115 +396,115 @@ void mpack_write_false(mpack_writer_t* writer) {
  * Encode functions
  */
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_fixuint(char* p, uint8_t value) {
+static inline void mpack_encode_fixuint(char* p, uint8_t value) {
     mpack_assert(value <= 127);
     mpack_store_native_u8(p, value);
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_u8(char* p, uint8_t value) {
+static inline void mpack_encode_u8(char* p, uint8_t value) {
     mpack_assert(value > 127);
     mpack_store_native_u8(p, 0xcc);
     mpack_store_native_u8(p + 1, value);
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_u16(char* p, uint16_t value) {
+static inline void mpack_encode_u16(char* p, uint16_t value) {
     mpack_assert(value > UINT8_MAX);
     mpack_store_native_u8(p, 0xcd);
     mpack_store_native_u16(p + 1, value);
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_u32(char* p, uint32_t value) {
+static inline void mpack_encode_u32(char* p, uint32_t value) {
     mpack_assert(value > UINT16_MAX);
     mpack_store_native_u8(p, 0xce);
     mpack_store_native_u32(p + 1, value);
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_u64(char* p, uint64_t value) {
+static inline void mpack_encode_u64(char* p, uint64_t value) {
     mpack_assert(value > UINT32_MAX);
     mpack_store_native_u8(p, 0xcf);
     mpack_store_native_u64(p + 1, value);
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_fixint(char* p, int8_t value) {
+static inline void mpack_encode_fixint(char* p, int8_t value) {
     // this can encode positive or negative fixints
     mpack_assert(value >= -32);
     mpack_store_native_i8(p, value);
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_i8(char* p, int8_t value) {
+static inline void mpack_encode_i8(char* p, int8_t value) {
     mpack_assert(value < -32);
     mpack_store_native_u8(p, 0xd0);
     mpack_store_native_i8(p + 1, value);
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_i16(char* p, int16_t value) {
+static inline void mpack_encode_i16(char* p, int16_t value) {
     mpack_assert(value < INT8_MIN);
     mpack_store_native_u8(p, 0xd1);
     mpack_store_native_i16(p + 1, value);
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_i32(char* p, int32_t value) {
+static inline void mpack_encode_i32(char* p, int32_t value) {
     mpack_assert(value < INT16_MIN);
     mpack_store_native_u8(p, 0xd2);
     mpack_store_native_i32(p + 1, value);
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_i64(char* p, int64_t value) {
+static inline void mpack_encode_i64(char* p, int64_t value) {
     mpack_assert(value < INT32_MIN);
     mpack_store_native_u8(p, 0xd3);
     mpack_store_native_i64(p + 1, value);
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_float(char* p, float value) {
+static inline void mpack_encode_float(char* p, float value) {
     mpack_store_native_u8(p, 0xca);
     mpack_store_native_float(p + 1, value);
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_double(char* p, double value) {
+static inline void mpack_encode_double(char* p, double value) {
     mpack_store_native_u8(p, 0xcb);
     mpack_store_native_double(p + 1, value);
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_fixarray(char* p, uint8_t count) {
+static inline void mpack_encode_fixarray(char* p, uint8_t count) {
     mpack_assert(count <= 15);
     mpack_store_native_u8(p, (uint8_t)(0x90 | count));
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_array16(char* p, uint16_t count) {
+static inline void mpack_encode_array16(char* p, uint16_t count) {
     mpack_assert(count > 15);
     mpack_store_native_u8(p, 0xdc);
     mpack_store_native_u16(p + 1, count);
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_array32(char* p, uint32_t count) {
+static inline void mpack_encode_array32(char* p, uint32_t count) {
     mpack_assert(count > UINT16_MAX);
     mpack_store_native_u8(p, 0xdd);
     mpack_store_native_u32(p + 1, count);
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_fixmap(char* p, uint8_t count) {
+static inline void mpack_encode_fixmap(char* p, uint8_t count) {
     mpack_assert(count <= 15);
     mpack_store_native_u8(p, (uint8_t)(0x80 | count));
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_map16(char* p, uint16_t count) {
+static inline void mpack_encode_map16(char* p, uint16_t count) {
     mpack_assert(count > 15);
     mpack_store_native_u8(p, 0xde);
     mpack_store_native_u16(p + 1, count);
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_map32(char* p, uint32_t count) {
+static inline void mpack_encode_map32(char* p, uint32_t count) {
     mpack_assert(count > UINT16_MAX);
     mpack_store_native_u8(p, 0xdf);
     mpack_store_native_u32(p + 1, count);
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_fixstr(char* p, uint8_t count) {
+static inline void mpack_encode_fixstr(char* p, uint8_t count) {
     mpack_assert(count <= 31);
     mpack_store_native_u8(p, (uint8_t)(0xa0 | count));
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_str8(char* p, uint8_t count) {
+static inline void mpack_encode_str8(char* p, uint8_t count) {
     // TODO: str8 had no counterpart in MessagePack 1.0; there was only
     // fixraw, raw16 and raw32. This should not be used in compatibility mode.
     mpack_assert(count > 31);
@@ -512,75 +512,75 @@ MPACK_STATIC_ALWAYS_INLINE void mpack_encode_str8(char* p, uint8_t count) {
     mpack_store_native_u8(p + 1, count);
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_str16(char* p, uint16_t count) {
+static inline void mpack_encode_str16(char* p, uint16_t count) {
     mpack_assert(count > UINT8_MAX);
     mpack_store_native_u8(p, 0xda);
     mpack_store_native_u16(p + 1, count);
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_str32(char* p, uint32_t count) {
+static inline void mpack_encode_str32(char* p, uint32_t count) {
     mpack_assert(count > UINT16_MAX);
     mpack_store_native_u8(p, 0xdb);
     mpack_store_native_u32(p + 1, count);
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_bin8(char* p, uint8_t count) {
+static inline void mpack_encode_bin8(char* p, uint8_t count) {
     mpack_store_native_u8(p, 0xc4);
     mpack_store_native_u8(p + 1, count);
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_bin16(char* p, uint16_t count) {
+static inline void mpack_encode_bin16(char* p, uint16_t count) {
     mpack_assert(count > UINT8_MAX);
     mpack_store_native_u8(p, 0xc5);
     mpack_store_native_u16(p + 1, count);
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_bin32(char* p, uint32_t count) {
+static inline void mpack_encode_bin32(char* p, uint32_t count) {
     mpack_assert(count > UINT16_MAX);
     mpack_store_native_u8(p, 0xc6);
     mpack_store_native_u32(p + 1, count);
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_fixext1(char* p, int8_t exttype) {
+static inline void mpack_encode_fixext1(char* p, int8_t exttype) {
     mpack_store_native_u8(p, 0xd4);
     mpack_store_native_i8(p + 1, exttype);
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_fixext2(char* p, int8_t exttype) {
+static inline void mpack_encode_fixext2(char* p, int8_t exttype) {
     mpack_store_native_u8(p, 0xd5);
     mpack_store_native_i8(p + 1, exttype);
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_fixext4(char* p, int8_t exttype) {
+static inline void mpack_encode_fixext4(char* p, int8_t exttype) {
     mpack_store_native_u8(p, 0xd6);
     mpack_store_native_i8(p + 1, exttype);
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_fixext8(char* p, int8_t exttype) {
+static inline void mpack_encode_fixext8(char* p, int8_t exttype) {
     mpack_store_native_u8(p, 0xd7);
     mpack_store_native_i8(p + 1, exttype);
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_fixext16(char* p, int8_t exttype) {
+static inline void mpack_encode_fixext16(char* p, int8_t exttype) {
     mpack_store_native_u8(p, 0xd8);
     mpack_store_native_i8(p + 1, exttype);
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_ext8(char* p, int8_t exttype, uint8_t count) {
+static inline void mpack_encode_ext8(char* p, int8_t exttype, uint8_t count) {
     mpack_assert(count != 1 && count != 2 && count != 4 && count != 8 && count != 16);
     mpack_store_native_u8(p, 0xc7);
     mpack_store_native_u8(p + 1, count);
     mpack_store_native_i8(p + 2, exttype);
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_ext16(char* p, int8_t exttype, uint16_t count) {
+static inline void mpack_encode_ext16(char* p, int8_t exttype, uint16_t count) {
     mpack_assert(count > UINT8_MAX);
     mpack_store_native_u8(p, 0xc8);
     mpack_store_native_u16(p + 1, count);
     mpack_store_native_i8(p + 3, exttype);
 }
 
-MPACK_STATIC_ALWAYS_INLINE void mpack_encode_ext32(char* p, int8_t exttype, uint32_t count) {
+static inline void mpack_encode_ext32(char* p, int8_t exttype, uint32_t count) {
     mpack_assert(count > UINT16_MAX);
     mpack_store_native_u8(p, 0xc9);
     mpack_store_native_u32(p + 1, count);
