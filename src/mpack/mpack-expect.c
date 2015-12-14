@@ -673,7 +673,7 @@ size_t mpack_expect_key_uint(mpack_reader_t* reader, bool found[], size_t count)
     }
 
     found[value] = true;
-    return value;
+    return (size_t)value;
 }
 
 size_t mpack_expect_key_cstr(mpack_reader_t* reader, const char* keys[], bool found[], size_t count) {
