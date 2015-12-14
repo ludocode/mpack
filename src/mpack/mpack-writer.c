@@ -347,7 +347,6 @@ mpack_error_t mpack_writer_destroy(mpack_writer_t* writer) {
 }
 
 void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t value) {
-
     switch (value.type) {
         case mpack_type_nil:    mpack_writer_track_element(writer); mpack_write_nil   (writer);            break;
         case mpack_type_bool:   mpack_writer_track_element(writer); mpack_write_bool  (writer, value.v.b); break;
@@ -608,12 +607,10 @@ static inline void mpack_encode_ext32(char* p, int8_t exttype, uint32_t count) {
 } while (0)
 
 void mpack_write_u8(mpack_writer_t* writer, uint8_t value) {
-    mpack_writer_track_element(writer);
-
     #if MPACK_OPTIMIZE_FOR_SIZE
     mpack_write_u32(writer, value);
     #else
-
+    mpack_writer_track_element(writer);
     size_t left = mpack_writer_buffer_left(writer);
     if (value <= 127) {
         MPACK_WRITE_ENCODED(mpack_encode_fixuint, MPACK_TAG_SIZE_FIXUINT, value);
@@ -624,12 +621,10 @@ void mpack_write_u8(mpack_writer_t* writer, uint8_t value) {
 }
 
 void mpack_write_u16(mpack_writer_t* writer, uint16_t value) {
-    mpack_writer_track_element(writer);
-
     #if MPACK_OPTIMIZE_FOR_SIZE
     mpack_write_u32(writer, value);
     #else
-
+    mpack_writer_track_element(writer);
     size_t left = mpack_writer_buffer_left(writer);
     if (value <= 127) {
         MPACK_WRITE_ENCODED(mpack_encode_fixuint, MPACK_TAG_SIZE_FIXUINT, (uint8_t)value);
@@ -642,12 +637,10 @@ void mpack_write_u16(mpack_writer_t* writer, uint16_t value) {
 }
 
 void mpack_write_u32(mpack_writer_t* writer, uint32_t value) {
-    mpack_writer_track_element(writer);
-
     #if MPACK_OPTIMIZE_FOR_SIZE
     mpack_write_u64(writer, value);
     #else
-
+    mpack_writer_track_element(writer);
     size_t left = mpack_writer_buffer_left(writer);
     if (value <= 127) {
         MPACK_WRITE_ENCODED(mpack_encode_fixuint, MPACK_TAG_SIZE_FIXUINT, (uint8_t)value);
@@ -702,12 +695,10 @@ void mpack_write_u64(mpack_writer_t* writer, uint64_t value) {
 }
 
 void mpack_write_i8(mpack_writer_t* writer, int8_t value) {
-    mpack_writer_track_element(writer);
-
     #if MPACK_OPTIMIZE_FOR_SIZE
     mpack_write_i32(writer, value);
     #else
-
+    mpack_writer_track_element(writer);
     size_t left = mpack_writer_buffer_left(writer);
     if (value >= -32) {
         // we encode positive and negative fixints together
@@ -719,12 +710,10 @@ void mpack_write_i8(mpack_writer_t* writer, int8_t value) {
 }
 
 void mpack_write_i16(mpack_writer_t* writer, int16_t value) {
-    mpack_writer_track_element(writer);
-
     #if MPACK_OPTIMIZE_FOR_SIZE
     mpack_write_i32(writer, value);
     #else
-
+    mpack_writer_track_element(writer);
     size_t left = mpack_writer_buffer_left(writer);
     if (value >= -32) {
         if (value <= 127) {
@@ -744,12 +733,10 @@ void mpack_write_i16(mpack_writer_t* writer, int16_t value) {
 }
 
 void mpack_write_i32(mpack_writer_t* writer, int32_t value) {
-    mpack_writer_track_element(writer);
-
     #if MPACK_OPTIMIZE_FOR_SIZE
     mpack_write_i64(writer, value);
     #else
-
+    mpack_writer_track_element(writer);
     size_t left = mpack_writer_buffer_left(writer);
     if (value >= -32) {
         if (value <= 127) {
