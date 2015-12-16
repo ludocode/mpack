@@ -142,9 +142,7 @@ static inline double mpack_tree_double(mpack_tree_parser_t* parser) {
     return u.d;
 }
 
-static void mpack_tree_parse_children(mpack_tree_parser_t* parser, mpack_node_data_t* node) {
-    mpack_type_t type = node->type;
-    size_t total = node->len;
+static void mpack_tree_push_stack(mpack_tree_parser_t* parser, mpack_node_data_t* first_child, size_t total) {
 
     // Make sure we have enough room in the stack
     if (parser->level + 1 == parser->depth) {
@@ -180,6 +178,16 @@ static void mpack_tree_parse_children(mpack_tree_parser_t* parser, mpack_node_da
         return;
         #endif
     }
+
+    // Push the contents of this node onto the parsing stack
+    ++parser->level;
+    parser->stack[parser->level].child = first_child;
+    parser->stack[parser->level].left = total;
+}
+
+static void mpack_tree_parse_children(mpack_tree_parser_t* parser, mpack_node_data_t* node) {
+    mpack_type_t type = node->type;
+    size_t total = node->len;
 
     // Calculate total elements to read
     if (type == mpack_type_map) {
@@ -267,10 +275,7 @@ static void mpack_tree_parse_children(mpack_tree_parser_t* parser, mpack_node_da
         #endif
     }
 
-    // Push this node onto the stack to read its children
-    ++parser->level;
-    parser->stack[parser->level].child = node->value.children;
-    parser->stack[parser->level].left = total;
+    mpack_tree_push_stack(parser, node->value.children, total);
 }
 
 static void mpack_tree_parse_bytes(mpack_tree_parser_t* parser, mpack_node_data_t* node) {
