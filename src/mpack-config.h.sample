@@ -224,8 +224,7 @@
  * larger pages than this may be allocated as needed. (Safety checks
  * exist to prevent malicious data from causing too large allocations.)
  *
- * Nodes are 12 bytes when compiled for a 32-bit architecture and
- * 16 bytes when compiled for a 64-bit architecture.
+ * Nodes are 16 bytes on most common architectures (32-bit and 64-bit.)
  *
  * Using as many nodes fit in one memory page seems to provide the
  * best performance, and has very little waste when parsing small
