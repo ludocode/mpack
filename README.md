@@ -90,12 +90,12 @@ MPack is rich in features while maintaining very high performance and a small co
 | No libc requirement                 | ✓   |     | ✓   |
 | Growable memory writer              | ✓   | ✓   |     |
 | File I/O helpers                    | ✓   | ✓   |     |
-| DOM-style parser                    | ✓   | ✓   |     |
+| Tree parser                         | ✓   | ✓   |     |
 | Propagating errors                  | ✓   |     | ✓   |
 | Compound size tracking              | ✓   |     |     |
 | Incremental parser                  | ✓   |     | ✓   |
 | Incremental range/match helpers     | ✓   |     |     |
-| DOM stream parser                   |     | ✓   |     |
+| Tree stream parser                  |     | ✓   |     |
 | UTF-8 verification                  | ✓   |     |     |
 
 A larger feature comparison table is available [here](docs/features.md) which includes descriptions of the various entries in the table.
