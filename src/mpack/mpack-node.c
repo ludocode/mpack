@@ -53,7 +53,25 @@ typedef struct mpack_level_t {
 typedef struct mpack_tree_parser_t {
     mpack_tree_t* tree;
     const char* data;
-    size_t bytes_left; // bytes left in data
+
+    // We keep track of the number of "possible nodes" left in the data rather
+    // than the number of bytes.
+    //
+    // When a map or array is parsed, we ensure at least one byte for each child
+    // exists and subtract them right away. This ensures that if ever a map or
+    // array declares more elements than could possibly be contained in the data,
+    // we will error out immediately rather than allocating storage for them.
+    //
+    // For example malicious data that repeats 0xDE 0xFF 0xFF would otherwise
+    // cause us to run out of memory. With this, the parser can only allocate
+    // as many nodes as there are bytes in the data (plus the paging overhead,
+    // 12%.) An error will be flagged immediately if and when there isn't enough
+    // data left to fully read all children of all open compound types on the
+    // parsing stack.
+    //
+    // Once an entire message has been parsed (and there are no nodes left to
+    // parse whose bytes have been subtracted), this matches the number of left
+    // over bytes in the data.
     size_t possible_nodes_left;
 
     mpack_node_data_t* nodes;
@@ -72,7 +90,6 @@ static inline uint8_t mpack_tree_u8(mpack_tree_parser_t* parser) {
     }
     uint8_t val = mpack_load_native_u8(parser->data);
     parser->data += sizeof(uint8_t);
-    parser->bytes_left -= sizeof(uint8_t);
     parser->possible_nodes_left -= sizeof(uint8_t);
     return val;
 }
@@ -84,7 +101,6 @@ static inline uint16_t mpack_tree_u16(mpack_tree_parser_t* parser) {
     }
     uint16_t val = mpack_load_native_u16(parser->data);
     parser->data += sizeof(uint16_t);
-    parser->bytes_left -= sizeof(uint16_t);
     parser->possible_nodes_left -= sizeof(uint16_t);
     return val;
 }
@@ -96,7 +112,6 @@ static inline uint32_t mpack_tree_u32(mpack_tree_parser_t* parser) {
     }
     uint32_t val = mpack_load_native_u32(parser->data);
     parser->data += sizeof(uint32_t);
-    parser->bytes_left -= sizeof(uint32_t);
     parser->possible_nodes_left -= sizeof(uint32_t);
     return val;
 }
@@ -108,7 +123,6 @@ static inline uint64_t mpack_tree_u64(mpack_tree_parser_t* parser) {
     }
     uint64_t val = mpack_load_native_u64(parser->data);
     parser->data += sizeof(uint64_t);
-    parser->bytes_left -= sizeof(uint64_t);
     parser->possible_nodes_left -= sizeof(uint64_t);
     return val;
 }
@@ -287,14 +301,16 @@ static void mpack_tree_parse_bytes(mpack_tree_parser_t* parser, mpack_node_data_
     }
     node->value.bytes = parser->data;
     parser->data += length;
-    parser->bytes_left -= length;
     parser->possible_nodes_left -= length;
 }
 
 static void mpack_tree_parse_node(mpack_tree_parser_t* parser, mpack_node_data_t* node) {
 
-    // read the type
-    uint8_t type = mpack_tree_u8(parser);
+    // read the type. we've already accounted for this byte in
+    // possible_nodes_left, so we know it is in bounds and don't
+    // need to subtract it.
+    uint8_t type = mpack_load_native_u8(parser->data);
+    parser->data += sizeof(uint8_t);
 
     // as with mpack_read_tag(), the fastest way to parse a node is to switch
     // on the first byte, and to explicitly list every possible byte. we switch
@@ -646,7 +662,6 @@ static void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length
     parser.data = data;
     parser.nodes = initial_nodes + 1;
     parser.nodes_left = initial_nodes_count - 1;
-    parser.bytes_left = length;
 
     // We read nodes in a loop instead of recursively for maximum
     // performance. The stack holds the amount of children left to
@@ -665,15 +680,6 @@ static void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length
     mpack_level_t stack_[initial_depth];
     parser.depth = initial_depth;
     parser.stack = stack_;
-
-    // We keep track of the number of possible nodes left in the data. This
-    // is to ensure that malicious nested data is not trying to make us
-    // run out of memory by allocating too many nodes. (For example malicious
-    // data that repeats 0xDE 0xFF 0xFF would otherwise cause us to run out
-    // of memory. With this, the parser can only allocate as many nodes as
-    // there are bytes in the data (plus the paging overhead, 12%.) An error
-    // will be flagged immediately if and when there isn't enough data left
-    // to fully read all children of all open compound types on the stack.)
     parser.possible_nodes_left = length;
 
     // configure the root node
@@ -688,10 +694,6 @@ static void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length
         --parser.stack[parser.level].left;
         ++parser.stack[parser.level].child;
 
-        // We've already counted this byte in possible_nodes_left; add the
-        // initial type byte back in before reading it
-        ++parser.possible_nodes_left;
-
         // Read the node contents
         mpack_tree_parse_node(&parser, node);
 
@@ -705,27 +707,12 @@ static void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length
         MPACK_FREE(parser.stack);
     #endif
 
-    tree->size = length - parser.bytes_left;
-    mpack_log("parsed tree of %i bytes, %i bytes left\n", (int)tree->size, (int)parser.bytes_left);
+    // now that there are no longer any nodes to read, possible_nodes_left
+    // is the number of bytes left in the data.
+    if (mpack_tree_error(tree) == mpack_ok)
+        tree->size = length - parser.possible_nodes_left;
+    mpack_log("parsed tree of %i bytes, %i bytes left\n", (int)tree->size, (int)parser.possible_nodes_left);
     mpack_log("%i nodes in final page\n", (int)parser.nodes_left);
-
-    // This seems like a bug / performance flaw in GCC. In release the
-    // below assert would compile to:
-    //
-    //     (!(mpack_tree_error(parser.tree) != mpack_ok || possible_nodes_left == remaining) ? __builtin_unreachable() : ((void)0))
-    //
-    // This produces identical assembly with GCC 5.1 on ARM64 under -O3, but
-    // with -O3 -flto, node parsing is over 4% slower. This should be a no-op
-    // even in -flto since the function ends here and possible_nodes_left
-    // does not escape this function.
-    //
-    // Leaving a TODO: here to explore this further. In the meantime we preproc it
-    // under MPACK_DEBUG.
-    #if MPACK_DEBUG
-    mpack_assert(mpack_tree_error(parser.tree) != mpack_ok || parser.possible_nodes_left == parser.bytes_left,
-            "incorrect calculation of possible nodes! %i possible nodes, but %i bytes remaining",
-            (int)parser.possible_nodes_left, (int)parser.bytes_left);
-    #endif
 }
 
 

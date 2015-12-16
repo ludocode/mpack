@@ -244,6 +244,10 @@ MPACK_INLINE mpack_error_t mpack_tree_error(mpack_tree_t* tree) {
  * Returns the number of bytes used in the buffer when the tree was
  * parsed. If there is something in the buffer after the MessagePack
  * object (such as another object), this can be used to find it.
+ *
+ * This is zero if an error occurred during tree parsing (since the
+ * portion of the data that the first complete object occupies cannot
+ * be determined if the data is invalid or corrupted.)
  */
 MPACK_INLINE size_t mpack_tree_size(mpack_tree_t* tree) {
     return tree->size;

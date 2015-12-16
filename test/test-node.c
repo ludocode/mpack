@@ -34,7 +34,8 @@ void test_tree_error_handler(mpack_tree_t* tree, mpack_error_t error) {
 
 // tests the example on the messagepack homepage
 static void test_example_node() {
-    static const char test[] = "\x82\xA7""compact\xC3\xA6""schema\x00";
+    // add a junk byte at the end to test mpack_tree_size()
+    static const char test[] = "\x82\xA7""compact\xC3\xA6""schema\x00\xC1";
     mpack_tree_t tree;
 
     // this is a node pool test even if we have malloc. the rest of the
@@ -46,6 +47,7 @@ static void test_example_node() {
     mpack_node_t map = mpack_tree_root(&tree);
     TEST_TRUE(true == mpack_node_bool(mpack_node_map_cstr(map, "compact")));
     TEST_TRUE(0 == mpack_node_u8(mpack_node_map_cstr(map, "schema")));
+    TEST_TRUE(mpack_tree_size(&tree) == sizeof(test) - 2);
 
     TEST_TREE_DESTROY_NOERROR(&tree);
 }
