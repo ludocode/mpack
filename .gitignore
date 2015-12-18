@@ -10,13 +10,7 @@
 mpack-test-file
 /mpack-test-dir/
 /analysis/
-
-# docs
-/docs/*.png
-/docs/*.html
-/docs/*.css
-/docs/*.js
-/docs/search/
+/docs/html/
 
 # visual studio project
 *.suo

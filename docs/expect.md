@@ -1,5 +1,5 @@
 
-# The Expect API
+# Using the Expect API
 
 The Expect API is used to imperatively parse data of a fixed (hardcoded) schema. It is most useful when parsing very large MessagePack files, parsing in memory-constrained environments, or generating parsing code from a schema. The API is similar to [CMP](https://github.com/camgunz/cmp), but has many helper functions especially for map keys and expected value ranges. Some of these will be covered below.
 
@@ -112,10 +112,13 @@ For example the `mpack_expect_array_max()` call above will return zero if the el
 
 Maps can be more complicated to read because you usually want to safely handle keys being re-ordered. MessagePack itself does not specify whether maps can be re-ordered, so if you are sticking only to MessagePack implementations that preserve ordering, it may not be strictly necessary to handle this. (MPack always preserves map key ordering.) However many MessagePack implementations will ignore the order of map keys in the original data, especially in scripting languages where the data will be parsed into or encoded from an unordered map or dict. If you plan to interoperate with them, you will need to allow keys to be re-ordered.
 
-Suppose we expect to receive a map containing two key/value pairs: a key called "compact" with a boolean value, and a key called "schema" with an int value. The example on the MessagePack homepage fits this schema, which looks like this in JSON:
+Suppose we expect to receive a map containing two key/value pairs: a key called "compact" with a boolean value, and a key called "schema" with an int value. The example on the [MessagePack homepage](http://msgpack.org/) fits this schema, which looks like this in JSON:
 
 ```JSON
-{"compact": true, "schema": 0}
+{
+  "compact": true,
+  "schema": 0
+}
 ```
 
 If we also expect the key called "compact" to always come first, then parsing this is straightforward:
@@ -161,13 +164,13 @@ for (size_t i = mpack_expect_map_max(&reader, 2); i > 0; --i) {
 
     if (strcmp(key, "compact") == 0) {
         if (has_compact)
-            mpack_flag_error(&reader, mpack_error_data);
+            mpack_flag_error(&reader, mpack_error_data); // duplicate key
         has_compact = true;
         compact = mpack_expect_bool(&reader);
 
     } else if (strcmp(key, "schema") == 0) {
         if (has_schema)
-            mpack_flag_error(&reader, mpack_error_data);
+            mpack_flag_error(&reader, mpack_error_data); // duplicate key
         has_schema = true;
         schema = mpack_expect_int(&reader);
 

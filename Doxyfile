@@ -7,6 +7,8 @@ PROJECT_NUMBER = develop
 
 INPUT = \
     README.md \
+    docs/expect.md \
+    docs/features.md \
     src/mpack/mpack-common.h \
     src/mpack/mpack-reader.h \
     src/mpack/mpack-writer.h \
@@ -15,15 +17,15 @@ INPUT = \
     src/mpack/mpack.h
 
 USE_MDFILE_AS_MAINPAGE = README.md
-HTML_OUTPUT = docs
+HTML_OUTPUT = docs/html
 GENERATE_LATEX = no
 STRIP_FROM_PATH = . ./src
 
+HTML_EXTRA_STYLESHEET = docs/customcss.css
+
 PREDEFINED = \
     inline= \
-    MPACK_ALWAYS_INLINE= \
     MPACK_INLINE= \
-    MPACK_INLINE_SPEED= \
     \
     MPACK_READER=1 \
     MPACK_WRITER=1 \
