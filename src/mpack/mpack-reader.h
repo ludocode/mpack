@@ -277,7 +277,7 @@ void mpack_reader_set_skip(mpack_reader_t* reader, mpack_reader_skip_t skip);
  *
  * @see mpack_reader_error_t
  * @param reader The MPack reader.
- * @param error The function to call when an error is flagged on the reader.
+ * @param error_fn The function to call when an error is flagged on the reader.
  */
 MPACK_INLINE void mpack_reader_set_error_handler(mpack_reader_t* reader, mpack_reader_error_t error_fn) {
     reader->error_fn = error_fn;
@@ -405,7 +405,9 @@ void mpack_skip_bytes(mpack_reader_t* reader, size_t count);
 void mpack_read_bytes(mpack_reader_t* reader, char* p, size_t count);
 
 #ifdef MPACK_MALLOC
+/** @cond */
 char* mpack_read_bytes_alloc_size(mpack_reader_t* reader, size_t count, size_t alloc_size);
+/** @endcond */
 
 /**
  * Reads bytes from a string, binary blob or extension object, allocating

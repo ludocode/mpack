@@ -296,7 +296,7 @@ MPACK_INLINE void mpack_writer_set_flush(mpack_writer_t* writer, mpack_writer_fl
  *
  * @see mpack_writer_error_t
  * @param writer The MPack writer.
- * @param error The function to call when an error is flagged on the writer.
+ * @param error_fn The function to call when an error is flagged on the writer.
  */
 MPACK_INLINE void mpack_writer_set_error_handler(mpack_writer_t* writer, mpack_writer_error_t error_fn) {
     writer->error_fn = error_fn;

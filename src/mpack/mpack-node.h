@@ -279,7 +279,7 @@ MPACK_INLINE void mpack_tree_set_context(mpack_tree_t* tree, void* context) {
  *
  * @see mpack_tree_error_t
  * @param tree The MPack tree.
- * @param error The function to call when an error is flagged on the tree.
+ * @param error_fn The function to call when an error is flagged on the tree.
  */
 MPACK_INLINE void mpack_tree_set_error_handler(mpack_tree_t* tree, mpack_tree_error_t error_fn) {
     tree->error_fn = error_fn;
@@ -816,6 +816,7 @@ char* mpack_node_data_alloc(mpack_node_t node, size_t maxlen);
  * If this node is not a string type, mpack_error_type is raised, and the return
  * value should be discarded.
  *
+ * @param node The string node from which to copy data
  * @param maxlen The maximum size to allocate, including the null-terminator.
  */
 char* mpack_node_cstr_alloc(mpack_node_t node, size_t maxlen);

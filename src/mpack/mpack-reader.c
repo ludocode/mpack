@@ -382,9 +382,9 @@ void mpack_read_bytes(mpack_reader_t* reader, char* p, size_t count) {
 #ifdef MPACK_MALLOC
 // Reads native bytes with error callback disabled. This allows MPack reader functions
 // to hold an allocated buffer and read native data into it without leaking it in
-// case of a non-local jump out of an error handler.
-static void mpack_read_native_nojump(mpack_reader_t* reader, char* p, size_t count) {
-    mpack_assert(reader->error == mpack_ok, "cannot call nojump if an error is already flagged!");
+// case of a non-local jump (longjmp, throw) out of an error handler.
+static void mpack_read_native_noerrorfn(mpack_reader_t* reader, char* p, size_t count) {
+    mpack_assert(reader->error == mpack_ok, "cannot call if an error is already flagged!");
     mpack_reader_error_t error_fn = reader->error_fn;
     reader->error_fn = NULL;
     mpack_read_native(reader, p, count);
@@ -408,8 +408,8 @@ char* mpack_read_bytes_alloc_size(mpack_reader_t* reader, size_t count, size_t a
         return NULL;
     }
 
-    // read with jump disabled so we don't leak our buffer
-    mpack_read_native_nojump(reader, data, count);
+    // read with error callback disabled so we don't leak our buffer
+    mpack_read_native_noerrorfn(reader, data, count);
 
     // report flagged errors
     if (mpack_reader_error(reader) != mpack_ok) {
