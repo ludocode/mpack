@@ -16,6 +16,7 @@ mpack-test-file
 *.suo
 *.opensdf
 *.sdf
+*.vcxproj.user
 /projects/vs/Debug/
 /projects/vs/Release/
 

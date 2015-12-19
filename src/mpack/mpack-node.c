@@ -80,10 +80,10 @@ typedef struct mpack_tree_parser_t {
     size_t level;
     size_t depth;
     mpack_level_t* stack;
-    bool stack_allocated;
+    bool stack_owned;
 } mpack_tree_parser_t;
 
-static inline uint8_t mpack_tree_u8(mpack_tree_parser_t* parser) {
+MPACK_STATIC_INLINE uint8_t mpack_tree_u8(mpack_tree_parser_t* parser) {
     if (parser->possible_nodes_left < sizeof(uint8_t)) {
         mpack_tree_flag_error(parser->tree, mpack_error_invalid);
         return 0;
@@ -94,7 +94,7 @@ static inline uint8_t mpack_tree_u8(mpack_tree_parser_t* parser) {
     return val;
 }
 
-static inline uint16_t mpack_tree_u16(mpack_tree_parser_t* parser) {
+MPACK_STATIC_INLINE uint16_t mpack_tree_u16(mpack_tree_parser_t* parser) {
     if (parser->possible_nodes_left < sizeof(uint16_t)) {
         mpack_tree_flag_error(parser->tree, mpack_error_invalid);
         return 0;
@@ -105,7 +105,7 @@ static inline uint16_t mpack_tree_u16(mpack_tree_parser_t* parser) {
     return val;
 }
 
-static inline uint32_t mpack_tree_u32(mpack_tree_parser_t* parser) {
+MPACK_STATIC_INLINE uint32_t mpack_tree_u32(mpack_tree_parser_t* parser) {
     if (parser->possible_nodes_left < sizeof(uint32_t)) {
         mpack_tree_flag_error(parser->tree, mpack_error_invalid);
         return 0;
@@ -116,7 +116,7 @@ static inline uint32_t mpack_tree_u32(mpack_tree_parser_t* parser) {
     return val;
 }
 
-static inline uint64_t mpack_tree_u64(mpack_tree_parser_t* parser) {
+MPACK_STATIC_INLINE uint64_t mpack_tree_u64(mpack_tree_parser_t* parser) {
     if (parser->possible_nodes_left < sizeof(uint64_t)) {
         mpack_tree_flag_error(parser->tree, mpack_error_invalid);
         return 0;
@@ -127,18 +127,18 @@ static inline uint64_t mpack_tree_u64(mpack_tree_parser_t* parser) {
     return val;
 }
 
-static inline int8_t  mpack_tree_i8 (mpack_tree_parser_t* parser) {return (int8_t) mpack_tree_u8(parser); }
-static inline int16_t mpack_tree_i16(mpack_tree_parser_t* parser) {return (int16_t)mpack_tree_u16(parser);}
-static inline int32_t mpack_tree_i32(mpack_tree_parser_t* parser) {return (int32_t)mpack_tree_u32(parser);}
-static inline int64_t mpack_tree_i64(mpack_tree_parser_t* parser) {return (int64_t)mpack_tree_u64(parser);}
+MPACK_STATIC_INLINE int8_t  mpack_tree_i8 (mpack_tree_parser_t* parser) {return (int8_t) mpack_tree_u8(parser); }
+MPACK_STATIC_INLINE int16_t mpack_tree_i16(mpack_tree_parser_t* parser) {return (int16_t)mpack_tree_u16(parser);}
+MPACK_STATIC_INLINE int32_t mpack_tree_i32(mpack_tree_parser_t* parser) {return (int32_t)mpack_tree_u32(parser);}
+MPACK_STATIC_INLINE int64_t mpack_tree_i64(mpack_tree_parser_t* parser) {return (int64_t)mpack_tree_u64(parser);}
 
-static inline void mpack_skip_exttype(mpack_tree_parser_t* parser) {
+MPACK_STATIC_INLINE void mpack_skip_exttype(mpack_tree_parser_t* parser) {
     // the exttype is stored right before the data. we
     // skip it and get it out of the data when needed.
     mpack_tree_i8(parser);
 }
 
-static inline float mpack_tree_float(mpack_tree_parser_t* parser) {
+MPACK_STATIC_INLINE float mpack_tree_float(mpack_tree_parser_t* parser) {
     union {
         float f;
         uint32_t i;
@@ -147,7 +147,7 @@ static inline float mpack_tree_float(mpack_tree_parser_t* parser) {
     return u.f;
 }
 
-static inline double mpack_tree_double(mpack_tree_parser_t* parser) {
+MPACK_STATIC_INLINE double mpack_tree_double(mpack_tree_parser_t* parser) {
     union {
         double d;
         uint64_t i;
@@ -165,7 +165,7 @@ static void mpack_tree_push_stack(mpack_tree_parser_t* parser, mpack_node_data_t
         mpack_log("growing stack to depth %i\n", (int)new_depth);
 
         // Replace the stack-allocated parsing stack
-        if (parser->stack_allocated) {
+        if (!parser->stack_owned) {
             mpack_level_t* new_stack = (mpack_level_t*)MPACK_MALLOC(sizeof(mpack_level_t) * new_depth);
             if (!new_stack) {
                 mpack_tree_flag_error(parser->tree, mpack_error_memory);
@@ -174,7 +174,7 @@ static void mpack_tree_push_stack(mpack_tree_parser_t* parser, mpack_node_data_t
             }
             memcpy(new_stack, parser->stack, sizeof(mpack_level_t) * parser->depth);
             parser->stack = new_stack;
-            parser->stack_allocated = false;
+            parser->stack_owned = true;
 
         // Realloc the allocated parsing stack
         } else {
@@ -671,16 +671,16 @@ static void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length
     // allocate the initial parsing stack on the call stack. We
     // replace it with a heap allocation if we need to grow it.
     #ifdef MPACK_MALLOC
-    static const size_t initial_depth = MPACK_NODE_INITIAL_DEPTH;
-    parser.stack_allocated = true;
+    #define MPACK_NODE_STACK_LOCAL_DEPTH MPACK_NODE_INITIAL_DEPTH
+    parser.stack_owned = false;
     #else
-    static const size_t initial_depth = MPACK_NODE_MAX_DEPTH_WITHOUT_MALLOC;
+    #define MPACK_NODE_STACK_LOCAL_DEPTH MPACK_NODE_MAX_DEPTH_WITHOUT_MALLOC
     #endif
-
-    mpack_level_t stack_[initial_depth];
-    parser.depth = initial_depth;
-    parser.stack = stack_;
+    mpack_level_t stack_local[MPACK_NODE_STACK_LOCAL_DEPTH]; // no VLAs in VS 2013
+    parser.depth = MPACK_NODE_STACK_LOCAL_DEPTH;
+    parser.stack = stack_local;
     parser.possible_nodes_left = length;
+    #undef MPACK_NODE_STACK_LOCAL_DEPTH
 
     // configure the root node
     --parser.possible_nodes_left;
@@ -703,7 +703,7 @@ static void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length
     } while (parser.level != 0 && mpack_tree_error(parser.tree) == mpack_ok);
 
     #ifdef MPACK_MALLOC
-    if (!parser.stack_allocated)
+    if (parser.stack_owned)
         MPACK_FREE(parser.stack);
     #endif
 

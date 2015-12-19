@@ -1013,35 +1013,36 @@ static void test_expect_key_cstr_basic() {
     mpack_reader_init_data(&reader, test_example, TEST_EXAMPLE_SIZE);
 
     static const char* keys[] = {"schema","compact"};
-    static const size_t key_count = sizeof(keys) / sizeof(keys[0]);
-    bool found[key_count];
+    #define KEY_COUNT (sizeof(keys) / sizeof(keys[0]))
+    bool found[KEY_COUNT];
     memset(found, 0, sizeof(found));
 
     TEST_TRUE(2 == mpack_expect_map(&reader));
-    TEST_TRUE(1 == mpack_expect_key_cstr(&reader, keys, found, key_count));
+    TEST_TRUE(1 == mpack_expect_key_cstr(&reader, keys, found, KEY_COUNT));
     TEST_TRUE(true == mpack_expect_bool(&reader));
-    TEST_TRUE(0 == mpack_expect_key_cstr(&reader, keys, found, key_count));
+    TEST_TRUE(0 == mpack_expect_key_cstr(&reader, keys, found, KEY_COUNT));
     TEST_TRUE(0 == mpack_expect_u8(&reader));
     mpack_done_map(&reader);
 
     TEST_READER_DESTROY_NOERROR(&reader);
     TEST_TRUE(found[0]);
     TEST_TRUE(found[1]);
+    #undef KEY_COUNT
 }
 
 static void test_expect_key_cstr_mixed() {
     mpack_reader_t reader;
     mpack_reader_init_data(&reader, test_example, TEST_EXAMPLE_SIZE);
 
-    static const char* keys[] = {"unknown", "schema", "unknown2"};
-    static const size_t key_count = sizeof(keys) / sizeof(keys[0]);
-    bool found[key_count];
+    static const char* keys[] = { "unknown", "schema", "unknown2" };
+    #define KEY_COUNT (sizeof(keys) / sizeof(keys[0]))
+    bool found[KEY_COUNT];
     memset(found, 0, sizeof(found));
 
     TEST_TRUE(2 == mpack_expect_map(&reader));
-    TEST_TRUE(key_count == mpack_expect_key_cstr(&reader, keys, found, key_count)); // unknown
+    TEST_TRUE(KEY_COUNT == mpack_expect_key_cstr(&reader, keys, found, KEY_COUNT)); // unknown
     mpack_discard(&reader);
-    TEST_TRUE(1 == mpack_expect_key_cstr(&reader, keys, found, key_count));
+    TEST_TRUE(1 == mpack_expect_key_cstr(&reader, keys, found, KEY_COUNT));
     TEST_TRUE(0 == mpack_expect_u8(&reader));
     mpack_done_map(&reader);
 
@@ -1049,6 +1050,7 @@ static void test_expect_key_cstr_mixed() {
     TEST_TRUE(!found[0]);
     TEST_TRUE(found[1]);
     TEST_TRUE(!found[2]);
+    #undef KEY_COUNT
 }
 
 static void test_expect_key_cstr_duplicate() {
@@ -1056,19 +1058,20 @@ static void test_expect_key_cstr_duplicate() {
     mpack_reader_t reader;
     mpack_reader_init_data(&reader, data, sizeof(data)-1);
 
-    static const char* keys[] = {"valid", "dup"};
-    static const size_t key_count = sizeof(keys) / sizeof(keys[0]);
-    bool found[key_count];
+    static const char* keys[] = { "valid", "dup" };
+    #define KEY_COUNT (sizeof(keys) / sizeof(keys[0]))
+    bool found[KEY_COUNT];
     memset(found, 0, sizeof(found));
 
     TEST_TRUE(3 == mpack_expect_map(&reader));
-    TEST_TRUE(1 == mpack_expect_key_cstr(&reader, keys, found, key_count));
+    TEST_TRUE(1 == mpack_expect_key_cstr(&reader, keys, found, KEY_COUNT));
     mpack_expect_nil(&reader);
-    TEST_TRUE(key_count == mpack_expect_key_cstr(&reader, keys, found, key_count)); // duplicate
+    TEST_TRUE(KEY_COUNT == mpack_expect_key_cstr(&reader, keys, found, KEY_COUNT)); // duplicate
     mpack_discard(&reader); // should be no-op due to error
-    TEST_TRUE(key_count == mpack_expect_key_cstr(&reader, keys, found, key_count)); // already in error, not valid
+    TEST_TRUE(KEY_COUNT == mpack_expect_key_cstr(&reader, keys, found, KEY_COUNT)); // already in error, not valid
 
     TEST_READER_DESTROY_ERROR(&reader, mpack_error_invalid);
+    #undef KEY_COUNT
 }
 
 static void test_expect_key_uint() {
@@ -1076,18 +1079,18 @@ static void test_expect_key_uint() {
     mpack_reader_t reader;
     mpack_reader_init_data(&reader, data, sizeof(data)-1);
 
-    static const size_t key_count = 4;
-    bool found[key_count];
+    #define KEY_COUNT 4
+    bool found[KEY_COUNT];
     memset(found, 0, sizeof(found));
 
     TEST_TRUE(5 == mpack_expect_map(&reader));
-    TEST_TRUE(2 == mpack_expect_key_uint(&reader, found, key_count));
+    TEST_TRUE(2 == mpack_expect_key_uint(&reader, found, KEY_COUNT));
     mpack_expect_nil(&reader);
-    TEST_TRUE(0 == mpack_expect_key_uint(&reader, found, key_count));
+    TEST_TRUE(0 == mpack_expect_key_uint(&reader, found, KEY_COUNT));
     mpack_expect_nil(&reader);
-    TEST_TRUE(key_count == mpack_expect_key_uint(&reader, found, key_count)); // key has value "true", unrecognized
+    TEST_TRUE(KEY_COUNT == mpack_expect_key_uint(&reader, found, KEY_COUNT)); // key has value "true", unrecognized
     mpack_discard(&reader);
-    TEST_TRUE(3 == mpack_expect_key_uint(&reader, found, key_count));
+    TEST_TRUE(3 == mpack_expect_key_uint(&reader, found, KEY_COUNT));
     mpack_expect_nil(&reader);
 
     TEST_TRUE(mpack_reader_error(&reader) == mpack_ok);
@@ -1096,8 +1099,9 @@ static void test_expect_key_uint() {
     TEST_TRUE(found[2]);
     TEST_TRUE(found[2]);
 
-    TEST_TRUE(key_count == mpack_expect_key_uint(&reader, found, key_count));
+    TEST_TRUE(KEY_COUNT == mpack_expect_key_uint(&reader, found, KEY_COUNT));
     TEST_READER_DESTROY_ERROR(&reader, mpack_error_invalid);
+    #undef KEY_COUNT
 }
 
 void test_expect() {

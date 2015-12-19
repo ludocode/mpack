@@ -167,7 +167,7 @@ static void test_file_write(void) {
     TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_io);
 }
 
-static bool test_file_write_failure() {
+static bool test_file_write_failure(void) {
 
     // The write failure test may fail with either
     // mpack_error_memory or mpack_error_io. We write a
@@ -372,7 +372,7 @@ static void test_file_read(void) {
     TEST_READER_DESTROY_ERROR(&reader, mpack_error_io);
 }
 
-static bool test_file_expect_failure() {
+static bool test_file_expect_failure(void) {
 
     // The expect failure test may fail with either
     // mpack_error_memory or mpack_error_io.
@@ -549,7 +549,7 @@ static void test_file_node(void) {
     TEST_TREE_DESTROY_ERROR(&tree, mpack_error_io);
 }
 
-static bool test_file_node_failure() {
+static bool test_file_node_failure(void) {
 
     // The node failure test may fail with either
     // mpack_error_memory or mpack_error_io.

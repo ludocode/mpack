@@ -37,6 +37,12 @@
 
 
 
+/* Pre-include checks */
+
+#if defined(_MSC_VER) && _MSC_VER < 1800 && !defined(__cplusplus)
+#error "In Visual Studio 2012 and earlier, MPack must be compiled as C++. Enable the /Tp compiler flag."
+#endif
+
 #if defined(WIN32) && defined(MPACK_INTERNAL) && MPACK_INTERNAL
 #define _CRT_SECURE_NO_WARNINGS 1
 #endif
@@ -239,7 +245,7 @@ MPACK_HEADER_START
  * files have a single non-inline definition emitted in the compilation of
  * mpack-platform.c. All inline declarations and definitions use the same MPACK_INLINE
  * specification to simplify the rules on when standalone functions are emitted.
- * Inline functions in source files are defined "static inline".
+ * Inline functions in source files are defined MPACK_STATIC_INLINE.
  *
  * Additional reading:
  *     http://www.greenend.org.uk/rjk/tech/inline.html
@@ -254,6 +260,13 @@ MPACK_HEADER_START
     // C++ definition will be used, and no other C files will emit
     // a defition.
     #define MPACK_INLINE inline
+
+#elif defined(_MSC_VER)
+    // MSVC 2013 always uses COMDAT linkage, but it doesn't treat
+    // 'inline' as a keyword in C99 mode.
+    #define MPACK_INLINE __inline
+    #define MPACK_STATIC_INLINE static __inline
+
 #elif defined(__GNUC__) && (defined(__GNUC_GNU_INLINE__) || \
         !defined(__GNUC_STDC_INLINE__) && !defined(__GNUC_GNU_INLINE__))
     // GNU rules
@@ -262,6 +275,7 @@ MPACK_HEADER_START
     #else
         #define MPACK_INLINE extern inline
     #endif
+
 #else
     // C99 rules
     #if MPACK_EMIT_INLINE_DEFS
@@ -269,6 +283,10 @@ MPACK_HEADER_START
     #else
         #define MPACK_INLINE inline
     #endif
+#endif
+
+#ifndef MPACK_STATIC_INLINE
+#define MPACK_STATIC_INLINE static inline
 #endif
 
 #ifdef MPACK_OPTIMIZE_FOR_SPEED

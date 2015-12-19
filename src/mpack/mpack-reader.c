@@ -205,7 +205,7 @@ void mpack_reader_flag_error(mpack_reader_t* reader, mpack_error_t error) {
 
 // A helper to call the reader fill function. This makes sure it's
 // implemented and guards against overflow in case it returns -1.
-static inline size_t mpack_fill(mpack_reader_t* reader, char* p, size_t count) {
+MPACK_STATIC_INLINE size_t mpack_fill(mpack_reader_t* reader, char* p, size_t count) {
     mpack_assert(reader->fill != NULL, "mpack_fill() called with no fill function?");
 
     size_t ret = reader->fill(reader, p, count);
@@ -425,7 +425,7 @@ char* mpack_read_bytes_alloc_size(mpack_reader_t* reader, size_t count, size_t a
 
 // Fills the buffer when there is already some data in the buffer. The
 // existing data is moved to the start of the buffer.
-static inline void mpack_partial_fill(mpack_reader_t* reader) {
+MPACK_STATIC_INLINE void mpack_partial_fill(mpack_reader_t* reader) {
     mpack_memmove(reader->buffer, reader->buffer + reader->pos, reader->left);
     reader->pos = 0;
     reader->left += mpack_fill(reader, reader->buffer + reader->left, reader->size - reader->left);
@@ -799,7 +799,7 @@ static size_t mpack_decode_tag(const char* bytes, mpack_tag_t* tag) {
     return 0;
 }
 
-static inline size_t mpack_parse_tag_in_place(mpack_reader_t* reader, mpack_tag_t* tag) {
+MPACK_STATIC_INLINE size_t mpack_parse_tag_in_place(mpack_reader_t* reader, mpack_tag_t* tag) {
     mpack_log("decoding tag in-place, %i left\n", (int)reader->left);
     size_t count = mpack_decode_tag(reader->buffer + reader->pos, tag);
     mpack_log("tag took %i bytes\n", (int)count);

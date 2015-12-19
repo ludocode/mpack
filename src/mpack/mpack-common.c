@@ -364,7 +364,7 @@ static const uint8_t mpack_utf8d[] = {
  * WTF-8. Overlong sequences and UTF-16 surrogates will be rejected. Only
  * pure UTF-8 is accepted.
  */
-static inline uint32_t mpack_utf8_decode(uint32_t* state, uint32_t* codep, uint8_t byte) {
+MPACK_STATIC_INLINE uint32_t mpack_utf8_decode(uint32_t* state, uint32_t* codep, uint8_t byte) {
   uint32_t type = mpack_utf8d[byte];
 
   *codep = (*state != MPACK_UTF8_ACCEPT) ?

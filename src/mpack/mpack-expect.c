@@ -28,7 +28,7 @@
 
 // Helpers
 
-static inline uint8_t mpack_expect_native_u8(mpack_reader_t* reader) {
+MPACK_STATIC_INLINE uint8_t mpack_expect_native_u8(mpack_reader_t* reader) {
     if (reader->left >= 1) {
         uint8_t val = mpack_load_native_u8(reader->buffer + reader->pos);
         ++reader->pos;

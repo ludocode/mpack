@@ -648,7 +648,7 @@ static void test_write_small_structure_trees() {
 
 }
 
-static bool test_write_deep_growth() {
+static bool test_write_deep_growth(void) {
 
     // test a growable writer with a very deep stack and lots
     // of data to see if both the growable buffer and the tracking
