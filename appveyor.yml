@@ -1,0 +1,16 @@
+version: 0.0.{build}
+
+configuration:
+  - Debug
+  - Release
+
+platform:
+  - Win32
+  - x64
+
+build:
+  project: projects\vs\mpack.sln
+  parallel: true
+
+test_script:
+- cd projects\vs && %PLATFORM%\%CONFIGURATION%\mpack.exe
