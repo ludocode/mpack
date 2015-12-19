@@ -16,9 +16,19 @@ The MPack code is small enough to be embedded directly into your codebase. The e
 
 MPack is beta software under development.
 
-| [Travis-CI](https://travis-ci.org/) | [AppVeyor](https://ci.appveyor.com/) | [Coveralls.io](https://coveralls.io/) |
+[travis-home]: https://travis-ci.org/
+[travis-badge]: https://travis-ci.org/ludocode/mpack.svg?branch=develop
+[travis-mpack]: https://travis-ci.org/ludocode/mpack/branches
+[appveyor-home]: https://ci.appveyor.com/
+[appveyor-badge]: https://ci.appveyor.com/api/projects/status/tux06aefpqq83k30/branch/develop?svg=true
+[appveyor-mpack]: https://ci.appveyor.com/project/ludocode/mpack/branch/develop
+[coveralls-home]: https://coveralls.io/
+[coveralls-badge]: https://coveralls.io/repos/ludocode/mpack/badge.svg?branch=develop&service=github
+[coveralls-mpack]: https://coveralls.io/github/ludocode/mpack?branch=develop
+
+| [Travis-CI][travis-home] | [AppVeyor][appveyor-home] | [Coveralls.io][coveralls-home] |
 | :-------: | :----------: | :----------: |
-| [![Build Status](https://travis-ci.org/ludocode/mpack.svg?branch=develop)](https://travis-ci.org/ludocode/mpack/branches) | [![Build status](https://ci.appveyor.com/api/projects/status/tux06aefpqq83k30/branch/develop?svg=true)](https://ci.appveyor.com/project/ludocode/mpack/branch/develop) | [![Coverage Status](https://coveralls.io/repos/ludocode/mpack/badge.svg?branch=develop&service=github)](https://coveralls.io/github/ludocode/mpack?branch=develop) |
+| [![Build Status][travis-badge]][travis-mpack] | [![Build status][appveyor-badge]][appveyor-mpack] | [![Coverage Status][coveralls-badge]][coveralls-mpack] |
 
 ## The Node Reader API
 
@@ -83,7 +93,11 @@ Note in particular that in debug mode, the `mpack_finish_map()` call above ensur
 
 MPack is rich in features while maintaining very high performance and a small code footprint. Here's a short feature table comparing it to other C parsers:
 
-| | [MPack](https://github.com/ludocode/mpack)<br>(v0.8) | [msgpack-c](https://github.com/msgpack/msgpack-c)<br>(v1.3.0) | [CMP](https://github.com/camgunz/cmp)<br>(v14) |
+[mpack]: https://github.com/ludocode/mpack
+[msgpack-c]: https://github.com/msgpack/msgpack-c
+[cmp]: https://github.com/camgunz/cmp
+
+|    | [MPack][mpack]<br>(v0.8) | [msgpack-c][msgpack-c]<br>(v1.3.0) | [CMP][cmp]<br>(v14) |
 |:------------------------------------|:---:|:---:|:---:|
 | No libc requirement                 | ✓   |     | ✓   |
 | Growable memory writer              | ✓   | ✓   |     |

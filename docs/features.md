@@ -7,7 +7,11 @@ Feedback is welcome! Please let me know if any entries in the table are incorrec
 
 ## Feature Matrix
 
-| | [MPack](https://github.com/ludocode/mpack) (v0.8) | [msgpack-c](https://github.com/msgpack/msgpack-c) (v1.3.0) | [CMP](https://github.com/camgunz/cmp) (v14) |
+[mpack]: https://github.com/ludocode/mpack
+[msgpack-c]: https://github.com/msgpack/msgpack-c
+[cmp]: https://github.com/camgunz/cmp
+
+|    | [MPack][mpack]<br>(v0.8) | [msgpack-c][msgpack-c]<br>(v1.3.0) | [CMP][cmp]<br>(v14) |
 |:------------------------------------|:---:|:---:|:---:|
 | No libc requirement                 | ✓   |     | ✓   |
 | No allocator requirement            | ✓   |     | ✓   |
