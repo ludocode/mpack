@@ -117,6 +117,9 @@ typedef void (*mpack_reader_error_t)(mpack_reader_t* reader, mpack_error_t error
  */
 typedef void (*mpack_reader_teardown_t)(mpack_reader_t* reader);
 
+/* Hide internals from documentation */
+/** @cond */
+
 struct mpack_reader_t {
     void* context;                    /* Context for reader callbacks */
     mpack_reader_fill_t fill;         /* Function to read bytes into the buffer */
@@ -139,6 +142,8 @@ struct mpack_reader_t {
     mpack_track_t track; /* Stack of map/array/str/bin/ext reads */
     #endif
 };
+
+/** @endcond */
 
 /**
  * Initializes an MPack reader with the given buffer. The reader does

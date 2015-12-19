@@ -97,6 +97,9 @@ typedef void (*mpack_writer_error_t)(mpack_writer_t* writer, mpack_error_t error
  */
 typedef void (*mpack_writer_teardown_t)(mpack_writer_t* writer);
 
+/* Hide internals from documentation */
+/** @cond */
+
 struct mpack_writer_t {
     mpack_writer_flush_t flush;       /* Function to write bytes to the output stream */
     mpack_writer_error_t error_fn;    /* Function to call on error */
@@ -113,7 +116,6 @@ struct mpack_writer_t {
     #endif
 };
 
-/** @cond */
 #if MPACK_WRITE_TRACKING
 void mpack_writer_track_push(mpack_writer_t* writer, mpack_type_t type, uint64_t count);
 void mpack_writer_track_pop(mpack_writer_t* writer, mpack_type_t type);
@@ -137,6 +139,7 @@ MPACK_INLINE void mpack_writer_track_bytes(mpack_writer_t* writer, size_t count)
     MPACK_UNUSED(count);
 }
 #endif
+
 /** @endcond */
 
 /**

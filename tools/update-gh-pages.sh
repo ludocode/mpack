@@ -9,6 +9,7 @@ cp -ar docs/html docs-html
 git checkout gh-pages || exit $?
 git pull
 
+rm -r *.{html,png,js,css} search
 cp -r docs-html/* .
 rm -r docs-html
 

@@ -9,7 +9,7 @@ cat README.md | \
 
 # Generate docs with edited README.md and correct version number
 (
-    cat Doxyfile | sed -e "s/README\.md/README.temp.md/"
+    cat docs/doxyfile | sed -e "s/README\.md/README.temp.md/"
     echo "PROJECT_NUMBER = $VERSION"
     echo "USE_MDFILE_AS_MAINPAGE = README.temp.md"
     echo
