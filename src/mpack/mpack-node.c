@@ -88,7 +88,7 @@ MPACK_STATIC_INLINE uint8_t mpack_tree_u8(mpack_tree_parser_t* parser) {
         mpack_tree_flag_error(parser->tree, mpack_error_invalid);
         return 0;
     }
-    uint8_t val = mpack_load_native_u8(parser->data);
+    uint8_t val = mpack_load_u8(parser->data);
     parser->data += sizeof(uint8_t);
     parser->possible_nodes_left -= sizeof(uint8_t);
     return val;
@@ -99,7 +99,7 @@ MPACK_STATIC_INLINE uint16_t mpack_tree_u16(mpack_tree_parser_t* parser) {
         mpack_tree_flag_error(parser->tree, mpack_error_invalid);
         return 0;
     }
-    uint16_t val = mpack_load_native_u16(parser->data);
+    uint16_t val = mpack_load_u16(parser->data);
     parser->data += sizeof(uint16_t);
     parser->possible_nodes_left -= sizeof(uint16_t);
     return val;
@@ -110,7 +110,7 @@ MPACK_STATIC_INLINE uint32_t mpack_tree_u32(mpack_tree_parser_t* parser) {
         mpack_tree_flag_error(parser->tree, mpack_error_invalid);
         return 0;
     }
-    uint32_t val = mpack_load_native_u32(parser->data);
+    uint32_t val = mpack_load_u32(parser->data);
     parser->data += sizeof(uint32_t);
     parser->possible_nodes_left -= sizeof(uint32_t);
     return val;
@@ -121,7 +121,7 @@ MPACK_STATIC_INLINE uint64_t mpack_tree_u64(mpack_tree_parser_t* parser) {
         mpack_tree_flag_error(parser->tree, mpack_error_invalid);
         return 0;
     }
-    uint64_t val = mpack_load_native_u64(parser->data);
+    uint64_t val = mpack_load_u64(parser->data);
     parser->data += sizeof(uint64_t);
     parser->possible_nodes_left -= sizeof(uint64_t);
     return val;
@@ -309,7 +309,7 @@ static void mpack_tree_parse_node(mpack_tree_parser_t* parser, mpack_node_data_t
     // read the type. we've already accounted for this byte in
     // possible_nodes_left, so we know it is in bounds and don't
     // need to subtract it.
-    uint8_t type = mpack_load_native_u8(parser->data);
+    uint8_t type = mpack_load_u8(parser->data);
     parser->data += sizeof(uint8_t);
 
     // as with mpack_read_tag(), the fastest way to parse a node is to switch

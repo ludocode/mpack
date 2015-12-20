@@ -459,7 +459,6 @@ static const char* mpack_read_bytes_inplace_big(mpack_reader_t* reader, size_t c
     // re-fill as much as possible
     mpack_partial_fill(reader);
 
-    // shift the remaining data back to the start and fill the buffer back up
     if (reader->left < count) {
         mpack_reader_flag_error(reader, mpack_error_io);
         return NULL;
@@ -488,7 +487,7 @@ const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count) {
 // Decodes a tag from a byte buffer. The size of the bytes buffer
 // must be at least MPACK_MINIMUM_TAG_SIZE.
 static size_t mpack_decode_tag(const char* bytes, mpack_tag_t* tag) {
-    uint8_t type = mpack_load_native_u8(bytes++);
+    uint8_t type = mpack_load_u8(bytes++);
 
     // unfortunately, by far the fastest way to parse a tag is to switch
     // on the first byte, and to explicitly list every possible byte. so for
@@ -610,177 +609,177 @@ static size_t mpack_decode_tag(const char* bytes, mpack_tag_t* tag) {
         // bin8
         case 0xc4:
             tag->type = mpack_type_bin;
-            tag->v.l = mpack_load_native_u8(bytes);
+            tag->v.l = mpack_load_u8(bytes);
             return 2;
 
         // bin16
         case 0xc5:
             tag->type = mpack_type_bin;
-            tag->v.l = mpack_load_native_u16(bytes);
+            tag->v.l = mpack_load_u16(bytes);
             return 3;
 
         // bin32
         case 0xc6:
             tag->type = mpack_type_bin;
-            tag->v.l = mpack_load_native_u32(bytes);
+            tag->v.l = mpack_load_u32(bytes);
             return 5;
 
         // ext8
         case 0xc7:
             tag->type = mpack_type_ext;
-            tag->v.l = mpack_load_native_u8(bytes);
-            tag->exttype = mpack_load_native_i8(bytes + 1);
+            tag->v.l = mpack_load_u8(bytes);
+            tag->exttype = mpack_load_i8(bytes + 1);
             return 3;
 
         // ext16
         case 0xc8:
             tag->type = mpack_type_ext;
-            tag->v.l = mpack_load_native_u16(bytes);
-            tag->exttype = mpack_load_native_i8(bytes + 2);
+            tag->v.l = mpack_load_u16(bytes);
+            tag->exttype = mpack_load_i8(bytes + 2);
             return 4;
 
         // ext32
         case 0xc9:
             tag->type = mpack_type_ext;
-            tag->v.l = mpack_load_native_u32(bytes);
-            tag->exttype = mpack_load_native_i8(bytes + 4);
+            tag->v.l = mpack_load_u32(bytes);
+            tag->exttype = mpack_load_i8(bytes + 4);
             return 6;
 
         // float
         case 0xca:
             tag->type = mpack_type_float;
-            tag->v.f = mpack_load_native_float(bytes);
+            tag->v.f = mpack_load_float(bytes);
             return 5;
 
         // double
         case 0xcb:
             tag->type = mpack_type_double;
-            tag->v.d = mpack_load_native_double(bytes);
+            tag->v.d = mpack_load_double(bytes);
             return 9;
 
         // uint8
         case 0xcc:
             tag->type = mpack_type_uint;
-            tag->v.u = mpack_load_native_u8(bytes);
+            tag->v.u = mpack_load_u8(bytes);
             return 2;
 
         // uint16
         case 0xcd:
             tag->type = mpack_type_uint;
-            tag->v.u = mpack_load_native_u16(bytes);
+            tag->v.u = mpack_load_u16(bytes);
             return 3;
 
         // uint32
         case 0xce:
             tag->type = mpack_type_uint;
-            tag->v.u = mpack_load_native_u32(bytes);
+            tag->v.u = mpack_load_u32(bytes);
             return 5;
 
         // uint64
         case 0xcf:
             tag->type = mpack_type_uint;
-            tag->v.u = mpack_load_native_u64(bytes);
+            tag->v.u = mpack_load_u64(bytes);
             return 9;
 
         // int8
         case 0xd0:
             tag->type = mpack_type_int;
-            tag->v.i = mpack_load_native_i8(bytes);
+            tag->v.i = mpack_load_i8(bytes);
             return 2;
 
         // int16
         case 0xd1:
             tag->type = mpack_type_int;
-            tag->v.i = mpack_load_native_i16(bytes);
+            tag->v.i = mpack_load_i16(bytes);
             return 3;
 
         // int32
         case 0xd2:
             tag->type = mpack_type_int;
-            tag->v.i = mpack_load_native_i32(bytes);
+            tag->v.i = mpack_load_i32(bytes);
             return 5;
 
         // int64
         case 0xd3:
             tag->type = mpack_type_int;
-            tag->v.i = mpack_load_native_i64(bytes);
+            tag->v.i = mpack_load_i64(bytes);
             return 9;
 
         // fixext1
         case 0xd4:
             tag->type = mpack_type_ext;
             tag->v.l = 1;
-            tag->exttype = mpack_load_native_i8(bytes);
+            tag->exttype = mpack_load_i8(bytes);
             return 2;
 
         // fixext2
         case 0xd5:
             tag->type = mpack_type_ext;
             tag->v.l = 2;
-            tag->exttype = mpack_load_native_i8(bytes);
+            tag->exttype = mpack_load_i8(bytes);
             return 2;
 
         // fixext4
         case 0xd6:
             tag->type = mpack_type_ext;
             tag->v.l = 4;
-            tag->exttype = mpack_load_native_i8(bytes);
+            tag->exttype = mpack_load_i8(bytes);
             return 2;
 
         // fixext8
         case 0xd7:
             tag->type = mpack_type_ext;
             tag->v.l = 8;
-            tag->exttype = mpack_load_native_i8(bytes);
+            tag->exttype = mpack_load_i8(bytes);
             return 2;
 
         // fixext16
         case 0xd8:
             tag->type = mpack_type_ext;
             tag->v.l = 16;
-            tag->exttype = mpack_load_native_i8(bytes);
+            tag->exttype = mpack_load_i8(bytes);
             return 2;
 
         // str8
         case 0xd9:
             tag->type = mpack_type_str;
-            tag->v.l = mpack_load_native_u8(bytes);
+            tag->v.l = mpack_load_u8(bytes);
             return 2;
 
         // str16
         case 0xda:
             tag->type = mpack_type_str;
-            tag->v.l = mpack_load_native_u16(bytes);
+            tag->v.l = mpack_load_u16(bytes);
             return 3;
 
         // str32
         case 0xdb:
             tag->type = mpack_type_str;
-            tag->v.l = mpack_load_native_u32(bytes);
+            tag->v.l = mpack_load_u32(bytes);
             return 5;
 
         // array16
         case 0xdc:
             tag->type = mpack_type_array;
-            tag->v.n = mpack_load_native_u16(bytes);
+            tag->v.n = mpack_load_u16(bytes);
             return 3;
 
         // array32
         case 0xdd:
             tag->type = mpack_type_array;
-            tag->v.n = mpack_load_native_u32(bytes);
+            tag->v.n = mpack_load_u32(bytes);
             return 5;
 
         // map16
         case 0xde:
             tag->type = mpack_type_map;
-            tag->v.n = mpack_load_native_u16(bytes);
+            tag->v.n = mpack_load_u16(bytes);
             return 3;
 
         // map32
         case 0xdf:
             tag->type = mpack_type_map;
-            tag->v.n = mpack_load_native_u32(bytes);
+            tag->v.n = mpack_load_u32(bytes);
             return 5;
 
         // reserved

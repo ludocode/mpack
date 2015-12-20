@@ -30,14 +30,14 @@
 
 MPACK_STATIC_INLINE uint8_t mpack_expect_native_u8(mpack_reader_t* reader) {
     if (reader->left >= 1) {
-        uint8_t val = mpack_load_native_u8(reader->buffer + reader->pos);
+        uint8_t val = mpack_load_u8(reader->buffer + reader->pos);
         ++reader->pos;
         --reader->left;
         return val;
     }
     char c[1];
     mpack_read_native_big(reader, c, sizeof(c));
-    return mpack_load_native_u8(c);
+    return mpack_load_u8(c);
 }
 
 
