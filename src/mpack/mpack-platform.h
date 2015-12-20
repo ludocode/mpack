@@ -300,9 +300,19 @@ MPACK_HEADER_START
 #if defined(__GNUC__) || defined(__clang__)
     #define MPACK_UNREACHABLE __builtin_unreachable()
     #define MPACK_NORETURN(fn) fn __attribute__((noreturn))
+    #define MPACK_RESTRICT __restrict__
 #elif defined(_MSC_VER)
     #define MPACK_UNREACHABLE __assume(0)
     #define MPACK_NORETURN(fn) __declspec(noreturn) fn
+    #define MPACK_RESTRICT __restrict
+#endif
+
+#ifndef MPACK_RESTRICT
+#ifdef __cplusplus
+#define MPACK_RESTRICT /* nothing, unavailable in C++ */
+#else
+#define MPACK_RESTRICT restrict /* required in C99 */
+#endif
 #endif
 
 #ifndef MPACK_UNREACHABLE
@@ -564,7 +574,7 @@ MPACK_HEADER_START
 int mpack_memcmp(const void* s1, const void* s2, size_t n);
 #endif
 #ifndef mpack_memcpy
-void* mpack_memcpy(void* s1, const void* s2, size_t n);
+void* mpack_memcpy(void* MPACK_RESTRICT s1, const void* MPACK_RESTRICT s2, size_t n);
 #endif
 #ifndef mpack_memmove
 void* mpack_memmove(void* s1, const void* s2, size_t n);

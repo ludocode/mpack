@@ -140,11 +140,11 @@ int mpack_memcmp(const void* s1, const void* s2, size_t n) {
 #endif
 
 #ifndef mpack_memcpy
-void* mpack_memcpy(void* s1, const void* s2, size_t n) {
-    char * __restrict dst = (char *)s1;
-    const char * __restrict src = (const char *)s2;
+void* mpack_memcpy(void* MPACK_RESTRICT s1, const void* MPACK_RESTRICT s2, size_t n) {
+    char* MPACK_RESTRICT dst = (char *)s1;
+    const char* MPACK_RESTRICT src = (const char *)s2;
     while (n-- != 0)
-        *dst++ = *src++;
+        *s1++ = *s2++;
     return s1;
 }
 #endif
