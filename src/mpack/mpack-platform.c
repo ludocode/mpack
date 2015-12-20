@@ -122,28 +122,35 @@ void mpack_break_hit(const char* message) {
 
 
 
-#if !MPACK_STDLIB
-
 // The below are adapted from the C wikibook:
 //     https://en.wikibooks.org/wiki/C_Programming/Strings
 
-void* mpack_memset(void *s, int c, size_t n) {
-    unsigned char *us = (unsigned char *)s;
-    unsigned char uc = (unsigned char)c;
-    while (n-- != 0)
-        *us++ = uc;
-    return s;
+#ifndef mpack_memcmp
+int mpack_memcmp(const void* s1, const void* s2, size_t n) {
+     const unsigned char *us1 = (const unsigned char *) s1;
+     const unsigned char *us2 = (const unsigned char *) s2;
+     while (n-- != 0) {
+         if (*us1 != *us2)
+             return (*us1 < *us2) ? -1 : +1;
+         us1++;
+         us2++;
+     }
+     return 0;
 }
+#endif
 
-void* mpack_memcpy(void *s1, const void *s2, size_t n) {
+#ifndef mpack_memcpy
+void* mpack_memcpy(void* s1, const void* s2, size_t n) {
     char * __restrict dst = (char *)s1;
     const char * __restrict src = (const char *)s2;
     while (n-- != 0)
         *dst++ = *src++;
     return s1;
 }
+#endif
 
-void* mpack_memmove(void *s1, const void *s2, size_t n) {
+#ifndef mpack_memmove
+void* mpack_memmove(void* s1, const void* s2, size_t n) {
     char *p1 = (char *)s1;
     const char *p2 = (const char *)s2;
     if (p2 < p1 && p1 < p2 + n) {
@@ -156,26 +163,25 @@ void* mpack_memmove(void *s1, const void *s2, size_t n) {
             *p1++ = *p2++;
     return s1;
 }
+#endif
 
-int mpack_memcmp(const void* s1, const void* s2, size_t n) {
-     const unsigned char *us1 = (const unsigned char *) s1;
-     const unsigned char *us2 = (const unsigned char *) s2;
-     while (n-- != 0) {
-         if (*us1 != *us2)
-             return (*us1 < *us2) ? -1 : +1;
-         us1++;
-         us2++;
-     }
-     return 0;
+#ifndef mpack_memset
+void* mpack_memset(void* s, int c, size_t n) {
+    unsigned char *us = (unsigned char *)s;
+    unsigned char uc = (unsigned char)c;
+    while (n-- != 0)
+        *us++ = uc;
+    return s;
 }
+#endif
 
-size_t mpack_strlen(const char *s) {
-    const char *p = s;
+#ifndef mpack_strlen
+size_t mpack_strlen(const char* s) {
+    const char* p = s;
     while (*p != '\0')
         p++;
     return (size_t)(p - s);
 }
-
 #endif
 
 

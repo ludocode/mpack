@@ -172,7 +172,7 @@ static void mpack_tree_push_stack(mpack_tree_parser_t* parser, mpack_node_data_t
                 parser->level = 0;
                 return;
             }
-            memcpy(new_stack, parser->stack, sizeof(mpack_level_t) * parser->depth);
+            mpack_memcpy(new_stack, parser->stack, sizeof(mpack_level_t) * parser->depth);
             parser->stack = new_stack;
             parser->stack_owned = true;
 

@@ -517,18 +517,63 @@ MPACK_HEADER_START
 
 
 /* Wrap some needed libc functions */
+
 #if MPACK_STDLIB
-    #define mpack_memset memset
+    #define mpack_memcmp memcmp
     #define mpack_memcpy memcpy
     #define mpack_memmove memmove
-    #define mpack_memcmp memcmp
+    #define mpack_memset memset
     #define mpack_strlen strlen
-#else
-    void* mpack_memset(void *s, int c, size_t n);
-    void* mpack_memcpy(void *s1, const void *s2, size_t n);
-    void* mpack_memmove(void *s1, const void *s2, size_t n);
-    int mpack_memcmp(const void* s1, const void* s2, size_t n);
-    size_t mpack_strlen(const char *s);
+
+    #if defined(MPACK_UNIT_TESTS) && MPACK_INTERNAL && defined(__GNUC__)
+        // make sure we don't use the stdlib directly during development
+        #pragma GCC poison memcmp
+        #pragma GCC poison memcpy
+        #pragma GCC poison memmove
+        #pragma GCC poison memset
+        #pragma GCC poison strlen
+    #endif
+
+#elif defined(__GNUC__)
+    // there's not always a builtin memmove for GCC,
+    // and we don't have a way to test for it
+    #define mpack_memcmp __builtin_memcmp
+    #define mpack_memcpy __builtin_memcpy
+    #define mpack_memset __builtin_memset
+    #define mpack_strlen __builtin_strlen
+
+#elif defined(__clang__) && defined(__has_builtin)
+    #if __has_builtin(__builtin_memcmp)
+    #define mpack_memcmp __builtin_memcmp
+    #endif
+    #if __has_builtin(__builtin_memcpy)
+    #define mpack_memcpy __builtin_memcpy
+    #endif
+    #if __has_builtin(__builtin_memmove)
+    #define mpack_memmove __builtin_memmove
+    #endif
+    #if __has_builtin(__builtin_memset)
+    #define mpack_memset __builtin_memset
+    #endif
+    #if __has_builtin(__builtin_strlen)
+    #define mpack_strlen __builtin_strlen
+    #endif
+#endif
+
+#ifndef mpack_memcmp
+int mpack_memcmp(const void* s1, const void* s2, size_t n);
+#endif
+#ifndef mpack_memcpy
+void* mpack_memcpy(void* s1, const void* s2, size_t n);
+#endif
+#ifndef mpack_memmove
+void* mpack_memmove(void* s1, const void* s2, size_t n);
+#endif
+#ifndef mpack_memset
+void* mpack_memset(void* s, int c, size_t n);
+#endif
+#ifndef mpack_strlen
+size_t mpack_strlen(const char* s);
 #endif
 
 

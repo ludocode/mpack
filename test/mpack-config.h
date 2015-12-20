@@ -4,6 +4,8 @@
 
 // This is the configuration for the MPack test harness.
 
+#define MPACK_UNIT_TESTS 1
+
 #if defined(DEBUG) || defined(_DEBUG)
 #define MPACK_DEBUG 1
 #endif
