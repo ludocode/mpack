@@ -557,13 +557,11 @@ static char* mpack_expect_cstr_alloc_unchecked(mpack_reader_t* reader, size_t ma
         maxsize = UINT32_MAX;
 
     size_t length = mpack_expect_str_max(reader, (uint32_t)maxsize - 1);
-    char* str = mpack_read_bytes_alloc_size(reader, length, length + 1);
+    char* str = mpack_read_bytes_alloc_impl(reader, length, true);
     mpack_done_str(reader);
 
-    if (str) {
-        str[length] = 0;
+    if (str)
         *out_length = length;
-    }
     return str;
 }
 

@@ -391,18 +391,19 @@ static void mpack_read_native_noerrorfn(mpack_reader_t* reader, char* p, size_t 
     reader->error_fn = error_fn;
 }
 
-char* mpack_read_bytes_alloc_size(mpack_reader_t* reader, size_t count, size_t alloc_size) {
-    mpack_assert(count <= alloc_size, "count %i is less than alloc_size %i", (int)count, (int)alloc_size);
-    if (alloc_size == 0)
-        return NULL;
+char* mpack_read_bytes_alloc_impl(mpack_reader_t* reader, size_t count, bool null_terminated) {
 
     // track the bytes first in case it jumps
     mpack_reader_track_bytes(reader, count);
     if (mpack_reader_error(reader) != mpack_ok)
         return NULL;
 
+    // cannot allocate zero bytes. this is not an error.
+    if (count == 0 && null_terminated == false)
+        return NULL;
+
     // allocate data
-    char* data = (char*)MPACK_MALLOC(alloc_size);
+    char* data = (char*)MPACK_MALLOC(count + (null_terminated ? 1 : 0)); // TODO: can this overflow?
     if (data == NULL) {
         mpack_reader_flag_error(reader, mpack_error_memory);
         return NULL;
@@ -419,6 +420,8 @@ char* mpack_read_bytes_alloc_size(mpack_reader_t* reader, size_t count, size_t a
         return NULL;
     }
 
+    if (null_terminated)
+        data[count] = '\0';
     return data;
 }
 #endif

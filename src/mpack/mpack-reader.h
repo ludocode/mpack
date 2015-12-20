@@ -406,7 +406,10 @@ void mpack_read_bytes(mpack_reader_t* reader, char* p, size_t count);
 
 #ifdef MPACK_MALLOC
 /** @cond */
-char* mpack_read_bytes_alloc_size(mpack_reader_t* reader, size_t count, size_t alloc_size);
+// This can optionally add a null-terminator, but it does not check
+// whether the data contains null bytes. This must be done separately
+// in a cstring read function (possibly as part of a UTF-8 check.)
+char* mpack_read_bytes_alloc_impl(mpack_reader_t* reader, size_t count, bool null_terminated);
 /** @endcond */
 
 /**
@@ -419,7 +422,7 @@ char* mpack_read_bytes_alloc_size(mpack_reader_t* reader, size_t count, size_t a
  * Returns NULL if any error occurs, or if count is zero.
  */
 MPACK_INLINE char* mpack_read_bytes_alloc(mpack_reader_t* reader, size_t count) {
-    return mpack_read_bytes_alloc_size(reader, count, count);
+    return mpack_read_bytes_alloc_impl(reader, count, false);
 }
 #endif
 
