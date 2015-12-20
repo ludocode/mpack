@@ -29,15 +29,40 @@
 // Helpers
 
 MPACK_STATIC_INLINE uint8_t mpack_expect_native_u8(mpack_reader_t* reader) {
-    if (reader->left >= 1) {
-        uint8_t val = mpack_load_u8(reader->buffer + reader->pos);
-        ++reader->pos;
-        --reader->left;
-        return val;
-    }
-    char c[1];
-    mpack_read_native_big(reader, c, sizeof(c));
-    return mpack_load_u8(c);
+    uint8_t type;
+    if (!mpack_reader_ensure(reader, sizeof(type)))
+        return 0;
+    type = mpack_load_u8(reader->buffer + reader->pos);
+    reader->pos += sizeof(type);
+    reader->left -= sizeof(type);
+    return type;
+}
+
+#if !MPACK_OPTIMIZE_FOR_SIZE
+MPACK_STATIC_INLINE uint16_t mpack_expect_native_u16(mpack_reader_t* reader) {
+    uint16_t type;
+    if (!mpack_reader_ensure(reader, sizeof(type)))
+        return 0;
+    type = mpack_load_u16(reader->buffer + reader->pos);
+    reader->pos += sizeof(type);
+    reader->left -= sizeof(type);
+    return type;
+}
+
+MPACK_STATIC_INLINE uint32_t mpack_expect_native_u32(mpack_reader_t* reader) {
+    uint32_t type;
+    if (!mpack_reader_ensure(reader, sizeof(type)))
+        return 0;
+    type = mpack_load_u32(reader->buffer + reader->pos);
+    reader->pos += sizeof(type);
+    reader->left -= sizeof(type);
+    return type;
+}
+#endif
+
+MPACK_STATIC_INLINE uint8_t mpack_expect_type_byte(mpack_reader_t* reader) {
+    mpack_reader_track_element(reader);
+    return mpack_expect_native_u8(reader);
 }
 
 
@@ -251,19 +276,12 @@ void mpack_expect_int_match(mpack_reader_t* reader, int64_t value) {
 // Other Basic Types
 
 void mpack_expect_nil(mpack_reader_t* reader) {
-    mpack_reader_track_element(reader);
-    uint8_t type = mpack_expect_native_u8(reader);
-    if (reader->error != mpack_ok)
-        return;
-    if (type != 0xc0)
+    if (mpack_expect_type_byte(reader) != 0xc0)
         mpack_reader_flag_error(reader, mpack_error_type);
 }
 
 bool mpack_expect_bool(mpack_reader_t* reader) {
-    mpack_reader_track_element(reader);
-    uint8_t type = mpack_expect_native_u8(reader);
-    if (reader->error != mpack_ok)
-        return false;
+    uint8_t type = mpack_expect_type_byte(reader);
     if ((type & ~1) != 0xc2)
         mpack_reader_flag_error(reader, mpack_error_type);
     return (bool)(type & 1);
@@ -405,11 +423,38 @@ void* mpack_expect_array_alloc_impl(mpack_reader_t* reader, size_t element_size,
 // Str, Bin and Ext Functions
 
 uint32_t mpack_expect_str(mpack_reader_t* reader) {
+    #if MPACK_OPTIMIZE_FOR_SIZE
     mpack_tag_t var = mpack_read_tag(reader);
     if (var.type == mpack_type_str)
         return var.v.l;
     mpack_reader_flag_error(reader, mpack_error_type);
     return 0;
+    #else
+
+    // mpack_expect_str() is likely to be used much more often than the
+    // other expect functions so we implement it separately first.
+
+    uint8_t type = mpack_expect_type_byte(reader);
+    uint32_t count;
+
+    if ((type >> 5) == 5) {
+        count = type & (uint8_t)~0xe0;
+    } else if (type == 0xd9) {
+        count = mpack_expect_native_u8(reader);
+    } else if (type == 0xda) {
+        count = mpack_expect_native_u16(reader);
+    } else if (type == 0xdb) {
+        count = mpack_expect_native_u32(reader);
+    } else {
+        mpack_reader_flag_error(reader, mpack_error_type);
+        return 0;
+    }
+
+    #if MPACK_READ_TRACKING
+    mpack_reader_flag_if_error(reader, mpack_track_push(&reader->track, mpack_type_str, count));
+    #endif
+    return count;
+    #endif
 }
 
 size_t mpack_expect_str_buf(mpack_reader_t* reader, char* buf, size_t bufsize) {
