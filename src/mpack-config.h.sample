@@ -73,6 +73,16 @@
  * The default is malloc() if MPACK_STDLIB is enabled.
  */
 /**
+ * \def MPACK_FREE
+ *
+ * Defines the memory free function used by mpack. This is used by helpers
+ * for automatically allocating data the correct size. If this macro is
+ * undefined, the allocation helpers will not be compiled.
+ *
+ * The default is free() if MPACK_MALLOC has not been customized and
+ * MPACK_STDLIB is enabled.
+ */
+/**
  * \def MPACK_REALLOC
  *
  * Defines the realloc function used by mpack. It is used by growable
@@ -88,18 +98,6 @@
 #if defined(MPACK_STDLIB) && !defined(MPACK_MALLOC)
 #define MPACK_MALLOC malloc
 #define MPACK_REALLOC realloc
-#endif
-
-/**
- * \def MPACK_FREE
- *
- * Defines the memory free function used by mpack. This is used by helpers
- * for automatically allocating data the correct size. If this macro is
- * undefined, the allocation helpers will not be compiled.
- *
- * The default is free() if MPACK_STDLIB is enabled.
- */
-#if defined(MPACK_STDLIB) && !defined(MPACK_FREE)
 #define MPACK_FREE free
 #endif
 
