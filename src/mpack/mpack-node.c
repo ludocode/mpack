@@ -639,6 +639,35 @@ static void mpack_tree_parse_node(mpack_tree_parser_t* parser, mpack_node_data_t
 
 }
 
+static void mpack_tree_parse_elements(mpack_tree_parser_t* parser) {
+    mpack_log("parsing tree elements\n");
+
+    // we loop parsing nodes until the parse stack is empty. we break
+    // by returning out of the function.
+    while (true) {
+        mpack_node_data_t* node = parser->stack[parser->level].child;
+        --parser->stack[parser->level].left;
+        ++parser->stack[parser->level].child;
+
+        mpack_tree_parse_node(parser, node);
+
+        if (mpack_tree_error(parser->tree) != mpack_ok)
+            break;
+
+        // pop empty stack levels, exiting the outer loop when the stack is empty.
+        // (we could tail-optimize containers by pre-emptively popping empty
+        // stack levels before reading the new element, this way we wouldn't
+        // have to loop. but i eventually want to use the parse stack to give
+        // better error messages that contain the location of the error, so
+        // it needs to be complete.)
+        while (parser->stack[parser->level].left == 0) {
+            if (parser->level == 0)
+                return;
+            --parser->level;
+        }
+    }
+}
+
 static void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length,
         mpack_node_data_t* initial_nodes, size_t initial_nodes_count)
 {
@@ -689,18 +718,7 @@ static void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length
     parser.stack[0].child = tree->root;
     parser.stack[0].left = 1;
 
-    do {
-        mpack_node_data_t* node = parser.stack[parser.level].child;
-        --parser.stack[parser.level].left;
-        ++parser.stack[parser.level].child;
-
-        // Read the node contents
-        mpack_tree_parse_node(&parser, node);
-
-        // Pop any empty compound types from the stack
-        while (parser.level != 0 && parser.stack[parser.level].left == 0)
-            --parser.level;
-    } while (parser.level != 0 && mpack_tree_error(parser.tree) == mpack_ok);
+    mpack_tree_parse_elements(&parser);
 
     #ifdef MPACK_MALLOC
     if (parser.stack_owned)
