@@ -101,7 +101,7 @@ typedef void (*mpack_reader_skip_t)(mpack_reader_t* reader, size_t count);
  * Bear in mind when using longjmp that local non-volatile variables that
  * have changed are undefined when setjmp() returns, so you can't put the
  * reader on the stack in the same activation frame as the setjmp without
- * declaring it volatile.)
+ * declaring it volatile.
  *
  * You must still eventually destroy the reader. It is not destroyed
  * automatically when an error is flagged. It is safe to destroy the
