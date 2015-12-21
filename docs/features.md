@@ -19,6 +19,7 @@ Feedback is welcome! Please let me know if any entries in the table are incorrec
 | File I/O helpers                    | ✓   | ✓   |     |
 | Tree parser                         | ✓   | ✓   |     |
 | Propagating errors                  | ✓   |     | ✓   |
+| Descriptive error information       |     |     |     |
 | Compound size tracking              | ✓   |     |     |
 | Automatic compound size             |     |     |     |
 | Incremental parser                  | ✓   |     | ✓   |
@@ -32,15 +33,15 @@ Feedback is welcome! Please let me know if any entries in the table are incorrec
 | Compatible with older (1.0) spec    |     |     | ✓   |
 | UTF-8 verification                  | ✓   |     |     |
 
-Most of the features above are optional and can be configured in all libraries. In particular, UTF-8 verification is optional with MPack; compound size tracking is optional and disabled in release by default with MPack; and 1.0 (v4) spec compatibility is optional with CMP (v5/2.0 is the recommended and default usage.)
-
-(The goal of MPack for a 1.0 release is to support everything in this list.)
+Most of the features above are optional when supported and can be configured in all libraries. In particular, UTF-8 verification is optional with MPack; compound size tracking is optional and disabled in release by default with MPack; and 1.0 (v4) spec compatibility is optional with CMP (v5/2.0 is the recommended and default usage.)
 
 ## Glossary
 
 *Tree parsing* means parsing a MessagePack object into a DOM-style tree of dynamically-typed elements supporting random access.
 
 *Propagating errors* means a parse error or type error on one element places the whole parser, encoder or tree in an error state. This means you can check for errors only at certain key points rather than at every interaction with the library, and you get a final error state indicating whether any error occurred at any point during parsing or encoding.
+
+*Descriptive error information* means being able to get additional information when an error occurs, such as the tree position and byte position in the message where the error occurred.
 
 *Compound size tracking* means verifying that the same number of child elements or bytes were written or read as was declared at the start of a compound element.
 

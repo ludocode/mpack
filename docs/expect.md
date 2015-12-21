@@ -211,7 +211,7 @@ if (!found[KEY_COMPACT])
     mpack_reader_flag_error(&reader, mpack_error_data);
 ```
 
-In both of the above examples, the call to `mpack_discard(&reader);` skips over the value of unrecognized keys, allowing the data to be extensible and providing forwards-compatibility. If you want to forbid unrecognized keys, you can flag an error (e.g. `mpack_reader_flag_error(&reader, mpack_error_data);`) instead of discarding the value.
+In both of the above examples, the call to `mpack_discard(&reader);` skips over the value for unrecognized keys, allowing the data to be extensible and providing forwards-compatibility. If you want to forbid unrecognized keys, you can flag an error (e.g. `mpack_reader_flag_error(&reader, mpack_error_data);`) instead of discarding the value.
 
 Unlike JSON, MessagePack supports any type as a map key, so the enum integer values can themselves be used as keys. This reduces message size at some expense of debuggability (losing some of the value of a schemaless format.) There is a simpler function `mpack_expect_key_uint()` which can be used to switch on small non-negative enum values directly.
 

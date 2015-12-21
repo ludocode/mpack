@@ -413,7 +413,7 @@ MPACK_HEADER_START
         #elif defined(__GNUC__)
 
             // The GCC bswap builtins are apparently poorly optimized on older
-            // versions of GCC, so we set a minimum version here just in case
+            // versions of GCC, so we set a minimum version here just in case.
             //     http://hardwarebug.org/2010/01/14/beware-the-builtins/
 
             #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
@@ -428,8 +428,8 @@ MPACK_HEADER_START
 
     // On Windows, we assume x86 and x86_64 are always little-endian.
     // We make no assumptions about ARM even though all current
-    // Windows Phone devices are little-endian just in case they
-    // release one that isn't.
+    // Windows Phone devices are little-endian in case Microsoft's
+    // compiler is ever used with a big-endian ARM device.
 
     #if defined(_M_IX86) || defined(_M_X64) || defined(_M_AMD64)
         #define MPACK_NHSWAP32(x) _byteswap_ulong(x)
