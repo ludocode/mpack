@@ -158,6 +158,10 @@ MPACK_STATIC_INLINE double mpack_tree_double(mpack_tree_parser_t* parser) {
 
 static void mpack_tree_push_stack(mpack_tree_parser_t* parser, mpack_node_data_t* first_child, size_t total) {
 
+    // No need to push empty containers
+    if (total == 0)
+        return;
+
     // Make sure we have enough room in the stack
     if (parser->level + 1 == parser->depth) {
         #ifdef MPACK_MALLOC
@@ -169,7 +173,6 @@ static void mpack_tree_push_stack(mpack_tree_parser_t* parser, mpack_node_data_t
             mpack_level_t* new_stack = (mpack_level_t*)MPACK_MALLOC(sizeof(mpack_level_t) * new_depth);
             if (!new_stack) {
                 mpack_tree_flag_error(parser->tree, mpack_error_memory);
-                parser->level = 0;
                 return;
             }
             mpack_memcpy(new_stack, parser->stack, sizeof(mpack_level_t) * parser->depth);
@@ -181,14 +184,12 @@ static void mpack_tree_push_stack(mpack_tree_parser_t* parser, mpack_node_data_t
             parser->stack = (mpack_level_t*)mpack_realloc(parser->stack, sizeof(mpack_level_t) * parser->depth, sizeof(mpack_level_t) * new_depth);
             if (!parser->stack) {
                 mpack_tree_flag_error(parser->tree, mpack_error_memory);
-                parser->level = 0;
                 return;
             }
         }
         parser->depth = new_depth;
         #else
         mpack_tree_flag_error(parser->tree, mpack_error_too_big);
-        parser->level = 0;
         return;
         #endif
     }
@@ -207,7 +208,6 @@ static void mpack_tree_parse_children(mpack_tree_parser_t* parser, mpack_node_da
     if (type == mpack_type_map) {
         if ((uint64_t)total * 2 > (uint64_t)SIZE_MAX) {
             mpack_tree_flag_error(parser->tree, mpack_error_too_big);
-            parser->level = 0;
             return;
         }
         total *= 2;
@@ -217,7 +217,6 @@ static void mpack_tree_parse_children(mpack_tree_parser_t* parser, mpack_node_da
     // sure there is enough data left.
     if (total > parser->possible_nodes_left) {
         mpack_tree_flag_error(parser->tree, mpack_error_invalid);
-        parser->level = 0;
         return;
     }
     parser->possible_nodes_left -= total;
@@ -235,7 +234,6 @@ static void mpack_tree_parse_children(mpack_tree_parser_t* parser, mpack_node_da
         // We can't grow if we're using a fixed pool (i.e. we didn't start with a page)
         if (!parser->tree->next) {
             mpack_tree_flag_error(parser->tree, mpack_error_too_big);
-            parser->level = 0;
             return;
         }
 
@@ -255,7 +253,6 @@ static void mpack_tree_parse_children(mpack_tree_parser_t* parser, mpack_node_da
                     sizeof(mpack_tree_page_t) + sizeof(mpack_node_data_t) * (total - 1));
             if (page == NULL) {
                 mpack_tree_flag_error(parser->tree, mpack_error_memory);
-                parser->level = 0;
                 return;
             }
             mpack_log("allocated seperate page %p for %i children, %i left in page of %i total\n",
@@ -267,7 +264,6 @@ static void mpack_tree_parse_children(mpack_tree_parser_t* parser, mpack_node_da
             page = (mpack_tree_page_t*)MPACK_MALLOC(MPACK_PAGE_ALLOC_SIZE);
             if (page == NULL) {
                 mpack_tree_flag_error(parser->tree, mpack_error_memory);
-                parser->level = 0;
                 return;
             }
             mpack_log("allocated new page %p for %i children, wasting %i in page of %i total\n",
@@ -284,7 +280,6 @@ static void mpack_tree_parse_children(mpack_tree_parser_t* parser, mpack_node_da
         #else
         // We can't grow if we don't have an allocator
         mpack_tree_flag_error(parser->tree, mpack_error_too_big);
-        parser->level = 0;
         return;
         #endif
     }
@@ -296,7 +291,6 @@ static void mpack_tree_parse_bytes(mpack_tree_parser_t* parser, mpack_node_data_
     size_t length = node->len;
     if (length > parser->possible_nodes_left) {
         mpack_tree_flag_error(parser->tree, mpack_error_invalid);
-        parser->level = 0;
         return;
     }
     node->value.bytes = parser->data;
