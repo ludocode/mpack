@@ -112,6 +112,9 @@
 #ifndef MPACK_INTERNAL
 #define MPACK_INTERNAL 0
 #endif
+#ifndef MPACK_NO_BUILTINS
+#define MPACK_NO_BUILTINS 0
+#endif
 
 
 
@@ -297,14 +300,16 @@ MPACK_HEADER_START
 
 /* Some compiler-specific keywords and builtins */
 
-#if defined(__GNUC__) || defined(__clang__)
-    #define MPACK_UNREACHABLE __builtin_unreachable()
-    #define MPACK_NORETURN(fn) fn __attribute__((noreturn))
-    #define MPACK_RESTRICT __restrict__
-#elif defined(_MSC_VER)
-    #define MPACK_UNREACHABLE __assume(0)
-    #define MPACK_NORETURN(fn) __declspec(noreturn) fn
-    #define MPACK_RESTRICT __restrict
+#if !MPACK_NO_BUILTINS
+    #if defined(__GNUC__) || defined(__clang__)
+        #define MPACK_UNREACHABLE __builtin_unreachable()
+        #define MPACK_NORETURN(fn) fn __attribute__((noreturn))
+        #define MPACK_RESTRICT __restrict__
+    #elif defined(_MSC_VER)
+        #define MPACK_UNREACHABLE __assume(0)
+        #define MPACK_NORETURN(fn) __declspec(noreturn) fn
+        #define MPACK_RESTRICT __restrict
+    #endif
 #endif
 
 #ifndef MPACK_RESTRICT
@@ -327,51 +332,49 @@ MPACK_HEADER_START
 /* Static assert */
 
 #ifndef MPACK_STATIC_ASSERT
-    #ifdef __STDC_VERSION__
+    #if defined(__cplusplus)
+        #if __cplusplus >= 201103L
+            #define MPACK_STATIC_ASSERT static_assert
+        #endif
+    #elif defined(__STDC_VERSION__)
         #if __STDC_VERSION__ >= 201112L
             #define MPACK_STATIC_ASSERT _Static_assert
         #endif
     #endif
 #endif
 
-#ifndef MPACK_STATIC_ASSERT
-    #if defined(__has_feature)
-        #if __has_feature(cxx_static_assert)
-            #define MPACK_STATIC_ASSERT static_assert
-        #elif __has_feature(c_static_assert)
-            #define MPACK_STATIC_ASSERT _Static_assert
-        #endif
-    #endif
-#endif
-
-#ifndef MPACK_STATIC_ASSERT
-    #if defined(__cplusplus)
-        #if __cplusplus >= 201103L
-            #define MPACK_STATIC_ASSERT static_assert
-        #endif
-    #endif
-#endif
-
-#ifndef MPACK_STATIC_ASSERT
-    #if defined(__GNUC__)
-        #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
-            #ifndef __cplusplus
-                #define MPACK_STATIC_ASSERT(expr, str) do { \
-                    _Pragma ("GCC diagnostic push") \
-                    _Pragma ("GCC diagnostic ignored \"-pedantic\"") \
-                    _Pragma ("GCC diagnostic ignored \"-Wc++-compat\"") \
-                    _Static_assert(expr, str); \
-                    _Pragma ("GCC diagnostic pop") \
-                } while (0)
+#if !MPACK_NO_BUILTINS
+    #ifndef MPACK_STATIC_ASSERT
+        #if defined(__has_feature)
+            #if __has_feature(cxx_static_assert)
+                #define MPACK_STATIC_ASSERT static_assert
+            #elif __has_feature(c_static_assert)
+                #define MPACK_STATIC_ASSERT _Static_assert
             #endif
         #endif
     #endif
-#endif
 
-#ifndef MPACK_STATIC_ASSERT
-    #ifdef _MSC_VER
-        #if _MSC_VER >= 1600
-            #define MPACK_STATIC_ASSERT static_assert
+    #ifndef MPACK_STATIC_ASSERT
+        #if defined(__GNUC__)
+            #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
+                #ifndef __cplusplus
+                    #define MPACK_STATIC_ASSERT(expr, str) do { \
+                        _Pragma ("GCC diagnostic push") \
+                        _Pragma ("GCC diagnostic ignored \"-pedantic\"") \
+                        _Pragma ("GCC diagnostic ignored \"-Wc++-compat\"") \
+                        _Static_assert(expr, str); \
+                        _Pragma ("GCC diagnostic pop") \
+                    } while (0)
+                #endif
+            #endif
+        #endif
+    #endif
+
+    #ifndef MPACK_STATIC_ASSERT
+        #ifdef _MSC_VER
+            #if _MSC_VER >= 1600
+                #define MPACK_STATIC_ASSERT static_assert
+            #endif
         #endif
     #endif
 #endif
@@ -400,31 +403,33 @@ MPACK_HEADER_START
         #define MPACK_NHSWAP64(x) (x)
     #elif __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 
-        #if defined(__clang__)
-            #ifdef __has_builtin
-                #if __has_builtin(__builtin_bswap32)
-                    #define MPACK_NHSWAP32(x) __builtin_bswap32(x)
+        #if !MPACK_NO_BUILTINS
+            #if defined(__clang__)
+                #ifdef __has_builtin
+                    #if __has_builtin(__builtin_bswap32)
+                        #define MPACK_NHSWAP32(x) __builtin_bswap32(x)
+                    #endif
+                    #if __has_builtin(__builtin_bswap64)
+                        #define MPACK_NHSWAP64(x) __builtin_bswap64(x)
+                    #endif
                 #endif
-                #if __has_builtin(__builtin_bswap64)
+
+            #elif defined(__GNUC__)
+
+                // The GCC bswap builtins are apparently poorly optimized on older
+                // versions of GCC, so we set a minimum version here just in case.
+                //     http://hardwarebug.org/2010/01/14/beware-the-builtins/
+
+                #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
+                    #define MPACK_NHSWAP32(x) __builtin_bswap32(x)
                     #define MPACK_NHSWAP64(x) __builtin_bswap64(x)
                 #endif
+
             #endif
-
-        #elif defined(__GNUC__)
-
-            // The GCC bswap builtins are apparently poorly optimized on older
-            // versions of GCC, so we set a minimum version here just in case.
-            //     http://hardwarebug.org/2010/01/14/beware-the-builtins/
-
-            #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
-                #define MPACK_NHSWAP32(x) __builtin_bswap32(x)
-                #define MPACK_NHSWAP64(x) __builtin_bswap64(x)
-            #endif
-
         #endif
     #endif
 
-#elif defined(_MSC_VER) && defined(_WIN32)
+#elif defined(_MSC_VER) && defined(_WIN32) && !MPACK_NO_BUILTINS
 
     // On Windows, we assume x86 and x86_64 are always little-endian.
     // We make no assumptions about ARM even though all current
@@ -544,7 +549,7 @@ MPACK_HEADER_START
         #pragma GCC poison strlen
     #endif
 
-#elif defined(__GNUC__)
+#elif defined(__GNUC__) && !MPACK_NO_BUILTINS
     // there's not always a builtin memmove for GCC,
     // and we don't have a way to test for it
     #define mpack_memcmp __builtin_memcmp
@@ -552,7 +557,7 @@ MPACK_HEADER_START
     #define mpack_memset __builtin_memset
     #define mpack_strlen __builtin_strlen
 
-#elif defined(__clang__) && defined(__has_builtin)
+#elif defined(__clang__) && defined(__has_builtin) && !MPACK_NO_BUILTINS
     #if __has_builtin(__builtin_memcmp)
     #define mpack_memcmp __builtin_memcmp
     #endif

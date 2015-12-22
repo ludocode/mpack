@@ -68,13 +68,15 @@ void mpack_assert_fail(const char* message) {
     fprintf(stderr, "%s\n", message);
     #endif
 
+    #if !MPACK_NO_BUILTINS
     #if defined(__GNUC__) || defined(__clang__)
     __builtin_trap();
     #elif defined(WIN32)
     __debugbreak();
     #endif
+    #endif
 
-    #if defined(__GNUC__) || defined(__clang__)
+    #if (defined(__GNUC__) || defined(__clang__)) && !MPACK_NO_BUILTINS
     __builtin_abort();
     #elif MPACK_STDLIB
     abort();
@@ -106,9 +108,9 @@ void mpack_break_hit(const char* message) {
     fprintf(stderr, "%s\n", message);
     #endif
 
-    #if defined(__GNUC__) || defined(__clang__)
+    #if defined(__GNUC__) || defined(__clang__) && !MPACK_NO_BUILTINS
     __builtin_trap();
-    #elif defined(WIN32)
+    #elif defined(WIN32) && !MPACK_NO_BUILTINS
     __debugbreak();
     #elif MPACK_STDLIB
     abort();
@@ -144,7 +146,7 @@ void* mpack_memcpy(void* MPACK_RESTRICT s1, const void* MPACK_RESTRICT s2, size_
     char* MPACK_RESTRICT dst = (char *)s1;
     const char* MPACK_RESTRICT src = (const char *)s2;
     while (n-- != 0)
-        *s1++ = *s2++;
+        *dst++ = *src++;
     return s1;
 }
 #endif
