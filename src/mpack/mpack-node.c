@@ -1095,14 +1095,40 @@ size_t mpack_node_copy_data(mpack_node_t node, char* buffer, size_t bufsize) {
     return (size_t)node.data->len;
 }
 
-void mpack_node_copy_cstr(mpack_node_t node, char* buffer, size_t size) {
+size_t mpack_node_copy_utf8(mpack_node_t node, char* buffer, size_t bufsize) {
+    if (mpack_node_error(node) != mpack_ok)
+        return 0;
+
+    mpack_assert(bufsize == 0 || buffer != NULL, "buffer is NULL for maximum of %i bytes", (int)bufsize);
+
+    mpack_type_t type = node.data->type;
+    if (type != mpack_type_str && type != mpack_type_bin && type != mpack_type_ext) {
+        mpack_node_flag_error(node, mpack_error_type);
+        return 0;
+    }
+
+    if (node.data->len > bufsize) {
+        mpack_node_flag_error(node, mpack_error_too_big);
+        return 0;
+    }
+
+    if (!mpack_utf8_check(node.data->value.bytes, node.data->len)) {
+        mpack_node_flag_error(node, mpack_error_type);
+        return 0;
+    }
+
+    mpack_memcpy(buffer, node.data->value.bytes, node.data->len);
+    return (size_t)node.data->len;
+}
+
+void mpack_node_copy_cstr(mpack_node_t node, char* buffer, size_t bufsize) {
     if (mpack_node_error(node) != mpack_ok)
         return;
 
     // we can't break here because the error isn't recoverable; we
     // have to add a null-terminator.
     mpack_assert(buffer != NULL, "buffer is NULL");
-    mpack_assert(size >= 1, "buffer size is zero; you must have room for at least a null-terminator");
+    mpack_assert(bufsize >= 1, "buffer size is zero; you must have room for at least a null-terminator");
 
     if (node.data->type != mpack_type_str) {
         buffer[0] = '\0';
@@ -1110,9 +1136,46 @@ void mpack_node_copy_cstr(mpack_node_t node, char* buffer, size_t size) {
         return;
     }
 
-    if (node.data->len > size - 1) {
+    if (node.data->len > bufsize - 1) {
         buffer[0] = '\0';
         mpack_node_flag_error(node, mpack_error_too_big);
+        return;
+    }
+
+    if (!mpack_str_check_no_null(node.data->value.bytes, node.data->len)) {
+        buffer[0] = '\0';
+        mpack_node_flag_error(node, mpack_error_type);
+        return;
+    }
+
+    mpack_memcpy(buffer, node.data->value.bytes, node.data->len);
+    buffer[node.data->len] = '\0';
+}
+
+void mpack_node_copy_utf8_cstr(mpack_node_t node, char* buffer, size_t bufsize) {
+    if (mpack_node_error(node) != mpack_ok)
+        return;
+
+    // we can't break here because the error isn't recoverable; we
+    // have to add a null-terminator.
+    mpack_assert(buffer != NULL, "buffer is NULL");
+    mpack_assert(bufsize >= 1, "buffer size is zero; you must have room for at least a null-terminator");
+
+    if (node.data->type != mpack_type_str) {
+        buffer[0] = '\0';
+        mpack_node_flag_error(node, mpack_error_type);
+        return;
+    }
+
+    if (node.data->len > bufsize - 1) {
+        buffer[0] = '\0';
+        mpack_node_flag_error(node, mpack_error_too_big);
+        return;
+    }
+
+    if (!mpack_utf8_check_no_null(node.data->value.bytes, node.data->len)) {
+        buffer[0] = '\0';
+        mpack_node_flag_error(node, mpack_error_type);
         return;
     }
 
@@ -1165,6 +1228,48 @@ char* mpack_node_cstr_alloc(mpack_node_t node, size_t maxlen) {
 
     if (node.data->len > maxlen - 1) {
         mpack_node_flag_error(node, mpack_error_too_big);
+        return NULL;
+    }
+
+    if (!mpack_str_check_no_null(node.data->value.bytes, node.data->len)) {
+        mpack_node_flag_error(node, mpack_error_type);
+        return NULL;
+    }
+
+    char* ret = (char*) MPACK_MALLOC((size_t)(node.data->len + 1));
+    if (ret == NULL) {
+        mpack_node_flag_error(node, mpack_error_memory);
+        return NULL;
+    }
+
+    mpack_memcpy(ret, node.data->value.bytes, node.data->len);
+    ret[node.data->len] = '\0';
+    return ret;
+}
+
+char* mpack_node_utf8_cstr_alloc(mpack_node_t node, size_t maxlen) {
+    if (mpack_node_error(node) != mpack_ok)
+        return NULL;
+
+    // make sure maxlen makes sense
+    if (maxlen < 1) {
+        mpack_break("maxlen is zero; you must have room for at least a null-terminator");
+        mpack_node_flag_error(node, mpack_error_bug);
+        return NULL;
+    }
+
+    if (node.data->type != mpack_type_str) {
+        mpack_node_flag_error(node, mpack_error_type);
+        return NULL;
+    }
+
+    if (node.data->len > maxlen - 1) {
+        mpack_node_flag_error(node, mpack_error_too_big);
+        return NULL;
+    }
+
+    if (!mpack_utf8_check_no_null(node.data->value.bytes, node.data->len)) {
+        mpack_node_flag_error(node, mpack_error_type);
         return NULL;
     }
 

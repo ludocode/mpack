@@ -736,6 +736,7 @@ MPACK_INLINE size_t mpack_node_strlen(mpack_node_t node) {
  *
  * @see mpack_node_copy_cstr()
  * @see mpack_node_cstr_alloc()
+ * @see mpack_node_utf8_cstr_alloc()
  */
 MPACK_INLINE const char* mpack_node_data(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
@@ -753,21 +754,35 @@ MPACK_INLINE const char* mpack_node_data(mpack_node_t node) {
  * Copies the bytes contained by this node into the given buffer, returning the
  * number of bytes in the node.
  *
- * If this node is not of a str, bin or map, mpack_error_type is raised. If the node's
- * data does not fit in the given buffer, mpack_error_too_big is raised.
- *
- * Zero is returned if any error occurs.
+ * @throws mpack_error_type If this node is not a str, bin or ext type
+ * @throws mpack_error_too_big If the string does not fit in the given buffer
  *
  * @param node The string node from which to copy data
  * @param buffer A buffer in which to copy the node's bytes
  * @param bufsize The size of the given buffer
+ *
  * @return The number of bytes in the node, or zero if an error occurs.
  */
 size_t mpack_node_copy_data(mpack_node_t node, char* buffer, size_t bufsize);
 
 /**
- * Copies the bytes contained by this string node into the given buffer and adds
- * a null terminator.
+ * Checks that the given node contains a valid UTF-8 string and copies the
+ * string into the given buffer, returning the number of bytes in the string.
+ *
+ * @throws mpack_error_type If this node is not a string
+ * @throws mpack_error_too_big If the string does not fit in the given buffer
+ *
+ * @param node The string node from which to copy data
+ * @param buffer A buffer in which to copy the node's bytes
+ * @param bufsize The size of the given buffer
+ *
+ * @return The number of bytes in the node, or zero if an error occurs.
+ */
+size_t mpack_node_copy_utf8(mpack_node_t node, char* buffer, size_t bufsize);
+
+/**
+ * Checks that the given node contains a string with no NUL bytes, copies the string
+ * into the given buffer, and adds a null terminator.
  *
  * If this node is not of a string type, mpack_error_type is raised. If the string
  * does not fit, mpack_error_data is raised.
@@ -780,6 +795,21 @@ size_t mpack_node_copy_data(mpack_node_t node, char* buffer, size_t bufsize);
  */
 void mpack_node_copy_cstr(mpack_node_t node, char* buffer, size_t size);
 
+/**
+ * Checks that the given node contains a valid UTF-8 string with no NUL bytes,
+ * copies the string into the given buffer, and adds a null terminator.
+ *
+ * If this node is not of a string type, mpack_error_type is raised. If the string
+ * does not fit, mpack_error_data is raised.
+ *
+ * If any error occurs, the buffer will contain an empty null-terminated string.
+ *
+ * @param node The string node from which to copy data
+ * @param buffer A buffer in which to copy the node's string
+ * @param size The size of the given buffer
+ */
+void mpack_node_copy_utf8_cstr(mpack_node_t node, char* buffer, size_t size);
+
 #ifdef MPACK_MALLOC
 /**
  * Allocates a new chunk of data using MPACK_MALLOC with the bytes
@@ -789,7 +819,8 @@ void mpack_node_copy_cstr(mpack_node_t node, char* buffer, size_t size);
  * if MPack's allocator hasn't been customized.)
  *
  * @throws mpack_error_type If this node is not a str, bin or ext type
- * @throws mpack_error_too_big If the size of the data is larger than the given maximum size
+ * @throws mpack_error_too_big If the size of the data is larger than the
+ *     given maximum size
  * @throws mpack_error_memory If an allocation failure occurs
  *
  * @param node The node from which to allocate and copy data
@@ -806,9 +837,9 @@ char* mpack_node_data_alloc(mpack_node_t node, size_t maxsize);
  * The allocated string must be freed with MPACK_FREE() (or simply free()
  * if MPack's allocator hasn't been customized.)
  *
- * @throws mpack_error_type If this node is not a string
+ * @throws mpack_error_type If this node is not a string or contains NUL bytes
  * @throws mpack_error_too_big If the size of the string plus null-terminator
- *      is larger than the given maximum size
+ *     is larger than the given maximum size
  * @throws mpack_error_memory If an allocation failure occurs
  *
  * @param node The node from which to allocate and copy string data
@@ -817,6 +848,26 @@ char* mpack_node_data_alloc(mpack_node_t node, size_t maxsize);
  * @return The allocated string, or NULL if any error occurs.
  */
 char* mpack_node_cstr_alloc(mpack_node_t node, size_t maxsize);
+
+/**
+ * Allocates a new null-terminated string using MPACK_MALLOC with the UTF-8
+ * string contained by this node.
+ *
+ * The allocated string must be freed with MPACK_FREE() (or simply free()
+ * if MPack's allocator hasn't been customized.)
+ *
+ * @throws mpack_error_type If this node is not a string, is not valid UTF-8,
+ *     or contains NUL bytes
+ * @throws mpack_error_too_big If the size of the string plus null-terminator
+ *     is larger than the given maximum size
+ * @throws mpack_error_memory If an allocation failure occurs
+ *
+ * @param node The node from which to allocate and copy string data
+ * @param maxsize The maximum size to allocate, including the null-terminator
+ *
+ * @return The allocated string, or NULL if any error occurs.
+ */
+char* mpack_node_utf8_cstr_alloc(mpack_node_t node, size_t maxsize);
 #endif
 
 /**
