@@ -991,9 +991,9 @@ char* mpack_expect_cstr_alloc(mpack_reader_t* reader, size_t maxsize);
  * if you want a null-terminator.
  *
  * @throws mpack_error_too_big if the string plus null-terminator is larger
- * than the given maxsize.
+ *     than the given maxsize.
  * @throws mpack_error_invalid if the value is not a string or contains
- * invalid UTF-8 or a null byte.
+ *     invalid UTF-8 or a null byte.
  */
 char* mpack_expect_utf8_cstr_alloc(mpack_reader_t* reader, size_t maxsize);
 #endif

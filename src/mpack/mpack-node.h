@@ -392,7 +392,7 @@ MPACK_INLINE void mpack_node_nil(mpack_node_t node) {
 
 /**
  * Returns the bool value of the node. If this node is not of the correct
- * type, mpack_error_type is raised, and the return value should be discarded.
+ * type, false is returned and mpack_error_type is raised.
  */
 MPACK_INLINE bool mpack_node_bool(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
@@ -425,8 +425,7 @@ MPACK_INLINE void mpack_node_false(mpack_node_t node) {
 
 /**
  * Returns the 8-bit unsigned value of the node. If this node is not
- * of a compatible type, mpack_error_type is raised, and the
- * return value should be discarded.
+ * of a compatible type, mpack_error_type is raised and zero is returned.
  */
 MPACK_INLINE uint8_t mpack_node_u8(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
@@ -446,8 +445,7 @@ MPACK_INLINE uint8_t mpack_node_u8(mpack_node_t node) {
 
 /**
  * Returns the 8-bit signed value of the node. If this node is not
- * of a compatible type, mpack_error_type is raised, and the
- * return value should be discarded.
+ * of a compatible type, mpack_error_type is raised and zero is returned.
  */
 MPACK_INLINE int8_t mpack_node_i8(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
@@ -467,8 +465,7 @@ MPACK_INLINE int8_t mpack_node_i8(mpack_node_t node) {
 
 /**
  * Returns the 16-bit unsigned value of the node. If this node is not
- * of a compatible type, mpack_error_type is raised, and the
- * return value should be discarded.
+ * of a compatible type, mpack_error_type is raised and zero is returned.
  */
 MPACK_INLINE uint16_t mpack_node_u16(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
@@ -488,8 +485,7 @@ MPACK_INLINE uint16_t mpack_node_u16(mpack_node_t node) {
 
 /**
  * Returns the 16-bit signed value of the node. If this node is not
- * of a compatible type, mpack_error_type is raised, and the
- * return value should be discarded.
+ * of a compatible type, mpack_error_type is raised and zero is returned.
  */
 MPACK_INLINE int16_t mpack_node_i16(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
@@ -509,8 +505,7 @@ MPACK_INLINE int16_t mpack_node_i16(mpack_node_t node) {
 
 /**
  * Returns the 32-bit unsigned value of the node. If this node is not
- * of a compatible type, mpack_error_type is raised, and the
- * return value should be discarded.
+ * of a compatible type, mpack_error_type is raised and zero is returned.
  */
 MPACK_INLINE uint32_t mpack_node_u32(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
@@ -530,8 +525,7 @@ MPACK_INLINE uint32_t mpack_node_u32(mpack_node_t node) {
 
 /**
  * Returns the 32-bit signed value of the node. If this node is not
- * of a compatible type, mpack_error_type is raised, and the
- * return value should be discarded.
+ * of a compatible type, mpack_error_type is raised and zero is returned.
  */
 MPACK_INLINE int32_t mpack_node_i32(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
@@ -551,8 +545,7 @@ MPACK_INLINE int32_t mpack_node_i32(mpack_node_t node) {
 
 /**
  * Returns the 64-bit unsigned value of the node. If this node is not
- * of a compatible type, mpack_error_type is raised, and the
- * return value should be discarded.
+ * of a compatible type, mpack_error_type is raised, and zero is returned.
  */
 MPACK_INLINE uint64_t mpack_node_u64(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
@@ -571,8 +564,7 @@ MPACK_INLINE uint64_t mpack_node_u64(mpack_node_t node) {
 
 /**
  * Returns the 64-bit signed value of the node. If this node is not
- * of a compatible type, mpack_error_type is raised, and the
- * return value should be discarded.
+ * of a compatible type, mpack_error_type is raised and zero is returned.
  */
 MPACK_INLINE int64_t mpack_node_i64(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
@@ -744,7 +736,6 @@ MPACK_INLINE size_t mpack_node_strlen(mpack_node_t node) {
  *
  * @see mpack_node_copy_cstr()
  * @see mpack_node_cstr_alloc()
- * @see mpack_node_utf8_cstr_alloc()
  */
 MPACK_INLINE const char* mpack_node_data(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
@@ -762,27 +753,26 @@ MPACK_INLINE const char* mpack_node_data(mpack_node_t node) {
  * Copies the bytes contained by this node into the given buffer, returning the
  * number of bytes in the node.
  *
- * If this node is not of a str, bin or map, mpack_error_type is raised, and the
- * buffer and return value should be discarded. If the node's data does not fit
- * in the given buffer, mpack_error_data is raised, and the buffer and return value
- * should be discarded.
+ * If this node is not of a str, bin or map, mpack_error_type is raised. If the node's
+ * data does not fit in the given buffer, mpack_error_too_big is raised.
+ *
+ * Zero is returned if any error occurs.
  *
  * @param node The string node from which to copy data
  * @param buffer A buffer in which to copy the node's bytes
- * @param size The size of the given buffer
+ * @param bufsize The size of the given buffer
+ * @return The number of bytes in the node, or zero if an error occurs.
  */
-size_t mpack_node_copy_data(mpack_node_t node, char* buffer, size_t size);
+size_t mpack_node_copy_data(mpack_node_t node, char* buffer, size_t bufsize);
 
 /**
  * Copies the bytes contained by this string node into the given buffer and adds
- * a null terminator. If this node is not of a string type, mpack_error_type is raised,
- * and the buffer should be discarded. If the string does not fit, mpack_error_data is
- * raised, and the buffer should be discarded.
+ * a null terminator.
  *
- * If this node is not of a string type, mpack_error_type is raised, and the
- * buffer and return value should be discarded. If the string and null-terminator
- * do not fit in the given buffer, mpack_error_data is raised, and the buffer and
- * return value should be discarded.
+ * If this node is not of a string type, mpack_error_type is raised. If the string
+ * does not fit, mpack_error_data is raised.
+ *
+ * If any error occurs, the buffer will contain an empty null-terminated string.
  *
  * @param node The string node from which to copy data
  * @param buffer A buffer in which to copy the node's string
@@ -798,13 +788,16 @@ void mpack_node_copy_cstr(mpack_node_t node, char* buffer, size_t size);
  * The allocated data must be freed with MPACK_FREE() (or simply free()
  * if MPack's allocator hasn't been customized.)
  *
- * If this node is not a str, bin or ext type, mpack_error_type is raised
- * and the return value should be discarded. If the string and null-terminator
- * are longer than the given maximum length, mpack_error_too_big is raised, and
- * the return value should be discarded. If an allocation failure occurs,
- * mpack_error_memory is raised and the return value should be discarded.
+ * @throws mpack_error_type If this node is not a str, bin or ext type
+ * @throws mpack_error_too_big If the size of the data is larger than the given maximum size
+ * @throws mpack_error_memory If an allocation failure occurs
+ *
+ * @param node The node from which to allocate and copy data
+ * @param maxsize The maximum size to allocate
+ *
+ * @return The allocated data, or NULL if any error occurs.
  */
-char* mpack_node_data_alloc(mpack_node_t node, size_t maxlen);
+char* mpack_node_data_alloc(mpack_node_t node, size_t maxsize);
 
 /**
  * Allocates a new null-terminated string using MPACK_MALLOC with the string
@@ -813,13 +806,17 @@ char* mpack_node_data_alloc(mpack_node_t node, size_t maxlen);
  * The allocated string must be freed with MPACK_FREE() (or simply free()
  * if MPack's allocator hasn't been customized.)
  *
- * If this node is not a string type, mpack_error_type is raised, and the return
- * value should be discarded.
+ * @throws mpack_error_type If this node is not a string
+ * @throws mpack_error_too_big If the size of the string plus null-terminator
+ *      is larger than the given maximum size
+ * @throws mpack_error_memory If an allocation failure occurs
  *
- * @param node The string node from which to copy data
- * @param maxlen The maximum size to allocate, including the null-terminator.
+ * @param node The node from which to allocate and copy string data
+ * @param maxsize The maximum size to allocate, including the null-terminator
+ *
+ * @return The allocated string, or NULL if any error occurs.
  */
-char* mpack_node_cstr_alloc(mpack_node_t node, size_t maxlen);
+char* mpack_node_cstr_alloc(mpack_node_t node, size_t maxsize);
 #endif
 
 /**

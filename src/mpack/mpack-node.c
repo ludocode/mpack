@@ -651,7 +651,7 @@ static void mpack_tree_parse_elements(mpack_tree_parser_t* parser) {
         // pop empty stack levels, exiting the outer loop when the stack is empty.
         // (we could tail-optimize containers by pre-emptively popping empty
         // stack levels before reading the new element, this way we wouldn't
-        // have to loop. but i eventually want to use the parse stack to give
+        // have to loop. but we eventually want to use the parse stack to give
         // better error messages that contain the location of the error, so
         // it needs to be complete.)
         while (parser->stack[parser->level].left == 0) {
@@ -1074,11 +1074,11 @@ void mpack_node_print_file(mpack_node_t node, FILE* file) {
  * Node Data Functions
  */
 
-size_t mpack_node_copy_data(mpack_node_t node, char* buffer, size_t size) {
+size_t mpack_node_copy_data(mpack_node_t node, char* buffer, size_t bufsize) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
-    mpack_assert(size == 0 || buffer != NULL, "buffer is NULL for maximum of %i bytes", (int)size);
+    mpack_assert(bufsize == 0 || buffer != NULL, "buffer is NULL for maximum of %i bytes", (int)bufsize);
 
     mpack_type_t type = node.data->type;
     if (type != mpack_type_str && type != mpack_type_bin && type != mpack_type_ext) {
@@ -1086,7 +1086,7 @@ size_t mpack_node_copy_data(mpack_node_t node, char* buffer, size_t size) {
         return 0;
     }
 
-    if (node.data->len > size) {
+    if (node.data->len > bufsize) {
         mpack_node_flag_error(node, mpack_error_too_big);
         return 0;
     }
