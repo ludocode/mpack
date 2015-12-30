@@ -396,24 +396,23 @@ static bool test_file_expect_failure(void) {
     TEST_TRUE(count == 6);
     MPACK_FREE(strings);
 
-    size_t size;
-    char* str = mpack_expect_str_alloc(&reader, 100, &size);
+    char* str = mpack_expect_cstr_alloc(&reader, 100);
     TEST_POSSIBLE_FAILURE();
     TEST_TRUE(str != NULL);
     const char* expected = "The quick brown fox jumps over a lazy dog.";
-    TEST_TRUE(size == strlen(expected));
+    TEST_TRUE(strlen(str) == strlen(expected));
     if (str) {
-        TEST_TRUE(memcmp(str, expected, size) == 0);
+        TEST_TRUE(strcmp(str, expected) == 0);
         MPACK_FREE(str);
     }
 
-    str = mpack_expect_utf8_alloc(&reader, 100, &size);
+    str = mpack_expect_utf8_cstr_alloc(&reader, 100);
     TEST_POSSIBLE_FAILURE();
     TEST_TRUE(str != NULL);
     expected = "one";
-    TEST_TRUE(size == strlen(expected));
+    TEST_TRUE(strlen(str) == strlen(expected));
     if (str) {
-        TEST_TRUE(memcmp(str, expected, size) == 0);
+        TEST_TRUE(strcmp(str, expected) == 0);
         MPACK_FREE(str);
     }
 

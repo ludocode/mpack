@@ -889,45 +889,6 @@ MPACK_INLINE void mpack_expect_str_length(mpack_reader_t* reader, uint32_t count
         mpack_reader_flag_error(reader, mpack_error_type);
 }
 
-
-#ifdef MPACK_MALLOC
-/**
- * Reads a string with the given total maximum size, allocating storage for it.
- *
- * The length in bytes of the string will be written to size if reading is
- * successful; otherwise size will be zero.
- *
- * The allocated string must be freed with MPACK_FREE() (or simply free()
- * if MPack's allocator hasn't been customized.)
- *
- * No null-terminator will be added to the string. Use @ref mpack_expect_cstr_alloc()
- * if you want a null-terminator.
- *
- * Returns NULL if any error occurs.
- */
-char* mpack_expect_str_alloc(mpack_reader_t* reader, size_t maxsize, size_t* size);
-
-/**
- * Reads a string with the given total maximum size, allocating storage for it
- * and ensuring it is valid UTF-8.
- *
- * The length in bytes of the string, not including the null-terminator,
- * will be written to size.
- *
- * This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or
- * WTF-8. Only pure UTF-8 is allowed.
- *
- * NUL bytes are allowed in the string (as they are in UTF-8.)
- *
- * The allocated string must be freed with MPACK_FREE() (or simply free()
- * if MPack's allocator hasn't been customized.)
- *
- * No null-terminator will be added to the string. Use @ref mpack_expect_cstr_alloc()
- * if you want a null-terminator.
- */
-char* mpack_expect_utf8_alloc(mpack_reader_t* reader, size_t maxsize, size_t* size);
-#endif
-
 /**
  * Reads a string, ensuring it exactly matches the given string.
  *

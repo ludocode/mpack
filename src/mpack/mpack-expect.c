@@ -557,36 +557,6 @@ void mpack_expect_utf8_cstr(mpack_reader_t* reader, char* buf, size_t bufsize) {
 }
 
 #ifdef MPACK_MALLOC
-char* mpack_expect_str_alloc(mpack_reader_t* reader, size_t maxsize, size_t* size) {
-    mpack_assert(size != NULL, "size cannot be NULL");
-    *size = 0;
-
-    if (maxsize > UINT32_MAX)
-        maxsize = UINT32_MAX;
-
-    size_t length = mpack_expect_str_max(reader, (uint32_t)maxsize);
-    char* str = mpack_read_bytes_alloc(reader, length);
-    mpack_done_str(reader);
-
-    if (str)
-        *size = length;
-    return str;
-}
-
-char* mpack_expect_utf8_alloc(mpack_reader_t* reader, size_t maxsize, size_t* size) {
-    mpack_assert(size != NULL, "size cannot be NULL");
-    char* str = mpack_expect_str_alloc(reader, maxsize, size);
-
-    if (str && !mpack_utf8_check(str, *size)) {
-        *size = 0;
-        MPACK_FREE(str);
-        mpack_reader_flag_error(reader, mpack_error_type);
-        return NULL;
-    }
-
-    return str;
-}
-
 static char* mpack_expect_cstr_alloc_unchecked(mpack_reader_t* reader, size_t maxsize, size_t* out_length) {
     mpack_assert(out_length != NULL, "out_length cannot be NULL");
     *out_length = 0;
