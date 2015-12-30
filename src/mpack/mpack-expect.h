@@ -861,13 +861,13 @@ size_t mpack_expect_utf8(mpack_reader_t* reader, char* buf, size_t bufsize);
  * or mpack_read_bytes_inplace(). @ref mpack_done_str() must be called
  * once all bytes have been read.
  *
- * mpack_error_type is raised if the value is not a string or if its
- * length does not match.
+ * @throws mpack_error_type If the value is not a string.
+ * @throws mpack_error_too_big If the string's length in bytes is larger than the given maximum size.
  */
 MPACK_INLINE uint32_t mpack_expect_str_max(mpack_reader_t* reader, uint32_t maxsize) {
     uint32_t length = mpack_expect_str(reader);
     if (length > maxsize) {
-        mpack_reader_flag_error(reader, mpack_error_type);
+        mpack_reader_flag_error(reader, mpack_error_too_big);
         return 0;
     }
     return length;

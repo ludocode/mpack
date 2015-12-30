@@ -642,7 +642,7 @@ static void test_expect_str() {
         TEST_TRUE(strlen(test) == 0);
         MPACK_FREE(test);
     }
-    TEST_SIMPLE_READ_ERROR("\xa4test", NULL == mpack_expect_cstr_alloc(&reader, 4), mpack_error_type);
+    TEST_SIMPLE_READ_ERROR("\xa4test", NULL == mpack_expect_cstr_alloc(&reader, 4), mpack_error_too_big);
     TEST_SIMPLE_READ("\xa4test", NULL != (test = mpack_expect_cstr_alloc(&reader, 5)));
     if (test) {
         TEST_TRUE(strlen(test) == 4);
@@ -655,7 +655,6 @@ static void test_expect_str() {
         TEST_TRUE(memcmp(test, "test", 4) == 0);
         MPACK_FREE(test);
     }
-    TEST_SIMPLE_READ_ERROR("\xa4test", NULL == mpack_expect_cstr_alloc(&reader, 4), mpack_error_type);
     TEST_SIMPLE_READ_ERROR("\xa5he\00lo", NULL == mpack_expect_cstr_alloc(&reader, 256), mpack_error_type);
     TEST_SIMPLE_READ_ERROR("\x01", NULL == mpack_expect_cstr_alloc(&reader, 3), mpack_error_type);
     #endif
@@ -735,7 +734,7 @@ static void test_expect_str() {
         TEST_TRUE(strlen(test) == 0);
         MPACK_FREE(test);
     }
-    TEST_SIMPLE_READ_ERROR("\xa4test", NULL == mpack_expect_utf8_cstr_alloc(&reader, 4), mpack_error_type);
+    TEST_SIMPLE_READ_ERROR("\xa4test", NULL == mpack_expect_utf8_cstr_alloc(&reader, 4), mpack_error_too_big);
     TEST_SIMPLE_READ("\xa4test", NULL != (test = mpack_expect_utf8_cstr_alloc(&reader, 5)));
     if (test) {
         TEST_TRUE(strlen(test) == 4);
@@ -748,7 +747,6 @@ static void test_expect_str() {
         TEST_TRUE(memcmp(test, "test", 4) == 0);
         MPACK_FREE(test);
     }
-    TEST_SIMPLE_READ_ERROR("\xa4test", NULL == mpack_expect_utf8_cstr_alloc(&reader, 3), mpack_error_type);
     TEST_SIMPLE_READ_ERROR("\x01", NULL == mpack_expect_utf8_cstr_alloc(&reader, 3), mpack_error_type);
 
     TEST_SIMPLE_READ_ERROR(utf8_null, ((test = mpack_expect_utf8_cstr_alloc(&reader, 256)), true), mpack_error_type);

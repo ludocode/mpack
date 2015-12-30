@@ -42,19 +42,22 @@ void test_read_error_handler(mpack_reader_t* reader, mpack_error_t error);
 
 // tears down a reader, ensuring it has no errors and no extra data
 #define TEST_READER_DESTROY_NOERROR(reader) do { \
-    TEST_TRUE(mpack_reader_error(reader) == mpack_ok, "reader is in error state %i (%s)", \
-            (int)mpack_reader_error(reader), mpack_error_to_string(mpack_reader_error(reader))); \
-    TEST_TRUE(mpack_reader_remaining(reader, NULL) == 0, \
-            "reader has %i extra bytes", (int)mpack_reader_remaining(reader, NULL)); \
+    size_t remaining = mpack_reader_remaining(reader, NULL); \
+    mpack_error_t error = mpack_reader_destroy(reader); \
+    TEST_TRUE(error == mpack_ok, "reader is in error state %i (%s)", \
+            (int)error, mpack_error_to_string(error)); \
+    TEST_TRUE(remaining == 0, \
+            "reader has %i extra bytes", (int)remaining); \
     mpack_reader_destroy(reader); \
 } while (0)
 
 // tears down a reader, ensuring it is in the given error state
 #define TEST_READER_DESTROY_ERROR(reader, error) do { \
-    mpack_error_t e = (error); \
-    TEST_TRUE(mpack_reader_error(reader) == e, "reader is in error state %i (%s) instead of %i (%s)", \
-            (int)mpack_reader_error(reader), mpack_error_to_string(mpack_reader_error(reader)), \
-            (int)e, mpack_error_to_string(e)); \
+    mpack_error_t expected = (error); \
+    mpack_error_t actual = mpack_reader_destroy(reader); \
+    TEST_TRUE(actual == expected, "reader is in error state %i (%s) instead of %i (%s)", \
+            (int)actual, mpack_error_to_string(actual), \
+            (int)expected, mpack_error_to_string(expected)); \
     mpack_reader_destroy(reader); \
 } while (0)
 
@@ -143,7 +146,6 @@ void test_read_error_handler(mpack_reader_t* reader, mpack_error_t error);
     TEST_BREAK(read_expr); \
     TEST_READER_DESTROY_ERROR(&reader, mpack_error_bug); \
 } while (0)
-
 
 
 
