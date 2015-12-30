@@ -400,7 +400,6 @@ static bool test_file_expect_failure(void) {
     TEST_POSSIBLE_FAILURE();
     TEST_TRUE(str != NULL);
     const char* expected = "The quick brown fox jumps over a lazy dog.";
-    TEST_TRUE(strlen(str) == strlen(expected));
     if (str) {
         TEST_TRUE(strcmp(str, expected) == 0);
         MPACK_FREE(str);
@@ -410,7 +409,6 @@ static bool test_file_expect_failure(void) {
     TEST_POSSIBLE_FAILURE();
     TEST_TRUE(str != NULL);
     expected = "one";
-    TEST_TRUE(strlen(str) == strlen(expected));
     if (str) {
         TEST_TRUE(strcmp(str, expected) == 0);
         MPACK_FREE(str);
