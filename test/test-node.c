@@ -542,6 +542,96 @@ static void test_node_read_pre_error() {
     #endif
 }
 
+static void test_node_read_strings() {
+    char buf[256];
+    mpack_node_data_t pool[128];
+    #ifdef MPACK_MALLOC
+    char* test = NULL;
+    #endif
+
+    // these are copied from test-expect.c
+    // the first byte of each of these is the MessagePack object header
+    const char utf8_null[]            = "\xa1\x00";
+    const char utf8_valid[]           = "\xac \xCF\x80 \xe4\xb8\xad \xf0\xa0\x80\xb6";
+    const char utf8_trimmed[]         = "\xa4\xf0\xa0\x80\xb6";
+    const char utf8_invalid[]         = "\xa3 \x80 ";
+    const char utf8_invalid_trimmed[] = "\xa1\xa0";
+    const char utf8_truncated[]       = "\xa2\xf0\xa0";
+    // we don't accept any of these UTF-8 variants; only pure UTF-8 is allowed.
+    const char utf8_modified[]        = "\xa4 \xc0\x80 ";
+    const char utf8_cesu8[]           = "\xa8 \xED\xA0\x81\xED\xB0\x80 ";
+    const char utf8_wobbly[]          = "\xa5 \xED\xA0\x81 ";
+
+    // utf8 str
+    TEST_SIMPLE_TREE_READ("\xa0", 0 == mpack_node_copy_utf8(node, buf, 0));
+    TEST_SIMPLE_TREE_READ("\xa0", 0 == mpack_node_copy_utf8(node, buf, 4));
+    TEST_SIMPLE_TREE_READ("\xa4test", 4 == mpack_node_copy_utf8(node, buf, 4));
+    TEST_SIMPLE_TREE_READ_ERROR("\xa5hello", 0 == mpack_node_copy_utf8(node, buf, 4), mpack_error_too_big);
+    TEST_SIMPLE_TREE_READ(utf8_null, (mpack_node_copy_utf8(node, buf, sizeof(buf)), true));
+    TEST_SIMPLE_TREE_READ(utf8_valid, (mpack_node_copy_utf8(node, buf, sizeof(buf)), true));
+    TEST_SIMPLE_TREE_READ(utf8_trimmed, (mpack_node_copy_utf8(node, buf, sizeof(buf)), true));
+    TEST_SIMPLE_TREE_READ_ERROR(utf8_invalid, (mpack_node_copy_utf8(node, buf, sizeof(buf)), true), mpack_error_type);
+    TEST_SIMPLE_TREE_READ_ERROR(utf8_invalid_trimmed, (mpack_node_copy_utf8(node, buf, sizeof(buf)), true), mpack_error_type);
+    TEST_SIMPLE_TREE_READ_ERROR(utf8_truncated, (mpack_node_copy_utf8(node, buf, sizeof(buf)), true), mpack_error_type);
+    TEST_SIMPLE_TREE_READ_ERROR(utf8_modified, (mpack_node_copy_utf8(node, buf, sizeof(buf)), true), mpack_error_type);
+    TEST_SIMPLE_TREE_READ_ERROR(utf8_cesu8, (mpack_node_copy_utf8(node, buf, sizeof(buf)), true), mpack_error_type);
+    TEST_SIMPLE_TREE_READ_ERROR(utf8_wobbly, (mpack_node_copy_utf8(node, buf, sizeof(buf)), true), mpack_error_type);
+
+    // utf8 cstr
+    TEST_SIMPLE_TREE_READ_ASSERT("\xa0", mpack_node_copy_utf8_cstr(node, buf, 0));
+    TEST_SIMPLE_TREE_READ("\xa0", (mpack_node_copy_utf8_cstr(node, buf, 4), true));
+    TEST_TRUE(strlen(buf) == 0);
+    TEST_SIMPLE_TREE_READ("\xa4test", (mpack_node_copy_utf8_cstr(node, buf, 5), true));
+    TEST_TRUE(strlen(buf) == 4);
+    TEST_SIMPLE_TREE_READ_ERROR("\xa5hello", (mpack_node_copy_utf8_cstr(node, buf, 5), true), mpack_error_too_big);
+    TEST_TRUE(strlen(buf) == 0);
+    TEST_SIMPLE_TREE_READ_ERROR(utf8_null, (mpack_node_copy_utf8_cstr(node, buf, sizeof(buf)), true), mpack_error_type);
+    TEST_SIMPLE_TREE_READ(utf8_valid, (mpack_node_copy_utf8_cstr(node, buf, sizeof(buf)), true));
+    TEST_SIMPLE_TREE_READ(utf8_trimmed, (mpack_node_copy_utf8_cstr(node, buf, sizeof(buf)), true));
+    TEST_SIMPLE_TREE_READ_ERROR(utf8_invalid, (mpack_node_copy_utf8_cstr(node, buf, sizeof(buf)), true), mpack_error_type);
+    TEST_SIMPLE_TREE_READ_ERROR(utf8_invalid_trimmed, (mpack_node_copy_utf8_cstr(node, buf, sizeof(buf)), true), mpack_error_type);
+    TEST_SIMPLE_TREE_READ_ERROR(utf8_truncated, (mpack_node_copy_utf8_cstr(node, buf, sizeof(buf)), true), mpack_error_type);
+    TEST_SIMPLE_TREE_READ_ERROR(utf8_modified, (mpack_node_copy_utf8_cstr(node, buf, sizeof(buf)), true), mpack_error_type);
+    TEST_SIMPLE_TREE_READ_ERROR(utf8_cesu8, (mpack_node_copy_utf8_cstr(node, buf, sizeof(buf)), true), mpack_error_type);
+    TEST_SIMPLE_TREE_READ_ERROR(utf8_wobbly, (mpack_node_copy_utf8_cstr(node, buf, sizeof(buf)), true), mpack_error_type);
+
+    #ifdef MPACK_MALLOC
+    // utf8 cstr alloc
+    TEST_SIMPLE_TREE_READ_BREAK("\xa0", NULL == mpack_node_utf8_cstr_alloc(node, 0));
+    TEST_SIMPLE_TREE_READ("\xa0", NULL != (test = mpack_node_utf8_cstr_alloc(node, 4)));
+    if (test) {
+        TEST_TRUE(strlen(test) == 0);
+        MPACK_FREE(test);
+    }
+    TEST_SIMPLE_TREE_READ_ERROR("\xa4test", NULL == mpack_node_utf8_cstr_alloc(node, 4), mpack_error_too_big);
+    TEST_SIMPLE_TREE_READ("\xa4test", NULL != (test = mpack_node_utf8_cstr_alloc(node, 5)));
+    if (test) {
+        TEST_TRUE(strlen(test) == 4);
+        TEST_TRUE(memcmp(test, "test", 4) == 0);
+        MPACK_FREE(test);
+    }
+    TEST_SIMPLE_TREE_READ("\xa4test", NULL != (test = mpack_node_utf8_cstr_alloc(node, SIZE_MAX)));
+    if (test) {
+        TEST_TRUE(strlen(test) == 4);
+        TEST_TRUE(memcmp(test, "test", 4) == 0);
+        MPACK_FREE(test);
+    }
+    TEST_SIMPLE_TREE_READ_ERROR("\x01", NULL == mpack_node_utf8_cstr_alloc(node, 3), mpack_error_type);
+
+    TEST_SIMPLE_TREE_READ_ERROR(utf8_null, ((test = mpack_node_utf8_cstr_alloc(node, 256)), true), mpack_error_type);
+    TEST_SIMPLE_TREE_READ(utf8_valid, ((test = mpack_node_utf8_cstr_alloc(node, 256)), true));
+    MPACK_FREE(test);
+    TEST_SIMPLE_TREE_READ(utf8_trimmed, ((test = mpack_node_utf8_cstr_alloc(node, 256)), true));
+    MPACK_FREE(test);
+    TEST_SIMPLE_TREE_READ_ERROR(utf8_invalid, ((test = mpack_node_utf8_cstr_alloc(node, 256)), true), mpack_error_type);
+    TEST_SIMPLE_TREE_READ_ERROR(utf8_invalid_trimmed, ((test = mpack_node_utf8_cstr_alloc(node, 256)), true), mpack_error_type);
+    TEST_SIMPLE_TREE_READ_ERROR(utf8_truncated, ((test = mpack_node_utf8_cstr_alloc(node, 256)), true), mpack_error_type);
+    TEST_SIMPLE_TREE_READ_ERROR(utf8_modified, ((test = mpack_node_utf8_cstr_alloc(node, 256)), true), mpack_error_type);
+    TEST_SIMPLE_TREE_READ_ERROR(utf8_cesu8, ((test = mpack_node_utf8_cstr_alloc(node, 256)), true), mpack_error_type);
+    TEST_SIMPLE_TREE_READ_ERROR(utf8_wobbly, ((test = mpack_node_utf8_cstr_alloc(node, 256)), true), mpack_error_type);
+    #endif
+}
+
 static void test_node_read_array() {
     static const char test[] = "\x93\x90\x91\xc3\x92\xc3\xc3";
     mpack_tree_t tree;
@@ -770,6 +860,7 @@ void test_node(void) {
     test_node_read_bad_type();
     test_node_read_possible();
     test_node_read_pre_error();
+    test_node_read_strings();
 
     // compound types
     test_node_read_array();

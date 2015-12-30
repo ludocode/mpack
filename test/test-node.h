@@ -36,15 +36,16 @@ void test_tree_error_handler(mpack_tree_t* tree, mpack_error_t error);
 
 #define TEST_TREE_DESTROY_NOERROR(tree) do { \
     mpack_error_t error = mpack_tree_destroy(tree); \
-    TEST_TRUE(error == mpack_ok, \
-            "tree is in error state %i", (int)error); \
+    TEST_TRUE(error == mpack_ok, "tree is in error state %i (%s)", \
+            (int)error, mpack_error_to_string(error)); \
 } while (0)
 
 #define TEST_TREE_DESTROY_ERROR(tree, error) do { \
     mpack_error_t expected = (error); \
     mpack_error_t actual = mpack_tree_destroy(tree); \
-    TEST_TRUE(actual == expected, "tree is in error state %i instead of %i", \
-            (int)actual, (int)expected); \
+    TEST_TRUE(actual == expected, "tree is in error state %i (%s) instead of %i (%s)", \
+            (int)actual, mpack_error_to_string(actual), \
+            (int)expected, mpack_error_to_string(expected)); \
 } while (0)
 
 #define TEST_SIMPLE_TREE_READ(data, read_expr) do { \
@@ -80,6 +81,45 @@ mpack_tree_init_pool((tree), (data), (data_size), pool, sizeof(pool) / sizeof(*p
     TEST_TRUE(test_tree_error == (error)); \
     test_tree_error = mpack_ok; \
 } while (0)
+
+
+
+// bug tests
+
+#if MPACK_DEBUG
+
+// runs a simple tree test, ensuring it causes an assert.
+// we flag mpack_error_data to cancel out of any tracking.
+// (note about volatile, see TEST_ASSERT())
+#define TEST_SIMPLE_TREE_READ_ASSERT(data, read_expr) do { \
+    volatile mpack_tree_t v_tree; \
+    mpack_tree_t* tree = (mpack_tree_t*)&v_tree; \
+    mpack_tree_init_pool(tree, data, sizeof(data) - 1, pool, sizeof(pool) / sizeof(*pool)); \
+    mpack_node_t node = mpack_tree_root(tree); \
+    TEST_ASSERT(read_expr); \
+    mpack_tree_destroy(tree); \
+} while (0)
+
+#else
+
+// we cannot test asserts in release mode because they are
+// compiled away; code would continue to run and cause
+// undefined behavior.
+#define TEST_SIMPLE_TREE_READ_ASSERT(data, read_expr) ((void)0)
+
+#endif
+
+// runs a simple tree test, ensuring it causes a break in
+// debug mode and flags mpack_error_bug in both debug and release.
+#define TEST_SIMPLE_TREE_READ_BREAK(data, read_expr) do { \
+    mpack_tree_t tree; \
+    mpack_tree_init_pool(&tree, data, sizeof(data) - 1, pool, sizeof(pool) / sizeof(*pool)); \
+    mpack_node_t node = mpack_tree_root(&tree); \
+    TEST_BREAK(read_expr); \
+    TEST_TREE_DESTROY_ERROR(&tree, mpack_error_bug); \
+} while (0)
+
+
 
 void test_node(void);
 
