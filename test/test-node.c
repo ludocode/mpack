@@ -496,6 +496,7 @@ static void test_node_read_possible() {
 
 static void test_node_read_pre_error() {
     mpack_node_data_t pool[128];
+    char buf[1];
 
     // test that all node functions correctly handle pre-existing errors
 
@@ -535,7 +536,7 @@ static void test_node_read_pre_error() {
     TEST_SIMPLE_TREE_READ_ERROR("", 0 == mpack_node_strlen(node), mpack_error_invalid);
     TEST_SIMPLE_TREE_READ_ERROR("", NULL == mpack_node_data(node), mpack_error_invalid);
     TEST_SIMPLE_TREE_READ_ERROR("", 0 == mpack_node_copy_data(node, NULL, 0), mpack_error_invalid);
-    TEST_SIMPLE_TREE_READ_ERROR("", (mpack_node_copy_cstr(node, NULL, 0), true), mpack_error_invalid);
+    TEST_SIMPLE_TREE_READ_ERROR("", (mpack_node_copy_cstr(node, buf, sizeof(buf)), true), mpack_error_invalid);
     #ifdef MPACK_MALLOC
     TEST_SIMPLE_TREE_READ_ERROR("", NULL == mpack_node_data_alloc(node, 0), mpack_error_invalid);
     TEST_SIMPLE_TREE_READ_ERROR("", NULL == mpack_node_cstr_alloc(node, 0), mpack_error_invalid);

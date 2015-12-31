@@ -1102,7 +1102,7 @@ size_t mpack_node_copy_utf8(mpack_node_t node, char* buffer, size_t bufsize) {
     mpack_assert(bufsize == 0 || buffer != NULL, "buffer is NULL for maximum of %i bytes", (int)bufsize);
 
     mpack_type_t type = node.data->type;
-    if (type != mpack_type_str && type != mpack_type_bin && type != mpack_type_ext) {
+    if (type != mpack_type_str) {
         mpack_node_flag_error(node, mpack_error_type);
         return 0;
     }
@@ -1122,13 +1122,16 @@ size_t mpack_node_copy_utf8(mpack_node_t node, char* buffer, size_t bufsize) {
 }
 
 void mpack_node_copy_cstr(mpack_node_t node, char* buffer, size_t bufsize) {
-    if (mpack_node_error(node) != mpack_ok)
-        return;
 
     // we can't break here because the error isn't recoverable; we
     // have to add a null-terminator.
     mpack_assert(buffer != NULL, "buffer is NULL");
     mpack_assert(bufsize >= 1, "buffer size is zero; you must have room for at least a null-terminator");
+
+    if (mpack_node_error(node) != mpack_ok) {
+        buffer[0] = '\0';
+        return;
+    }
 
     if (node.data->type != mpack_type_str) {
         buffer[0] = '\0';
@@ -1153,13 +1156,16 @@ void mpack_node_copy_cstr(mpack_node_t node, char* buffer, size_t bufsize) {
 }
 
 void mpack_node_copy_utf8_cstr(mpack_node_t node, char* buffer, size_t bufsize) {
-    if (mpack_node_error(node) != mpack_ok)
-        return;
 
     // we can't break here because the error isn't recoverable; we
     // have to add a null-terminator.
     mpack_assert(buffer != NULL, "buffer is NULL");
     mpack_assert(bufsize >= 1, "buffer size is zero; you must have room for at least a null-terminator");
+
+    if (mpack_node_error(node) != mpack_ok) {
+        buffer[0] = '\0';
+        return;
+    }
 
     if (node.data->type != mpack_type_str) {
         buffer[0] = '\0';
