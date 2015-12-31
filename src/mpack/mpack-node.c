@@ -1074,6 +1074,22 @@ void mpack_node_print_file(mpack_node_t node, FILE* file) {
  * Node Data Functions
  */
 
+void mpack_node_check_utf8(mpack_node_t node) {
+    if (mpack_node_error(node) != mpack_ok)
+        return;
+    mpack_node_data_t* data = node.data;
+    if (data->type != mpack_type_str || !mpack_utf8_check(data->value.bytes, data->len))
+        mpack_node_flag_error(node, mpack_error_type);
+}
+
+void mpack_node_check_utf8_cstr(mpack_node_t node) {
+    if (mpack_node_error(node) != mpack_ok)
+        return;
+    mpack_node_data_t* data = node.data;
+    if (data->type != mpack_type_str || !mpack_utf8_check_no_null(data->value.bytes, data->len))
+        mpack_node_flag_error(node, mpack_error_type);
+}
+
 size_t mpack_node_copy_data(mpack_node_t node, char* buffer, size_t bufsize) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;

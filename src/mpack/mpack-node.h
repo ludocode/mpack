@@ -679,6 +679,35 @@ MPACK_INLINE double mpack_node_double_strict(mpack_node_t node) {
  */
 
 /**
+ * Checks that the given node contains a valid UTF-8 string.
+ *
+ * @throws mpack_error_type If this node is not a string or does not contain valid UTF-8.
+ *
+ * @param node The string node to test
+ */
+void mpack_node_check_utf8(mpack_node_t node);
+
+/**
+ * Checks that the given node contains a valid UTF-8 string with no NUL bytes.
+ *
+ * This does not check that the string has a null-terminator! It only checks if the
+ * string could safely be represented as a C-string by appending a null-terminator.
+ *
+ * This is performed automatically by other UTF-8 cstr helper functions. Only
+ * call this if you will do something else with the data directly, but you still
+ * want to ensure it will be valid as a UTF-8 C-string.
+ *
+ * @throws mpack_error_type If this node is not a string, does not contain valid UTF-8,
+ *     or contains a NUL byte.
+ *
+ * @param node The string node to test
+ *
+ * @see mpack_node_copy_utf8_cstr
+ * @see mpack_node_utf8_cstr_alloc
+ */
+void mpack_node_check_utf8_cstr(mpack_node_t node);
+
+/**
  * Returns the extension type of the given ext node.
  */
 MPACK_INLINE int8_t mpack_node_exttype(mpack_node_t node) {
