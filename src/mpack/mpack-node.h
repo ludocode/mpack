@@ -681,9 +681,17 @@ MPACK_INLINE double mpack_node_double_strict(mpack_node_t node) {
 /**
  * Checks that the given node contains a valid UTF-8 string.
  *
+ * If the string is invalid, this flags an error, which would cause subsequent calls
+ * to mpack_node_str() to return NULL and mpack_node_strlen() to return zero. So you
+ * can check the node for error immediately after calling this, or you can call those
+ * functions to use the data anyway and check for errors later.
+ *
  * @throws mpack_error_type If this node is not a string or does not contain valid UTF-8.
  *
  * @param node The string node to test
+ *
+ * @see mpack_node_str()
+ * @see mpack_node_strlen()
  */
 void mpack_node_check_utf8(mpack_node_t node);
 
@@ -702,13 +710,17 @@ void mpack_node_check_utf8(mpack_node_t node);
  *
  * @param node The string node to test
  *
- * @see mpack_node_copy_utf8_cstr
- * @see mpack_node_utf8_cstr_alloc
+ * @see mpack_node_str()
+ * @see mpack_node_strlen()
+ * @see mpack_node_copy_utf8_cstr()
+ * @see mpack_node_utf8_cstr_alloc()
  */
 void mpack_node_check_utf8_cstr(mpack_node_t node);
 
 /**
  * Returns the extension type of the given ext node.
+ *
+ * This returns zero if the tree is in an error state.
  */
 MPACK_INLINE int8_t mpack_node_exttype(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
@@ -724,6 +736,8 @@ MPACK_INLINE int8_t mpack_node_exttype(mpack_node_t node) {
 
 /**
  * Returns the length of the given str, bin or ext node.
+ *
+ * This returns zero if the tree is in an error state.
  */
 MPACK_INLINE uint32_t mpack_node_data_len(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
@@ -740,6 +754,8 @@ MPACK_INLINE uint32_t mpack_node_data_len(mpack_node_t node) {
 /**
  * Returns the length in bytes of the given string node. This does not
  * include any null-terminator.
+ *
+ * This returns zero if the tree is in an error state.
  */
 MPACK_INLINE size_t mpack_node_strlen(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
@@ -750,6 +766,32 @@ MPACK_INLINE size_t mpack_node_strlen(mpack_node_t node) {
 
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
+}
+
+/**
+ * Returns a pointer to the data contained by this node, ensuring it is a string.
+ *
+ * Note that strings are not null-terminated! Use one of the cstr functions
+ * to get a null-terminated string.
+ *
+ * The pointer is valid as long as the data backing the tree is valid.
+ *
+ * If this node is not a string, mpack_error_type is raised and NULL is returned.
+ *
+ * @see mpack_node_copy_cstr()
+ * @see mpack_node_cstr_alloc()
+ * @see mpack_node_utf8_cstr_alloc()
+ */
+MPACK_INLINE const char* mpack_node_str(mpack_node_t node) {
+    if (mpack_node_error(node) != mpack_ok)
+        return NULL;
+
+    mpack_type_t type = node.data->type;
+    if (type == mpack_type_str)
+        return node.data->value.bytes;
+
+    mpack_node_flag_error(node, mpack_error_type);
+    return NULL;
 }
 
 /**
