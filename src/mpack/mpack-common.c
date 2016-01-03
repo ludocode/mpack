@@ -296,6 +296,26 @@ mpack_error_t mpack_track_bytes(mpack_track_t* track, bool read, uint64_t count)
     return mpack_ok;
 }
 
+mpack_error_t mpack_track_str_bytes_all(mpack_track_t* track, bool read, uint64_t count) {
+    mpack_error_t error = mpack_track_bytes(track, read, count);
+    if (error != mpack_ok)
+        return error;
+
+    mpack_track_element_t* element = &track->elements[track->count - 1];
+
+    if (element->type != mpack_type_str) {
+        mpack_break("the open type must be a string, not a %s", mpack_type_to_string(element->type));
+        return mpack_error_bug;
+    }
+
+    if (element->left != 0) {
+        mpack_break("not all bytes were read; the wrong byte count was requested for a string read.");
+        return mpack_error_bug;
+    }
+
+    return mpack_ok;
+}
+
 mpack_error_t mpack_track_check_empty(mpack_track_t* track) {
     if (track->count != 0) {
         mpack_break("unclosed %s", mpack_type_to_string(track->elements[0].type));

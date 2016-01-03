@@ -400,9 +400,102 @@ mpack_tag_t mpack_peek_tag(mpack_reader_t* reader);
 void mpack_skip_bytes(mpack_reader_t* reader, size_t count);
 
 /**
- * Reads bytes from a string, binary blob or extension object.
+ * Reads bytes from a string, binary blob or extension object, copying
+ * them into the given buffer.
+ *
+ * A str, bin or ext must have been opened by a call to mpack_read_tag()
+ * which yielded one of these types, or by a call to an expect function
+ * such as mpack_expect_str().
+ *
+ * If an error occurs, the buffer contents are undefined.
+ *
+ * This can be called multiple times for a single str, bin or ext
+ * to read the data in chunks. The total data read must add up
+ * to the size of the object.
+ *
+ * @param reader The MPack reader
+ * @param p The buffer in which to copy the bytes
+ * @param count The number of bytes to read
  */
 void mpack_read_bytes(mpack_reader_t* reader, char* p, size_t count);
+
+/**
+ * Reads bytes from a string, ensures that the string is valid UTF-8,
+ * and copies the bytes into the given buffer.
+ *
+ * A string must have been opened by a call to mpack_read_tag() which
+ * yielded a string, or by a call to an expect function such as
+ * mpack_expect_str().
+ *
+ * The given byte count must match the complete size of the string as
+ * returned by the tag or expect function. You must ensure that the
+ * buffer fits the data.
+ *
+ * If an error occurs, the buffer contents are undefined.
+ *
+ * Unlike mpack_read_bytes(), this cannot be used to read the data in
+ * chunks (since this might split a character's UTF-8 bytes, and the
+ * reader does not keep track of the UTF-8 decoding state between reads.)
+ *
+ * @throws mpack_error_type if the string contains invalid UTF-8.
+ */
+void mpack_read_utf8(mpack_reader_t* reader, char* p, size_t byte_count);
+
+/**
+ * Reads bytes from a string, ensures that the string contains no NUL
+ * bytes, copies the bytes into the given buffer and adds a null-terminator.
+ *
+ * A string must have been opened by a call to mpack_read_tag() which
+ * yielded a string, or by a call to an expect function such as
+ * mpack_expect_str().
+ *
+ * The given byte count must match the size of the string as returned
+ * by the tag or expect function. The string will only be copied if
+ * the buffer is large enough to store it.
+ *
+ * If an error occurs, the buffer will contain an empty string.
+ *
+ * @note If you know the object will be a string before reading it,
+ * it is highly recommended to use mpack_expect_cstr() instead.
+ * Alternatively you could use mpack_peek_tag() and call
+ * mpack_expect_cstr() if it's a string.
+ *
+ * @throws mpack_error_too_big if the string plus null-terminator is larger than the given buffer size
+ * @throws mpack_error_type if the string contains a null byte.
+ *
+ * @see mpack_peek_tag()
+ * @see mpack_expect_cstr()
+ * @see mpack_expect_utf8_cstr()
+ */
+void mpack_read_cstr(mpack_reader_t* reader, char* buf, size_t buffer_size, size_t byte_count);
+
+/**
+ * Reads bytes from a string, ensures that the string is valid UTF-8
+ * with no NUL bytes, copies the bytes into the given buffer and adds a
+ * null-terminator.
+ *
+ * A string must have been opened by a call to mpack_read_tag() which
+ * yielded a string, or by a call to an expect function such as
+ * mpack_expect_str().
+ *
+ * The given byte count must match the size of the string as returned
+ * by the tag or expect function. The string will only be copied if
+ * the buffer is large enough to store it.
+ *
+ * If an error occurs, the buffer will contain an empty string.
+ *
+ * @note If you know the object will be a string before reading it,
+ * it is highly recommended to use mpack_expect_utf8_cstr() instead.
+ * Alternatively you could use mpack_peek_tag() and call
+ * mpack_expect_utf8_cstr() if it's a string.
+ *
+ * @throws mpack_error_too_big if the string plus null-terminator is larger than the given buffer size
+ * @throws mpack_error_type if the string contains invalid UTF-8 or a null byte.
+ *
+ * @see mpack_peek_tag()
+ * @see mpack_expect_utf8_cstr()
+ */
+void mpack_read_utf8_cstr(mpack_reader_t* reader, char* buf, size_t buffer_size, size_t byte_count);
 
 #ifdef MPACK_MALLOC
 /** @cond */
@@ -612,6 +705,11 @@ MPACK_INLINE mpack_error_t mpack_reader_track_peek_element(mpack_reader_t* reade
 MPACK_INLINE mpack_error_t mpack_reader_track_bytes(mpack_reader_t* reader, uint64_t count) {
     MPACK_UNUSED(count);
     return MPACK_READER_TRACK(reader, mpack_track_bytes(&reader->track, true, count));
+}
+
+MPACK_INLINE mpack_error_t mpack_reader_track_str_bytes_all(mpack_reader_t* reader, uint64_t count) {
+    MPACK_UNUSED(count);
+    return MPACK_READER_TRACK(reader, mpack_track_str_bytes_all(&reader->track, true, count));
 }
 
 #endif

@@ -430,10 +430,6 @@ uint32_t mpack_expect_str(mpack_reader_t* reader) {
     mpack_reader_flag_error(reader, mpack_error_type);
     return 0;
     #else
-
-    // mpack_expect_str() is likely to be used much more often than the
-    // other expect functions so we implement it separately first.
-
     uint8_t type = mpack_expect_type_byte(reader);
     uint32_t count;
 
@@ -515,45 +511,20 @@ size_t mpack_expect_bin_buf(mpack_reader_t* reader, char* buf, size_t bufsize) {
     return binsize;
 }
 
-static size_t mpack_expect_cstr_unchecked(mpack_reader_t* reader, char* buf, size_t bufsize) {
-    mpack_assert(buf != NULL, "buf cannot be NULL");
-
-    // make sure buffer makes sense
-    mpack_assert(bufsize >= 1, "buffer size is zero; you must have room for at least a null-terminator");
-
-    // expect a str
-    size_t length = mpack_expect_str_buf(reader, buf, bufsize - 1);
-    if (mpack_reader_error(reader)) {
-        buf[0] = 0;
-        return 0;
-    }
-
-    buf[length] = 0;
-    return length;
-}
-
 void mpack_expect_cstr(mpack_reader_t* reader, char* buf, size_t bufsize) {
     mpack_assert(buf != NULL, "buf cannot be NULL");
-
-    size_t length = mpack_expect_cstr_unchecked(reader, buf, bufsize);
-
-    // check for null bytes
-    if (!mpack_str_check_no_null(buf, length)) {
-        buf[0] = 0;
-        mpack_reader_flag_error(reader, mpack_error_type);
-    }
+    mpack_assert(bufsize >= 1, "buffer size is zero; you must have room for at least a null-terminator");
+    uint32_t length = mpack_expect_str(reader);
+    mpack_read_cstr(reader, buf, bufsize, length);
+    mpack_done_str(reader);
 }
 
 void mpack_expect_utf8_cstr(mpack_reader_t* reader, char* buf, size_t bufsize) {
     mpack_assert(buf != NULL, "buf cannot be NULL");
-
-    size_t length = mpack_expect_cstr_unchecked(reader, buf, bufsize);
-
-    // check encoding
-    if (!mpack_utf8_check_no_null(buf, length)) {
-        buf[0] = 0;
-        mpack_reader_flag_error(reader, mpack_error_type);
-    }
+    mpack_assert(bufsize >= 1, "buffer size is zero; you must have room for at least a null-terminator");
+    uint32_t length = mpack_expect_str(reader);
+    mpack_read_utf8_cstr(reader, buf, bufsize, length);
+    mpack_done_str(reader);
 }
 
 #ifdef MPACK_MALLOC

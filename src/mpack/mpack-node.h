@@ -698,8 +698,9 @@ void mpack_node_check_utf8(mpack_node_t node);
 /**
  * Checks that the given node contains a valid UTF-8 string with no NUL bytes.
  *
- * This does not check that the string has a null-terminator! It only checks if the
- * string could safely be represented as a C-string by appending a null-terminator.
+ * This does not check that the string has a null-terminator! It only checks whether
+ * the string could safely be represented as a C-string by appending a null-terminator.
+ * (If the string does already contain a null-terminator, this will flag an error.)
  *
  * This is performed automatically by other UTF-8 cstr helper functions. Only
  * call this if you will do something else with the data directly, but you still

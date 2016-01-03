@@ -423,6 +423,55 @@ void mpack_read_bytes(mpack_reader_t* reader, char* p, size_t count) {
     mpack_read_native(reader, p, count);
 }
 
+void mpack_read_utf8(mpack_reader_t* reader, char* p, size_t byte_count) {
+    mpack_assert(p != NULL, "destination for read of %i bytes is NULL", (int)byte_count);
+    mpack_reader_track_str_bytes_all(reader, byte_count);
+    mpack_read_native(reader, p, byte_count);
+
+    if (mpack_reader_error(reader) == mpack_ok && !mpack_utf8_check(p, byte_count))
+        mpack_reader_flag_error(reader, mpack_error_type);
+}
+
+static void mpack_read_cstr_unchecked(mpack_reader_t* reader, char* buf, size_t buffer_size, size_t byte_count) {
+    mpack_assert(buf != NULL, "destination for read of %i bytes is NULL", (int)byte_count);
+    mpack_assert(buffer_size >= 1, "buffer size is zero; you must have room for at least a null-terminator");
+
+    if (mpack_reader_error(reader)) {
+        buf[0] = 0;
+        return;
+    }
+
+    if (byte_count > buffer_size - 1) {
+        mpack_reader_flag_error(reader, mpack_error_too_big);
+        buf[0] = 0;
+        return;
+    }
+
+    mpack_reader_track_str_bytes_all(reader, byte_count);
+    mpack_read_native(reader, buf, byte_count);
+    buf[byte_count] = 0;
+}
+
+void mpack_read_cstr(mpack_reader_t* reader, char* buf, size_t buffer_size, size_t byte_count) {
+    mpack_read_cstr_unchecked(reader, buf, buffer_size, byte_count);
+
+    // check for null bytes
+    if (mpack_reader_error(reader) == mpack_ok && !mpack_str_check_no_null(buf, byte_count)) {
+        buf[0] = 0;
+        mpack_reader_flag_error(reader, mpack_error_type);
+    }
+}
+
+void mpack_read_utf8_cstr(mpack_reader_t* reader, char* buf, size_t buffer_size, size_t byte_count) {
+    mpack_read_cstr_unchecked(reader, buf, buffer_size, byte_count);
+
+    // check encoding
+    if (mpack_reader_error(reader) == mpack_ok && !mpack_utf8_check_no_null(buf, byte_count)) {
+        buf[0] = 0;
+        mpack_reader_flag_error(reader, mpack_error_type);
+    }
+}
+
 #ifdef MPACK_MALLOC
 // Reads native bytes with error callback disabled. This allows MPack reader functions
 // to hold an allocated buffer and read native data into it without leaking it in
