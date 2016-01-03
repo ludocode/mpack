@@ -512,16 +512,12 @@ size_t mpack_expect_bin_buf(mpack_reader_t* reader, char* buf, size_t bufsize) {
 }
 
 void mpack_expect_cstr(mpack_reader_t* reader, char* buf, size_t bufsize) {
-    mpack_assert(buf != NULL, "buf cannot be NULL");
-    mpack_assert(bufsize >= 1, "buffer size is zero; you must have room for at least a null-terminator");
     uint32_t length = mpack_expect_str(reader);
     mpack_read_cstr(reader, buf, bufsize, length);
     mpack_done_str(reader);
 }
 
 void mpack_expect_utf8_cstr(mpack_reader_t* reader, char* buf, size_t bufsize) {
-    mpack_assert(buf != NULL, "buf cannot be NULL");
-    mpack_assert(bufsize >= 1, "buffer size is zero; you must have room for at least a null-terminator");
     uint32_t length = mpack_expect_str(reader);
     mpack_read_utf8_cstr(reader, buf, bufsize, length);
     mpack_done_str(reader);

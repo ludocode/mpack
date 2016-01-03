@@ -526,9 +526,30 @@ MPACK_INLINE char* mpack_read_bytes_alloc(mpack_reader_t* reader, size_t count) 
  * The returned pointer is invalidated the next time the reader's fill
  * function is called, or when the buffer is destroyed.
  *
- * The size requested must be at most the buffer size. If the requested size is
- * larger than the buffer size, mpack_error_too_big is raised and the
- * return value is undefined.
+ * The reader will move data around in the buffer if needed to ensure that
+ * the pointer can always be returned, so it is unlikely to be faster unless
+ * count is very small compared to the buffer size. If you need to check
+ * whether a small size is reasonable (for example you intend to handle small and
+ * large sizes differently), you can call mpack_should_read_bytes_inplace().
+ *
+ * NULL is returned if the reader is in an error state.
+ *
+ * @throws mpack_error_too_big if the requested size is larger than the buffer size
+ *
+ * @see mpack_should_read_bytes_inplace()
+ */
+const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count);
+
+/**
+ * Reads bytes from a string in-place in the buffer and ensures they are
+ * valid UTF-8. This can be used to avoid copying the data.
+ *
+ * A string must have been opened by a call to mpack_read_tag() which
+ * yielded a string, or by a call to an expect function such as
+ * mpack_expect_str().
+ *
+ * The returned pointer is invalidated the next time the reader's fill
+ * function is called, or when the buffer is destroyed.
  *
  * The reader will move data around in the buffer if needed to ensure that
  * the pointer can always be returned, so it is unlikely to be faster unless
@@ -536,12 +557,14 @@ MPACK_INLINE char* mpack_read_bytes_alloc(mpack_reader_t* reader, size_t count) 
  * whether a small size is reasonable (for example you intend to handle small and
  * large sizes differently), you can call mpack_should_read_bytes_inplace().
  *
- * As with all read functions, the return value is undefined if the reader
- * is in an error state.
+ * NULL is returned if the reader is in an error state.
+ *
+ * @throws mpack_error_type if the string contains invalid UTF-8
+ * @throws mpack_error_too_big if the requested size is larger than the buffer size
  *
  * @see mpack_should_read_bytes_inplace()
  */
-const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count);
+const char* mpack_read_utf8_inplace(mpack_reader_t* reader, size_t count);
 
 /**
  * Returns true if it's a good idea to read the given number of bytes

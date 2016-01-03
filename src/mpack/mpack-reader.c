@@ -520,8 +520,6 @@ char* mpack_read_bytes_alloc_impl(mpack_reader_t* reader, size_t count, bool nul
 #endif
 
 // internal inplace reader for when it straddles the end of the buffer
-// this is split out to inline the common case, although this isn't done
-// right now because we can't inline tracking yet
 static const char* mpack_read_bytes_inplace_big(mpack_reader_t* reader, size_t count) {
 
     // we should only arrive here from inplace straddle; this should already be checked
@@ -556,11 +554,11 @@ static const char* mpack_read_bytes_inplace_big(mpack_reader_t* reader, size_t c
     return reader->buffer;
 }
 
-const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count) {
+// read inplace without tracking (since there are different
+// tracking modes for different inplace readers)
+static const char* mpack_read_bytes_inplace_notrack(mpack_reader_t* reader, size_t count) {
     if (mpack_reader_error(reader) != mpack_ok)
         return NULL;
-
-    mpack_reader_track_bytes(reader, count);
 
     // if we have enough bytes already in the buffer, we can return it directly.
     if (reader->left >= count) {
@@ -570,6 +568,23 @@ const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count) {
     }
 
     return mpack_read_bytes_inplace_big(reader, count);
+}
+
+const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count) {
+    mpack_reader_track_bytes(reader, count);
+    return mpack_read_bytes_inplace_notrack(reader, count);
+}
+
+const char* mpack_read_utf8_inplace(mpack_reader_t* reader, size_t count) {
+    mpack_reader_track_str_bytes_all(reader, count);
+    const char* str = mpack_read_bytes_inplace_notrack(reader, count);
+
+    if (mpack_reader_error(reader) == mpack_ok && !mpack_utf8_check(str, count)) {
+        mpack_reader_flag_error(reader, mpack_error_type);
+        return NULL;
+    }
+
+    return str;
 }
 
 // Decodes a tag from a byte buffer. The size of the bytes buffer
