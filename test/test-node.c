@@ -727,24 +727,35 @@ static void test_node_read_map() {
 }
 
 static void test_node_read_map_search() {
-    static const char test[] = "\x85\x00\x01\xd0\x7f\x02\xfe\x03\xa5""alice\x04\xa3""bob\x05";
-    mpack_tree_t tree;
-    TEST_TREE_INIT(&tree, test, sizeof(test) - 1);
-    mpack_node_t root = mpack_tree_root(&tree);
+    static const char test[] =
+            "\x89\x00\x01\xd0\x7f\x02\xfe\x03\xa5""alice\x04\xa3"
+            "bob\x05\xa4""carl\x06\xa4""carl\x07\x10\x08\x10\x09";
 
-    TEST_TRUE(1 == mpack_node_i32(mpack_node_map_uint(root, 0)));
-    TEST_TRUE(1 == mpack_node_i32(mpack_node_map_int(root, 0)));
-    TEST_TRUE(2 == mpack_node_i32(mpack_node_map_uint(root, 127))); // underlying tag type is int
-    TEST_TRUE(3 == mpack_node_i32(mpack_node_map_int(root, -2)));
-    TEST_TRUE(4 == mpack_node_i32(mpack_node_map_str(root, "alice", 5)));
-    TEST_TRUE(5 == mpack_node_i32(mpack_node_map_cstr(root, "bob")));
+    mpack_node_data_t pool[128];
 
-    TEST_TRUE(true == mpack_node_map_contains_str(root, "alice", 5));
-    TEST_TRUE(true == mpack_node_map_contains_cstr(root, "bob"));
-    TEST_TRUE(false == mpack_node_map_contains_str(root, "eve", 3));
-    TEST_TRUE(false == mpack_node_map_contains_cstr(root, "eve"));
+    TEST_SIMPLE_TREE_READ(test, 1 == mpack_node_i32(mpack_node_map_uint(node, 0)));
+    TEST_SIMPLE_TREE_READ(test, 1 == mpack_node_i32(mpack_node_map_int(node, 0)));
+    TEST_SIMPLE_TREE_READ(test, 2 == mpack_node_i32(mpack_node_map_uint(node, 127))); // underlying tag type is int
+    TEST_SIMPLE_TREE_READ(test, 3 == mpack_node_i32(mpack_node_map_int(node, -2)));
+    TEST_SIMPLE_TREE_READ(test, 4 == mpack_node_i32(mpack_node_map_str(node, "alice", 5)));
+    TEST_SIMPLE_TREE_READ(test, 5 == mpack_node_i32(mpack_node_map_cstr(node, "bob")));
 
-    TEST_TREE_DESTROY_NOERROR(&tree);
+    TEST_SIMPLE_TREE_READ(test, mpack_node_map_contains_int(node, 0));
+    TEST_SIMPLE_TREE_READ(test, mpack_node_map_contains_uint(node, 0));
+    TEST_SIMPLE_TREE_READ(test, false == mpack_node_map_contains_int(node, 1));
+    TEST_SIMPLE_TREE_READ(test, false == mpack_node_map_contains_uint(node, 1));
+    TEST_SIMPLE_TREE_READ(test, mpack_node_map_contains_int(node, -2));
+    TEST_SIMPLE_TREE_READ(test, false == mpack_node_map_contains_int(node, -3));
+
+    TEST_SIMPLE_TREE_READ(test, true == mpack_node_map_contains_str(node, "alice", 5));
+    TEST_SIMPLE_TREE_READ(test, true == mpack_node_map_contains_cstr(node, "bob"));
+    TEST_SIMPLE_TREE_READ(test, false == mpack_node_map_contains_str(node, "eve", 3));
+    TEST_SIMPLE_TREE_READ(test, false == mpack_node_map_contains_cstr(node, "eve"));
+
+    TEST_SIMPLE_TREE_READ_ERROR(test, false == mpack_node_map_contains_int(node, 16), mpack_error_data);
+    TEST_SIMPLE_TREE_READ_ERROR(test, false == mpack_node_map_contains_uint(node, 16), mpack_error_data);
+    TEST_SIMPLE_TREE_READ_ERROR(test, false == mpack_node_map_contains_str(node, "carl", 4), mpack_error_data);
+    TEST_SIMPLE_TREE_READ_ERROR(test, false == mpack_node_map_contains_cstr(node, "carl"), mpack_error_data);
 }
 
 static void test_node_read_compound_errors(void) {

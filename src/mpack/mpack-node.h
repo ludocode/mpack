@@ -951,11 +951,6 @@ char* mpack_node_utf8_cstr_alloc(mpack_node_t node, size_t maxsize);
  * @{
  */
 
-// internal implementation of map key lookup functions to support optional flag
-mpack_node_t mpack_node_map_str_impl(mpack_node_t node, const char* str, size_t length, bool optional);
-mpack_node_t mpack_node_map_int_impl(mpack_node_t node, int64_t num, bool optional);
-mpack_node_t mpack_node_map_uint_impl(mpack_node_t node, uint64_t num, bool optional);
-
 /**
  * Returns the length of the given array node. Raises mpack_error_type
  * and returns 0 if the given node is not an array.
@@ -1054,103 +1049,173 @@ MPACK_INLINE mpack_node_t mpack_node_map_value_at(mpack_node_t node, size_t inde
 }
 
 /**
- * Returns the value node in the given map for the given integer key. If the given
- * node is not a map, mpack_error_type is raised and a nil node is
- * returned. If the given key does not exist in the map, mpack_error_data
- * is raised and a nil node is returned.
+ * Returns the value node in the given map for the given integer key.
+ *
+ * The key must exist within the map. Use mpack_node_map_int_optional() to
+ * check for optional keys.
+ *
+ * The key must be unique. An error is flagged if the node has multiple
+ * entries with the given key.
+ *
+ * @throws mpack_error_type If the node is not a map
+ * @throws mpack_error_data If the node does not contain exactly one entry with the given key
+ *
+ * @return The value node for the given key, or a nil node in case of error
  */
-MPACK_INLINE mpack_node_t mpack_node_map_int(mpack_node_t node, int64_t num) {
-    return mpack_node_map_int_impl(node, num, false);
-}
+mpack_node_t mpack_node_map_int(mpack_node_t node, int64_t num);
 
 /**
  * Returns the value node in the given map for the given integer key, or a nil
  * node if the map does not contain the given key.
  *
- * @throws mpack_error_type if the node is not a map
+ * The key must be unique. An error is flagged if the node has multiple
+ * entries with the given key.
+ *
+ * @throws mpack_error_type If the node is not a map
+ * @throws mpack_error_data If the node contains more than one entry with the given key
+ *
+ * @return The value node for the given key, or a nil node in case of error
  */
-MPACK_INLINE mpack_node_t mpack_node_map_int_optional(mpack_node_t node, int64_t num) {
-    return mpack_node_map_int_impl(node, num, true);
-}
+mpack_node_t mpack_node_map_int_optional(mpack_node_t node, int64_t num);
 
 /**
- * Returns the value node in the given map for the given unsigned integer key. If
- * the given node is not a map, mpack_error_type is raised and a nil node is
- * returned. If the given key does not exist in the map, mpack_error_data
- * is raised and a nil node is returned.
+ * Returns the value node in the given map for the given unsigned integer key.
+ *
+ * The key must exist within the map. Use mpack_node_map_uint_optional() to
+ * check for optional keys.
+ *
+ * The key must be unique. An error is flagged if the node has multiple
+ * entries with the given key.
+ *
+ * @throws mpack_error_type If the node is not a map
+ * @throws mpack_error_data If the node does not contain exactly one entry with the given key
+ *
+ * @return The value node for the given key, or a nil node in case of error
  */
-MPACK_INLINE mpack_node_t mpack_node_map_uint(mpack_node_t node, uint64_t num) {
-    return mpack_node_map_uint_impl(node, num, false);
-}
+mpack_node_t mpack_node_map_uint(mpack_node_t node, uint64_t num);
 
 /**
  * Returns the value node in the given map for the given unsigned integer
  * key, or a nil node if the map does not contain the given key.
  *
- * @throws mpack_error_type if the node is not a map
- */
-MPACK_INLINE mpack_node_t mpack_node_map_uint_optional(mpack_node_t node, uint64_t num) {
-    return mpack_node_map_uint_impl(node, num, true);
-}
-
-/**
- * Returns the value node in the given map for the given string key. If the given
- * node is not a map, mpack_error_type is raised and a nil node is
- * returned. If the given key does not exist in the map, mpack_error_data
- * is raised and a nil node is returned.
- */
-MPACK_INLINE mpack_node_t mpack_node_map_str(mpack_node_t node, const char* str, size_t length) {
-    return mpack_node_map_str_impl(node, str, length, false);
-}
-
-/**
- * Returns the value node in the given map for the given string key, or a
- * nil node if the map does not contain the given key.
+ * The key must be unique. An error is flagged if the node has multiple
+ * entries with the given key.
  *
- * @throws mpack_error_type if the node is not a map
+ * @throws mpack_error_type If the node is not a map
+ * @throws mpack_error_data If the node contains more than one entry with the given key
+ *
+ * @return The value node for the given key, or a nil node in case of error
  */
-MPACK_INLINE mpack_node_t mpack_node_map_str_optional(mpack_node_t node, const char* str, size_t length) {
-    return mpack_node_map_str_impl(node, str, length, true);
-}
+mpack_node_t mpack_node_map_uint_optional(mpack_node_t node, uint64_t num);
 
 /**
- * Returns the value node in the given map for the given null-terminated string key.
- * If the given node is not a map, mpack_error_type is raised and a nil node is
- * returned. If the given key does not exist in the map, mpack_error_data
- * is raised and a nil node is returned.
+ * Returns the value node in the given map for the given string key.
+ *
+ * The key must exist within the map. Use mpack_node_map_str_optional() to
+ * check for optional keys.
+ *
+ * The key must be unique. An error is flagged if the node has multiple
+ * entries with the given key.
+ *
+ * @throws mpack_error_type If the node is not a map
+ * @throws mpack_error_data If the node does not contain exactly one entry with the given key
+ *
+ * @return The value node for the given key, or a nil node in case of error
  */
-MPACK_INLINE mpack_node_t mpack_node_map_cstr(mpack_node_t node, const char* cstr) {
-    mpack_assert(cstr != NULL, "cstr is NULL");
-    return mpack_node_map_str(node, cstr, mpack_strlen(cstr));
-}
+mpack_node_t mpack_node_map_str(mpack_node_t node, const char* str, size_t length);
+
+/**
+ * Returns the value node in the given map for the given string key, or a nil
+ * node if the map does not contain the given key.
+ *
+ * The key must be unique. An error is flagged if the node has multiple
+ * entries with the given key.
+ *
+ * @throws mpack_error_type If the node is not a map
+ * @throws mpack_error_data If the node contains more than one entry with the given key
+ *
+ * @return The value node for the given key, or a nil node in case of error
+ */
+mpack_node_t mpack_node_map_str_optional(mpack_node_t node, const char* str, size_t length);
+
+/**
+ * Returns the value node in the given map for the given null-terminated
+ * string key.
+ *
+ * The key must exist within the map. Use mpack_node_map_cstr_optional() to
+ * check for optional keys.
+ *
+ * The key must be unique. An error is flagged if the node has multiple
+ * entries with the given key.
+ *
+ * @throws mpack_error_type If the node is not a map
+ * @throws mpack_error_data If the node does not contain exactly one entry with the given key
+ *
+ * @return The value node for the given key, or a nil node in case of error
+ */
+mpack_node_t mpack_node_map_cstr(mpack_node_t node, const char* cstr);
 
 /**
  * Returns the value node in the given map for the given null-terminated
  * string key, or a nil node if the map does not contain the given key.
  *
- * @throws mpack_error_type if the node is not a map
+ * The key must be unique. An error is flagged if the node has multiple
+ * entries with the given key.
+ *
+ * @throws mpack_error_type If the node is not a map
+ * @throws mpack_error_data If the node contains more than one entry with the given key
+ *
+ * @return The value node for the given key, or a nil node in case of error
  */
-MPACK_INLINE mpack_node_t mpack_node_map_cstr_optional(mpack_node_t node, const char* cstr) {
-    mpack_assert(cstr != NULL, "cstr is NULL");
-    return mpack_node_map_str_optional(node, cstr, mpack_strlen(cstr));
-}
+mpack_node_t mpack_node_map_cstr_optional(mpack_node_t node, const char* cstr);
 
 /**
- * Returns true if the given node map contains a value for the given string key.
- * If the given node is not a map, mpack_error_type is raised and null is
- * returned.
+ * Returns true if the given node map contains exactly one entry with the
+ * given integer key.
+ *
+ * The key must be unique. An error is flagged if the node has multiple
+ * entries with the given key.
+ *
+ * @throws mpack_error_type If the node is not a map
+ * @throws mpack_error_data If the node contains more than one entry with the given key
+ */
+bool mpack_node_map_contains_int(mpack_node_t node, int64_t num);
+
+/**
+ * Returns true if the given node map contains exactly one entry with the
+ * given unsigned integer key.
+ *
+ * The key must be unique. An error is flagged if the node has multiple
+ * entries with the given key.
+ *
+ * @throws mpack_error_type If the node is not a map
+ * @throws mpack_error_data If the node contains more than one entry with the given key
+ */
+bool mpack_node_map_contains_uint(mpack_node_t node, uint64_t num);
+
+/**
+ * Returns true if the given node map contains exactly one entry with the
+ * given string key.
+ *
+ * The key must be unique. An error is flagged if the node has multiple
+ * entries with the given key.
+ *
+ * @throws mpack_error_type If the node is not a map
+ * @throws mpack_error_data If the node contains more than one entry with the given key
  */
 bool mpack_node_map_contains_str(mpack_node_t node, const char* str, size_t length);
 
 /**
- * Returns true if the given node map contains a value for the given
- * null-terminated string key. If the given node is not a map, mpack_error_type
- * is raised and null is returned.
+ * Returns true if the given node map contains exactly one entry with the
+ * given null-terminated string key.
+ *
+ * The key must be unique. An error is flagged if the node has multiple
+ * entries with the given key.
+ *
+ * @throws mpack_error_type If the node is not a map
+ * @throws mpack_error_data If the node contains more than one entry with the given key
  */
-MPACK_INLINE bool mpack_node_map_contains_cstr(mpack_node_t node, const char* cstr) {
-    mpack_assert(cstr != NULL, "cstr is NULL");
-    return mpack_node_map_contains_str(node, cstr, mpack_strlen(cstr));
-}
+bool mpack_node_map_contains_cstr(mpack_node_t node, const char* cstr);
 
 /**
  * @}
