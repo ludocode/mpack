@@ -8,6 +8,7 @@
 /.sconf_temp/
 /config.log
 mpack-test-file
+mpack-test-blank-file
 /mpack-test-dir/
 /analysis/
 /docs/html/

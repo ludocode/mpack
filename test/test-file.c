@@ -17,8 +17,11 @@
 #define TEST_PATH "test/"
 #endif
 
+static const char* test_blank_filename = "mpack-test-blank-file";
 static const char* test_filename = "mpack-test-file";
 static const char* test_dir = "mpack-test-dir";
+
+static const int nesting_depth = 150;
 
 static char* test_file_fetch(const char* filename, size_t* out_size) {
     *out_size = 0;
@@ -91,7 +94,7 @@ static void test_file_write(void) {
     TEST_TRUE(mpack_writer_error(&writer) == mpack_ok, "file open failed with %s",
             mpack_error_to_string(mpack_writer_error(&writer)));
 
-    mpack_start_array(&writer, 5);
+    mpack_start_array(&writer, 6);
 
     // test compound types of various sizes
 
@@ -140,6 +143,13 @@ static void test_file_write(void) {
     test_file_write_elements(&writer, mpack_tag_map(UINT16_MAX + 1));
     mpack_finish_array(&writer);
 
+    // test deep nesting
+    for (int i = 0; i < nesting_depth; ++i)
+        mpack_start_array(&writer, 1);
+    mpack_write_nil(&writer);
+    for (int i = 0; i < nesting_depth; ++i)
+        mpack_finish_array(&writer);
+
     mpack_finish_array(&writer);
 
     mpack_error_t error = mpack_writer_destroy(&writer);
@@ -177,6 +187,7 @@ static bool test_file_write_failure(void) {
     mpack_writer_t writer;
     mpack_writer_init_file(&writer, test_filename);
 
+    mpack_start_array(&writer, 2);
     mpack_start_array(&writer, 6);
 
     // write a large string near the start to cause a
@@ -188,6 +199,16 @@ static bool test_file_write_failure(void) {
     mpack_write_cstr(&writer, "three");
     mpack_write_cstr(&writer, "four");
     mpack_write_cstr(&writer, "five");
+
+    mpack_finish_array(&writer);
+
+    // test deep nesting
+    for (int i = 0; i < nesting_depth; ++i)
+        mpack_start_array(&writer, 1);
+    mpack_write_nil(&writer);
+    for (int i = 0; i < nesting_depth; ++i)
+        mpack_finish_array(&writer);
+
     mpack_finish_array(&writer);
 
     mpack_error_t error = mpack_writer_destroy(&writer);
@@ -315,7 +336,7 @@ static void test_file_read(void) {
     TEST_TRUE(mpack_reader_error(&reader) == mpack_ok, "file open failed with %s",
             mpack_error_to_string(mpack_reader_error(&reader)));
 
-    TEST_TRUE(5 == mpack_expect_array(&reader));
+    TEST_TRUE(6 == mpack_expect_array(&reader));
 
     TEST_TRUE(5 == mpack_expect_array(&reader));
     test_file_expect_bytes(&reader, mpack_tag_str(0));
@@ -362,6 +383,12 @@ static void test_file_read(void) {
     test_file_expect_elements(&reader, mpack_tag_map(UINT16_MAX + 1));
     mpack_done_array(&reader);
 
+    for (int i = 0; i < nesting_depth; ++i)
+        mpack_expect_array_match(&reader, 1);
+    mpack_expect_nil(&reader);
+    for (int i = 0; i < nesting_depth; ++i)
+        mpack_done_array(&reader);
+
     mpack_done_array(&reader);
 
     mpack_error_t error = mpack_reader_destroy(&reader);
@@ -388,6 +415,7 @@ static bool test_file_expect_failure(void) {
     } while (0)
 
     mpack_reader_init_file(&reader, test_filename);
+    mpack_expect_array_match(&reader, 2);
 
     uint32_t count;
     char** strings = mpack_expect_array_alloc(&reader, char*, 50, &count);
@@ -432,7 +460,9 @@ static bool test_file_expect_failure(void) {
 
     mpack_discard(&reader);
     mpack_discard(&reader);
+    mpack_done_array(&reader);
 
+    mpack_discard(&reader); // discard the deep nested arrays
     mpack_done_array(&reader);
 
     #undef TEST_POSSIBLE_FAILURE
@@ -478,12 +508,22 @@ static void test_file_node_elements(mpack_node_t node, mpack_tag_t tag) {
 
 static void test_file_node(void) {
     mpack_tree_t tree;
+
+    // test maximum size
+    mpack_tree_init_file(&tree, test_filename, 100);
+    TEST_TREE_DESTROY_ERROR(&tree, mpack_error_too_big);
+
+    // test blank file
+    mpack_tree_init_file(&tree, test_blank_filename, 0);
+    TEST_TREE_DESTROY_ERROR(&tree, mpack_error_invalid);
+
+    // test successful parse
     mpack_tree_init_file(&tree, test_filename, 0);
     TEST_TRUE(mpack_tree_error(&tree) == mpack_ok, "file tree parsing failed: %s",
             mpack_error_to_string(mpack_tree_error(&tree)));
 
     mpack_node_t root = mpack_tree_root(&tree);
-    TEST_TRUE(mpack_node_array_length(root) == 5);
+    TEST_TRUE(mpack_node_array_length(root) == 6);
 
     mpack_node_t node = mpack_node_array_at(root, 0);
     TEST_TRUE(mpack_node_array_length(node) == 5);
@@ -530,6 +570,12 @@ static void test_file_node(void) {
     test_file_node_elements(mpack_node_array_at(node, 3), mpack_tag_map(UINT8_MAX + 1));
     test_file_node_elements(mpack_node_array_at(node, 4), mpack_tag_map(UINT16_MAX + 1));
 
+    node = mpack_node_array_at(root, 5);
+    for (int i = 0; i < nesting_depth; ++i)
+        node = mpack_node_array_at(node, 0);
+    TEST_TRUE(mpack_ok == mpack_node_error(node));
+    mpack_node_nil(node);
+
     mpack_error_t error = mpack_tree_destroy(&tree);
     TEST_TRUE(error == mpack_ok, "file tree failed with error %s", mpack_error_to_string(error));
 
@@ -572,11 +618,13 @@ static bool test_file_node_failure(void) {
 
 
     mpack_node_t root = mpack_tree_root(&tree);
-    size_t length = mpack_node_array_length(root);
+
+    mpack_node_t strings = mpack_node_array_at(root, 0);
+    size_t length = mpack_node_array_length(strings);
     TEST_POSSIBLE_FAILURE();
     TEST_TRUE(6 == length);
 
-    mpack_node_t node = mpack_node_array_at(root, 0);
+    mpack_node_t node = mpack_node_array_at(strings, 0);
     char* str = mpack_node_data_alloc(node, 100);
     TEST_POSSIBLE_FAILURE();
     TEST_TRUE(str != NULL);
@@ -587,7 +635,8 @@ static bool test_file_node_failure(void) {
         MPACK_FREE(str);
     }
 
-    node = mpack_node_array_at(root, 1);
+    node = mpack_node_array_at(strings, 1);
+
     str = mpack_node_cstr_alloc(node, 100);
     TEST_POSSIBLE_FAILURE();
     TEST_TRUE(str != NULL);
@@ -597,6 +646,21 @@ static bool test_file_node_failure(void) {
         TEST_TRUE(strcmp(str, expected) == 0);
         MPACK_FREE(str);
     }
+
+    str = mpack_node_utf8_cstr_alloc(node, 100);
+    TEST_POSSIBLE_FAILURE();
+    TEST_TRUE(str != NULL);
+    if (str) {
+        TEST_TRUE(strlen(str) == strlen(expected));
+        TEST_TRUE(strcmp(str, expected) == 0);
+        MPACK_FREE(str);
+    }
+
+    node = mpack_node_array_at(root, 1);
+    for (int i = 0; i < nesting_depth; ++i)
+        node = mpack_node_array_at(node, 0);
+    TEST_TRUE(mpack_ok == mpack_node_error(node));
+    mpack_node_nil(node);
 
     #undef TEST_POSSIBLE_FAILURE
 
@@ -611,6 +675,10 @@ static bool test_file_node_failure(void) {
 #endif
 
 void test_file(void) {
+    // write a blank file for test purposes
+    FILE* blank = fopen(test_blank_filename, "wb");
+    fclose(blank);
+
     #if MPACK_READER
     test_print();
     #endif
@@ -639,6 +707,7 @@ void test_file(void) {
     #endif
 
     TEST_TRUE(remove(test_filename) == 0, "failed to delete %s", test_filename);
+    TEST_TRUE(remove(test_blank_filename) == 0, "failed to delete %s", test_blank_filename);
     TEST_TRUE(rmdir(test_dir) == 0, "failed to delete %s", test_dir);
 
     (void)&test_compare_print;
