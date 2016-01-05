@@ -687,7 +687,7 @@ MPACK_INLINE bool mpack_reader_ensure(mpack_reader_t* reader, size_t count) {
 
     if (count <= reader->left) {
         mpack_assert(reader->error == mpack_ok, "error state %i but there are %i bytes left?",
-                (int)reader->error, reader->left);
+                (int)reader->error, (int)reader->left);
         return true;
     }
 
