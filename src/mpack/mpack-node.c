@@ -181,11 +181,13 @@ static void mpack_tree_push_stack(mpack_tree_parser_t* parser, mpack_node_data_t
 
         // Realloc the allocated parsing stack
         } else {
-            parser->stack = (mpack_level_t*)mpack_realloc(parser->stack, sizeof(mpack_level_t) * parser->depth, sizeof(mpack_level_t) * new_depth);
-            if (!parser->stack) {
+            mpack_level_t* new_stack = (mpack_level_t*)mpack_realloc(parser->stack,
+                    sizeof(mpack_level_t) * parser->depth, sizeof(mpack_level_t) * new_depth);
+            if (!new_stack) {
                 mpack_tree_flag_error(parser->tree, mpack_error_memory);
                 return;
             }
+            parser->stack = new_stack;
         }
         parser->depth = new_depth;
         #else
