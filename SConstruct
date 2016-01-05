@@ -34,6 +34,10 @@ env.Append(CPPFLAGS = [
 env.Append(LINKFLAGS = [
     "-g",
     ])
+
+if conf.CheckFlags(["-Wmissing-variable-declarations"]):
+    env.Append(CPPFLAGS = ["-Wmissing-variable-declarations"])
+
 # Additional warning flags are passed in SConscript based on the language (C/C++)
 
 if 'TRAVIS' not in env["ENV"]:
