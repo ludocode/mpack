@@ -26,6 +26,52 @@
 #if MPACK_EXPECT
 
 
+// Helpers
+
+MPACK_STATIC_INLINE uint8_t mpack_expect_native_u8(mpack_reader_t* reader) {
+    if (mpack_reader_error(reader) != mpack_ok)
+        return 0;
+    uint8_t type;
+    if (!mpack_reader_ensure(reader, sizeof(type)))
+        return 0;
+    type = mpack_load_u8(reader->buffer + reader->pos);
+    reader->pos += sizeof(type);
+    reader->left -= sizeof(type);
+    return type;
+}
+
+#if !MPACK_OPTIMIZE_FOR_SIZE
+MPACK_STATIC_INLINE uint16_t mpack_expect_native_u16(mpack_reader_t* reader) {
+    if (mpack_reader_error(reader) != mpack_ok)
+        return 0;
+    uint16_t type;
+    if (!mpack_reader_ensure(reader, sizeof(type)))
+        return 0;
+    type = mpack_load_u16(reader->buffer + reader->pos);
+    reader->pos += sizeof(type);
+    reader->left -= sizeof(type);
+    return type;
+}
+
+MPACK_STATIC_INLINE uint32_t mpack_expect_native_u32(mpack_reader_t* reader) {
+    if (mpack_reader_error(reader) != mpack_ok)
+        return 0;
+    uint32_t type;
+    if (!mpack_reader_ensure(reader, sizeof(type)))
+        return 0;
+    type = mpack_load_u32(reader->buffer + reader->pos);
+    reader->pos += sizeof(type);
+    reader->left -= sizeof(type);
+    return type;
+}
+#endif
+
+MPACK_STATIC_INLINE uint8_t mpack_expect_type_byte(mpack_reader_t* reader) {
+    mpack_reader_track_element(reader);
+    return mpack_expect_native_u8(reader);
+}
+
+
 // Basic Number Functions
 
 uint8_t mpack_expect_u8(mpack_reader_t* reader) {
@@ -236,19 +282,12 @@ void mpack_expect_int_match(mpack_reader_t* reader, int64_t value) {
 // Other Basic Types
 
 void mpack_expect_nil(mpack_reader_t* reader) {
-    mpack_reader_track_element(reader);
-    uint8_t type = mpack_read_native_u8(reader);
-    if (reader->error != mpack_ok)
-        return;
-    if (type != 0xc0)
+    if (mpack_expect_type_byte(reader) != 0xc0)
         mpack_reader_flag_error(reader, mpack_error_type);
 }
 
 bool mpack_expect_bool(mpack_reader_t* reader) {
-    mpack_reader_track_element(reader);
-    uint8_t type = mpack_read_native_u8(reader);
-    if (reader->error != mpack_ok)
-        return false;
+    uint8_t type = mpack_expect_type_byte(reader);
     if ((type & ~1) != 0xc2)
         mpack_reader_flag_error(reader, mpack_error_type);
     return (bool)(type & 1);
@@ -390,11 +429,34 @@ void* mpack_expect_array_alloc_impl(mpack_reader_t* reader, size_t element_size,
 // Str, Bin and Ext Functions
 
 uint32_t mpack_expect_str(mpack_reader_t* reader) {
+    #if MPACK_OPTIMIZE_FOR_SIZE
     mpack_tag_t var = mpack_read_tag(reader);
     if (var.type == mpack_type_str)
         return var.v.l;
     mpack_reader_flag_error(reader, mpack_error_type);
     return 0;
+    #else
+    uint8_t type = mpack_expect_type_byte(reader);
+    uint32_t count;
+
+    if ((type >> 5) == 5) {
+        count = type & (uint8_t)~0xe0;
+    } else if (type == 0xd9) {
+        count = mpack_expect_native_u8(reader);
+    } else if (type == 0xda) {
+        count = mpack_expect_native_u16(reader);
+    } else if (type == 0xdb) {
+        count = mpack_expect_native_u32(reader);
+    } else {
+        mpack_reader_flag_error(reader, mpack_error_type);
+        return 0;
+    }
+
+    #if MPACK_READ_TRACKING
+    mpack_reader_flag_if_error(reader, mpack_track_push(&reader->track, mpack_type_str, count));
+    #endif
+    return count;
+    #endif
 }
 
 size_t mpack_expect_str_buf(mpack_reader_t* reader, char* buf, size_t bufsize) {
@@ -455,78 +517,19 @@ size_t mpack_expect_bin_buf(mpack_reader_t* reader, char* buf, size_t bufsize) {
     return binsize;
 }
 
-static size_t mpack_expect_cstr_unchecked(mpack_reader_t* reader, char* buf, size_t bufsize) {
-    mpack_assert(buf != NULL, "buf cannot be NULL");
-
-    // make sure buffer makes sense
-    mpack_assert(bufsize >= 1, "buffer size is zero; you must have room for at least a null-terminator");
-
-    // expect a str
-    size_t length = mpack_expect_str_buf(reader, buf, bufsize - 1);
-    if (mpack_reader_error(reader)) {
-        buf[0] = 0;
-        return 0;
-    }
-
-    buf[length] = 0;
-    return length;
-}
-
 void mpack_expect_cstr(mpack_reader_t* reader, char* buf, size_t bufsize) {
-    mpack_assert(buf != NULL, "buf cannot be NULL");
-
-    size_t length = mpack_expect_cstr_unchecked(reader, buf, bufsize);
-
-    // check for null bytes
-    if (!mpack_str_check_no_null(buf, length)) {
-        buf[0] = 0;
-        mpack_reader_flag_error(reader, mpack_error_type);
-    }
+    uint32_t length = mpack_expect_str(reader);
+    mpack_read_cstr(reader, buf, bufsize, length);
+    mpack_done_str(reader);
 }
 
 void mpack_expect_utf8_cstr(mpack_reader_t* reader, char* buf, size_t bufsize) {
-    mpack_assert(buf != NULL, "buf cannot be NULL");
-
-    size_t length = mpack_expect_cstr_unchecked(reader, buf, bufsize);
-
-    // check encoding
-    if (!mpack_utf8_check_no_null(buf, length)) {
-        buf[0] = 0;
-        mpack_reader_flag_error(reader, mpack_error_type);
-    }
+    uint32_t length = mpack_expect_str(reader);
+    mpack_read_utf8_cstr(reader, buf, bufsize, length);
+    mpack_done_str(reader);
 }
 
 #ifdef MPACK_MALLOC
-char* mpack_expect_str_alloc(mpack_reader_t* reader, size_t maxsize, size_t* size) {
-    mpack_assert(size != NULL, "size cannot be NULL");
-    *size = 0;
-
-    if (maxsize > UINT32_MAX)
-        maxsize = UINT32_MAX;
-
-    size_t length = mpack_expect_str_max(reader, (uint32_t)maxsize);
-    char* str = mpack_read_bytes_alloc(reader, length);
-    mpack_done_str(reader);
-
-    if (str)
-        *size = length;
-    return str;
-}
-
-char* mpack_expect_utf8_alloc(mpack_reader_t* reader, size_t maxsize, size_t* size) {
-    mpack_assert(size != NULL, "size cannot be NULL");
-    char* str = mpack_expect_str_alloc(reader, maxsize, size);
-
-    if (str && !mpack_utf8_check(str, *size)) {
-        *size = 0;
-        MPACK_FREE(str);
-        mpack_reader_flag_error(reader, mpack_error_type);
-        return NULL;
-    }
-
-    return str;
-}
-
 static char* mpack_expect_cstr_alloc_unchecked(mpack_reader_t* reader, size_t maxsize, size_t* out_length) {
     mpack_assert(out_length != NULL, "out_length cannot be NULL");
     *out_length = 0;
@@ -542,13 +545,11 @@ static char* mpack_expect_cstr_alloc_unchecked(mpack_reader_t* reader, size_t ma
         maxsize = UINT32_MAX;
 
     size_t length = mpack_expect_str_max(reader, (uint32_t)maxsize - 1);
-    char* str = mpack_read_bytes_alloc_size(reader, length, length + 1);
+    char* str = mpack_read_bytes_alloc_impl(reader, length, true);
     mpack_done_str(reader);
 
-    if (str) {
-        str[length] = 0;
+    if (str)
         *out_length = length;
-    }
     return str;
 }
 
@@ -588,11 +589,11 @@ void mpack_expect_str_match(mpack_reader_t* reader, const char* str, size_t len)
     mpack_expect_str_length(reader, (uint32_t)len);
     if (mpack_reader_error(reader))
         return;
+    mpack_reader_track_bytes(reader, len);
 
-    // check each byte
-    for (size_t i = 0; i < len; ++i) {
-        mpack_reader_track_bytes(reader, 1);
-        if (mpack_read_native_u8(reader) != *str++) {
+    // check each byte one by one (matched strings are likely to be very small)
+    for (; len > 0; --len) {
+        if (mpack_expect_native_u8(reader) != *str++) {
             mpack_reader_flag_error(reader, mpack_error_type);
             return;
         }
@@ -624,6 +625,90 @@ char* mpack_expect_bin_alloc(mpack_reader_t* reader, size_t maxsize, size_t* siz
     return data;
 }
 #endif
+
+size_t mpack_expect_key_uint(mpack_reader_t* reader, bool found[], size_t count) {
+    if (mpack_reader_error(reader) != mpack_ok)
+        return count;
+
+    if (count == 0) {
+        mpack_break("count cannot be zero; no keys are valid!");
+        mpack_reader_flag_error(reader, mpack_error_bug);
+        return count;
+    }
+    mpack_assert(found != NULL, "found cannot be NULL");
+
+    // the key is only recognized if it is an unsigned int
+    if (mpack_peek_tag(reader).type != mpack_type_uint) {
+        mpack_discard(reader);
+        return count;
+    }
+
+    // read the key
+    uint64_t value = mpack_expect_u64(reader);
+    if (mpack_reader_error(reader) != mpack_ok)
+        return count;
+
+    // unrecognized keys are fine, we just return count
+    if (value >= count)
+        return count;
+
+    // check if this key is a duplicate
+    if (found[value]) {
+        mpack_reader_flag_error(reader, mpack_error_invalid);
+        return count;
+    }
+
+    found[value] = true;
+    return (size_t)value;
+}
+
+size_t mpack_expect_key_cstr(mpack_reader_t* reader, const char* keys[], bool found[], size_t count) {
+    if (mpack_reader_error(reader) != mpack_ok)
+        return count;
+
+    if (count == 0) {
+        mpack_break("count cannot be zero; no keys are valid!");
+        mpack_reader_flag_error(reader, mpack_error_bug);
+        return count;
+    }
+    mpack_assert(keys != NULL, "keys cannot be NULL");
+    mpack_assert(found != NULL, "found cannot be NULL");
+
+    // the key is only recognized if it is a string
+    if (mpack_peek_tag(reader).type != mpack_type_str) {
+        mpack_discard(reader);
+        return count;
+    }
+
+    // read the string in-place
+    size_t keylen = mpack_expect_str(reader);
+    const char* key = mpack_read_bytes_inplace(reader, keylen);
+    if (mpack_reader_error(reader) != mpack_ok)
+        return count;
+    mpack_done_str(reader);
+
+    // find what key it matches
+    size_t i = 0;
+    for (; i < count; ++i) {
+        const char* other = keys[i];
+        size_t otherlen = mpack_strlen(other);
+        if (keylen == otherlen && mpack_memcmp(key, other, keylen) == 0)
+            break;
+    }
+
+    // unrecognized keys are fine, we just return count
+    if (i == count)
+        return count;
+
+    // check if this key is a duplicate
+    if (found[i]) {
+        mpack_reader_flag_error(reader, mpack_error_invalid);
+        return count;
+    }
+
+    found[i] = true;
+    return i;
+}
 
 #endif
 

@@ -4,6 +4,8 @@
 
 // This is the configuration for the MPack test harness.
 
+#define MPACK_UNIT_TESTS 1
+
 #if defined(DEBUG) || defined(_DEBUG)
 #define MPACK_DEBUG 1
 #endif
@@ -58,7 +60,7 @@
 // we use small buffer sizes to test flushing, growing, and malloc failures
 #define MPACK_TRACKING_INITIAL_CAPACITY 3
 #define MPACK_STACK_SIZE 7
-#define MPACK_BUFFER_SIZE 7
+#define MPACK_BUFFER_SIZE 32
 #define MPACK_NODE_PAGE_SIZE 113
 
 #ifdef MPACK_MALLOC

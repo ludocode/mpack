@@ -104,10 +104,9 @@ AddBuild("debug", allfeatures + allconfigs + debugflags + cflags + gcovflags, gc
 # to reveal configuration errors.
 if ARGUMENTS.get('more') or ARGUMENTS.get('all'):
     AddBuild("release", allfeatures + allconfigs + releaseflags + cflags)
-    AddBuilds("embed", allfeatures + cflags)
+    AddBuilds("embed", allfeatures + cflags + ["-DMPACK_NO_BUILTINS=1"])
     AddBuilds("noio", allfeatures + noioconfigs + cflags)
     AddBuild("debug-size", ["-DMPACK_OPTIMIZE_FOR_SIZE=1"] + debugflags + allfeatures + allconfigs + cflags)
-    AddBuild("release-size", ["-Os"] + allfeatures + allconfigs + cflags)
 
 
 # Run "scons all=1" to run all builds. This is what the CI runs.
@@ -118,6 +117,7 @@ if ARGUMENTS.get('all'):
     AddBuild("release-fastmath", allfeatures + allconfigs + releaseflags + cflags + ["-ffast-math"])
     if conf.CheckFlags(ltoflags, ltoflags, "-flto"):
         AddBuild("release-lto", allfeatures + allconfigs + ltoflags + cflags, ltoflags)
+    AddBuild("release-size", ["-Os"] + allfeatures + allconfigs + cflags)
 
     # feature subsets with default configuration
     AddBuilds("empty", allconfigs + cflags)
@@ -132,7 +132,7 @@ if ARGUMENTS.get('all'):
     AddBuilds("noio-expect", ["-DMPACK_READER=1", "-DMPACK_EXPECT=1"] + noioconfigs + cflags)
     AddBuilds("noio-node", ["-DMPACK_NODE=1"] + noioconfigs + cflags)
 
-    # embedded builds without libc
+    # embedded builds without libc (using builtins)
     AddBuilds("embed-writer", ["-DMPACK_WRITER=1"] + cflags)
     AddBuilds("embed-reader", ["-DMPACK_READER=1"] + cflags)
     AddBuilds("embed-expect", ["-DMPACK_READER=1", "-DMPACK_EXPECT=1"] + cflags)

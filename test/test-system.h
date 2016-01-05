@@ -30,16 +30,20 @@ extern "C" {
 #endif
 
 
-// Causes the next `count` system calls to succeed, and all
-// subsequent system calls to fail until reset.
-void test_system_fail_after(size_t count);
+// Causes the next `count` system calls to succeed, and the
+// following call to fail. If all is true, all subsequent
+// calls will fail until the system is reset; otherwise the
+// system is reset immediately.
+void test_system_fail_after(size_t count, bool all);
 
 // Resets the system call failure simulation, allowing all
 // system calls to succeed
 void test_system_fail_reset(void);
 
-// Runs the given test repeatedly, failing the nth system call on
-// the nth iteration until the test returns true.
+// Runs the given test repeatedly. On each iteration n, the test
+// is run failing only the nth system call, and again failing the
+// nth and all subsequent system calls. Repeats until both tests
+// return true.
 void test_system_fail_until_ok(bool (*test)(void));
 
 

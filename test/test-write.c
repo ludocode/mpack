@@ -43,6 +43,7 @@ static void test_write_simple_auto_int() {
     TEST_SIMPLE_WRITE("\x02", mpack_write_uint(&writer, 2));
     TEST_SIMPLE_WRITE("\x0f", mpack_write_uint(&writer, 0x0f));
     TEST_SIMPLE_WRITE("\x10", mpack_write_uint(&writer, 0x10));
+    TEST_SIMPLE_WRITE("\x7e", mpack_write_uint(&writer, 0x7e));
     TEST_SIMPLE_WRITE("\x7f", mpack_write_uint(&writer, 0x7f));
 
     // positive fixnums with signed int functions
@@ -51,12 +52,14 @@ static void test_write_simple_auto_int() {
     TEST_SIMPLE_WRITE("\x02", mpack_write_int(&writer, 2));
     TEST_SIMPLE_WRITE("\x0f", mpack_write_int(&writer, 0x0f));
     TEST_SIMPLE_WRITE("\x10", mpack_write_int(&writer, 0x10));
+    TEST_SIMPLE_WRITE("\x7e", mpack_write_int(&writer, 0x7e));
     TEST_SIMPLE_WRITE("\x7f", mpack_write_int(&writer, 0x7f));
 
     // negative fixnums
     TEST_SIMPLE_WRITE("\xff", mpack_write_int(&writer, -1));
     TEST_SIMPLE_WRITE("\xfe", mpack_write_int(&writer, -2));
     TEST_SIMPLE_WRITE("\xf0", mpack_write_int(&writer, -16));
+    TEST_SIMPLE_WRITE("\xe1", mpack_write_int(&writer, -31));
     TEST_SIMPLE_WRITE("\xe0", mpack_write_int(&writer, -32));
 
     // uints
@@ -334,6 +337,8 @@ static void test_write_basic_structures() {
     size_t size;
     mpack_writer_t writer;
 
+    // we use a mix of int writers below to test their tracking.
+
     // []
     mpack_writer_init_growable(&writer, &buf, &size);
     mpack_start_array(&writer, 0);
@@ -351,7 +356,7 @@ static void test_write_basic_structures() {
     mpack_writer_init_growable(&writer, &buf, &size);
     mpack_start_array(&writer, 15);
         for (int i = 0; i < 15; ++i)
-            mpack_write_int(&writer, i);
+            mpack_write_i32(&writer, i);
     mpack_finish_array(&writer);
     TEST_DESTROY_MATCH(
         "\x9f\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e"
@@ -361,7 +366,7 @@ static void test_write_basic_structures() {
     mpack_writer_init_growable(&writer, &buf, &size);
     mpack_start_array(&writer, 16);
         for (int i = 0; i < 16; ++i)
-            mpack_write_int(&writer, i);
+            mpack_write_u32(&writer, (uint32_t)i);
     mpack_finish_array(&writer);
     TEST_DESTROY_MATCH(
         "\xdc\x00\x10\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c"
@@ -415,10 +420,10 @@ static void test_write_basic_structures() {
     // {0:0,1:1}
     mpack_writer_init_growable(&writer, &buf, &size);
     mpack_start_map(&writer, 2);
-        mpack_write_int(&writer, 0);
-        mpack_write_int(&writer, 0);
-        mpack_write_int(&writer, 1);
-        mpack_write_int(&writer, 1);
+        mpack_write_i8(&writer, 0);
+        mpack_write_i16(&writer, 0);
+        mpack_write_u8(&writer, 1);
+        mpack_write_u16(&writer, 1);
     mpack_finish_map(&writer);
     TEST_DESTROY_MATCH("\x82\x00\x00\x01\x01");
 
@@ -426,7 +431,7 @@ static void test_write_basic_structures() {
     mpack_writer_init_growable(&writer, &buf, &size);
     mpack_start_map(&writer, 15);
         for (int i = 0; i < 30; ++i)
-            mpack_write_int(&writer, i);
+            mpack_write_i8(&writer, (int8_t)i);
     mpack_finish_map(&writer);
     TEST_DESTROY_MATCH(
         "\x8f\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e"
@@ -643,7 +648,7 @@ static void test_write_small_structure_trees() {
 
 }
 
-static bool test_write_deep_growth() {
+static bool test_write_deep_growth(void) {
 
     // test a growable writer with a very deep stack and lots
     // of data to see if both the growable buffer and the tracking

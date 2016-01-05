@@ -87,7 +87,7 @@ void test_true_impl(bool result, const char* file, int line, const char* format,
 extern int tests;
 extern int passes;
 
-#if MPACK_CUSTOM_ASSERT
+#if MPACK_DEBUG
 extern bool test_jmp_set;
 extern jmp_buf test_jmp_buf;
 extern bool test_break_set;
@@ -131,9 +131,16 @@ extern bool test_break_hit;
 
 #else
 
-// in release mode we just run the expr since asserts are compiled out.
-#define TEST_ASSERT(expr) do { (expr); } while (0)
+// in release mode there are no asserts or break functions, so
+// TEST_BREAK() just runs the expr. it is usually used to test
+// that something flags mpack_error_bug.
 #define TEST_BREAK(expr, ...) do { TEST_TRUE(expr , ## __VA_ARGS__); } while (0)
+
+// TEST_ASSERT() is not defined because code that causes an assert
+// cannot continue to run; it would cause undefined behavior (and
+// crash the unit test framework.) it cannot be defined to nothing
+// because the tests around it wouldn't make sense (and would cause
+// unused warnings); the tests that use it must be disabled entirely.
 
 #endif
 

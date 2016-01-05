@@ -861,21 +861,17 @@ size_t mpack_expect_utf8(mpack_reader_t* reader, char* buf, size_t bufsize);
  * or mpack_read_bytes_inplace(). @ref mpack_done_str() must be called
  * once all bytes have been read.
  *
- * mpack_error_type is raised if the value is not a string or if its
- * length does not match.
+ * @throws mpack_error_type If the value is not a string.
+ * @throws mpack_error_too_big If the string's length in bytes is larger than the given maximum size.
  */
-MPACK_INLINE_SPEED uint32_t mpack_expect_str_max(mpack_reader_t* reader, uint32_t maxsize);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED uint32_t mpack_expect_str_max(mpack_reader_t* reader, uint32_t maxsize) {
+MPACK_INLINE uint32_t mpack_expect_str_max(mpack_reader_t* reader, uint32_t maxsize) {
     uint32_t length = mpack_expect_str(reader);
     if (length > maxsize) {
-        mpack_reader_flag_error(reader, mpack_error_type);
+        mpack_reader_flag_error(reader, mpack_error_too_big);
         return 0;
     }
     return length;
 }
-#endif
 
 /**
  * Reads the start of a string, raising an error if its length is not
@@ -888,53 +884,10 @@ MPACK_INLINE_SPEED uint32_t mpack_expect_str_max(mpack_reader_t* reader, uint32_
  * mpack_error_type is raised if the value is not a string or if its
  * length does not match.
  */
-MPACK_INLINE_SPEED void mpack_expect_str_length(mpack_reader_t* reader, uint32_t count);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED void mpack_expect_str_length(mpack_reader_t* reader, uint32_t count) {
+MPACK_INLINE void mpack_expect_str_length(mpack_reader_t* reader, uint32_t count) {
     if (mpack_expect_str(reader) != count)
         mpack_reader_flag_error(reader, mpack_error_type);
 }
-#endif
-
-
-#ifdef MPACK_MALLOC
-/**
- * Reads a string with the given total maximum size, allocating storage for it.
- *
- * The length in bytes of the string will be written to size if reading is
- * successful; otherwise size will be zero.
- *
- * The allocated string must be freed with MPACK_FREE() (or simply free()
- * if MPack's allocator hasn't been customized.)
- *
- * No null-terminator will be added to the string. Use @ref mpack_expect_cstr_alloc()
- * if you want a null-terminator.
- *
- * Returns NULL if any error occurs.
- */
-char* mpack_expect_str_alloc(mpack_reader_t* reader, size_t maxsize, size_t* size);
-
-/**
- * Reads a string with the given total maximum size, allocating storage for it
- * and ensuring it is valid UTF-8.
- *
- * The length in bytes of the string, not including the null-terminator,
- * will be written to size.
- *
- * This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or
- * WTF-8. Only pure UTF-8 is allowed.
- *
- * NUL bytes are allowed in the string (as they are in UTF-8.)
- *
- * The allocated string must be freed with MPACK_FREE() (or simply free()
- * if MPack's allocator hasn't been customized.)
- *
- * No null-terminator will be added to the string. Use @ref mpack_expect_cstr_alloc()
- * if you want a null-terminator.
- */
-char* mpack_expect_utf8_alloc(mpack_reader_t* reader, size_t maxsize, size_t* size);
-#endif
 
 /**
  * Reads a string, ensuring it exactly matches the given string.
@@ -999,9 +952,9 @@ char* mpack_expect_cstr_alloc(mpack_reader_t* reader, size_t maxsize);
  * if you want a null-terminator.
  *
  * @throws mpack_error_too_big if the string plus null-terminator is larger
- * than the given maxsize.
+ *     than the given maxsize.
  * @throws mpack_error_invalid if the value is not a string or contains
- * invalid UTF-8 or a null byte.
+ *     invalid UTF-8 or a null byte.
  */
 char* mpack_expect_utf8_cstr_alloc(mpack_reader_t* reader, size_t maxsize);
 #endif
@@ -1013,17 +966,13 @@ char* mpack_expect_utf8_cstr_alloc(mpack_reader_t* reader, size_t maxsize);
  * Remember that maps are unordered in JSON. Don't use this for map keys
  * unless the map has only a single key!
  */
-MPACK_INLINE_SPEED void mpack_expect_cstr_match(mpack_reader_t* reader, const char* str);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED void mpack_expect_cstr_match(mpack_reader_t* reader, const char* str) {
+MPACK_INLINE void mpack_expect_cstr_match(mpack_reader_t* reader, const char* str) {
     if (mpack_strlen(str) > UINT32_MAX) {
         mpack_reader_flag_error(reader, mpack_error_type);
         return;
     }
     mpack_expect_str_match(reader, str, mpack_strlen(str));
 }
-#endif
 
 /**
  * @}
@@ -1056,10 +1005,7 @@ uint32_t mpack_expect_bin(mpack_reader_t* reader);
  * mpack_error_type is raised if the value is not a binary blob or if its
  * length does not match.
  */
-MPACK_INLINE_SPEED uint32_t mpack_expect_bin_max(mpack_reader_t* reader, uint32_t maxsize);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED uint32_t mpack_expect_bin_max(mpack_reader_t* reader, uint32_t maxsize) {
+MPACK_INLINE uint32_t mpack_expect_bin_max(mpack_reader_t* reader, uint32_t maxsize) {
     uint32_t length = mpack_expect_bin(reader);
     if (length > maxsize) {
         mpack_reader_flag_error(reader, mpack_error_type);
@@ -1067,7 +1013,6 @@ MPACK_INLINE_SPEED uint32_t mpack_expect_bin_max(mpack_reader_t* reader, uint32_
     }
     return length;
 }
-#endif
 
 /**
  * Reads the start of a binary blob, raising an error if its length is not
@@ -1080,14 +1025,10 @@ MPACK_INLINE_SPEED uint32_t mpack_expect_bin_max(mpack_reader_t* reader, uint32_
  * mpack_error_type is raised if the value is not a binary blob or if its
  * length does not match.
  */
-MPACK_INLINE_SPEED void mpack_expect_bin_size(mpack_reader_t* reader, uint32_t count);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED void mpack_expect_bin_size(mpack_reader_t* reader, uint32_t count) {
+MPACK_INLINE void mpack_expect_bin_size(mpack_reader_t* reader, uint32_t count) {
     if (mpack_expect_bin(reader) != count)
         mpack_reader_flag_error(reader, mpack_error_type);
 }
-#endif
 
 /**
  * Reads a binary blob into the given buffer, returning its size in bytes.
@@ -1132,6 +1073,57 @@ char* mpack_expect_bin_alloc(mpack_reader_t* reader, size_t maxsize, size_t* siz
  * @see mpack_done_ext()
  */
 void mpack_expect_tag(mpack_reader_t* reader, mpack_tag_t tag);
+
+/**
+ * Expects an unsigned integer map key between 0 and count-1, marking it
+ * as found in the given bool array and returning it.
+ *
+ * This is a helper for switching among int keys in a map. It is
+ * typically used with an enum to define the key values. It should
+ * be called in the expression of a switch() statement.
+ *
+ * The found array should be cleared before expecting a key. If the flag for
+ * a given key is already set when found (i.e. the map contains a duplicate
+ * key), mpack_error_invalid is flagged.
+ *
+ * If the key is count or larger, count is returned and no error is flagged.
+ * If you want an error on unrecognized keys, flag an error in the default
+ * case in your switch; otherwise you must call mpack_discard() to discard
+ * its content.
+ *
+ * @param reader The reader
+ * @param found An array of bool flags of length count
+ * @param count The number of values in the found array, and one more than the
+ *              maximum allowed key
+ */
+size_t mpack_expect_key_uint(mpack_reader_t* reader, bool found[], size_t count);
+
+/**
+ * Expects a string map key matching one of the strings in the given key list,
+ * marking it as found in the given bool array and returning its index.
+ *
+ * This is a helper for switching among string keys in a map. It is
+ * typically used with an enum with names matching the strings in the
+ * array to define the key indices. It should be called in the expression
+ * of a switch() statement.
+ *
+ * The found array should be cleared before expecting a key. If the flag for
+ * a given key is already set when found (i.e. the map contains a duplicate
+ * key), mpack_error_invalid is flagged.
+ *
+ * If the key is unrecognized, count is returned and no error is flagged. If
+ * you want an error on unrecognized keys, flag an error in the default case
+ * in your switch; otherwise you must call mpack_discard() to discard its content.
+ *
+ * The maximum key length is the size of the buffer (keys are read in-place.)
+ *
+ * @param reader The reader
+ * @param keys An array of expected string keys of length count
+ * @param found An array of bool flags of length count
+ * @param count The number of values in the keys and found arrays
+ */
+size_t mpack_expect_key_cstr(mpack_reader_t* reader, const char* keys[],
+        bool found[], size_t count);
 
 /**
  * @}

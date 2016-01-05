@@ -73,6 +73,16 @@
  * The default is malloc() if MPACK_STDLIB is enabled.
  */
 /**
+ * \def MPACK_FREE
+ *
+ * Defines the memory free function used by mpack. This is used by helpers
+ * for automatically allocating data the correct size. If this macro is
+ * undefined, the allocation helpers will not be compiled.
+ *
+ * The default is free() if MPACK_MALLOC has not been customized and
+ * MPACK_STDLIB is enabled.
+ */
+/**
  * \def MPACK_REALLOC
  *
  * Defines the realloc function used by mpack. It is used by growable
@@ -88,18 +98,6 @@
 #if defined(MPACK_STDLIB) && !defined(MPACK_MALLOC)
 #define MPACK_MALLOC malloc
 #define MPACK_REALLOC realloc
-#endif
-
-/**
- * \def MPACK_FREE
- *
- * Defines the memory free function used by mpack. This is used by helpers
- * for automatically allocating data the correct size. If this macro is
- * undefined, the allocation helpers will not be compiled.
- *
- * The default is free() if MPACK_STDLIB is enabled.
- */
-#if defined(MPACK_STDLIB) && !defined(MPACK_FREE)
 #define MPACK_FREE free
 #endif
 
@@ -224,8 +222,7 @@
  * larger pages than this may be allocated as needed. (Safety checks
  * exist to prevent malicious data from causing too large allocations.)
  *
- * Nodes are 12 bytes when compiled for a 32-bit architecture and
- * 16 bytes when compiled for a 64-bit architecture.
+ * Nodes are 16 bytes on most common architectures (32-bit and 64-bit.)
  *
  * Using as many nodes fit in one memory page seems to provide the
  * best performance, and has very little waste when parsing small

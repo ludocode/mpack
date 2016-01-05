@@ -17,8 +17,13 @@
 #define TEST_PATH "test/"
 #endif
 
+static const char* test_blank_filename = "mpack-test-blank-file";
 static const char* test_filename = "mpack-test-file";
 static const char* test_dir = "mpack-test-dir";
+
+static const int nesting_depth = 150;
+const char* lipsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed nec justo purus. Nunc finibus dolor id lorem sagittis, euismod efficitur arcu aliquam. Nullam a ante eget mi porttitor dignissim vitae at libero. Maecenas in justo massa. Mauris ultricies leo nisl, at ullamcorper erat maximus sit amet. Quisque pharetra sed ligula nec tristique. Mauris consectetur sapien lacus, et pharetra turpis rhoncus a. Sed in eleifend eros. Donec in libero lacus. Sed et finibus ipsum. Etiam eros leo, mollis eget molestie quis, rhoncus ac magna. Donec dolor risus, bibendum et scelerisque at, faucibus in mi. Interdum et malesuada fames ac ante ipsum primis in faucibus. Vestibulum convallis accumsan mollis.";
+const char* quick_brown_fox = "The quick brown fox jumps over a lazy dog.";
 
 static char* test_file_fetch(const char* filename, size_t* out_size) {
     *out_size = 0;
@@ -91,10 +96,12 @@ static void test_file_write(void) {
     TEST_TRUE(mpack_writer_error(&writer) == mpack_ok, "file open failed with %s",
             mpack_error_to_string(mpack_writer_error(&writer)));
 
-    mpack_start_array(&writer, 5);
+    mpack_start_array(&writer, 7);
+
+    // write lipsum to test a large fill/seek
+    mpack_write_cstr(&writer, lipsum);
 
     // test compound types of various sizes
-
     mpack_start_array(&writer, 5);
     test_file_write_bytes(&writer, mpack_tag_str(0));
     test_file_write_bytes(&writer, mpack_tag_str(INT8_MAX));
@@ -140,6 +147,13 @@ static void test_file_write(void) {
     test_file_write_elements(&writer, mpack_tag_map(UINT16_MAX + 1));
     mpack_finish_array(&writer);
 
+    // test deep nesting
+    for (int i = 0; i < nesting_depth; ++i)
+        mpack_start_array(&writer, 1);
+    mpack_write_nil(&writer);
+    for (int i = 0; i < nesting_depth; ++i)
+        mpack_finish_array(&writer);
+
     mpack_finish_array(&writer);
 
     mpack_error_t error = mpack_writer_destroy(&writer);
@@ -155,19 +169,19 @@ static void test_file_write(void) {
     // fails, otherwise fclose() fails. we test both here.)
 
     mpack_writer_init_file(&writer, "/dev/full");
-    mpack_write_cstr(&writer, "The quick brown fox jumps over the lazy dog.");
+    mpack_write_cstr(&writer, quick_brown_fox);
     TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_io);
 
     int count = UINT16_MAX / 20;
     mpack_writer_init_file(&writer, "/dev/full");
     mpack_start_array(&writer, count);
     for (int i = 0; i < count; ++i)
-        mpack_write_cstr(&writer, "The quick brown fox jumps over the lazy dog.");
+        mpack_write_cstr(&writer, quick_brown_fox);
     mpack_finish_array(&writer);
     TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_io);
 }
 
-static bool test_file_write_failure() {
+static bool test_file_write_failure(void) {
 
     // The write failure test may fail with either
     // mpack_error_memory or mpack_error_io. We write a
@@ -177,17 +191,28 @@ static bool test_file_write_failure() {
     mpack_writer_t writer;
     mpack_writer_init_file(&writer, test_filename);
 
+    mpack_start_array(&writer, 2);
     mpack_start_array(&writer, 6);
 
     // write a large string near the start to cause a
     // more than double buffer size growth
-    mpack_write_cstr(&writer, "The quick brown fox jumps over a lazy dog.");
+    mpack_write_cstr(&writer, quick_brown_fox);
 
     mpack_write_cstr(&writer, "one");
     mpack_write_cstr(&writer, "two");
     mpack_write_cstr(&writer, "three");
     mpack_write_cstr(&writer, "four");
     mpack_write_cstr(&writer, "five");
+
+    mpack_finish_array(&writer);
+
+    // test deep nesting
+    for (int i = 0; i < nesting_depth; ++i)
+        mpack_start_array(&writer, 1);
+    mpack_write_nil(&writer);
+    for (int i = 0; i < nesting_depth; ++i)
+        mpack_finish_array(&writer);
+
     mpack_finish_array(&writer);
 
     mpack_error_t error = mpack_writer_destroy(&writer);
@@ -275,8 +300,12 @@ static void test_file_discard(void) {
     mpack_reader_t reader;
     mpack_reader_init_file(&reader, test_filename);
     mpack_discard(&reader);
-    mpack_error_t error = mpack_reader_destroy(&reader);
-    TEST_TRUE(error == mpack_ok, "read failed with %s", mpack_error_to_string(error));
+    TEST_READER_DESTROY_NOERROR(&reader);
+
+    mpack_reader_init_file(&reader, test_filename);
+    reader.skip = NULL; // disable the skip callback to test skipping without it
+    mpack_discard(&reader);
+    TEST_READER_DESTROY_NOERROR(&reader);
 }
 #endif
 
@@ -315,7 +344,10 @@ static void test_file_read(void) {
     TEST_TRUE(mpack_reader_error(&reader) == mpack_ok, "file open failed with %s",
             mpack_error_to_string(mpack_reader_error(&reader)));
 
-    TEST_TRUE(5 == mpack_expect_array(&reader));
+    TEST_TRUE(7 == mpack_expect_array(&reader));
+
+    // test matching a cstr larger than the buffer size
+    mpack_expect_cstr_match(&reader, lipsum);
 
     TEST_TRUE(5 == mpack_expect_array(&reader));
     test_file_expect_bytes(&reader, mpack_tag_str(0));
@@ -362,6 +394,12 @@ static void test_file_read(void) {
     test_file_expect_elements(&reader, mpack_tag_map(UINT16_MAX + 1));
     mpack_done_array(&reader);
 
+    for (int i = 0; i < nesting_depth; ++i)
+        mpack_expect_array_match(&reader, 1);
+    mpack_expect_nil(&reader);
+    for (int i = 0; i < nesting_depth; ++i)
+        mpack_done_array(&reader);
+
     mpack_done_array(&reader);
 
     mpack_error_t error = mpack_reader_destroy(&reader);
@@ -372,7 +410,7 @@ static void test_file_read(void) {
     TEST_READER_DESTROY_ERROR(&reader, mpack_error_io);
 }
 
-static bool test_file_expect_failure() {
+static bool test_file_expect_failure(void) {
 
     // The expect failure test may fail with either
     // mpack_error_memory or mpack_error_io.
@@ -388,6 +426,7 @@ static bool test_file_expect_failure() {
     } while (0)
 
     mpack_reader_init_file(&reader, test_filename);
+    mpack_expect_array_match(&reader, 2);
 
     uint32_t count;
     char** strings = mpack_expect_array_alloc(&reader, char*, 50, &count);
@@ -396,24 +435,19 @@ static bool test_file_expect_failure() {
     TEST_TRUE(count == 6);
     MPACK_FREE(strings);
 
-    size_t size;
-    char* str = mpack_expect_str_alloc(&reader, 100, &size);
+    char* str = mpack_expect_cstr_alloc(&reader, 100);
     TEST_POSSIBLE_FAILURE();
     TEST_TRUE(str != NULL);
-    const char* expected = "The quick brown fox jumps over a lazy dog.";
-    TEST_TRUE(size == strlen(expected));
     if (str) {
-        TEST_TRUE(memcmp(str, expected, size) == 0);
+        TEST_TRUE(strcmp(str, quick_brown_fox) == 0);
         MPACK_FREE(str);
     }
 
-    str = mpack_expect_utf8_alloc(&reader, 100, &size);
+    str = mpack_expect_utf8_cstr_alloc(&reader, 100);
     TEST_POSSIBLE_FAILURE();
     TEST_TRUE(str != NULL);
-    expected = "one";
-    TEST_TRUE(size == strlen(expected));
     if (str) {
-        TEST_TRUE(memcmp(str, expected, size) == 0);
+        TEST_TRUE(strcmp(str, "one") == 0);
         MPACK_FREE(str);
     }
 
@@ -435,7 +469,9 @@ static bool test_file_expect_failure() {
 
     mpack_discard(&reader);
     mpack_discard(&reader);
+    mpack_done_array(&reader);
 
+    mpack_discard(&reader); // discard the deep nested arrays
     mpack_done_array(&reader);
 
     #undef TEST_POSSIBLE_FAILURE
@@ -481,14 +517,32 @@ static void test_file_node_elements(mpack_node_t node, mpack_tag_t tag) {
 
 static void test_file_node(void) {
     mpack_tree_t tree;
+
+    // test maximum size
+    mpack_tree_init_file(&tree, test_filename, 100);
+    TEST_TREE_DESTROY_ERROR(&tree, mpack_error_too_big);
+
+    // test blank file
+    mpack_tree_init_file(&tree, test_blank_filename, 0);
+    TEST_TREE_DESTROY_ERROR(&tree, mpack_error_invalid);
+
+    // test successful parse
     mpack_tree_init_file(&tree, test_filename, 0);
     TEST_TRUE(mpack_tree_error(&tree) == mpack_ok, "file tree parsing failed: %s",
             mpack_error_to_string(mpack_tree_error(&tree)));
 
     mpack_node_t root = mpack_tree_root(&tree);
-    TEST_TRUE(mpack_node_array_length(root) == 5);
+    TEST_TRUE(mpack_node_array_length(root) == 7);
 
-    mpack_node_t node = mpack_node_array_at(root, 0);
+    mpack_node_t lipsum_node = mpack_node_array_at(root, 0);
+    const char* lipsum_str = mpack_node_str(lipsum_node);
+    TEST_TRUE(lipsum_str != NULL);
+    if (lipsum_str) {
+        TEST_TRUE(mpack_node_strlen(lipsum_node) == strlen(lipsum));
+        TEST_TRUE(memcmp(lipsum_str, lipsum, strlen(lipsum)) == 0);
+    }
+
+    mpack_node_t node = mpack_node_array_at(root, 1);
     TEST_TRUE(mpack_node_array_length(node) == 5);
     test_file_node_bytes(mpack_node_array_at(node, 0), mpack_tag_str(0));
     test_file_node_bytes(mpack_node_array_at(node, 1), mpack_tag_str(INT8_MAX));
@@ -496,7 +550,7 @@ static void test_file_node(void) {
     test_file_node_bytes(mpack_node_array_at(node, 3), mpack_tag_str(UINT8_MAX + 1));
     test_file_node_bytes(mpack_node_array_at(node, 4), mpack_tag_str(UINT16_MAX + 1));
 
-    node = mpack_node_array_at(root, 1);
+    node = mpack_node_array_at(root, 2);
     TEST_TRUE(5 == mpack_node_array_length(node));
     test_file_node_bytes(mpack_node_array_at(node, 0), mpack_tag_bin(0));
     test_file_node_bytes(mpack_node_array_at(node, 1), mpack_tag_bin(INT8_MAX));
@@ -504,7 +558,7 @@ static void test_file_node(void) {
     test_file_node_bytes(mpack_node_array_at(node, 3), mpack_tag_bin(UINT8_MAX + 1));
     test_file_node_bytes(mpack_node_array_at(node, 4), mpack_tag_bin(UINT16_MAX + 1));
 
-    node = mpack_node_array_at(root, 2);
+    node = mpack_node_array_at(root, 3);
     TEST_TRUE(10 == mpack_node_array_length(node));
     test_file_node_bytes(mpack_node_array_at(node, 0), mpack_tag_ext(1, 0));
     test_file_node_bytes(mpack_node_array_at(node, 1), mpack_tag_ext(1, 1));
@@ -517,7 +571,7 @@ static void test_file_node(void) {
     test_file_node_bytes(mpack_node_array_at(node, 8), mpack_tag_ext(4, UINT8_MAX + 1));
     test_file_node_bytes(mpack_node_array_at(node, 9), mpack_tag_ext(5, UINT16_MAX + 1));
 
-    node = mpack_node_array_at(root, 3);
+    node = mpack_node_array_at(root, 4);
     TEST_TRUE(5 == mpack_node_array_length(node));
     test_file_node_elements(mpack_node_array_at(node, 0), mpack_tag_array(0));
     test_file_node_elements(mpack_node_array_at(node, 1), mpack_tag_array(INT8_MAX));
@@ -525,7 +579,7 @@ static void test_file_node(void) {
     test_file_node_elements(mpack_node_array_at(node, 3), mpack_tag_array(UINT8_MAX + 1));
     test_file_node_elements(mpack_node_array_at(node, 4), mpack_tag_array(UINT16_MAX + 1));
 
-    node = mpack_node_array_at(root, 4);
+    node = mpack_node_array_at(root, 5);
     TEST_TRUE(5 == mpack_node_array_length(node));
     test_file_node_elements(mpack_node_array_at(node, 0), mpack_tag_map(0));
     test_file_node_elements(mpack_node_array_at(node, 1), mpack_tag_map(INT8_MAX));
@@ -533,21 +587,29 @@ static void test_file_node(void) {
     test_file_node_elements(mpack_node_array_at(node, 3), mpack_tag_map(UINT8_MAX + 1));
     test_file_node_elements(mpack_node_array_at(node, 4), mpack_tag_map(UINT16_MAX + 1));
 
+    node = mpack_node_array_at(root, 6);
+    for (int i = 0; i < nesting_depth; ++i)
+        node = mpack_node_array_at(node, 0);
+    TEST_TRUE(mpack_ok == mpack_node_error(node));
+    mpack_node_nil(node);
+
     mpack_error_t error = mpack_tree_destroy(&tree);
     TEST_TRUE(error == mpack_ok, "file tree failed with error %s", mpack_error_to_string(error));
 
     // test file size out of bounds
+    #if MPACK_DEBUG
     if (sizeof(size_t) >= sizeof(long)) {
         TEST_BREAK((mpack_tree_init_file(&tree, "invalid-filename", ((size_t)LONG_MAX) + 1), true));
         TEST_TREE_DESTROY_ERROR(&tree, mpack_error_bug);
     }
+    #endif
 
     // test missing file
     mpack_tree_init_file(&tree, "invalid-filename", 0);
     TEST_TREE_DESTROY_ERROR(&tree, mpack_error_io);
 }
 
-static bool test_file_node_failure() {
+static bool test_file_node_failure(void) {
 
     // The node failure test may fail with either
     // mpack_error_memory or mpack_error_io.
@@ -573,11 +635,13 @@ static bool test_file_node_failure() {
 
 
     mpack_node_t root = mpack_tree_root(&tree);
-    size_t length = mpack_node_array_length(root);
+
+    mpack_node_t strings = mpack_node_array_at(root, 0);
+    size_t length = mpack_node_array_length(strings);
     TEST_POSSIBLE_FAILURE();
     TEST_TRUE(6 == length);
 
-    mpack_node_t node = mpack_node_array_at(root, 0);
+    mpack_node_t node = mpack_node_array_at(strings, 0);
     char* str = mpack_node_data_alloc(node, 100);
     TEST_POSSIBLE_FAILURE();
     TEST_TRUE(str != NULL);
@@ -588,7 +652,8 @@ static bool test_file_node_failure() {
         MPACK_FREE(str);
     }
 
-    node = mpack_node_array_at(root, 1);
+    node = mpack_node_array_at(strings, 1);
+
     str = mpack_node_cstr_alloc(node, 100);
     TEST_POSSIBLE_FAILURE();
     TEST_TRUE(str != NULL);
@@ -598,6 +663,21 @@ static bool test_file_node_failure() {
         TEST_TRUE(strcmp(str, expected) == 0);
         MPACK_FREE(str);
     }
+
+    str = mpack_node_utf8_cstr_alloc(node, 100);
+    TEST_POSSIBLE_FAILURE();
+    TEST_TRUE(str != NULL);
+    if (str) {
+        TEST_TRUE(strlen(str) == strlen(expected));
+        TEST_TRUE(strcmp(str, expected) == 0);
+        MPACK_FREE(str);
+    }
+
+    node = mpack_node_array_at(root, 1);
+    for (int i = 0; i < nesting_depth; ++i)
+        node = mpack_node_array_at(node, 0);
+    TEST_TRUE(mpack_ok == mpack_node_error(node));
+    mpack_node_nil(node);
 
     #undef TEST_POSSIBLE_FAILURE
 
@@ -612,6 +692,10 @@ static bool test_file_node_failure() {
 #endif
 
 void test_file(void) {
+    // write a blank file for test purposes
+    FILE* blank = fopen(test_blank_filename, "wb");
+    fclose(blank);
+
     #if MPACK_READER
     test_print();
     #endif
@@ -640,6 +724,7 @@ void test_file(void) {
     #endif
 
     TEST_TRUE(remove(test_filename) == 0, "failed to delete %s", test_filename);
+    TEST_TRUE(remove(test_blank_filename) == 0, "failed to delete %s", test_blank_filename);
     TEST_TRUE(rmdir(test_dir) == 0, "failed to delete %s", test_dir);
 
     (void)&test_compare_print;

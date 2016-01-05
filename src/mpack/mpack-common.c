@@ -237,7 +237,7 @@ mpack_error_t mpack_track_pop(mpack_track_t* track, mpack_type_t type) {
     return mpack_ok;
 }
 
-mpack_error_t mpack_track_element(mpack_track_t* track, bool read) {
+mpack_error_t mpack_track_peek_element(mpack_track_t* track, bool read) {
     MPACK_UNUSED(read);
     mpack_assert(track->elements, "null track elements!");
 
@@ -259,8 +259,14 @@ mpack_error_t mpack_track_element(mpack_track_t* track, bool read) {
         return mpack_error_bug;
     }
 
-    --element->left;
     return mpack_ok;
+}
+
+mpack_error_t mpack_track_element(mpack_track_t* track, bool read) {
+    mpack_error_t error = mpack_track_peek_element(track, read);
+    if (track->count > 0 && error == mpack_ok)
+        --track->elements[track->count - 1].left;
+    return error;
 }
 
 mpack_error_t mpack_track_bytes(mpack_track_t* track, bool read, uint64_t count) {
@@ -287,6 +293,26 @@ mpack_error_t mpack_track_bytes(mpack_track_t* track, bool read, uint64_t count)
     }
 
     element->left -= count;
+    return mpack_ok;
+}
+
+mpack_error_t mpack_track_str_bytes_all(mpack_track_t* track, bool read, uint64_t count) {
+    mpack_error_t error = mpack_track_bytes(track, read, count);
+    if (error != mpack_ok)
+        return error;
+
+    mpack_track_element_t* element = &track->elements[track->count - 1];
+
+    if (element->type != mpack_type_str) {
+        mpack_break("the open type must be a string, not a %s", mpack_type_to_string(element->type));
+        return mpack_error_bug;
+    }
+
+    if (element->left != 0) {
+        mpack_break("not all bytes were read; the wrong byte count was requested for a string read.");
+        return mpack_error_bug;
+    }
+
     return mpack_ok;
 }
 
@@ -358,7 +384,7 @@ static const uint8_t mpack_utf8d[] = {
  * WTF-8. Overlong sequences and UTF-16 surrogates will be rejected. Only
  * pure UTF-8 is accepted.
  */
-static inline uint32_t mpack_utf8_decode(uint32_t* state, uint32_t* codep, uint8_t byte) {
+MPACK_STATIC_INLINE uint32_t mpack_utf8_decode(uint32_t* state, uint32_t* codep, uint8_t byte) {
   uint32_t type = mpack_utf8d[byte];
 
   *codep = (*state != MPACK_UTF8_ACCEPT) ?

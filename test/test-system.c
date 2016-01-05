@@ -28,12 +28,14 @@
 #endif
 
 static bool test_system_fail = false;
+static bool test_system_fail_all = false;
 static size_t test_system_left = 0;
 static const int test_system_fail_until_max = 500;
 
-void test_system_fail_after(size_t count) {
+void test_system_fail_after(size_t count, bool all) {
     test_system_fail = true;
     test_system_left = count;
+    test_system_fail_all = all;
 }
 
 void test_system_fail_reset(void) {
@@ -44,8 +46,11 @@ void test_system_fail_reset(void) {
 static bool test_system_should_fail(void) {
     if (!test_system_fail)
         return false;
-    if (test_system_left == 0)
+    if (test_system_left == 0) {
+        if (!test_system_fail_all)
+            test_system_fail = false;
         return true;
+    }
     --test_system_left;
     return false;
 }
@@ -60,14 +65,24 @@ void test_system_fail_until_ok(bool (*test)(void)) {
     #endif
 
     for (int i = 0; i < test_system_fail_until_max; ++i) {
-        test_system_fail_after(i);
+        test_system_fail_after(i, false);
         bool ok = test();
 
         #ifdef MPACK_MALLOC
-        TEST_TRUE(test_malloc_active_count() == 0, "test leaked memory on iteration %i!", i);
+        TEST_TRUE(test_malloc_active_count() == 0, "test single failure leaked memory on iteration %i!", i);
         #endif
         #if MPACK_STDIO
-        TEST_TRUE(test_files_count() == 0, "test leaked file on iteration %i!", i);
+        TEST_TRUE(test_files_count() == 0, "test single failure leaked file on iteration %i!", i);
+        #endif
+
+        test_system_fail_after(i, true);
+        ok &= test();
+
+        #ifdef MPACK_MALLOC
+        TEST_TRUE(test_malloc_active_count() == 0, "test all failures leaked memory on iteration %i!", i);
+        #endif
+        #if MPACK_STDIO
+        TEST_TRUE(test_files_count() == 0, "test all failures leaked file on iteration %i!", i);
         #endif
 
         if (ok) {

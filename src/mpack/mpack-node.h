@@ -85,7 +85,7 @@ typedef struct mpack_tree_t mpack_tree_t;
  * Bear in mind when using longjmp that local non-volatile variables that
  * have changed are undefined when setjmp() returns, so you can't put the
  * tree on the stack in the same activation frame as the setjmp without
- * declaring it volatile.)
+ * declaring it volatile.
  *
  * You must still eventually destroy the tree. It is not destroyed
  * automatically when an error is flagged. It is safe to destroy the
@@ -244,6 +244,10 @@ MPACK_INLINE mpack_error_t mpack_tree_error(mpack_tree_t* tree) {
  * Returns the number of bytes used in the buffer when the tree was
  * parsed. If there is something in the buffer after the MessagePack
  * object (such as another object), this can be used to find it.
+ *
+ * This is zero if an error occurred during tree parsing (since the
+ * portion of the data that the first complete object occupies cannot
+ * be determined if the data is invalid or corrupted.)
  */
 MPACK_INLINE size_t mpack_tree_size(mpack_tree_t* tree) {
     return tree->size;
@@ -275,7 +279,7 @@ MPACK_INLINE void mpack_tree_set_context(mpack_tree_t* tree, void* context) {
  *
  * @see mpack_tree_error_t
  * @param tree The MPack tree.
- * @param error The function to call when an error is flagged on the tree.
+ * @param error_fn The function to call when an error is flagged on the tree.
  */
 MPACK_INLINE void mpack_tree_set_error_handler(mpack_tree_t* tree, mpack_tree_error_t error_fn) {
     tree->error_fn = error_fn;
@@ -370,38 +374,27 @@ MPACK_INLINE void mpack_node_print(mpack_node_t node) {
 /**
  * Returns the type of the node.
  */
-MPACK_INLINE_SPEED mpack_type_t mpack_node_type(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED mpack_type_t mpack_node_type(mpack_node_t node) {
+MPACK_INLINE mpack_type_t mpack_node_type(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return mpack_type_nil;
     return node.data->type;
 }
-#endif
 
 /**
  * Checks if the given node is of nil type, raising mpack_error_type otherwise.
  */
-MPACK_INLINE_SPEED void mpack_node_nil(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED void mpack_node_nil(mpack_node_t node) {
+MPACK_INLINE void mpack_node_nil(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return;
     if (node.data->type != mpack_type_nil)
         mpack_node_flag_error(node, mpack_error_type);
 }
-#endif
 
 /**
  * Returns the bool value of the node. If this node is not of the correct
- * type, mpack_error_type is raised, and the return value should be discarded.
+ * type, false is returned and mpack_error_type is raised.
  */
-MPACK_INLINE_SPEED bool mpack_node_bool(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED bool mpack_node_bool(mpack_node_t node) {
+MPACK_INLINE bool mpack_node_bool(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return false;
 
@@ -411,43 +404,30 @@ MPACK_INLINE_SPEED bool mpack_node_bool(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return false;
 }
-#endif
 
 /**
  * Checks if the given node is of bool type with value true, raising
  * mpack_error_type otherwise.
  */
-MPACK_INLINE_SPEED void mpack_node_true(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED void mpack_node_true(mpack_node_t node) {
+MPACK_INLINE void mpack_node_true(mpack_node_t node) {
     if (mpack_node_bool(node) != true)
         mpack_node_flag_error(node, mpack_error_type);
 }
-#endif
 
 /**
  * Checks if the given node is of bool type with value false, raising
  * mpack_error_type otherwise.
  */
-MPACK_INLINE_SPEED void mpack_node_false(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED void mpack_node_false(mpack_node_t node) {
+MPACK_INLINE void mpack_node_false(mpack_node_t node) {
     if (mpack_node_bool(node) != false)
         mpack_node_flag_error(node, mpack_error_type);
 }
-#endif
 
 /**
  * Returns the 8-bit unsigned value of the node. If this node is not
- * of a compatible type, mpack_error_type is raised, and the
- * return value should be discarded.
+ * of a compatible type, mpack_error_type is raised and zero is returned.
  */
-MPACK_INLINE_SPEED uint8_t mpack_node_u8(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED uint8_t mpack_node_u8(mpack_node_t node) {
+MPACK_INLINE uint8_t mpack_node_u8(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
@@ -462,17 +442,12 @@ MPACK_INLINE_SPEED uint8_t mpack_node_u8(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
 }
-#endif
 
 /**
  * Returns the 8-bit signed value of the node. If this node is not
- * of a compatible type, mpack_error_type is raised, and the
- * return value should be discarded.
+ * of a compatible type, mpack_error_type is raised and zero is returned.
  */
-MPACK_INLINE_SPEED int8_t mpack_node_i8(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED int8_t mpack_node_i8(mpack_node_t node) {
+MPACK_INLINE int8_t mpack_node_i8(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
@@ -487,17 +462,12 @@ MPACK_INLINE_SPEED int8_t mpack_node_i8(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
 }
-#endif
 
 /**
  * Returns the 16-bit unsigned value of the node. If this node is not
- * of a compatible type, mpack_error_type is raised, and the
- * return value should be discarded.
+ * of a compatible type, mpack_error_type is raised and zero is returned.
  */
-MPACK_INLINE_SPEED uint16_t mpack_node_u16(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED uint16_t mpack_node_u16(mpack_node_t node) {
+MPACK_INLINE uint16_t mpack_node_u16(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
@@ -512,17 +482,12 @@ MPACK_INLINE_SPEED uint16_t mpack_node_u16(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
 }
-#endif
 
 /**
  * Returns the 16-bit signed value of the node. If this node is not
- * of a compatible type, mpack_error_type is raised, and the
- * return value should be discarded.
+ * of a compatible type, mpack_error_type is raised and zero is returned.
  */
-MPACK_INLINE_SPEED int16_t mpack_node_i16(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED int16_t mpack_node_i16(mpack_node_t node) {
+MPACK_INLINE int16_t mpack_node_i16(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
@@ -537,17 +502,12 @@ MPACK_INLINE_SPEED int16_t mpack_node_i16(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
 }
-#endif
 
 /**
  * Returns the 32-bit unsigned value of the node. If this node is not
- * of a compatible type, mpack_error_type is raised, and the
- * return value should be discarded.
+ * of a compatible type, mpack_error_type is raised and zero is returned.
  */
-MPACK_INLINE_SPEED uint32_t mpack_node_u32(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED uint32_t mpack_node_u32(mpack_node_t node) {
+MPACK_INLINE uint32_t mpack_node_u32(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
@@ -562,17 +522,12 @@ MPACK_INLINE_SPEED uint32_t mpack_node_u32(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
 }
-#endif
 
 /**
  * Returns the 32-bit signed value of the node. If this node is not
- * of a compatible type, mpack_error_type is raised, and the
- * return value should be discarded.
+ * of a compatible type, mpack_error_type is raised and zero is returned.
  */
-MPACK_INLINE_SPEED int32_t mpack_node_i32(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED int32_t mpack_node_i32(mpack_node_t node) {
+MPACK_INLINE int32_t mpack_node_i32(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
@@ -587,17 +542,12 @@ MPACK_INLINE_SPEED int32_t mpack_node_i32(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
 }
-#endif
 
 /**
  * Returns the 64-bit unsigned value of the node. If this node is not
- * of a compatible type, mpack_error_type is raised, and the
- * return value should be discarded.
+ * of a compatible type, mpack_error_type is raised, and zero is returned.
  */
-MPACK_INLINE_SPEED uint64_t mpack_node_u64(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED uint64_t mpack_node_u64(mpack_node_t node) {
+MPACK_INLINE uint64_t mpack_node_u64(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
@@ -611,17 +561,12 @@ MPACK_INLINE_SPEED uint64_t mpack_node_u64(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
 }
-#endif
 
 /**
  * Returns the 64-bit signed value of the node. If this node is not
- * of a compatible type, mpack_error_type is raised, and the
- * return value should be discarded.
+ * of a compatible type, mpack_error_type is raised and zero is returned.
  */
-MPACK_INLINE_SPEED int64_t mpack_node_i64(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED int64_t mpack_node_i64(mpack_node_t node) {
+MPACK_INLINE int64_t mpack_node_i64(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
@@ -635,7 +580,6 @@ MPACK_INLINE_SPEED int64_t mpack_node_i64(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
 }
-#endif
 
 /**
  * Returns the float value of the node. The underlying value can be an
@@ -646,10 +590,7 @@ MPACK_INLINE_SPEED int64_t mpack_node_i64(mpack_node_t node) {
  *
  * @throws mpack_error_type if the underlying value is not a float, double or integer.
  */
-MPACK_INLINE_SPEED float mpack_node_float(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED float mpack_node_float(mpack_node_t node) {
+MPACK_INLINE float mpack_node_float(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0.0f;
 
@@ -665,7 +606,6 @@ MPACK_INLINE_SPEED float mpack_node_float(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return 0.0f;
 }
-#endif
 
 /**
  * Returns the double value of the node. The underlying value can be an
@@ -676,10 +616,7 @@ MPACK_INLINE_SPEED float mpack_node_float(mpack_node_t node) {
  *
  * @throws mpack_error_type if the underlying value is not a float, double or integer.
  */
-MPACK_INLINE_SPEED double mpack_node_double(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED double mpack_node_double(mpack_node_t node) {
+MPACK_INLINE double mpack_node_double(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0.0;
 
@@ -695,7 +632,6 @@ MPACK_INLINE_SPEED double mpack_node_double(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return 0.0;
 }
-#endif
 
 /**
  * Returns the float value of the node. The underlying value must be a float,
@@ -703,10 +639,7 @@ MPACK_INLINE_SPEED double mpack_node_double(mpack_node_t node) {
  *
  * @throws mpack_error_type if the underlying value is not a float.
  */
-MPACK_INLINE_SPEED float mpack_node_float_strict(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED float mpack_node_float_strict(mpack_node_t node) {
+MPACK_INLINE float mpack_node_float_strict(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0.0f;
 
@@ -716,7 +649,6 @@ MPACK_INLINE_SPEED float mpack_node_float_strict(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return 0.0f;
 }
-#endif
 
 /**
  * Returns the double value of the node. The underlying value must be a float
@@ -724,10 +656,7 @@ MPACK_INLINE_SPEED float mpack_node_float_strict(mpack_node_t node) {
  *
  * @throws mpack_error_type if the underlying value is not a float or double.
  */
-MPACK_INLINE_SPEED double mpack_node_double_strict(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED double mpack_node_double_strict(mpack_node_t node) {
+MPACK_INLINE double mpack_node_double_strict(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0.0;
 
@@ -739,7 +668,6 @@ MPACK_INLINE_SPEED double mpack_node_double_strict(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return 0.0;
 }
-#endif
 
 /**
  * @}
@@ -751,12 +679,51 @@ MPACK_INLINE_SPEED double mpack_node_double_strict(mpack_node_t node) {
  */
 
 /**
- * Returns the extension type of the given ext node.
+ * Checks that the given node contains a valid UTF-8 string.
+ *
+ * If the string is invalid, this flags an error, which would cause subsequent calls
+ * to mpack_node_str() to return NULL and mpack_node_strlen() to return zero. So you
+ * can check the node for error immediately after calling this, or you can call those
+ * functions to use the data anyway and check for errors later.
+ *
+ * @throws mpack_error_type If this node is not a string or does not contain valid UTF-8.
+ *
+ * @param node The string node to test
+ *
+ * @see mpack_node_str()
+ * @see mpack_node_strlen()
  */
-MPACK_INLINE_SPEED int8_t mpack_node_exttype(mpack_node_t node);
+void mpack_node_check_utf8(mpack_node_t node);
 
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED int8_t mpack_node_exttype(mpack_node_t node) {
+/**
+ * Checks that the given node contains a valid UTF-8 string with no NUL bytes.
+ *
+ * This does not check that the string has a null-terminator! It only checks whether
+ * the string could safely be represented as a C-string by appending a null-terminator.
+ * (If the string does already contain a null-terminator, this will flag an error.)
+ *
+ * This is performed automatically by other UTF-8 cstr helper functions. Only
+ * call this if you will do something else with the data directly, but you still
+ * want to ensure it will be valid as a UTF-8 C-string.
+ *
+ * @throws mpack_error_type If this node is not a string, does not contain valid UTF-8,
+ *     or contains a NUL byte.
+ *
+ * @param node The string node to test
+ *
+ * @see mpack_node_str()
+ * @see mpack_node_strlen()
+ * @see mpack_node_copy_utf8_cstr()
+ * @see mpack_node_utf8_cstr_alloc()
+ */
+void mpack_node_check_utf8_cstr(mpack_node_t node);
+
+/**
+ * Returns the extension type of the given ext node.
+ *
+ * This returns zero if the tree is in an error state.
+ */
+MPACK_INLINE int8_t mpack_node_exttype(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
@@ -767,15 +734,13 @@ MPACK_INLINE_SPEED int8_t mpack_node_exttype(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
 }
-#endif
 
 /**
  * Returns the length of the given str, bin or ext node.
+ *
+ * This returns zero if the tree is in an error state.
  */
-MPACK_INLINE_SPEED uint32_t mpack_node_data_len(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED uint32_t mpack_node_data_len(mpack_node_t node) {
+MPACK_INLINE uint32_t mpack_node_data_len(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
@@ -786,16 +751,14 @@ MPACK_INLINE_SPEED uint32_t mpack_node_data_len(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
 }
-#endif
 
 /**
  * Returns the length in bytes of the given string node. This does not
  * include any null-terminator.
+ *
+ * This returns zero if the tree is in an error state.
  */
-MPACK_INLINE_SPEED size_t mpack_node_strlen(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED size_t mpack_node_strlen(mpack_node_t node) {
+MPACK_INLINE size_t mpack_node_strlen(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
@@ -805,7 +768,32 @@ MPACK_INLINE_SPEED size_t mpack_node_strlen(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
 }
-#endif
+
+/**
+ * Returns a pointer to the data contained by this node, ensuring it is a string.
+ *
+ * Note that strings are not null-terminated! Use one of the cstr functions
+ * to get a null-terminated string.
+ *
+ * The pointer is valid as long as the data backing the tree is valid.
+ *
+ * If this node is not a string, mpack_error_type is raised and NULL is returned.
+ *
+ * @see mpack_node_copy_cstr()
+ * @see mpack_node_cstr_alloc()
+ * @see mpack_node_utf8_cstr_alloc()
+ */
+MPACK_INLINE const char* mpack_node_str(mpack_node_t node) {
+    if (mpack_node_error(node) != mpack_ok)
+        return NULL;
+
+    mpack_type_t type = node.data->type;
+    if (type == mpack_type_str)
+        return node.data->value.bytes;
+
+    mpack_node_flag_error(node, mpack_error_type);
+    return NULL;
+}
 
 /**
  * Returns a pointer to the data contained by this node.
@@ -822,10 +810,7 @@ MPACK_INLINE_SPEED size_t mpack_node_strlen(mpack_node_t node) {
  * @see mpack_node_cstr_alloc()
  * @see mpack_node_utf8_cstr_alloc()
  */
-MPACK_INLINE_SPEED const char* mpack_node_data(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED const char* mpack_node_data(mpack_node_t node) {
+MPACK_INLINE const char* mpack_node_data(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return NULL;
 
@@ -836,39 +821,66 @@ MPACK_INLINE_SPEED const char* mpack_node_data(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return NULL;
 }
-#endif
 
 /**
  * Copies the bytes contained by this node into the given buffer, returning the
  * number of bytes in the node.
  *
- * If this node is not of a str, bin or map, mpack_error_type is raised, and the
- * buffer and return value should be discarded. If the node's data does not fit
- * in the given buffer, mpack_error_data is raised, and the buffer and return value
- * should be discarded.
+ * @throws mpack_error_type If this node is not a str, bin or ext type
+ * @throws mpack_error_too_big If the string does not fit in the given buffer
  *
  * @param node The string node from which to copy data
  * @param buffer A buffer in which to copy the node's bytes
- * @param size The size of the given buffer
+ * @param bufsize The size of the given buffer
+ *
+ * @return The number of bytes in the node, or zero if an error occurs.
  */
-size_t mpack_node_copy_data(mpack_node_t node, char* buffer, size_t size);
+size_t mpack_node_copy_data(mpack_node_t node, char* buffer, size_t bufsize);
 
 /**
- * Copies the bytes contained by this string node into the given buffer and adds
- * a null terminator. If this node is not of a string type, mpack_error_type is raised,
- * and the buffer should be discarded. If the string does not fit, mpack_error_data is
- * raised, and the buffer should be discarded.
+ * Checks that the given node contains a valid UTF-8 string and copies the
+ * string into the given buffer, returning the number of bytes in the string.
  *
- * If this node is not of a string type, mpack_error_type is raised, and the
- * buffer and return value should be discarded. If the string and null-terminator
- * do not fit in the given buffer, mpack_error_data is raised, and the buffer and
- * return value should be discarded.
+ * @throws mpack_error_type If this node is not a string
+ * @throws mpack_error_too_big If the string does not fit in the given buffer
+ *
+ * @param node The string node from which to copy data
+ * @param buffer A buffer in which to copy the node's bytes
+ * @param bufsize The size of the given buffer
+ *
+ * @return The number of bytes in the node, or zero if an error occurs.
+ */
+size_t mpack_node_copy_utf8(mpack_node_t node, char* buffer, size_t bufsize);
+
+/**
+ * Checks that the given node contains a string with no NUL bytes, copies the string
+ * into the given buffer, and adds a null terminator.
+ *
+ * If this node is not of a string type, mpack_error_type is raised. If the string
+ * does not fit, mpack_error_data is raised.
+ *
+ * If any error occurs, the buffer will contain an empty null-terminated string.
  *
  * @param node The string node from which to copy data
  * @param buffer A buffer in which to copy the node's string
  * @param size The size of the given buffer
  */
 void mpack_node_copy_cstr(mpack_node_t node, char* buffer, size_t size);
+
+/**
+ * Checks that the given node contains a valid UTF-8 string with no NUL bytes,
+ * copies the string into the given buffer, and adds a null terminator.
+ *
+ * If this node is not of a string type, mpack_error_type is raised. If the string
+ * does not fit, mpack_error_data is raised.
+ *
+ * If any error occurs, the buffer will contain an empty null-terminated string.
+ *
+ * @param node The string node from which to copy data
+ * @param buffer A buffer in which to copy the node's string
+ * @param size The size of the given buffer
+ */
+void mpack_node_copy_utf8_cstr(mpack_node_t node, char* buffer, size_t size);
 
 #ifdef MPACK_MALLOC
 /**
@@ -878,13 +890,17 @@ void mpack_node_copy_cstr(mpack_node_t node, char* buffer, size_t size);
  * The allocated data must be freed with MPACK_FREE() (or simply free()
  * if MPack's allocator hasn't been customized.)
  *
- * If this node is not a str, bin or ext type, mpack_error_type is raised
- * and the return value should be discarded. If the string and null-terminator
- * are longer than the given maximum length, mpack_error_too_big is raised, and
- * the return value should be discarded. If an allocation failure occurs,
- * mpack_error_memory is raised and the return value should be discarded.
+ * @throws mpack_error_type If this node is not a str, bin or ext type
+ * @throws mpack_error_too_big If the size of the data is larger than the
+ *     given maximum size
+ * @throws mpack_error_memory If an allocation failure occurs
+ *
+ * @param node The node from which to allocate and copy data
+ * @param maxsize The maximum size to allocate
+ *
+ * @return The allocated data, or NULL if any error occurs.
  */
-char* mpack_node_data_alloc(mpack_node_t node, size_t maxlen);
+char* mpack_node_data_alloc(mpack_node_t node, size_t maxsize);
 
 /**
  * Allocates a new null-terminated string using MPACK_MALLOC with the string
@@ -893,12 +909,37 @@ char* mpack_node_data_alloc(mpack_node_t node, size_t maxlen);
  * The allocated string must be freed with MPACK_FREE() (or simply free()
  * if MPack's allocator hasn't been customized.)
  *
- * If this node is not a string type, mpack_error_type is raised, and the return
- * value should be discarded.
+ * @throws mpack_error_type If this node is not a string or contains NUL bytes
+ * @throws mpack_error_too_big If the size of the string plus null-terminator
+ *     is larger than the given maximum size
+ * @throws mpack_error_memory If an allocation failure occurs
  *
- * @param maxlen The maximum size to allocate, including the null-terminator.
+ * @param node The node from which to allocate and copy string data
+ * @param maxsize The maximum size to allocate, including the null-terminator
+ *
+ * @return The allocated string, or NULL if any error occurs.
  */
-char* mpack_node_cstr_alloc(mpack_node_t node, size_t maxlen);
+char* mpack_node_cstr_alloc(mpack_node_t node, size_t maxsize);
+
+/**
+ * Allocates a new null-terminated string using MPACK_MALLOC with the UTF-8
+ * string contained by this node.
+ *
+ * The allocated string must be freed with MPACK_FREE() (or simply free()
+ * if MPack's allocator hasn't been customized.)
+ *
+ * @throws mpack_error_type If this node is not a string, is not valid UTF-8,
+ *     or contains NUL bytes
+ * @throws mpack_error_too_big If the size of the string plus null-terminator
+ *     is larger than the given maximum size
+ * @throws mpack_error_memory If an allocation failure occurs
+ *
+ * @param node The node from which to allocate and copy string data
+ * @param maxsize The maximum size to allocate, including the null-terminator
+ *
+ * @return The allocated string, or NULL if any error occurs.
+ */
+char* mpack_node_utf8_cstr_alloc(mpack_node_t node, size_t maxsize);
 #endif
 
 /**
@@ -910,19 +951,11 @@ char* mpack_node_cstr_alloc(mpack_node_t node, size_t maxlen);
  * @{
  */
 
-// internal implementation of map key lookup functions to support optional flag
-mpack_node_t mpack_node_map_str_impl(mpack_node_t node, const char* str, size_t length, bool optional);
-mpack_node_t mpack_node_map_int_impl(mpack_node_t node, int64_t num, bool optional);
-mpack_node_t mpack_node_map_uint_impl(mpack_node_t node, uint64_t num, bool optional);
-
 /**
  * Returns the length of the given array node. Raises mpack_error_type
  * and returns 0 if the given node is not an array.
  */
-MPACK_INLINE_SPEED size_t mpack_node_array_length(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED size_t mpack_node_array_length(mpack_node_t node) {
+MPACK_INLINE size_t mpack_node_array_length(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
@@ -933,7 +966,6 @@ MPACK_INLINE_SPEED size_t mpack_node_array_length(mpack_node_t node) {
 
     return (size_t)node.data->len;
 }
-#endif
 
 /**
  * Returns the node in the given array at the given index. If the node
@@ -941,10 +973,7 @@ MPACK_INLINE_SPEED size_t mpack_node_array_length(mpack_node_t node) {
  * If the given index is out of bounds, mpack_error_data is raised and
  * a nil node is returned.
  */
-MPACK_INLINE_SPEED mpack_node_t mpack_node_array_at(mpack_node_t node, size_t index);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED mpack_node_t mpack_node_array_at(mpack_node_t node, size_t index) {
+MPACK_INLINE mpack_node_t mpack_node_array_at(mpack_node_t node, size_t index) {
     if (mpack_node_error(node) != mpack_ok)
         return mpack_tree_nil_node(node.tree);
 
@@ -960,16 +989,12 @@ MPACK_INLINE_SPEED mpack_node_t mpack_node_array_at(mpack_node_t node, size_t in
 
     return mpack_node(node.tree, mpack_node_child(node, index));
 }
-#endif
 
 /**
  * Returns the number of key/value pairs in the given map node. Raises
  * mpack_error_type and returns 0 if the given node is not a map.
  */
-MPACK_INLINE_SPEED size_t mpack_node_map_count(mpack_node_t node);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED size_t mpack_node_map_count(mpack_node_t node) {
+MPACK_INLINE size_t mpack_node_map_count(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
@@ -980,13 +1005,9 @@ MPACK_INLINE_SPEED size_t mpack_node_map_count(mpack_node_t node) {
 
     return node.data->len;
 }
-#endif
 
 // internal node map lookup
-MPACK_INLINE_SPEED mpack_node_t mpack_node_map_at(mpack_node_t node, size_t index, size_t offset);
-
-#if MPACK_DEFINE_INLINE_SPEED
-MPACK_INLINE_SPEED mpack_node_t mpack_node_map_at(mpack_node_t node, size_t index, size_t offset) {
+MPACK_INLINE mpack_node_t mpack_node_map_at(mpack_node_t node, size_t index, size_t offset) {
     if (mpack_node_error(node) != mpack_ok)
         return mpack_tree_nil_node(node.tree);
 
@@ -1002,7 +1023,6 @@ MPACK_INLINE_SPEED mpack_node_t mpack_node_map_at(mpack_node_t node, size_t inde
 
     return mpack_node(node.tree, mpack_node_child(node, index * 2 + offset));
 }
-#endif
 
 /**
  * Returns the key node in the given map at the given index.
@@ -1029,103 +1049,173 @@ MPACK_INLINE mpack_node_t mpack_node_map_value_at(mpack_node_t node, size_t inde
 }
 
 /**
- * Returns the value node in the given map for the given integer key. If the given
- * node is not a map, mpack_error_type is raised and a nil node is
- * returned. If the given key does not exist in the map, mpack_error_data
- * is raised and a nil node is returned.
+ * Returns the value node in the given map for the given integer key.
+ *
+ * The key must exist within the map. Use mpack_node_map_int_optional() to
+ * check for optional keys.
+ *
+ * The key must be unique. An error is flagged if the node has multiple
+ * entries with the given key.
+ *
+ * @throws mpack_error_type If the node is not a map
+ * @throws mpack_error_data If the node does not contain exactly one entry with the given key
+ *
+ * @return The value node for the given key, or a nil node in case of error
  */
-MPACK_INLINE mpack_node_t mpack_node_map_int(mpack_node_t node, int64_t num) {
-    return mpack_node_map_int_impl(node, num, false);
-}
+mpack_node_t mpack_node_map_int(mpack_node_t node, int64_t num);
 
 /**
  * Returns the value node in the given map for the given integer key, or a nil
  * node if the map does not contain the given key.
  *
- * @throws mpack_error_type if the node is not a map
+ * The key must be unique. An error is flagged if the node has multiple
+ * entries with the given key.
+ *
+ * @throws mpack_error_type If the node is not a map
+ * @throws mpack_error_data If the node contains more than one entry with the given key
+ *
+ * @return The value node for the given key, or a nil node in case of error
  */
-MPACK_INLINE mpack_node_t mpack_node_map_int_optional(mpack_node_t node, int64_t num) {
-    return mpack_node_map_int_impl(node, num, true);
-}
+mpack_node_t mpack_node_map_int_optional(mpack_node_t node, int64_t num);
 
 /**
- * Returns the value node in the given map for the given unsigned integer key. If
- * the given node is not a map, mpack_error_type is raised and a nil node is
- * returned. If the given key does not exist in the map, mpack_error_data
- * is raised and a nil node is returned.
+ * Returns the value node in the given map for the given unsigned integer key.
+ *
+ * The key must exist within the map. Use mpack_node_map_uint_optional() to
+ * check for optional keys.
+ *
+ * The key must be unique. An error is flagged if the node has multiple
+ * entries with the given key.
+ *
+ * @throws mpack_error_type If the node is not a map
+ * @throws mpack_error_data If the node does not contain exactly one entry with the given key
+ *
+ * @return The value node for the given key, or a nil node in case of error
  */
-MPACK_INLINE mpack_node_t mpack_node_map_uint(mpack_node_t node, uint64_t num) {
-    return mpack_node_map_uint_impl(node, num, false);
-}
+mpack_node_t mpack_node_map_uint(mpack_node_t node, uint64_t num);
 
 /**
  * Returns the value node in the given map for the given unsigned integer
  * key, or a nil node if the map does not contain the given key.
  *
- * @throws mpack_error_type if the node is not a map
- */
-MPACK_INLINE mpack_node_t mpack_node_map_uint_optional(mpack_node_t node, uint64_t num) {
-    return mpack_node_map_uint_impl(node, num, true);
-}
-
-/**
- * Returns the value node in the given map for the given string key. If the given
- * node is not a map, mpack_error_type is raised and a nil node is
- * returned. If the given key does not exist in the map, mpack_error_data
- * is raised and a nil node is returned.
- */
-MPACK_INLINE mpack_node_t mpack_node_map_str(mpack_node_t node, const char* str, size_t length) {
-    return mpack_node_map_str_impl(node, str, length, false);
-}
-
-/**
- * Returns the value node in the given map for the given string key, or a
- * nil node if the map does not contain the given key.
+ * The key must be unique. An error is flagged if the node has multiple
+ * entries with the given key.
  *
- * @throws mpack_error_type if the node is not a map
+ * @throws mpack_error_type If the node is not a map
+ * @throws mpack_error_data If the node contains more than one entry with the given key
+ *
+ * @return The value node for the given key, or a nil node in case of error
  */
-MPACK_INLINE mpack_node_t mpack_node_map_str_optional(mpack_node_t node, const char* str, size_t length) {
-    return mpack_node_map_str_impl(node, str, length, true);
-}
+mpack_node_t mpack_node_map_uint_optional(mpack_node_t node, uint64_t num);
 
 /**
- * Returns the value node in the given map for the given null-terminated string key.
- * If the given node is not a map, mpack_error_type is raised and a nil node is
- * returned. If the given key does not exist in the map, mpack_error_data
- * is raised and a nil node is returned.
+ * Returns the value node in the given map for the given string key.
+ *
+ * The key must exist within the map. Use mpack_node_map_str_optional() to
+ * check for optional keys.
+ *
+ * The key must be unique. An error is flagged if the node has multiple
+ * entries with the given key.
+ *
+ * @throws mpack_error_type If the node is not a map
+ * @throws mpack_error_data If the node does not contain exactly one entry with the given key
+ *
+ * @return The value node for the given key, or a nil node in case of error
  */
-MPACK_INLINE mpack_node_t mpack_node_map_cstr(mpack_node_t node, const char* cstr) {
-    mpack_assert(cstr != NULL, "cstr is NULL");
-    return mpack_node_map_str(node, cstr, mpack_strlen(cstr));
-}
+mpack_node_t mpack_node_map_str(mpack_node_t node, const char* str, size_t length);
+
+/**
+ * Returns the value node in the given map for the given string key, or a nil
+ * node if the map does not contain the given key.
+ *
+ * The key must be unique. An error is flagged if the node has multiple
+ * entries with the given key.
+ *
+ * @throws mpack_error_type If the node is not a map
+ * @throws mpack_error_data If the node contains more than one entry with the given key
+ *
+ * @return The value node for the given key, or a nil node in case of error
+ */
+mpack_node_t mpack_node_map_str_optional(mpack_node_t node, const char* str, size_t length);
+
+/**
+ * Returns the value node in the given map for the given null-terminated
+ * string key.
+ *
+ * The key must exist within the map. Use mpack_node_map_cstr_optional() to
+ * check for optional keys.
+ *
+ * The key must be unique. An error is flagged if the node has multiple
+ * entries with the given key.
+ *
+ * @throws mpack_error_type If the node is not a map
+ * @throws mpack_error_data If the node does not contain exactly one entry with the given key
+ *
+ * @return The value node for the given key, or a nil node in case of error
+ */
+mpack_node_t mpack_node_map_cstr(mpack_node_t node, const char* cstr);
 
 /**
  * Returns the value node in the given map for the given null-terminated
  * string key, or a nil node if the map does not contain the given key.
  *
- * @throws mpack_error_type if the node is not a map
+ * The key must be unique. An error is flagged if the node has multiple
+ * entries with the given key.
+ *
+ * @throws mpack_error_type If the node is not a map
+ * @throws mpack_error_data If the node contains more than one entry with the given key
+ *
+ * @return The value node for the given key, or a nil node in case of error
  */
-MPACK_INLINE mpack_node_t mpack_node_map_cstr_optional(mpack_node_t node, const char* cstr) {
-    mpack_assert(cstr != NULL, "cstr is NULL");
-    return mpack_node_map_str_optional(node, cstr, mpack_strlen(cstr));
-}
+mpack_node_t mpack_node_map_cstr_optional(mpack_node_t node, const char* cstr);
 
 /**
- * Returns true if the given node map contains a value for the given string key.
- * If the given node is not a map, mpack_error_type is raised and null is
- * returned.
+ * Returns true if the given node map contains exactly one entry with the
+ * given integer key.
+ *
+ * The key must be unique. An error is flagged if the node has multiple
+ * entries with the given key.
+ *
+ * @throws mpack_error_type If the node is not a map
+ * @throws mpack_error_data If the node contains more than one entry with the given key
+ */
+bool mpack_node_map_contains_int(mpack_node_t node, int64_t num);
+
+/**
+ * Returns true if the given node map contains exactly one entry with the
+ * given unsigned integer key.
+ *
+ * The key must be unique. An error is flagged if the node has multiple
+ * entries with the given key.
+ *
+ * @throws mpack_error_type If the node is not a map
+ * @throws mpack_error_data If the node contains more than one entry with the given key
+ */
+bool mpack_node_map_contains_uint(mpack_node_t node, uint64_t num);
+
+/**
+ * Returns true if the given node map contains exactly one entry with the
+ * given string key.
+ *
+ * The key must be unique. An error is flagged if the node has multiple
+ * entries with the given key.
+ *
+ * @throws mpack_error_type If the node is not a map
+ * @throws mpack_error_data If the node contains more than one entry with the given key
  */
 bool mpack_node_map_contains_str(mpack_node_t node, const char* str, size_t length);
 
 /**
- * Returns true if the given node map contains a value for the given
- * null-terminated string key. If the given node is not a map, mpack_error_type
- * is raised and null is returned.
+ * Returns true if the given node map contains exactly one entry with the
+ * given null-terminated string key.
+ *
+ * The key must be unique. An error is flagged if the node has multiple
+ * entries with the given key.
+ *
+ * @throws mpack_error_type If the node is not a map
+ * @throws mpack_error_data If the node contains more than one entry with the given key
  */
-MPACK_INLINE bool mpack_node_map_contains_cstr(mpack_node_t node, const char* cstr) {
-    mpack_assert(cstr != NULL, "cstr is NULL");
-    return mpack_node_map_contains_str(node, cstr, mpack_strlen(cstr));
-}
+bool mpack_node_map_contains_cstr(mpack_node_t node, const char* cstr);
 
 /**
  * @}

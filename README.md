@@ -12,15 +12,23 @@ The core of MPack contains a buffered reader and writer with a custom callback t
 
 The MPack code is small enough to be embedded directly into your codebase. The easiest way to use it is to download the [amalgamation package](https://github.com/ludocode/mpack/releases) and insert the source files directly into your project. Copy `mpack.h` and `mpack.c` into to your codebase, and copy `mpack-config.h.sample` as `mpack-config.h`. You can use the defaults or edit it if you'd like to customize the MPack featureset.
 
-MPack is written in the portable intersection of C99 and C++. In other words, it's written in C99, but if you are stuck using a certain popular compiler from a certain unpopular vendor that refuses to support C99, you can compile it as C++ instead.
-
 ## Build Status
 
 MPack is beta software under development.
 
-| [Travis-CI](https://travis-ci.org/) | [Coveralls.io](https://coveralls.io/) |
-| :-------: | :----------: |
-| [![Build Status](https://travis-ci.org/ludocode/mpack.svg?branch=master)](https://travis-ci.org/ludocode/mpack/branches) | [![Coverage Status](https://coveralls.io/repos/ludocode/mpack/badge.svg?branch=master&service=github)](https://coveralls.io/github/ludocode/mpack?branch=master) |
+[travis-home]: https://travis-ci.org/
+[travis-badge]: https://travis-ci.org/ludocode/mpack.svg?branch=master
+[travis-mpack]: https://travis-ci.org/ludocode/mpack/branches
+[appveyor-home]: https://ci.appveyor.com/
+[appveyor-badge]: https://ci.appveyor.com/api/projects/status/tux06aefpqq83k30/branch/master?svg=true
+[appveyor-mpack]: https://ci.appveyor.com/project/ludocode/mpack/branch/master
+[coveralls-home]: https://coveralls.io/
+[coveralls-badge]: https://coveralls.io/repos/ludocode/mpack/badge.svg?branch=master&service=github
+[coveralls-mpack]: https://coveralls.io/github/ludocode/mpack?branch=master
+
+| [Travis-CI][travis-home] | [AppVeyor][appveyor-home] | [Coveralls.io][coveralls-home] |
+| :-------: | :----------: | :----------: |
+| [![Build Status][travis-badge]][travis-mpack] | [![Build status][appveyor-badge]][appveyor-mpack] | [![Coverage Status][coveralls-badge]][coveralls-mpack] |
 
 ## The Node Reader API
 
@@ -80,6 +88,29 @@ In the above example, we encode to a growable memory buffer. The writer can inst
 If any error occurs, the writer is placed in an error state. The writer will flag an error if too much data is written, if the wrong number of elements are written, if the data could not be flushed, etc. No additional error handling is needed in the above code; any subsequent writes are ignored when the writer is in an error state, so you don't need to check every write for errors.
 
 Note in particular that in debug mode, the `mpack_finish_map()` call above ensures that two key/value pairs were actually written as claimed, something that other MessagePack C/C++ libraries may not do.
+
+## Comparison With Other Parsers
+
+MPack is rich in features while maintaining very high performance and a small code footprint. Here's a short feature table comparing it to other C parsers:
+
+[mpack]: https://github.com/ludocode/mpack
+[msgpack-c]: https://github.com/msgpack/msgpack-c
+[cmp]: https://github.com/camgunz/cmp
+
+|    | [MPack][mpack]<br>(v0.8) | [msgpack-c][msgpack-c]<br>(v1.3.0) | [CMP][cmp]<br>(v14) |
+|:------------------------------------|:---:|:---:|:---:|
+| No libc requirement                 | ✓   |     | ✓   |
+| Growable memory writer              | ✓   | ✓   |     |
+| File I/O helpers                    | ✓   | ✓   |     |
+| Tree parser                         | ✓   | ✓   |     |
+| Propagating errors                  | ✓   |     | ✓   |
+| Compound size tracking              | ✓   |     |     |
+| Incremental parser                  | ✓   |     | ✓   |
+| Incremental range/match helpers     | ✓   |     |     |
+| Tree stream parser                  |     | ✓   |     |
+| UTF-8 verification                  | ✓   |     |     |
+
+A larger feature comparison table is available [here](docs/features.md) which includes descriptions of the various entries in the table.
 
 ## Why Not Just Use JSON?
 

@@ -37,6 +37,12 @@
 
 
 
+/* Pre-include checks */
+
+#if defined(_MSC_VER) && _MSC_VER < 1800 && !defined(__cplusplus)
+#error "In Visual Studio 2012 and earlier, MPack must be compiled as C++. Enable the /Tp compiler flag."
+#endif
+
 #if defined(WIN32) && defined(MPACK_INTERNAL) && MPACK_INTERNAL
 #define _CRT_SECURE_NO_WARNINGS 1
 #endif
@@ -105,6 +111,9 @@
 #endif
 #ifndef MPACK_INTERNAL
 #define MPACK_INTERNAL 0
+#endif
+#ifndef MPACK_NO_BUILTINS
+#define MPACK_NO_BUILTINS 0
 #endif
 
 
@@ -215,11 +224,6 @@ MPACK_HEADER_START
 /*
  * Definition of inline macros.
  *
- * MPack supports several different modes for inline functions:
- *   - functions declared with a platform-specific always-inline (MPACK_ALWAYS_INLINE)
- *   - functions declared inline regardless of optimization options (MPACK_INLINE)
- *   - functions declared inline only in builds optimized for speed (MPACK_INLINE_SPEED)
- *
  * MPack does not use static inline in header files; only one non-inline definition
  * of each function should exist in the final build. This can reduce the binary size
  * in cases where the compiler cannot or chooses not to inline a function.
@@ -244,10 +248,7 @@ MPACK_HEADER_START
  * files have a single non-inline definition emitted in the compilation of
  * mpack-platform.c. All inline declarations and definitions use the same MPACK_INLINE
  * specification to simplify the rules on when standalone functions are emitted.
- *
- * Inline functions in source files are defined static, so MPACK_STATIC_INLINE
- * is used for small functions and MPACK_STATIC_INLINE_SPEED is used for
- * larger optionally inline functions.
+ * Inline functions in source files are defined MPACK_STATIC_INLINE.
  *
  * Additional reading:
  *     http://www.greenend.org.uk/rjk/tech/inline.html
@@ -262,6 +263,13 @@ MPACK_HEADER_START
     // C++ definition will be used, and no other C files will emit
     // a defition.
     #define MPACK_INLINE inline
+
+#elif defined(_MSC_VER)
+    // MSVC 2013 always uses COMDAT linkage, but it doesn't treat
+    // 'inline' as a keyword in C99 mode.
+    #define MPACK_INLINE __inline
+    #define MPACK_STATIC_INLINE static __inline
+
 #elif defined(__GNUC__) && (defined(__GNUC_GNU_INLINE__) || \
         !defined(__GNUC_STDC_INLINE__) && !defined(__GNUC_GNU_INLINE__))
     // GNU rules
@@ -270,6 +278,7 @@ MPACK_HEADER_START
     #else
         #define MPACK_INLINE extern inline
     #endif
+
 #else
     // C99 rules
     #if MPACK_EMIT_INLINE_DEFS
@@ -279,20 +288,8 @@ MPACK_HEADER_START
     #endif
 #endif
 
+#ifndef MPACK_STATIC_INLINE
 #define MPACK_STATIC_INLINE static inline
-
-#if MPACK_OPTIMIZE_FOR_SIZE
-    #define MPACK_STATIC_INLINE_SPEED static
-    #define MPACK_INLINE_SPEED /* nothing */
-    #if MPACK_EMIT_INLINE_DEFS
-        #define MPACK_DEFINE_INLINE_SPEED 1
-    #else
-        #define MPACK_DEFINE_INLINE_SPEED 0
-    #endif
-#else
-    #define MPACK_STATIC_INLINE_SPEED static inline
-    #define MPACK_INLINE_SPEED MPACK_INLINE
-    #define MPACK_DEFINE_INLINE_SPEED 1
 #endif
 
 #ifdef MPACK_OPTIMIZE_FOR_SPEED
@@ -303,21 +300,24 @@ MPACK_HEADER_START
 
 /* Some compiler-specific keywords and builtins */
 
-#if defined(__GNUC__) || defined(__clang__)
-    #define MPACK_UNREACHABLE __builtin_unreachable()
-    #define MPACK_NORETURN(fn) fn __attribute__((noreturn))
-
-    // gcov gets confused with always_inline, so we disable it under the unit tests
-    #ifndef MPACK_GCOV
-        #define MPACK_ALWAYS_INLINE __attribute__((always_inline)) MPACK_INLINE
-        #define MPACK_STATIC_ALWAYS_INLINE static __attribute__((always_inline)) inline
+#if !MPACK_NO_BUILTINS
+    #if defined(__GNUC__) || defined(__clang__)
+        #define MPACK_UNREACHABLE __builtin_unreachable()
+        #define MPACK_NORETURN(fn) fn __attribute__((noreturn))
+        #define MPACK_RESTRICT __restrict__
+    #elif defined(_MSC_VER)
+        #define MPACK_UNREACHABLE __assume(0)
+        #define MPACK_NORETURN(fn) __declspec(noreturn) fn
+        #define MPACK_RESTRICT __restrict
     #endif
+#endif
 
-#elif defined(_MSC_VER)
-    #define MPACK_UNREACHABLE __assume(0)
-    #define MPACK_NORETURN(fn) __declspec(noreturn) fn
-    #define MPACK_ALWAYS_INLINE __forceinline
-    #define MPACK_STATIC_ALWAYS_INLINE static __forceinline
+#ifndef MPACK_RESTRICT
+#ifdef __cplusplus
+#define MPACK_RESTRICT /* nothing, unavailable in C++ */
+#else
+#define MPACK_RESTRICT restrict /* required in C99 */
+#endif
 #endif
 
 #ifndef MPACK_UNREACHABLE
@@ -326,63 +326,55 @@ MPACK_HEADER_START
 #ifndef MPACK_NORETURN
 #define MPACK_NORETURN(fn) fn
 #endif
-#ifndef MPACK_ALWAYS_INLINE
-#define MPACK_ALWAYS_INLINE MPACK_INLINE
-#endif
-#ifndef MPACK_STATIC_ALWAYS_INLINE
-#define MPACK_STATIC_ALWAYS_INLINE static inline
-#endif
 
 
 
 /* Static assert */
 
 #ifndef MPACK_STATIC_ASSERT
-    #ifdef __STDC_VERSION__
+    #if defined(__cplusplus)
+        #if __cplusplus >= 201103L
+            #define MPACK_STATIC_ASSERT static_assert
+        #endif
+    #elif defined(__STDC_VERSION__)
         #if __STDC_VERSION__ >= 201112L
             #define MPACK_STATIC_ASSERT _Static_assert
         #endif
     #endif
 #endif
 
-#ifndef MPACK_STATIC_ASSERT
-    #if defined(__has_feature)
-        #if __has_feature(cxx_static_assert)
-            #define MPACK_STATIC_ASSERT static_assert
-        #elif __has_feature(c_static_assert)
-            #define MPACK_STATIC_ASSERT _Static_assert
-        #endif
-    #endif
-#endif
-
-#ifndef MPACK_STATIC_ASSERT
-    #if defined(__cplusplus)
-        #if __cplusplus >= 201103L
-            #define MPACK_STATIC_ASSERT static_assert
-        #endif
-    #endif
-#endif
-
-#ifndef MPACK_STATIC_ASSERT
-    #if defined(__GNUC__)
-        #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
-            #ifndef __cplusplus
-                #define MPACK_STATIC_ASSERT(expr, str) do { \
-                    _Pragma ("GCC diagnostic push") \
-                    _Pragma ("GCC diagnostic ignored \"-pedantic\"") \
-                    _Pragma ("GCC diagnostic ignored \"-Wc++-compat\"") \
-                    _Static_assert(expr, str); \
-                    _Pragma ("GCC diagnostic pop") \
-                } while (0)
+#if !MPACK_NO_BUILTINS
+    #ifndef MPACK_STATIC_ASSERT
+        #if defined(__has_feature)
+            #if __has_feature(cxx_static_assert)
+                #define MPACK_STATIC_ASSERT static_assert
+            #elif __has_feature(c_static_assert)
+                #define MPACK_STATIC_ASSERT _Static_assert
             #endif
         #endif
     #endif
-#endif
 
-#ifndef MPACK_STATIC_ASSERT
-    #ifdef _MSC_VER
-        #if _MSC_VER >= 1600
-            #define MPACK_STATIC_ASSERT static_assert
+    #ifndef MPACK_STATIC_ASSERT
+        #if defined(__GNUC__)
+            #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
+                #ifndef __cplusplus
+                    #define MPACK_STATIC_ASSERT(expr, str) do { \
+                        _Pragma ("GCC diagnostic push") \
+                        _Pragma ("GCC diagnostic ignored \"-pedantic\"") \
+                        _Pragma ("GCC diagnostic ignored \"-Wc++-compat\"") \
+                        _Static_assert(expr, str); \
+                        _Pragma ("GCC diagnostic pop") \
+                    } while (0)
+                #endif
+            #endif
+        #endif
+    #endif
+
+    #ifndef MPACK_STATIC_ASSERT
+        #ifdef _MSC_VER
+            #if _MSC_VER >= 1600
+                #define MPACK_STATIC_ASSERT static_assert
+            #endif
         #endif
     #endif
 #endif
@@ -411,36 +403,38 @@ MPACK_HEADER_START
         #define MPACK_NHSWAP64(x) (x)
     #elif __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 
-        #if defined(__clang__)
-            #ifdef __has_builtin
-                #if __has_builtin(__builtin_bswap32)
-                    #define MPACK_NHSWAP32(x) __builtin_bswap32(x)
+        #if !MPACK_NO_BUILTINS
+            #if defined(__clang__)
+                #ifdef __has_builtin
+                    #if __has_builtin(__builtin_bswap32)
+                        #define MPACK_NHSWAP32(x) __builtin_bswap32(x)
+                    #endif
+                    #if __has_builtin(__builtin_bswap64)
+                        #define MPACK_NHSWAP64(x) __builtin_bswap64(x)
+                    #endif
                 #endif
-                #if __has_builtin(__builtin_bswap64)
+
+            #elif defined(__GNUC__)
+
+                // The GCC bswap builtins are apparently poorly optimized on older
+                // versions of GCC, so we set a minimum version here just in case.
+                //     http://hardwarebug.org/2010/01/14/beware-the-builtins/
+
+                #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
+                    #define MPACK_NHSWAP32(x) __builtin_bswap32(x)
                     #define MPACK_NHSWAP64(x) __builtin_bswap64(x)
                 #endif
+
             #endif
-
-        #elif defined(__GNUC__)
-
-            // The GCC bswap builtins are apparently poorly optimized on older
-            // versions of GCC, so we set a minimum version here just in case
-            //     http://hardwarebug.org/2010/01/14/beware-the-builtins/
-
-            #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
-                #define MPACK_NHSWAP32(x) __builtin_bswap32(x)
-                #define MPACK_NHSWAP64(x) __builtin_bswap64(x)
-            #endif
-
         #endif
     #endif
 
-#elif defined(_MSC_VER) && defined(_WIN32)
+#elif defined(_MSC_VER) && defined(_WIN32) && !MPACK_NO_BUILTINS
 
     // On Windows, we assume x86 and x86_64 are always little-endian.
     // We make no assumptions about ARM even though all current
-    // Windows Phone devices are little-endian just in case they
-    // release one that isn't.
+    // Windows Phone devices are little-endian in case Microsoft's
+    // compiler is ever used with a big-endian ARM device.
 
     #if defined(_M_IX86) || defined(_M_X64) || defined(_M_AMD64)
         #define MPACK_NHSWAP32(x) _byteswap_ulong(x)
@@ -538,18 +532,63 @@ MPACK_HEADER_START
 
 
 /* Wrap some needed libc functions */
+
 #if MPACK_STDLIB
-    #define mpack_memset memset
+    #define mpack_memcmp memcmp
     #define mpack_memcpy memcpy
     #define mpack_memmove memmove
-    #define mpack_memcmp memcmp
+    #define mpack_memset memset
     #define mpack_strlen strlen
-#else
-    void* mpack_memset(void *s, int c, size_t n);
-    void* mpack_memcpy(void *s1, const void *s2, size_t n);
-    void* mpack_memmove(void *s1, const void *s2, size_t n);
-    int mpack_memcmp(const void* s1, const void* s2, size_t n);
-    size_t mpack_strlen(const char *s);
+
+    #if defined(MPACK_UNIT_TESTS) && MPACK_INTERNAL && defined(__GNUC__)
+        // make sure we don't use the stdlib directly during development
+        #pragma GCC poison memcmp
+        #pragma GCC poison memcpy
+        #pragma GCC poison memmove
+        #pragma GCC poison memset
+        #pragma GCC poison strlen
+    #endif
+
+#elif defined(__GNUC__) && !MPACK_NO_BUILTINS
+    // there's not always a builtin memmove for GCC,
+    // and we don't have a way to test for it
+    #define mpack_memcmp __builtin_memcmp
+    #define mpack_memcpy __builtin_memcpy
+    #define mpack_memset __builtin_memset
+    #define mpack_strlen __builtin_strlen
+
+#elif defined(__clang__) && defined(__has_builtin) && !MPACK_NO_BUILTINS
+    #if __has_builtin(__builtin_memcmp)
+    #define mpack_memcmp __builtin_memcmp
+    #endif
+    #if __has_builtin(__builtin_memcpy)
+    #define mpack_memcpy __builtin_memcpy
+    #endif
+    #if __has_builtin(__builtin_memmove)
+    #define mpack_memmove __builtin_memmove
+    #endif
+    #if __has_builtin(__builtin_memset)
+    #define mpack_memset __builtin_memset
+    #endif
+    #if __has_builtin(__builtin_strlen)
+    #define mpack_strlen __builtin_strlen
+    #endif
+#endif
+
+#ifndef mpack_memcmp
+int mpack_memcmp(const void* s1, const void* s2, size_t n);
+#endif
+#ifndef mpack_memcpy
+void* mpack_memcpy(void* MPACK_RESTRICT s1, const void* MPACK_RESTRICT s2, size_t n);
+#endif
+#ifndef mpack_memmove
+void* mpack_memmove(void* s1, const void* s2, size_t n);
+#endif
+#ifndef mpack_memset
+void* mpack_memset(void* s, int c, size_t n);
+#endif
+#ifndef mpack_strlen
+size_t mpack_strlen(const char* s);
 #endif
 
 
@@ -593,7 +632,7 @@ MPACK_HEADER_START
 /* Implement realloc if unavailable */
 #ifdef MPACK_MALLOC
     #ifdef MPACK_REALLOC
-        MPACK_ALWAYS_INLINE void* mpack_realloc(void* old_ptr, size_t used_size, size_t new_size) {
+        MPACK_INLINE void* mpack_realloc(void* old_ptr, size_t used_size, size_t new_size) {
             MPACK_UNUSED(used_size);
             return MPACK_REALLOC(old_ptr, new_size);
         }

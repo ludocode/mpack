@@ -1,5 +1,6 @@
 
 # build files
+/build
 *.o
 *.swp
 *.gcov
@@ -7,18 +8,16 @@
 /.sconf_temp/
 /config.log
 mpack-test-file
+mpack-test-blank-file
 /mpack-test-dir/
 /analysis/
-
-# folders
-/tags
-/build
-/docs
+/docs/html/
 
 # visual studio project
 *.suo
 *.opensdf
 *.sdf
+*.vcxproj.user
 /projects/vs/Debug/
 /projects/vs/Release/
 
@@ -29,4 +28,5 @@ xcuserdata/
 
 # other junk
 .directory
+/tags
 

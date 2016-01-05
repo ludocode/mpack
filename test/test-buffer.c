@@ -97,8 +97,9 @@ static const char test_strings[] =
 // flush functions.
 static const int test_buffer_sizes[] = {
     1, 2, 3, 4, 5, 6, 7, 8, 9,
-    11, 13, 16, 17, 19, 23, 29, 32,
-    37, 48, 64, 67, 89, 127, 128,
+    11, 13, 16, 17, 19, 23, 29,
+    32, 33, 34, 35, 36, 37, 39, 43, 48, 51,
+    52, 53, 57, 59, 64, 67, 89, 127, 128,
     129, 131, 160, 163, 191, 192, 193,
     251, 256, 257, 509, 512, 521,
     1021, 1024, 1031, 2039, 2048, 2053,
@@ -252,6 +253,8 @@ static void test_expect_buffer(void) {
         // initialize the reader with our buffer reader function
         mpack_reader_t reader;
         size_t size = test_buffer_sizes[i];
+        if (size < MPACK_READER_MINIMUM_BUFFER_SIZE)
+            continue;
         char* buffer = (char*)malloc(size);
         test_fill_state_t state = {test_numbers, sizeof(test_numbers) - 1};
         mpack_reader_init(&reader, buffer, size, 0);
@@ -306,6 +309,8 @@ static void test_inplace_buffer(void) {
         // initialize the reader with our buffer reader function
         mpack_reader_t reader;
         size_t size = test_buffer_sizes[i];
+        if (size < MPACK_READER_MINIMUM_BUFFER_SIZE)
+            continue;
         char* buffer = (char*)malloc(size);
         test_fill_state_t state = {test_strings, sizeof(test_strings) - 1};
         mpack_reader_init(&reader, buffer, size, 0);
@@ -323,7 +328,9 @@ static void test_inplace_buffer(void) {
         const char* val;
         char r[15];
         for (size_t j = 0; j < 15; ++j) {
+            mpack_tag_t peek = mpack_peek_tag(&reader);
             tag = mpack_read_tag(&reader);
+            TEST_TRUE(mpack_tag_equal(peek, tag), "peeked tag does not match read tag");
             TEST_TRUE(tag.type == mpack_type_str, "wrong type: %i %s", (int)tag.type, mpack_type_to_string(tag.type));
             TEST_TRUE(tag.v.l == j, "string is the wrong length: %i bytes", (int)tag.v.l);
             if (tag.v.l <= reader.size) {

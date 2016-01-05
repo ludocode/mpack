@@ -8,7 +8,7 @@
 # generate package contents
 . "`dirname $0`"/amalgamate.sh
 . "`dirname $0`"/gendocs.sh
-cp -ar docs build/amalgamation
+cp -ar docs/html build/amalgamation/docs
 sed -i '/#define MPACK_AMALGAMATED 1/a\
 #define MPACK_RELEASE_VERSION 1' build/amalgamation/src/mpack/mpack.h
 

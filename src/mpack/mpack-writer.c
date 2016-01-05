@@ -26,27 +26,41 @@
 #if MPACK_WRITER
 
 #if MPACK_WRITE_TRACKING
-#define MPACK_WRITER_TRACK(writer, error_expr) \
-    (((writer)->error == mpack_ok) ? mpack_writer_flag_if_error((writer), (error_expr)) : ((void)0))
-
-MPACK_STATIC_INLINE_SPEED void mpack_writer_flag_if_error(mpack_writer_t* writer, mpack_error_t error) {
+static void mpack_writer_flag_if_error(mpack_writer_t* writer, mpack_error_t error) {
     if (error != mpack_ok)
         mpack_writer_flag_error(writer, error);
 }
-#else
-#define MPACK_WRITER_TRACK(writer, error_expr) MPACK_UNUSED(writer)
-#endif
 
-MPACK_STATIC_INLINE_SPEED void mpack_writer_track_element(mpack_writer_t* writer) {
-    MPACK_WRITER_TRACK(writer, mpack_track_element(&writer->track, false));
+void mpack_writer_track_push(mpack_writer_t* writer, mpack_type_t type, uint64_t count) {
+    if (writer->error == mpack_ok)
+        mpack_writer_flag_if_error(writer, mpack_track_push(&writer->track, type, count));
 }
+
+void mpack_writer_track_pop(mpack_writer_t* writer, mpack_type_t type) {
+    if (writer->error == mpack_ok)
+        mpack_writer_flag_if_error(writer, mpack_track_pop(&writer->track, type));
+}
+
+void mpack_writer_track_element(mpack_writer_t* writer) {
+    if (writer->error == mpack_ok)
+        mpack_writer_flag_if_error(writer, mpack_track_element(&writer->track, false));
+}
+
+void mpack_writer_track_bytes(mpack_writer_t* writer, size_t count) {
+    if (writer->error == mpack_ok)
+        mpack_writer_flag_if_error(writer, mpack_track_bytes(&writer->track, false, count));
+}
+#endif
 
 void mpack_writer_init(mpack_writer_t* writer, char* buffer, size_t size) {
     mpack_assert(buffer != NULL, "cannot initialize writer with empty buffer");
     mpack_memset(writer, 0, sizeof(*writer));
     writer->buffer = buffer;
     writer->size = size;
-    MPACK_WRITER_TRACK(writer, mpack_track_init(&writer->track));
+
+    #if MPACK_WRITE_TRACKING
+    mpack_writer_flag_if_error(writer, mpack_track_init(&writer->track));
+    #endif
 
     mpack_log("===========================\n");
     mpack_log("initializing writer with buffer size %i\n", (int)size);
@@ -245,7 +259,11 @@ static void mpack_writer_flush_unchecked(mpack_writer_t* writer) {
     writer->flush(writer, writer->buffer, used);
 }
 
-static void mpack_write_native_big(mpack_writer_t* writer, const char* p, size_t count) {
+// Writes encoded bytes to the buffer when we already know the data
+// does not fit in the buffer (i.e. it straddles the edge of the
+// buffer.) If there is a flush function, it is guaranteed to be
+// called; otherwise mpack_error_too_big is raised.
+static void mpack_write_native_straddle(mpack_writer_t* writer, const char* p, size_t count) {
     mpack_assert(count == 0 || p != NULL, "data pointer for %i bytes is NULL", (int)count);
 
     if (mpack_writer_error(writer) != mpack_ok)
@@ -295,11 +313,12 @@ static void mpack_write_native_big(mpack_writer_t* writer, const char* p, size_t
     }
 }
 
-MPACK_STATIC_INLINE_SPEED void mpack_write_native(mpack_writer_t* writer, const char* p, size_t count) {
+// Writes encoded bytes to the buffer, flushing if necessary.
+MPACK_STATIC_INLINE void mpack_write_native(mpack_writer_t* writer, const char* p, size_t count) {
     mpack_assert(count == 0 || p != NULL, "data pointer for %i bytes is NULL", (int)count);
 
     if (writer->size - writer->used < count) {
-        mpack_write_native_big(writer, p, count);
+        mpack_write_native_straddle(writer, p, count);
     } else {
         mpack_memcpy(writer->buffer + writer->used, p, count);
         writer->used += count;
@@ -328,7 +347,6 @@ mpack_error_t mpack_writer_destroy(mpack_writer_t* writer) {
 }
 
 void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t value) {
-
     switch (value.type) {
         case mpack_type_nil:    mpack_writer_track_element(writer); mpack_write_nil   (writer);            break;
         case mpack_type_bool:   mpack_writer_track_element(writer); mpack_write_bool  (writer, value.v.b); break;
@@ -350,170 +368,13 @@ void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t value) {
     }
 }
 
-static size_t mpack_encode_u8(char* p, uint8_t value) {
-    if (value <= 0x7f) {
-        mpack_store_native_u8(p, (uint8_t)value);
-        return 1;
-    }
-    mpack_store_native_u8(p, 0xcc);
-    mpack_store_native_u8(p + 1, (uint8_t)value);
-    return 2;
-}
-
-static size_t mpack_encode_u16(char* p, uint16_t value) {
-    if (value <= 0x7f) {
-        mpack_store_native_u8(p, (uint8_t)value);
-        return 1;
-    }
-    if (value <= UINT8_MAX) {
-        mpack_store_native_u8(p, 0xcc);
-        mpack_store_native_u8(p + 1, (uint8_t)value);
-        return 2;
-    }
-    mpack_store_native_u8(p, 0xcd);
-    mpack_store_native_u16(p + 1, value);
-    return 3;
-}
-
-static size_t mpack_encode_u32(char* p, uint32_t value) {
-    if (value <= 0x7f) {
-        mpack_store_native_u8(p, (uint8_t)value);
-        return 1;
-    }
-    if (value <= UINT8_MAX) {
-        mpack_store_native_u8(p, 0xcc);
-        mpack_store_native_u8(p + 1, (uint8_t)value);
-        return 2;
-    }
-    if (value <= UINT16_MAX) {
-        mpack_store_native_u8(p, 0xcd);
-        mpack_store_native_u16(p + 1, (uint16_t)value);
-        return 3;
-    }
-    mpack_store_native_u8(p, 0xce);
-    mpack_store_native_u32(p + 1, value);
-    return 5;
-}
-
-static size_t mpack_encode_u64(char* p, uint64_t value) {
-    if (value <= 0x7f) {
-        mpack_store_native_u8(p, (uint8_t)value);
-        return 1;
-    }
-    if (value <= UINT8_MAX) {
-        mpack_store_native_u8(p, 0xcc);
-        mpack_store_native_u8(p + 1, (uint8_t)value);
-        return 2;
-    }
-    if (value <= UINT16_MAX) {
-        mpack_store_native_u8(p, 0xcd);
-        mpack_store_native_u16(p + 1, (uint16_t)value);
-        return 3;
-    }
-    if (value <= UINT32_MAX) {
-        mpack_store_native_u8(p, 0xce);
-        mpack_store_native_u32(p + 1, (uint32_t)value);
-        return 5;
-    }
-    mpack_store_native_u8(p, 0xcf);
-    mpack_store_native_u64(p + 1, value);
-    return 9;
-}
-
-static size_t mpack_encode_i8(char* p, int8_t value) {
-
-    // write any non-negative number as a uint
-    if (value >= 0)
-        return mpack_encode_u8(p, (uint8_t)value);
-
-    if (value >= -32) {
-        mpack_store_native_i8(p, value);
-        return 1;
-    }
-    mpack_store_native_u8(p, 0xd0);
-    mpack_store_native_i8(p + 1, value);
-    return 2;
-}
-
-static size_t mpack_encode_i16(char* p, int16_t value) {
-
-    // write any non-negative number as a uint
-    if (value >= 0)
-        return mpack_encode_u16(p, (uint16_t)value);
-
-    if (value >= -32) {
-        mpack_store_native_i8(p, (int8_t)value);
-        return 1;
-    }
-    if (value >= INT8_MIN) {
-        mpack_store_native_u8(p, 0xd0);
-        mpack_store_native_i8(p + 1, (int8_t)value);
-        return 2;
-    }
-    mpack_store_native_u8(p, 0xd1);
-    mpack_store_native_i16(p + 1, value);
-    return 3;
-}
-
-static size_t mpack_encode_i32(char* p, int32_t value) {
-
-    // write any non-negative number as a uint
-    if (value >= 0)
-        return mpack_encode_u32(p, (uint32_t)value);
-
-    if (value >= -32) {
-        mpack_store_native_i8(p, (int8_t)value);
-        return 1;
-    }
-    if (value >= INT8_MIN) {
-        mpack_store_native_u8(p, 0xd0);
-        mpack_store_native_i8(p + 1, (int8_t)value);
-        return 2;
-    }
-    if (value >= INT16_MIN) {
-        mpack_store_native_u8(p, 0xd1);
-        mpack_store_native_i16(p + 1, (int16_t)value);
-        return 3;
-    }
-    mpack_store_native_u8(p, 0xd2);
-    mpack_store_native_i32(p + 1, value);
-    return 5;
-
-}
-
-static size_t mpack_encode_i64(char* p, int64_t value) {
-
-    // write any non-negative number as a uint
-    if (value >= 0)
-        return mpack_encode_u64(p, (uint64_t)value);
-
-    if (value >= -32) {
-        mpack_store_native_i8(p, (int8_t)value);
-        return 1;
-    }
-    if (value >= INT8_MIN) {
-        mpack_store_native_u8(p, 0xd0);
-        mpack_store_native_i8(p + 1, (int8_t)value);
-        return 2;
-    }
-    if (value >= INT16_MIN) {
-        mpack_store_native_u8(p, 0xd1);
-        mpack_store_native_i16(p + 1, (int16_t)value);
-        return 3;
-    }
-    if (value >= INT32_MIN) {
-        mpack_store_native_u8(p, 0xd2);
-        mpack_store_native_i32(p + 1, (int32_t)value);
-        return 5;
-    }
-    mpack_store_native_u8(p, 0xd3);
-    mpack_store_native_i64(p + 1, value);
-    return 9;
-}
-
-MPACK_STATIC_INLINE_SPEED void mpack_write_byte_element(mpack_writer_t* writer, char value) {
+MPACK_STATIC_INLINE void mpack_write_byte_element(mpack_writer_t* writer, char value) {
     mpack_writer_track_element(writer);
     mpack_write_native(writer, &value, 1);
+}
+
+void mpack_write_nil(mpack_writer_t* writer) {
+    mpack_write_byte_element(writer, (char)0xc0);
 }
 
 void mpack_write_bool(mpack_writer_t* writer, bool value) {
@@ -528,159 +389,656 @@ void mpack_write_false(mpack_writer_t* writer) {
     mpack_write_byte_element(writer, (char)0xc2);
 }
 
-void mpack_write_nil(mpack_writer_t* writer) {
-    mpack_write_byte_element(writer, (char)0xc0);
+
+
+/*
+ * Encode functions
+ */
+
+MPACK_STATIC_INLINE void mpack_encode_fixuint(char* p, uint8_t value) {
+    mpack_assert(value <= 127);
+    mpack_store_u8(p, value);
 }
 
-MPACK_STATIC_INLINE size_t mpack_encode_float(char* p, float value) {
-    mpack_store_native_u8(p, 0xca);
-    mpack_store_native_float(p + 1, value);
-    return 5;
+MPACK_STATIC_INLINE void mpack_encode_u8(char* p, uint8_t value) {
+    mpack_assert(value > 127);
+    mpack_store_u8(p, 0xcc);
+    mpack_store_u8(p + 1, value);
 }
 
-MPACK_STATIC_INLINE size_t mpack_encode_double(char* p, double value) {
-    mpack_store_native_u8(p, 0xcb);
-    mpack_store_native_double(p + 1, value);
-    return 9;
+MPACK_STATIC_INLINE void mpack_encode_u16(char* p, uint16_t value) {
+    mpack_assert(value > UINT8_MAX);
+    mpack_store_u8(p, 0xcd);
+    mpack_store_u16(p + 1, value);
 }
 
-#if MPACK_WRITE_TRACKING
-void mpack_finish_array(mpack_writer_t* writer) {
-    MPACK_WRITER_TRACK(writer, mpack_track_pop(&writer->track, mpack_type_array));
+MPACK_STATIC_INLINE void mpack_encode_u32(char* p, uint32_t value) {
+    mpack_assert(value > UINT16_MAX);
+    mpack_store_u8(p, 0xce);
+    mpack_store_u32(p + 1, value);
 }
 
-void mpack_finish_map(mpack_writer_t* writer) {
-    MPACK_WRITER_TRACK(writer, mpack_track_pop(&writer->track, mpack_type_map));
+MPACK_STATIC_INLINE void mpack_encode_u64(char* p, uint64_t value) {
+    mpack_assert(value > UINT32_MAX);
+    mpack_store_u8(p, 0xcf);
+    mpack_store_u64(p + 1, value);
 }
 
-void mpack_finish_str(mpack_writer_t* writer) {
-    MPACK_WRITER_TRACK(writer, mpack_track_pop(&writer->track, mpack_type_str));
+MPACK_STATIC_INLINE void mpack_encode_fixint(char* p, int8_t value) {
+    // this can encode positive or negative fixints
+    mpack_assert(value >= -32);
+    mpack_store_i8(p, value);
 }
 
-void mpack_finish_bin(mpack_writer_t* writer) {
-    MPACK_WRITER_TRACK(writer, mpack_track_pop(&writer->track, mpack_type_bin));
+MPACK_STATIC_INLINE void mpack_encode_i8(char* p, int8_t value) {
+    mpack_assert(value < -32);
+    mpack_store_u8(p, 0xd0);
+    mpack_store_i8(p + 1, value);
 }
 
-void mpack_finish_ext(mpack_writer_t* writer) {
-    MPACK_WRITER_TRACK(writer, mpack_track_pop(&writer->track, mpack_type_ext));
+MPACK_STATIC_INLINE void mpack_encode_i16(char* p, int16_t value) {
+    mpack_assert(value < INT8_MIN);
+    mpack_store_u8(p, 0xd1);
+    mpack_store_i16(p + 1, value);
 }
 
-void mpack_finish_type(mpack_writer_t* writer, mpack_type_t type) {
-    MPACK_WRITER_TRACK(writer, mpack_track_pop(&writer->track, type));
+MPACK_STATIC_INLINE void mpack_encode_i32(char* p, int32_t value) {
+    mpack_assert(value < INT16_MIN);
+    mpack_store_u8(p, 0xd2);
+    mpack_store_i32(p + 1, value);
 }
-#endif
 
-static size_t mpack_encode_array(char* p, uint32_t count) {
+MPACK_STATIC_INLINE void mpack_encode_i64(char* p, int64_t value) {
+    mpack_assert(value < INT32_MIN);
+    mpack_store_u8(p, 0xd3);
+    mpack_store_i64(p + 1, value);
+}
+
+MPACK_STATIC_INLINE void mpack_encode_float(char* p, float value) {
+    mpack_store_u8(p, 0xca);
+    mpack_store_float(p + 1, value);
+}
+
+MPACK_STATIC_INLINE void mpack_encode_double(char* p, double value) {
+    mpack_store_u8(p, 0xcb);
+    mpack_store_double(p + 1, value);
+}
+
+MPACK_STATIC_INLINE void mpack_encode_fixarray(char* p, uint8_t count) {
+    mpack_assert(count <= 15);
+    mpack_store_u8(p, (uint8_t)(0x90 | count));
+}
+
+MPACK_STATIC_INLINE void mpack_encode_array16(char* p, uint16_t count) {
+    mpack_assert(count > 15);
+    mpack_store_u8(p, 0xdc);
+    mpack_store_u16(p + 1, count);
+}
+
+MPACK_STATIC_INLINE void mpack_encode_array32(char* p, uint32_t count) {
+    mpack_assert(count > UINT16_MAX);
+    mpack_store_u8(p, 0xdd);
+    mpack_store_u32(p + 1, count);
+}
+
+MPACK_STATIC_INLINE void mpack_encode_fixmap(char* p, uint8_t count) {
+    mpack_assert(count <= 15);
+    mpack_store_u8(p, (uint8_t)(0x80 | count));
+}
+
+MPACK_STATIC_INLINE void mpack_encode_map16(char* p, uint16_t count) {
+    mpack_assert(count > 15);
+    mpack_store_u8(p, 0xde);
+    mpack_store_u16(p + 1, count);
+}
+
+MPACK_STATIC_INLINE void mpack_encode_map32(char* p, uint32_t count) {
+    mpack_assert(count > UINT16_MAX);
+    mpack_store_u8(p, 0xdf);
+    mpack_store_u32(p + 1, count);
+}
+
+MPACK_STATIC_INLINE void mpack_encode_fixstr(char* p, uint8_t count) {
+    mpack_assert(count <= 31);
+    mpack_store_u8(p, (uint8_t)(0xa0 | count));
+}
+
+MPACK_STATIC_INLINE void mpack_encode_str8(char* p, uint8_t count) {
+    // TODO: str8 had no counterpart in MessagePack 1.0; there was only
+    // fixraw, raw16 and raw32. This should not be used in compatibility mode.
+    mpack_assert(count > 31);
+    mpack_store_u8(p, 0xd9);
+    mpack_store_u8(p + 1, count);
+}
+
+MPACK_STATIC_INLINE void mpack_encode_str16(char* p, uint16_t count) {
+    mpack_assert(count > UINT8_MAX);
+    mpack_store_u8(p, 0xda);
+    mpack_store_u16(p + 1, count);
+}
+
+MPACK_STATIC_INLINE void mpack_encode_str32(char* p, uint32_t count) {
+    mpack_assert(count > UINT16_MAX);
+    mpack_store_u8(p, 0xdb);
+    mpack_store_u32(p + 1, count);
+}
+
+MPACK_STATIC_INLINE void mpack_encode_bin8(char* p, uint8_t count) {
+    mpack_store_u8(p, 0xc4);
+    mpack_store_u8(p + 1, count);
+}
+
+MPACK_STATIC_INLINE void mpack_encode_bin16(char* p, uint16_t count) {
+    mpack_assert(count > UINT8_MAX);
+    mpack_store_u8(p, 0xc5);
+    mpack_store_u16(p + 1, count);
+}
+
+MPACK_STATIC_INLINE void mpack_encode_bin32(char* p, uint32_t count) {
+    mpack_assert(count > UINT16_MAX);
+    mpack_store_u8(p, 0xc6);
+    mpack_store_u32(p + 1, count);
+}
+
+MPACK_STATIC_INLINE void mpack_encode_fixext1(char* p, int8_t exttype) {
+    mpack_store_u8(p, 0xd4);
+    mpack_store_i8(p + 1, exttype);
+}
+
+MPACK_STATIC_INLINE void mpack_encode_fixext2(char* p, int8_t exttype) {
+    mpack_store_u8(p, 0xd5);
+    mpack_store_i8(p + 1, exttype);
+}
+
+MPACK_STATIC_INLINE void mpack_encode_fixext4(char* p, int8_t exttype) {
+    mpack_store_u8(p, 0xd6);
+    mpack_store_i8(p + 1, exttype);
+}
+
+MPACK_STATIC_INLINE void mpack_encode_fixext8(char* p, int8_t exttype) {
+    mpack_store_u8(p, 0xd7);
+    mpack_store_i8(p + 1, exttype);
+}
+
+MPACK_STATIC_INLINE void mpack_encode_fixext16(char* p, int8_t exttype) {
+    mpack_store_u8(p, 0xd8);
+    mpack_store_i8(p + 1, exttype);
+}
+
+MPACK_STATIC_INLINE void mpack_encode_ext8(char* p, int8_t exttype, uint8_t count) {
+    mpack_assert(count != 1 && count != 2 && count != 4 && count != 8 && count != 16);
+    mpack_store_u8(p, 0xc7);
+    mpack_store_u8(p + 1, count);
+    mpack_store_i8(p + 2, exttype);
+}
+
+MPACK_STATIC_INLINE void mpack_encode_ext16(char* p, int8_t exttype, uint16_t count) {
+    mpack_assert(count > UINT8_MAX);
+    mpack_store_u8(p, 0xc8);
+    mpack_store_u16(p + 1, count);
+    mpack_store_i8(p + 3, exttype);
+}
+
+MPACK_STATIC_INLINE void mpack_encode_ext32(char* p, int8_t exttype, uint32_t count) {
+    mpack_assert(count > UINT16_MAX);
+    mpack_store_u8(p, 0xc9);
+    mpack_store_u32(p + 1, count);
+    mpack_store_i8(p + 5, exttype);
+}
+
+
+
+/*
+ * Write functions
+ */
+
+// This is a macro wrapper to the encode functions to encode
+// directly into the buffer if there is enough room. It depends
+// on the scope of the write functions (e.g. "left")
+#define MPACK_WRITE_ENCODED(encode_fn, size, ...) do {          \
+    if (left >= size) {                                         \
+        encode_fn(writer->buffer + writer->used, __VA_ARGS__);  \
+        writer->used += size;                                   \
+    } else {                                                    \
+        char buf[size];                                         \
+        encode_fn(buf, __VA_ARGS__);                            \
+        mpack_write_native_straddle(writer, buf, sizeof(buf));  \
+    }                                                           \
+} while (0)
+
+void mpack_write_u8(mpack_writer_t* writer, uint8_t value) {
+    #if MPACK_OPTIMIZE_FOR_SIZE
+    mpack_write_u32(writer, value);
+    #else
+    mpack_writer_track_element(writer);
+    size_t left = mpack_writer_buffer_left(writer);
+    if (value <= 127) {
+        MPACK_WRITE_ENCODED(mpack_encode_fixuint, MPACK_TAG_SIZE_FIXUINT, value);
+    } else {
+        MPACK_WRITE_ENCODED(mpack_encode_u8, MPACK_TAG_SIZE_U8, value);
+    }
+    #endif
+}
+
+void mpack_write_u16(mpack_writer_t* writer, uint16_t value) {
+    #if MPACK_OPTIMIZE_FOR_SIZE
+    mpack_write_u32(writer, value);
+    #else
+    mpack_writer_track_element(writer);
+    size_t left = mpack_writer_buffer_left(writer);
+    if (value <= 127) {
+        MPACK_WRITE_ENCODED(mpack_encode_fixuint, MPACK_TAG_SIZE_FIXUINT, (uint8_t)value);
+    } else if (value <= UINT8_MAX) {
+        MPACK_WRITE_ENCODED(mpack_encode_u8, MPACK_TAG_SIZE_U8, (uint8_t)value);
+    } else {
+        MPACK_WRITE_ENCODED(mpack_encode_u16, MPACK_TAG_SIZE_U16, value);
+    }
+    #endif
+}
+
+void mpack_write_u32(mpack_writer_t* writer, uint32_t value) {
+    #if MPACK_OPTIMIZE_FOR_SIZE
+    mpack_write_u64(writer, value);
+    #else
+    mpack_writer_track_element(writer);
+    size_t left = mpack_writer_buffer_left(writer);
+    if (value <= 127) {
+        MPACK_WRITE_ENCODED(mpack_encode_fixuint, MPACK_TAG_SIZE_FIXUINT, (uint8_t)value);
+    } else if (value <= UINT8_MAX) {
+        MPACK_WRITE_ENCODED(mpack_encode_u8, MPACK_TAG_SIZE_U8, (uint8_t)value);
+    } else if (value <= UINT16_MAX) {
+        MPACK_WRITE_ENCODED(mpack_encode_u16, MPACK_TAG_SIZE_U16, (uint16_t)value);
+    } else {
+        MPACK_WRITE_ENCODED(mpack_encode_u32, MPACK_TAG_SIZE_U32, value);
+    }
+    #endif
+}
+
+void mpack_write_u64(mpack_writer_t* writer, uint64_t value) {
+    mpack_writer_track_element(writer);
+
+    #if MPACK_OPTIMIZE_FOR_SIZE
+    size_t bytes;
+    char buf[MPACK_TAG_SIZE_U64];
+    if (value <= 127) {
+        mpack_encode_fixuint(buf, (uint8_t)value);
+        bytes = MPACK_TAG_SIZE_FIXUINT;
+    } else if (value <= UINT8_MAX) {
+        mpack_encode_u8(buf, (uint8_t)value);
+        bytes = MPACK_TAG_SIZE_U8;
+    } else if (value <= UINT16_MAX) {
+        mpack_encode_u16(buf, (uint16_t)value);
+        bytes = MPACK_TAG_SIZE_U16;
+    } else if (value <= UINT32_MAX) {
+        mpack_encode_u32(buf, (uint32_t)value);
+        bytes = MPACK_TAG_SIZE_U32;
+    } else {
+        mpack_encode_u64(buf, value);
+        bytes = MPACK_TAG_SIZE_U64;
+    }
+    mpack_write_native(writer, buf, bytes);
+    #else
+
+    size_t left = mpack_writer_buffer_left(writer);
+    if (value <= 127) {
+        MPACK_WRITE_ENCODED(mpack_encode_fixuint, MPACK_TAG_SIZE_FIXUINT, (uint8_t)value);
+    } else if (value <= UINT8_MAX) {
+        MPACK_WRITE_ENCODED(mpack_encode_u8, MPACK_TAG_SIZE_U8, (uint8_t)value);
+    } else if (value <= UINT16_MAX) {
+        MPACK_WRITE_ENCODED(mpack_encode_u16, MPACK_TAG_SIZE_U16, (uint16_t)value);
+    } else if (value <= UINT32_MAX) {
+        MPACK_WRITE_ENCODED(mpack_encode_u32, MPACK_TAG_SIZE_U32, (uint32_t)value);
+    } else {
+        MPACK_WRITE_ENCODED(mpack_encode_u64, MPACK_TAG_SIZE_U64, value);
+    }
+    #endif
+}
+
+void mpack_write_i8(mpack_writer_t* writer, int8_t value) {
+    #if MPACK_OPTIMIZE_FOR_SIZE
+    mpack_write_i32(writer, value);
+    #else
+    mpack_writer_track_element(writer);
+    size_t left = mpack_writer_buffer_left(writer);
+    if (value >= -32) {
+        // we encode positive and negative fixints together
+        MPACK_WRITE_ENCODED(mpack_encode_fixint, MPACK_TAG_SIZE_FIXINT, (int8_t)value);
+    } else {
+        MPACK_WRITE_ENCODED(mpack_encode_i8, MPACK_TAG_SIZE_I8, (int8_t)value);
+    }
+    #endif
+}
+
+void mpack_write_i16(mpack_writer_t* writer, int16_t value) {
+    #if MPACK_OPTIMIZE_FOR_SIZE
+    mpack_write_i32(writer, value);
+    #else
+    mpack_writer_track_element(writer);
+    size_t left = mpack_writer_buffer_left(writer);
+    if (value >= -32) {
+        if (value <= 127) {
+            // we encode positive and negative fixints together
+            MPACK_WRITE_ENCODED(mpack_encode_fixint, MPACK_TAG_SIZE_FIXINT, (int8_t)value);
+        } else if (value <= UINT8_MAX) {
+            MPACK_WRITE_ENCODED(mpack_encode_u8, MPACK_TAG_SIZE_U8, (uint8_t)value);
+        } else {
+            MPACK_WRITE_ENCODED(mpack_encode_u16, MPACK_TAG_SIZE_U16, (uint16_t)value);
+        }
+    } else if (value >= INT8_MIN) {
+        MPACK_WRITE_ENCODED(mpack_encode_i8, MPACK_TAG_SIZE_I8, (int8_t)value);
+    } else {
+        MPACK_WRITE_ENCODED(mpack_encode_i16, MPACK_TAG_SIZE_I16, (int16_t)value);
+    }
+    #endif
+}
+
+void mpack_write_i32(mpack_writer_t* writer, int32_t value) {
+    #if MPACK_OPTIMIZE_FOR_SIZE
+    mpack_write_i64(writer, value);
+    #else
+    mpack_writer_track_element(writer);
+    size_t left = mpack_writer_buffer_left(writer);
+    if (value >= -32) {
+        if (value <= 127) {
+            // we encode positive and negative fixints together
+            MPACK_WRITE_ENCODED(mpack_encode_fixint, MPACK_TAG_SIZE_FIXINT, (int8_t)value);
+        } else if (value <= UINT8_MAX) {
+            MPACK_WRITE_ENCODED(mpack_encode_u8, MPACK_TAG_SIZE_U8, (uint8_t)value);
+        } else if (value <= UINT16_MAX) {
+            MPACK_WRITE_ENCODED(mpack_encode_u16, MPACK_TAG_SIZE_U16, (uint16_t)value);
+        } else {
+            MPACK_WRITE_ENCODED(mpack_encode_u32, MPACK_TAG_SIZE_U32, (uint32_t)value);
+        }
+    } else if (value >= INT8_MIN) {
+        MPACK_WRITE_ENCODED(mpack_encode_i8, MPACK_TAG_SIZE_I8, (int8_t)value);
+    } else if (value >= INT16_MIN) {
+        MPACK_WRITE_ENCODED(mpack_encode_i16, MPACK_TAG_SIZE_I16, (int16_t)value);
+    } else {
+        MPACK_WRITE_ENCODED(mpack_encode_i32, MPACK_TAG_SIZE_I32, value);
+    }
+    #endif
+}
+
+void mpack_write_i64(mpack_writer_t* writer, int64_t value) {
+    #if MPACK_OPTIMIZE_FOR_SIZE
+    if (value > 127) {
+        // for non-fix positive ints we call the u64 writer to save space
+        mpack_write_u64(writer, (uint64_t)value);
+        return;
+    }
+
+    mpack_writer_track_element(writer);
+    size_t bytes;
+    char buf[MPACK_TAG_SIZE_I64];
+    if (value >= -32) {
+        // we encode positive and negative fixints together
+        mpack_encode_fixint(buf, (int8_t)value);
+        bytes = MPACK_TAG_SIZE_FIXINT;
+    } else if (value >= INT8_MIN) {
+        mpack_encode_i8(buf, (int8_t)value);
+        bytes = MPACK_TAG_SIZE_I8;
+    } else if (value >= INT16_MIN) {
+        mpack_encode_i16(buf, (int16_t)value);
+        bytes = MPACK_TAG_SIZE_I16;
+    } else if (value >= INT32_MIN) {
+        mpack_encode_i32(buf, (int32_t)value);
+        bytes = MPACK_TAG_SIZE_I32;
+    } else {
+        mpack_encode_i64(buf, value);
+        bytes = MPACK_TAG_SIZE_I64;
+    }
+    mpack_write_native(writer, buf, bytes);
+    #else
+
+    mpack_writer_track_element(writer);
+    size_t left = mpack_writer_buffer_left(writer);
+    if (value >= -32) {
+        if (value <= 127) {
+            // we encode positive and negative fixints together
+            MPACK_WRITE_ENCODED(mpack_encode_fixint, MPACK_TAG_SIZE_FIXINT, (int8_t)value);
+        } else if (value <= UINT8_MAX) {
+            MPACK_WRITE_ENCODED(mpack_encode_u8, MPACK_TAG_SIZE_U8, (uint8_t)value);
+        } else if (value <= UINT16_MAX) {
+            MPACK_WRITE_ENCODED(mpack_encode_u16, MPACK_TAG_SIZE_U16, (uint16_t)value);
+        } else if (value <= UINT32_MAX) {
+            MPACK_WRITE_ENCODED(mpack_encode_u32, MPACK_TAG_SIZE_U32, (uint32_t)value);
+        } else {
+            MPACK_WRITE_ENCODED(mpack_encode_u64, MPACK_TAG_SIZE_U64, (uint64_t)value);
+        }
+    } else if (value >= INT8_MIN) {
+        MPACK_WRITE_ENCODED(mpack_encode_i8, MPACK_TAG_SIZE_I8, (int8_t)value);
+    } else if (value >= INT16_MIN) {
+        MPACK_WRITE_ENCODED(mpack_encode_i16, MPACK_TAG_SIZE_I16, (int16_t)value);
+    } else if (value >= INT32_MIN) {
+        MPACK_WRITE_ENCODED(mpack_encode_i32, MPACK_TAG_SIZE_I32, (int32_t)value);
+    } else {
+        MPACK_WRITE_ENCODED(mpack_encode_i64, MPACK_TAG_SIZE_I64, value);
+    }
+    #endif
+}
+
+void mpack_write_float(mpack_writer_t* writer, float value) {
+    mpack_writer_track_element(writer);
+    #if MPACK_OPTIMIZE_FOR_SIZE
+    char buf[MPACK_TAG_SIZE_FLOAT];
+    mpack_encode_float(buf, value);
+    mpack_write_native(writer, buf, sizeof(buf));
+    #else
+    size_t left = mpack_writer_buffer_left(writer);
+    MPACK_WRITE_ENCODED(mpack_encode_float, MPACK_TAG_SIZE_FLOAT, value);
+    #endif
+}
+void mpack_write_double(mpack_writer_t* writer, double value) {
+    mpack_writer_track_element(writer);
+    #if MPACK_OPTIMIZE_FOR_SIZE
+    char buf[MPACK_TAG_SIZE_DOUBLE];
+    mpack_encode_double(buf, value);
+    mpack_write_native(writer, buf, sizeof(buf));
+    #else
+    size_t left = mpack_writer_buffer_left(writer);
+    MPACK_WRITE_ENCODED(mpack_encode_double, MPACK_TAG_SIZE_DOUBLE, value);
+    #endif
+}
+
+void mpack_start_array(mpack_writer_t* writer, uint32_t count) {
+    mpack_writer_track_element(writer);
+
+    #if MPACK_OPTIMIZE_FOR_SIZE
+    size_t bytes;
+    char buf[MPACK_TAG_SIZE_ARRAY32];
     if (count <= 15) {
-        mpack_store_native_u8(p, (uint8_t)(0x90 | count));
-        return 1;
+        mpack_encode_fixarray(buf, (uint8_t)count);
+        bytes = MPACK_TAG_SIZE_FIXARRAY;
+    } else if (count <= UINT16_MAX) {
+        mpack_encode_array16(buf, (uint16_t)count);
+        bytes = MPACK_TAG_SIZE_ARRAY16;
+    } else {
+        mpack_encode_array32(buf, (uint32_t)count);
+        bytes = MPACK_TAG_SIZE_ARRAY32;
     }
-    if (count <= UINT16_MAX) {
-        mpack_store_native_u8(p, 0xdc);
-        mpack_store_native_u16(p + 1, (uint16_t)count);
-        return 3;
-    }
-    mpack_store_native_u8(p, 0xdd);
-    mpack_store_native_u32(p + 1, count);
-    return 5;
-}
+    mpack_write_native(writer, buf, bytes);
+    #else
 
-static size_t mpack_encode_map(char* p, uint32_t count) {
+    size_t left = mpack_writer_buffer_left(writer);
     if (count <= 15) {
-        mpack_store_native_u8(p, (uint8_t)(0x80 | count));
-        return 1;
+        MPACK_WRITE_ENCODED(mpack_encode_fixarray, MPACK_TAG_SIZE_FIXARRAY, (uint8_t)count);
+    } else if (count <= UINT16_MAX) {
+        MPACK_WRITE_ENCODED(mpack_encode_array16, MPACK_TAG_SIZE_ARRAY16, (uint16_t)count);
+    } else {
+        MPACK_WRITE_ENCODED(mpack_encode_array32, MPACK_TAG_SIZE_ARRAY32, (uint32_t)count);
     }
-    if (count <= UINT16_MAX) {
-        mpack_store_native_u8(p, 0xde);
-        mpack_store_native_u16(p + 1, (uint16_t)count);
-        return 3;
-    }
-    mpack_store_native_u8(p, 0xdf);
-    mpack_store_native_u32(p + 1, count);
-    return 5;
+    #endif
+
+    mpack_writer_track_push(writer, mpack_type_array, count);
 }
 
-static size_t mpack_encode_str(char* p, uint32_t count) {
+void mpack_start_map(mpack_writer_t* writer, uint32_t count) {
+    mpack_writer_track_element(writer);
+
+    #if MPACK_OPTIMIZE_FOR_SIZE
+    size_t bytes;
+    char buf[MPACK_TAG_SIZE_MAP32];
+    if (count <= 15) {
+        mpack_encode_fixmap(buf, (uint8_t)count);
+        bytes = MPACK_TAG_SIZE_FIXMAP;
+    } else if (count <= UINT16_MAX) {
+        mpack_encode_map16(buf, (uint16_t)count);
+        bytes = MPACK_TAG_SIZE_MAP16;
+    } else {
+        mpack_encode_map32(buf, (uint32_t)count);
+        bytes = MPACK_TAG_SIZE_MAP32;
+    }
+    mpack_write_native(writer, buf, bytes);
+    #else
+
+    size_t left = mpack_writer_buffer_left(writer);
+    if (count <= 15) {
+        MPACK_WRITE_ENCODED(mpack_encode_fixmap, MPACK_TAG_SIZE_FIXMAP, (uint8_t)count);
+    } else if (count <= UINT16_MAX) {
+        MPACK_WRITE_ENCODED(mpack_encode_map16, MPACK_TAG_SIZE_MAP16, (uint16_t)count);
+    } else {
+        MPACK_WRITE_ENCODED(mpack_encode_map32, MPACK_TAG_SIZE_MAP32, (uint32_t)count);
+    }
+    #endif
+
+    mpack_writer_track_push(writer, mpack_type_map, count);
+}
+
+void mpack_start_str(mpack_writer_t* writer, uint32_t count) {
+    mpack_writer_track_element(writer);
+
+    #if MPACK_OPTIMIZE_FOR_SIZE
+    size_t bytes;
+    char buf[MPACK_TAG_SIZE_STR32];
     if (count <= 31) {
-        mpack_store_native_u8(p, (uint8_t)(0xa0 | count));
-        return 1;
-    }
-    if (count <= UINT8_MAX) {
+        mpack_encode_fixstr(buf, (uint8_t)count);
+        bytes = MPACK_TAG_SIZE_FIXSTR;
+    } else if (count <= UINT8_MAX) {
         // TODO: str8 had no counterpart in MessagePack 1.0; there was only
-        // raw16 and raw32. This should not be used in compatibility mode.
-        mpack_store_native_u8(p, 0xd9);
-        mpack_store_native_u8(p + 1, (uint8_t)count);
-        return 2;
+        // fixraw, raw16 and raw32. This should not be used in compatibility mode.
+        mpack_encode_str8(buf, (uint8_t)count);
+        bytes = MPACK_TAG_SIZE_STR8;
+    } else if (count <= UINT16_MAX) {
+        mpack_encode_str16(buf, (uint16_t)count);
+        bytes = MPACK_TAG_SIZE_STR16;
+    } else {
+        mpack_encode_str32(buf, (uint32_t)count);
+        bytes = MPACK_TAG_SIZE_STR32;
     }
-    if (count <= UINT16_MAX) {
-        mpack_store_native_u8(p, 0xda);
-        mpack_store_native_u16(p + 1, (uint16_t)count);
-        return 3;
+    mpack_write_native(writer, buf, bytes);
+    #else
+
+    size_t left = mpack_writer_buffer_left(writer);
+    if (count <= 31) {
+        MPACK_WRITE_ENCODED(mpack_encode_fixstr, MPACK_TAG_SIZE_FIXSTR, (uint8_t)count);
+    } else if (count <= UINT8_MAX) {
+        // TODO: str8 had no counterpart in MessagePack 1.0; there was only
+        // fixraw, raw16 and raw32. This should not be used in compatibility mode.
+        MPACK_WRITE_ENCODED(mpack_encode_str8, MPACK_TAG_SIZE_STR8, (uint8_t)count);
+    } else if (count <= UINT16_MAX) {
+        MPACK_WRITE_ENCODED(mpack_encode_str16, MPACK_TAG_SIZE_STR16, (uint16_t)count);
+    } else {
+        MPACK_WRITE_ENCODED(mpack_encode_str32, MPACK_TAG_SIZE_STR32, (uint32_t)count);
     }
-    mpack_store_native_u8(p, 0xdb);
-    mpack_store_native_u32(p + 1, count);
-    return 5;
+    #endif
+
+    mpack_writer_track_push(writer, mpack_type_str, count);
 }
 
-static size_t mpack_encode_bin(char* p, uint32_t count) {
+void mpack_start_bin(mpack_writer_t* writer, uint32_t count) {
+    mpack_writer_track_element(writer);
+
+    #if MPACK_OPTIMIZE_FOR_SIZE
+    size_t bytes;
+    char buf[MPACK_TAG_SIZE_BIN32];
     if (count <= UINT8_MAX) {
-        mpack_store_native_u8(p, 0xc4);
-        mpack_store_native_u8(p + 1, (uint8_t)count);
-        return 2;
+        mpack_encode_bin8(buf, (uint8_t)count);
+        bytes = MPACK_TAG_SIZE_BIN8;
+    } else if (count <= UINT16_MAX) {
+        mpack_encode_bin16(buf, (uint16_t)count);
+        bytes = MPACK_TAG_SIZE_BIN16;
+    } else {
+        mpack_encode_bin32(buf, (uint32_t)count);
+        bytes = MPACK_TAG_SIZE_BIN32;
     }
-    if (count <= UINT16_MAX) {
-        mpack_store_native_u8(p, 0xc5);
-        mpack_store_native_u16(p + 1, (uint16_t)count);
-        return 3;
+    mpack_write_native(writer, buf, bytes);
+    #else
+
+    size_t left = mpack_writer_buffer_left(writer);
+    if (count <= UINT8_MAX) {
+        MPACK_WRITE_ENCODED(mpack_encode_bin8, MPACK_TAG_SIZE_BIN8, (uint8_t)count);
+    } else if (count <= UINT16_MAX) {
+        MPACK_WRITE_ENCODED(mpack_encode_bin16, MPACK_TAG_SIZE_BIN16, (uint16_t)count);
+    } else {
+        MPACK_WRITE_ENCODED(mpack_encode_bin32, MPACK_TAG_SIZE_BIN32, (uint32_t)count);
     }
-    mpack_store_native_u8(p, 0xc6);
-    mpack_store_native_u32(p + 1, count);
-    return 5;
+    #endif
+
+    mpack_writer_track_push(writer, mpack_type_bin, count);
 }
 
-static size_t mpack_encode_ext(char* p, int8_t exttype, uint32_t count) {
+void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count) {
+    mpack_writer_track_element(writer);
+
+    #if MPACK_OPTIMIZE_FOR_SIZE
+    size_t bytes;
+    char buf[MPACK_TAG_SIZE_EXT32];
     if (count == 1) {
-        mpack_store_native_u8(p, 0xd4);
-        mpack_store_native_i8(p + 1, exttype);
-        return 2;
+        mpack_encode_fixext1(buf, exttype);
+        bytes = MPACK_TAG_SIZE_FIXEXT1;
+    } else if (count == 2) {
+        mpack_encode_fixext2(buf, exttype);
+        bytes = MPACK_TAG_SIZE_FIXEXT2;
+    } else if (count == 4) {
+        mpack_encode_fixext4(buf, exttype);
+        bytes = MPACK_TAG_SIZE_FIXEXT4;
+    } else if (count == 8) {
+        mpack_encode_fixext8(buf, exttype);
+        bytes = MPACK_TAG_SIZE_FIXEXT8;
+    } else if (count == 16) {
+        mpack_encode_fixext16(buf, exttype);
+        bytes = MPACK_TAG_SIZE_FIXEXT16;
+    } else if (count <= UINT8_MAX) {
+        mpack_encode_ext8(buf, exttype, (uint8_t)count);
+        bytes = MPACK_TAG_SIZE_EXT8;
+    } else if (count <= UINT16_MAX) {
+        mpack_encode_ext16(buf, exttype, (uint16_t)count);
+        bytes = MPACK_TAG_SIZE_EXT16;
+    } else {
+        mpack_encode_ext32(buf, exttype, (uint32_t)count);
+        bytes = MPACK_TAG_SIZE_EXT32;
     }
-    if (count == 2) {
-        mpack_store_native_u8(p, 0xd5);
-        mpack_store_native_i8(p + 1, exttype);
-        return 2;
+    mpack_write_native(writer, buf, bytes);
+    #else
+
+    size_t left = mpack_writer_buffer_left(writer);
+    if (count == 1) {
+        MPACK_WRITE_ENCODED(mpack_encode_fixext1, MPACK_TAG_SIZE_FIXEXT1, exttype);
+    } else if (count == 2) {
+        MPACK_WRITE_ENCODED(mpack_encode_fixext2, MPACK_TAG_SIZE_FIXEXT2, exttype);
+    } else if (count == 4) {
+        MPACK_WRITE_ENCODED(mpack_encode_fixext4, MPACK_TAG_SIZE_FIXEXT4, exttype);
+    } else if (count == 8) {
+        MPACK_WRITE_ENCODED(mpack_encode_fixext8, MPACK_TAG_SIZE_FIXEXT8, exttype);
+    } else if (count == 16) {
+        MPACK_WRITE_ENCODED(mpack_encode_fixext16, MPACK_TAG_SIZE_FIXEXT16, exttype);
+    } else if (count <= UINT8_MAX) {
+        MPACK_WRITE_ENCODED(mpack_encode_ext8, MPACK_TAG_SIZE_EXT8, exttype, (uint8_t)count);
+    } else if (count <= UINT16_MAX) {
+        MPACK_WRITE_ENCODED(mpack_encode_ext16, MPACK_TAG_SIZE_EXT16, exttype, (uint16_t)count);
+    } else {
+        MPACK_WRITE_ENCODED(mpack_encode_ext32, MPACK_TAG_SIZE_EXT32, exttype, (uint32_t)count);
     }
-    if (count == 4) {
-        mpack_store_native_u8(p, 0xd6);
-        mpack_store_native_i8(p + 1, exttype);
-        return 2;
-    }
-    if (count == 8) {
-        mpack_store_native_u8(p, 0xd7);
-        mpack_store_native_i8(p + 1, exttype);
-        return 2;
-    }
-    if (count == 16) {
-        mpack_store_native_u8(p, 0xd8);
-        mpack_store_native_i8(p + 1, exttype);
-        return 2;
-    }
-    if (count <= UINT8_MAX) {
-        mpack_store_native_u8(p, 0xc7);
-        mpack_store_native_u8(p + 1, (uint8_t)count);
-        mpack_store_native_i8(p + 2, exttype);
-        return 3;
-    }
-    if (count <= UINT16_MAX) {
-        mpack_store_native_u8(p, 0xc8);
-        mpack_store_native_u16(p + 1, (uint16_t)count);
-        mpack_store_native_i8(p + 3, exttype);
-        return 4;
-    }
-    mpack_store_native_u8(p, 0xc9);
-    mpack_store_native_u32(p + 1, count);
-    mpack_store_native_i8(p + 5, exttype);
-    return 6;
+    #endif
+
+    mpack_writer_track_push(writer, mpack_type_ext, count);
 }
+
+
+
+/*
+ * Compound helpers and other functions
+ */
 
 void mpack_write_str(mpack_writer_t* writer, const char* data, uint32_t count) {
     mpack_assert(data != NULL, "data for string of length %i is NULL", (int)count);
@@ -705,7 +1063,7 @@ void mpack_write_ext(mpack_writer_t* writer, int8_t exttype, const char* data, u
 
 void mpack_write_bytes(mpack_writer_t* writer, const char* data, size_t count) {
     mpack_assert(data != NULL, "data pointer for %i bytes is NULL", (int)count);
-    MPACK_WRITER_TRACK(writer, mpack_track_bytes(&writer->track, false, count));
+    mpack_writer_track_bytes(writer, count);
     if (mpack_writer_error(writer) != mpack_ok)
         return;
     mpack_write_native(writer, data, count);
@@ -748,70 +1106,6 @@ void mpack_write_utf8_cstr_or_nil(mpack_writer_t* writer, const char* cstr) {
         mpack_write_utf8_cstr(writer, cstr);
     else
         mpack_write_nil(writer);
-}
-
-/*
- * We use a macro to define the content of type wrappers since they are
- * almost all identical. The function definitions are still spelled
- * out for intellisense/etc.
- *
- * The speed-optimized versions write directly into the buffer when
- * possible to avoid the extra memcpy().
- */
-#if MPACK_OPTIMIZE_FOR_SIZE
-#define MPACK_WRITE_WRAPPER(encode_fn, maximum_possible_bytes, ...)              \
-    mpack_writer_track_element(writer);                                          \
-    char buf[maximum_possible_bytes];                                            \
-    mpack_write_native(writer, buf, encode_fn(buf, __VA_ARGS__));
-#else
-#define MPACK_WRITE_WRAPPER(encode_fn, maximum_possible_bytes, ...)              \
-    mpack_writer_track_element(writer);                                          \
-    if (mpack_writer_buffer_left(writer) >= maximum_possible_bytes) {            \
-        writer->used += encode_fn(writer->buffer + writer->used, __VA_ARGS__);   \
-    } else if (mpack_writer_error(writer) == mpack_ok) {                         \
-        if (writer->flush)                                                       \
-            mpack_writer_flush_unchecked(writer);                                \
-        char buf[maximum_possible_bytes];                                        \
-        mpack_write_native(writer, buf, encode_fn(buf, __VA_ARGS__));            \
-    }
-#endif
-
-void mpack_write_u8 (mpack_writer_t* writer, uint8_t value)  {MPACK_WRITE_WRAPPER(mpack_encode_u8,  2, value);}
-void mpack_write_u16(mpack_writer_t* writer, uint16_t value) {MPACK_WRITE_WRAPPER(mpack_encode_u16, 3, value);}
-void mpack_write_u32(mpack_writer_t* writer, uint32_t value) {MPACK_WRITE_WRAPPER(mpack_encode_u32, 5, value);}
-void mpack_write_u64(mpack_writer_t* writer, uint64_t value) {MPACK_WRITE_WRAPPER(mpack_encode_u64, 9, value);}
-
-void mpack_write_i8 (mpack_writer_t* writer, int8_t value)   {MPACK_WRITE_WRAPPER(mpack_encode_i8,  2, value);}
-void mpack_write_i16(mpack_writer_t* writer, int16_t value)  {MPACK_WRITE_WRAPPER(mpack_encode_i16, 3, value);}
-void mpack_write_i32(mpack_writer_t* writer, int32_t value)  {MPACK_WRITE_WRAPPER(mpack_encode_i32, 5, value);}
-void mpack_write_i64(mpack_writer_t* writer, int64_t value)  {MPACK_WRITE_WRAPPER(mpack_encode_i64, 9, value);}
-
-void mpack_write_float(mpack_writer_t* writer, float value)   {MPACK_WRITE_WRAPPER(mpack_encode_float, 5, value);}
-void mpack_write_double(mpack_writer_t* writer, double value) {MPACK_WRITE_WRAPPER(mpack_encode_double, 9, value);}
-
-void mpack_start_array(mpack_writer_t* writer, uint32_t count) {
-    MPACK_WRITE_WRAPPER(mpack_encode_array, 5, count);
-    MPACK_WRITER_TRACK(writer, mpack_track_push(&writer->track, mpack_type_array, count));
-}
-
-void mpack_start_map(mpack_writer_t* writer, uint32_t count) {
-    MPACK_WRITE_WRAPPER(mpack_encode_map, 5, count);
-    MPACK_WRITER_TRACK(writer, mpack_track_push(&writer->track, mpack_type_map, count));
-}
-
-void mpack_start_str(mpack_writer_t* writer, uint32_t count) {
-    MPACK_WRITE_WRAPPER(mpack_encode_str, 5, count);
-    MPACK_WRITER_TRACK(writer, mpack_track_push(&writer->track, mpack_type_str, count));
-}
-
-void mpack_start_bin(mpack_writer_t* writer, uint32_t count) {
-    MPACK_WRITE_WRAPPER(mpack_encode_bin, 5, count);
-    MPACK_WRITER_TRACK(writer, mpack_track_push(&writer->track, mpack_type_bin, count));
-}
-
-void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count) {
-    MPACK_WRITE_WRAPPER(mpack_encode_ext, 6, exttype, count);
-    MPACK_WRITER_TRACK(writer, mpack_track_push(&writer->track, mpack_type_ext, count));
 }
 
 #endif

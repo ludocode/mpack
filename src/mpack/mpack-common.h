@@ -37,8 +37,8 @@ MPACK_HEADER_START
 /* Version information */
 
 #define MPACK_VERSION_MAJOR 0  /**< The major version number of MPack. */
-#define MPACK_VERSION_MINOR 7  /**< The minor version number of MPack. */
-#define MPACK_VERSION_PATCH 1  /**< The patch version number of MPack. */
+#define MPACK_VERSION_MINOR 8  /**< The minor version number of MPack. */
+#define MPACK_VERSION_PATCH 0  /**< The patch version number of MPack. */
 
 /** A number containing the version number of MPack for comparison purposes. */
 #define MPACK_VERSION ((MPACK_VERSION_MAJOR * 10000) + \
@@ -84,6 +84,13 @@ MPACK_HEADER_START
 #else
 #define MPACK_LIBRARY_STRING "MPack " MPACK_VERSION_STRING
 #endif
+
+/**
+ * @def MPACK_MAXIMUM_TAG_SIZE
+ *
+ * The maximum size of a tag in bytes, as of the "new" MessagePack spec.
+ */
+#define MPACK_MAXIMUM_TAG_SIZE 9
 
 
 
@@ -338,9 +345,7 @@ MPACK_INLINE bool mpack_tag_equal(mpack_tag_t left, mpack_tag_t right) {
  * at arbitrary addresses.
  *
  * These will remain available in the public API so feel free to
- * use them for other purposes, but they are undocumented. (Note
- * also that they are static always-inline; they do not follow
- * the normal MPack inline linkage.)
+ * use them for other purposes, but they are undocumented.
  *
  * The bswap builtins are used when needed and available. With
  * GCC 5.2 they appear to give better performance and smaller
@@ -348,16 +353,16 @@ MPACK_INLINE bool mpack_tag_equal(mpack_tag_t left, mpack_tag_t right) {
  * assembly as the bit-shifting code on x86_64.
  */
 
-MPACK_ALWAYS_INLINE uint8_t mpack_load_native_u8(const char* p) {
+MPACK_INLINE uint8_t mpack_load_u8(const char* p) {
     return (uint8_t)p[0];
 }
 
-MPACK_ALWAYS_INLINE uint16_t mpack_load_native_u16(const char* p) {
+MPACK_INLINE uint16_t mpack_load_u16(const char* p) {
     return (uint16_t)((((uint16_t)(uint8_t)p[0]) << 8) |
            ((uint16_t)(uint8_t)p[1]));
 }
 
-MPACK_ALWAYS_INLINE uint32_t mpack_load_native_u32(const char* p) {
+MPACK_INLINE uint32_t mpack_load_u32(const char* p) {
     #ifdef MPACK_NHSWAP32
     uint32_t val;
     mpack_memcpy(&val, p, sizeof(val));
@@ -370,7 +375,7 @@ MPACK_ALWAYS_INLINE uint32_t mpack_load_native_u32(const char* p) {
     #endif
 }
 
-MPACK_ALWAYS_INLINE uint64_t mpack_load_native_u64(const char* p) {
+MPACK_INLINE uint64_t mpack_load_u64(const char* p) {
     #ifdef MPACK_NHSWAP64
     uint64_t val;
     mpack_memcpy(&val, p, sizeof(val));
@@ -387,18 +392,18 @@ MPACK_ALWAYS_INLINE uint64_t mpack_load_native_u64(const char* p) {
     #endif
 }
 
-MPACK_ALWAYS_INLINE void mpack_store_native_u8(char* p, uint8_t val) {
+MPACK_INLINE void mpack_store_u8(char* p, uint8_t val) {
     uint8_t* u = (uint8_t*)p;
     u[0] = val;
 }
 
-MPACK_ALWAYS_INLINE void mpack_store_native_u16(char* p, uint16_t val) {
+MPACK_INLINE void mpack_store_u16(char* p, uint16_t val) {
     uint8_t* u = (uint8_t*)p;
     u[0] = (uint8_t)((val >> 8) & 0xFF);
     u[1] = (uint8_t)( val       & 0xFF);
 }
 
-MPACK_ALWAYS_INLINE void mpack_store_native_u32(char* p, uint32_t val) {
+MPACK_INLINE void mpack_store_u32(char* p, uint32_t val) {
     #ifdef MPACK_NHSWAP32
     val = MPACK_NHSWAP32(val);
     mpack_memcpy(p, &val, sizeof(val));
@@ -411,7 +416,7 @@ MPACK_ALWAYS_INLINE void mpack_store_native_u32(char* p, uint32_t val) {
     #endif
 }
 
-MPACK_ALWAYS_INLINE void mpack_store_native_u64(char* p, uint64_t val) {
+MPACK_INLINE void mpack_store_u64(char* p, uint64_t val) {
     #ifdef MPACK_NHSWAP64
     val = MPACK_NHSWAP64(val);
     mpack_memcpy(p, &val, sizeof(val));
@@ -428,33 +433,95 @@ MPACK_ALWAYS_INLINE void mpack_store_native_u64(char* p, uint64_t val) {
     #endif
 }
 
-// These are the same as the unsigned versions; they're just
-// implemented to better document what's signed versus unsigned
-// in the writer store functions.
-MPACK_ALWAYS_INLINE void mpack_store_native_i8 (char* p, int8_t  val) {mpack_store_native_u8 (p, (uint8_t) val);}
-MPACK_ALWAYS_INLINE void mpack_store_native_i16(char* p, int16_t val) {mpack_store_native_u16(p, (uint16_t)val);}
-MPACK_ALWAYS_INLINE void mpack_store_native_i32(char* p, int32_t val) {mpack_store_native_u32(p, (uint32_t)val);}
-MPACK_ALWAYS_INLINE void mpack_store_native_i64(char* p, int64_t val) {mpack_store_native_u64(p, (uint64_t)val);}
+MPACK_INLINE int8_t  mpack_load_i8 (const char* p) {return (int8_t) mpack_load_u8 (p);}
+MPACK_INLINE int16_t mpack_load_i16(const char* p) {return (int16_t)mpack_load_u16(p);}
+MPACK_INLINE int32_t mpack_load_i32(const char* p) {return (int32_t)mpack_load_u32(p);}
+MPACK_INLINE int64_t mpack_load_i64(const char* p) {return (int64_t)mpack_load_u64(p);}
+MPACK_INLINE void mpack_store_i8 (char* p, int8_t  val) {mpack_store_u8 (p, (uint8_t) val);}
+MPACK_INLINE void mpack_store_i16(char* p, int16_t val) {mpack_store_u16(p, (uint16_t)val);}
+MPACK_INLINE void mpack_store_i32(char* p, int32_t val) {mpack_store_u32(p, (uint32_t)val);}
+MPACK_INLINE void mpack_store_i64(char* p, int64_t val) {mpack_store_u64(p, (uint64_t)val);}
 
-MPACK_ALWAYS_INLINE void mpack_store_native_float(char* p, float value) {
+MPACK_INLINE float mpack_load_float(const char* p) {
     MPACK_CHECK_FLOAT_ORDER();
     union {
         float f;
-        uint32_t i;
-    } u;
-    u.f = value;
-    mpack_store_native_u32(p, u.i);
+        uint32_t u;
+    } v;
+    v.u = mpack_load_u32(p);
+    return v.f;
 }
 
-MPACK_ALWAYS_INLINE void mpack_store_native_double(char* p, double value) {
+MPACK_INLINE double mpack_load_double(const char* p) {
     MPACK_CHECK_FLOAT_ORDER();
     union {
         double d;
-        uint64_t i;
-    } u;
-    u.d = value;
-    mpack_store_native_u64(p, u.i);
+        uint64_t u;
+    } v;
+    v.u = mpack_load_u64(p);
+    return v.d;
 }
+
+MPACK_INLINE void mpack_store_float(char* p, float value) {
+    MPACK_CHECK_FLOAT_ORDER();
+    union {
+        float f;
+        uint32_t u;
+    } v;
+    v.f = value;
+    mpack_store_u32(p, v.u);
+}
+
+MPACK_INLINE void mpack_store_double(char* p, double value) {
+    MPACK_CHECK_FLOAT_ORDER();
+    union {
+        double d;
+        uint64_t u;
+    } v;
+    v.d = value;
+    mpack_store_u64(p, v.u);
+}
+
+/** @endcond */
+
+
+
+/** @cond */
+
+// Sizes in bytes for the various possible tags
+#define MPACK_TAG_SIZE_FIXUINT  1
+#define MPACK_TAG_SIZE_U8       2
+#define MPACK_TAG_SIZE_U16      3
+#define MPACK_TAG_SIZE_U32      5
+#define MPACK_TAG_SIZE_U64      9
+#define MPACK_TAG_SIZE_FIXINT   1
+#define MPACK_TAG_SIZE_I8       2
+#define MPACK_TAG_SIZE_I16      3
+#define MPACK_TAG_SIZE_I32      5
+#define MPACK_TAG_SIZE_I64      9
+#define MPACK_TAG_SIZE_FLOAT    5
+#define MPACK_TAG_SIZE_DOUBLE   9
+#define MPACK_TAG_SIZE_FIXARRAY 1
+#define MPACK_TAG_SIZE_ARRAY16  3
+#define MPACK_TAG_SIZE_ARRAY32  5
+#define MPACK_TAG_SIZE_FIXMAP   1
+#define MPACK_TAG_SIZE_MAP16    3
+#define MPACK_TAG_SIZE_MAP32    5
+#define MPACK_TAG_SIZE_FIXSTR   1
+#define MPACK_TAG_SIZE_STR8     2
+#define MPACK_TAG_SIZE_STR16    3
+#define MPACK_TAG_SIZE_STR32    5
+#define MPACK_TAG_SIZE_BIN8     2
+#define MPACK_TAG_SIZE_BIN16    3
+#define MPACK_TAG_SIZE_BIN32    5
+#define MPACK_TAG_SIZE_FIXEXT1  2
+#define MPACK_TAG_SIZE_FIXEXT2  2
+#define MPACK_TAG_SIZE_FIXEXT4  2
+#define MPACK_TAG_SIZE_FIXEXT8  2
+#define MPACK_TAG_SIZE_FIXEXT16 2
+#define MPACK_TAG_SIZE_EXT8     3
+#define MPACK_TAG_SIZE_EXT16    4
+#define MPACK_TAG_SIZE_EXT32    6
 
 /** @endcond */
 
@@ -482,7 +549,9 @@ mpack_error_t mpack_track_grow(mpack_track_t* track);
 mpack_error_t mpack_track_push(mpack_track_t* track, mpack_type_t type, uint64_t count);
 mpack_error_t mpack_track_pop(mpack_track_t* track, mpack_type_t type);
 mpack_error_t mpack_track_element(mpack_track_t* track, bool read);
+mpack_error_t mpack_track_peek_element(mpack_track_t* track, bool read);
 mpack_error_t mpack_track_bytes(mpack_track_t* track, bool read, uint64_t count);
+mpack_error_t mpack_track_str_bytes_all(mpack_track_t* track, bool read, uint64_t count);
 mpack_error_t mpack_track_check_empty(mpack_track_t* track);
 mpack_error_t mpack_track_destroy(mpack_track_t* track, bool cancel);
 #endif
