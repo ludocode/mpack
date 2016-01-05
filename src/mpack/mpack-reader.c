@@ -229,6 +229,7 @@ static void mpack_partial_fill(mpack_reader_t* reader) {
 
 bool mpack_reader_ensure_straddle(mpack_reader_t* reader, size_t count) {
     mpack_assert(count != 0, "cannot ensure zero bytes!");
+    mpack_assert(reader->error == mpack_ok, "reader cannot be in an error state!");
 
     if (count <= reader->left) {
         mpack_assert(0,
@@ -247,6 +248,9 @@ bool mpack_reader_ensure_straddle(mpack_reader_t* reader, size_t count) {
         mpack_reader_flag_error(reader, mpack_error_invalid);
         return false;
     }
+
+    mpack_assert(count <= reader->size, "cannot ensure byte count %i larger than buffer size %i",
+            (int)count, (int)reader->size);
 
     // re-fill as much as possible
     mpack_partial_fill(reader);
@@ -591,6 +595,8 @@ const char* mpack_read_utf8_inplace(mpack_reader_t* reader, size_t count) {
 // Decodes a tag from a byte buffer. The size of the bytes buffer
 // must be at least MPACK_MINIMUM_TAG_SIZE.
 static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
+    mpack_assert(reader->error == mpack_ok, "reader cannot be in an error state!");
+
     if (!mpack_reader_ensure(reader, 1))
         return 0;
     uint8_t type = mpack_load_u8(reader->buffer + reader->pos);
@@ -965,6 +971,8 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
     mpack_log("reading tag\n");
 
     // make sure we can read a tag
+    if (mpack_reader_error(reader) != mpack_ok)
+        return mpack_tag_nil();
     if (mpack_reader_track_element(reader) != mpack_ok)
         return mpack_tag_nil();
 
@@ -1008,6 +1016,9 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
 mpack_tag_t mpack_peek_tag(mpack_reader_t* reader) {
     mpack_log("peeking tag\n");
 
+    // make sure we can peek a tag
+    if (mpack_reader_error(reader) != mpack_ok)
+        return mpack_tag_nil();
     if (mpack_reader_track_peek_element(reader) != mpack_ok)
         return mpack_tag_nil();
 

@@ -681,16 +681,15 @@ bool mpack_reader_ensure_straddle(mpack_reader_t* reader, size_t count);
 // Ensures there are at least count bytes left in the buffer. This will
 // flag an error if there is not enough data, and will assert if there
 // is a fill function and count is larger than the buffer size. Returns
-// true if there are enough bytes, false otherwise.
+// true if there are enough bytes, false otherwise. Error handling must
+// be done separately! The reader cannot be in an error state when this
+// is called.
 MPACK_INLINE bool mpack_reader_ensure(mpack_reader_t* reader, size_t count) {
     mpack_assert(count != 0, "cannot ensure zero bytes!");
+    mpack_assert(reader->error == mpack_ok, "reader cannot be in an error state!");
 
-    if (count <= reader->left) {
-        mpack_assert(reader->error == mpack_ok, "error state %i but there are %i bytes left?",
-                (int)reader->error, (int)reader->left);
+    if (count <= reader->left)
         return true;
-    }
-
     return mpack_reader_ensure_straddle(reader, count);
 }
 
