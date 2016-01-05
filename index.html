@@ -15,6 +15,7 @@
   $(document).ready(function() { init_search(); });
 </script>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="doxygen-mpack-css.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
 <div id="top"><!-- do not remove this div, it is closed by doxygen! -->
@@ -24,7 +25,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">MPack
-   &#160;<span id="projectnumber">0.7.1</span>
+   &#160;<span id="projectnumber">0.8</span>
    </div>
    <div id="projectbrief">A C encoding/decoding library for the MessagePack serialization format.</div>
   </td>
@@ -40,9 +41,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li class="current"><a href="index.html"><span>Main&#160;Page</span></a></li>
+      <li><a href="pages.html"><span>Pages</span></a></li>
       <li><a href="modules.html"><span>Modules</span></a></li>
-      <li><a href="annotated.html"><span>Data&#160;Structures</span></a></li>
-      <li><a href="files.html"><span>Files</span></a></li>
       <li>
         <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -90,8 +90,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <li>Extremely fast</li>
 </ul>
 <p>The core of MPack contains a buffered reader and writer with a custom callback to fill or flush the buffer. Helper functions can be enabled to read values of expected type, to work with files, to allocate strings automatically, to check UTF-8 encoding, and more. The MPack featureset can be configured at compile-time to set which features, components and debug checks are compiled, and what dependencies are available.</p>
-<p>The MPack code is small enough to be embedded directly into your codebase. The easiest way to use it is to download the <a href="https://github.com/ludocode/mpack/releases">amalgamation package</a> and insert the source files directly into your project. Copy <code><a class="el" href="mpack_8h.html" title="Includes the full MPack API. ">mpack.h</a></code> and <code>mpack.c</code> into to your codebase, and copy <code>mpack-config.h.sample</code> as <code>mpack-config.h</code>. You can use the defaults or edit it if you'd like to customize the MPack featureset.</p>
-<p>MPack is written in the portable intersection of C99 and C++. In other words, it's written in C99, but if you are stuck using a certain popular compiler from a certain unpopular vendor that refuses to support C99, you can compile it as C++ instead.</p>
+<p>The MPack code is small enough to be embedded directly into your codebase. The easiest way to use it is to download the <a href="https://github.com/ludocode/mpack/releases">amalgamation package</a> and insert the source files directly into your project. Copy <code>mpack.h</code> and <code>mpack.c</code> into to your codebase, and copy <code>mpack-config.h.sample</code> as <code>mpack-config.h</code>. You can use the defaults or edit it if you'd like to customize the MPack featureset.</p>
 <h2>The Node Reader API</h2>
 <p>The Node API parses a chunk of MessagePack data into an immutable tree of dynamically-typed nodes. A series of helper functions can be used to extract data of specific types from each node.</p>
 <div class="fragment"><div class="line"><span class="comment">// parse a file into a node tree</span></div>
@@ -114,7 +113,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="fragment"><div class="line"><span class="comment">// encode to memory buffer</span></div>
 <div class="line"><span class="keywordtype">char</span>* data;</div>
 <div class="line"><span class="keywordtype">size_t</span> size;</div>
-<div class="line"><a class="code" href="group__writer.html#structmpack__writer__t">mpack_writer_t</a> writer;</div>
+<div class="line"><a class="code" href="group__writer.html#gabdb207d4ba6a6ae47efa5ede13436f31">mpack_writer_t</a> writer;</div>
 <div class="line"><a class="code" href="group__writer.html#ga0aa3b265fb5ece9c4cba0f2b1bfbdb53">mpack_writer_init_growable</a>(&amp;writer, &amp;data, &amp;size);</div>
 <div class="line"></div>
 <div class="line"><span class="comment">// write the example on the msgpack homepage</span></div>
@@ -137,6 +136,36 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </div><!-- fragment --><p>In the above example, we encode to a growable memory buffer. The writer can instead write to a pre-allocated or stack-allocated buffer, avoiding the need for memory allocation. The writer can also be provided with a flush function (such as a file or socket write function) to call when the buffer is full or when writing is done.</p>
 <p>If any error occurs, the writer is placed in an error state. The writer will flag an error if too much data is written, if the wrong number of elements are written, if the data could not be flushed, etc. No additional error handling is needed in the above code; any subsequent writes are ignored when the writer is in an error state, so you don't need to check every write for errors.</p>
 <p>Note in particular that in debug mode, the <code><a class="el" href="group__writer.html#gabf0ab209845e7c9c3df7aa00b0d59a03" title="Finishes writing a map. ">mpack_finish_map()</a></code> call above ensures that two key/value pairs were actually written as claimed, something that other MessagePack C/C++ libraries may not do.</p>
+<h2>Comparison With Other Parsers</h2>
+<p>MPack is rich in features while maintaining very high performance and a small code footprint. Here's a short feature table comparing it to other C parsers:</p>
+<table class="doxtable">
+<tr>
+<th align="left"></th><th align="center"><a href="https://github.com/ludocode/mpack">MPack</a><br />
+(v0.8) </th><th align="center"><a href="https://github.com/msgpack/msgpack-c">msgpack-c</a><br />
+(v1.3.0) </th><th align="center"><a href="https://github.com/camgunz/cmp">CMP</a><br />
+(v14)  </th></tr>
+<tr>
+<td align="left">No libc requirement </td><td align="center">✓ </td><td align="center"></td><td align="center">✓ </td></tr>
+<tr>
+<td align="left">Growable memory writer </td><td align="center">✓ </td><td align="center">✓ </td><td align="center"></td></tr>
+<tr>
+<td align="left">File I/O helpers </td><td align="center">✓ </td><td align="center">✓ </td><td align="center"></td></tr>
+<tr>
+<td align="left">Tree parser </td><td align="center">✓ </td><td align="center">✓ </td><td align="center"></td></tr>
+<tr>
+<td align="left">Propagating errors </td><td align="center">✓ </td><td align="center"></td><td align="center">✓ </td></tr>
+<tr>
+<td align="left">Compound size tracking </td><td align="center">✓ </td><td align="center"></td><td align="center"></td></tr>
+<tr>
+<td align="left">Incremental parser </td><td align="center">✓ </td><td align="center"></td><td align="center">✓ </td></tr>
+<tr>
+<td align="left">Incremental range/match helpers </td><td align="center">✓ </td><td align="center"></td><td align="center"></td></tr>
+<tr>
+<td align="left">Tree stream parser </td><td align="center"></td><td align="center">✓ </td><td align="center"></td></tr>
+<tr>
+<td align="left">UTF-8 verification </td><td align="center">✓ </td><td align="center"></td><td align="center"></td></tr>
+</table>
+<p>A larger feature comparison table is available <a class="el" href="md_docs_features.html">here</a> which includes descriptions of the various entries in the table.</p>
 <h2>Why Not Just Use JSON?</h2>
 <p>Conceptually, MessagePack stores data similarly to JSON: they are both composed of simple values such as numbers and strings, stored hierarchically in maps and arrays. So why not just use JSON instead? The main reason is that JSON is designed to be human-readable, so it is not as efficient as a binary serialization format:</p>
 <ul>

@@ -15,6 +15,7 @@
   $(document).ready(function() { init_search(); });
 </script>
 <link href="doxygen.css" rel="stylesheet" type="text/css" />
+<link href="doxygen-mpack-css.css" rel="stylesheet" type="text/css"/>
 </head>
 <body>
 <div id="top"><!-- do not remove this div, it is closed by doxygen! -->
@@ -24,7 +25,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">MPack
-   &#160;<span id="projectnumber">0.7.1</span>
+   &#160;<span id="projectnumber">0.8</span>
    </div>
    <div id="projectbrief">A C encoding/decoding library for the MessagePack serialization format.</div>
   </td>
@@ -40,9 +41,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
   <div id="navrow1" class="tabs">
     <ul class="tablist">
       <li><a href="index.html"><span>Main&#160;Page</span></a></li>
+      <li><a href="pages.html"><span>Pages</span></a></li>
       <li><a href="modules.html"><span>Modules</span></a></li>
-      <li><a href="annotated.html"><span>Data&#160;Structures</span></a></li>
-      <li><a href="files.html"><span>Files</span></a></li>
       <li>
         <div id="MSearchBox" class="MSearchBoxInactive">
         <span class="left">
@@ -218,6 +218,12 @@ Node Primitive Value Functions</h2></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
 Node Data Functions</h2></td></tr>
+<tr class="memitem:gacb8292add714bdf140793a83469d8e9f"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#gacb8292add714bdf140793a83469d8e9f">mpack_node_check_utf8</a> (<a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a> node)</td></tr>
+<tr class="memdesc:gacb8292add714bdf140793a83469d8e9f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks that the given node contains a valid UTF-8 string.  <a href="#gacb8292add714bdf140793a83469d8e9f">More...</a><br /></td></tr>
+<tr class="separator:gacb8292add714bdf140793a83469d8e9f"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa4dc121daf1202070c03fd56a5cd4fa8"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#gaa4dc121daf1202070c03fd56a5cd4fa8">mpack_node_check_utf8_cstr</a> (<a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a> node)</td></tr>
+<tr class="memdesc:gaa4dc121daf1202070c03fd56a5cd4fa8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks that the given node contains a valid UTF-8 string with no NUL bytes.  <a href="#gaa4dc121daf1202070c03fd56a5cd4fa8">More...</a><br /></td></tr>
+<tr class="separator:gaa4dc121daf1202070c03fd56a5cd4fa8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaa7b359078cfddab88fc3c0c8fda4e295"><td class="memItemLeft" align="right" valign="top">int8_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#gaa7b359078cfddab88fc3c0c8fda4e295">mpack_node_exttype</a> (<a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a> node)</td></tr>
 <tr class="memdesc:gaa7b359078cfddab88fc3c0c8fda4e295"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the extension type of the given ext node.  <a href="#gaa7b359078cfddab88fc3c0c8fda4e295">More...</a><br /></td></tr>
 <tr class="separator:gaa7b359078cfddab88fc3c0c8fda4e295"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -227,33 +233,36 @@ Node Data Functions</h2></td></tr>
 <tr class="memitem:gae8a777b769930bea4e8a11738179ae7e"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#gae8a777b769930bea4e8a11738179ae7e">mpack_node_strlen</a> (<a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a> node)</td></tr>
 <tr class="memdesc:gae8a777b769930bea4e8a11738179ae7e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the length in bytes of the given string node.  <a href="#gae8a777b769930bea4e8a11738179ae7e">More...</a><br /></td></tr>
 <tr class="separator:gae8a777b769930bea4e8a11738179ae7e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9019bed33210791449cd9c594446fc8f"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#ga9019bed33210791449cd9c594446fc8f">mpack_node_str</a> (<a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a> node)</td></tr>
+<tr class="memdesc:ga9019bed33210791449cd9c594446fc8f"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a pointer to the data contained by this node, ensuring it is a string.  <a href="#ga9019bed33210791449cd9c594446fc8f">More...</a><br /></td></tr>
+<tr class="separator:ga9019bed33210791449cd9c594446fc8f"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga41ced2d8bfa19e4d19b0f18306bee140"><td class="memItemLeft" align="right" valign="top">const char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#ga41ced2d8bfa19e4d19b0f18306bee140">mpack_node_data</a> (<a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a> node)</td></tr>
 <tr class="memdesc:ga41ced2d8bfa19e4d19b0f18306bee140"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns a pointer to the data contained by this node.  <a href="#ga41ced2d8bfa19e4d19b0f18306bee140">More...</a><br /></td></tr>
 <tr class="separator:ga41ced2d8bfa19e4d19b0f18306bee140"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga1e1bd729f15f8016502555da95e2c2ea"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#ga1e1bd729f15f8016502555da95e2c2ea">mpack_node_copy_data</a> (<a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a> node, char *buffer, size_t size)</td></tr>
-<tr class="memdesc:ga1e1bd729f15f8016502555da95e2c2ea"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copies the bytes contained by this node into the given buffer, returning the number of bytes in the node.  <a href="#ga1e1bd729f15f8016502555da95e2c2ea">More...</a><br /></td></tr>
-<tr class="separator:ga1e1bd729f15f8016502555da95e2c2ea"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga1133de49c7725d34512e096752be8f33"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#ga1133de49c7725d34512e096752be8f33">mpack_node_copy_data</a> (<a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a> node, char *buffer, size_t bufsize)</td></tr>
+<tr class="memdesc:ga1133de49c7725d34512e096752be8f33"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copies the bytes contained by this node into the given buffer, returning the number of bytes in the node.  <a href="#ga1133de49c7725d34512e096752be8f33">More...</a><br /></td></tr>
+<tr class="separator:ga1133de49c7725d34512e096752be8f33"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga3c572f76b9b6870eaa765e3acb6954c1"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#ga3c572f76b9b6870eaa765e3acb6954c1">mpack_node_copy_utf8</a> (<a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a> node, char *buffer, size_t bufsize)</td></tr>
+<tr class="memdesc:ga3c572f76b9b6870eaa765e3acb6954c1"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks that the given node contains a valid UTF-8 string and copies the string into the given buffer, returning the number of bytes in the string.  <a href="#ga3c572f76b9b6870eaa765e3acb6954c1">More...</a><br /></td></tr>
+<tr class="separator:ga3c572f76b9b6870eaa765e3acb6954c1"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:gaf38c3d482a5eb473aa37594ee0ebf593"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#gaf38c3d482a5eb473aa37594ee0ebf593">mpack_node_copy_cstr</a> (<a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a> node, char *buffer, size_t size)</td></tr>
-<tr class="memdesc:gaf38c3d482a5eb473aa37594ee0ebf593"><td class="mdescLeft">&#160;</td><td class="mdescRight">Copies the bytes contained by this string node into the given buffer and adds a null terminator.  <a href="#gaf38c3d482a5eb473aa37594ee0ebf593">More...</a><br /></td></tr>
+<tr class="memdesc:gaf38c3d482a5eb473aa37594ee0ebf593"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks that the given node contains a string with no NUL bytes, copies the string into the given buffer, and adds a null terminator.  <a href="#gaf38c3d482a5eb473aa37594ee0ebf593">More...</a><br /></td></tr>
 <tr class="separator:gaf38c3d482a5eb473aa37594ee0ebf593"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga1d04e99353869175c85198e12e958992"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#ga1d04e99353869175c85198e12e958992">mpack_node_data_alloc</a> (<a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a> node, size_t maxlen)</td></tr>
-<tr class="memdesc:ga1d04e99353869175c85198e12e958992"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocates a new chunk of data using MPACK_MALLOC with the bytes contained by this node.  <a href="#ga1d04e99353869175c85198e12e958992">More...</a><br /></td></tr>
-<tr class="separator:ga1d04e99353869175c85198e12e958992"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gab441ab5ddeb1ec3e80cf28cfeb50e372"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#gab441ab5ddeb1ec3e80cf28cfeb50e372">mpack_node_cstr_alloc</a> (<a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a> node, size_t maxlen)</td></tr>
-<tr class="memdesc:gab441ab5ddeb1ec3e80cf28cfeb50e372"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocates a new null-terminated string using MPACK_MALLOC with the string contained by this node.  <a href="#gab441ab5ddeb1ec3e80cf28cfeb50e372">More...</a><br /></td></tr>
-<tr class="separator:gab441ab5ddeb1ec3e80cf28cfeb50e372"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf89e330244c3266c22bb8ce88f85dd66"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#gaf89e330244c3266c22bb8ce88f85dd66">mpack_node_copy_utf8_cstr</a> (<a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a> node, char *buffer, size_t size)</td></tr>
+<tr class="memdesc:gaf89e330244c3266c22bb8ce88f85dd66"><td class="mdescLeft">&#160;</td><td class="mdescRight">Checks that the given node contains a valid UTF-8 string with no NUL bytes, copies the string into the given buffer, and adds a null terminator.  <a href="#gaf89e330244c3266c22bb8ce88f85dd66">More...</a><br /></td></tr>
+<tr class="separator:gaf89e330244c3266c22bb8ce88f85dd66"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga2799b6fabe286b3a7093c529e61739ef"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#ga2799b6fabe286b3a7093c529e61739ef">mpack_node_data_alloc</a> (<a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a> node, size_t maxsize)</td></tr>
+<tr class="memdesc:ga2799b6fabe286b3a7093c529e61739ef"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocates a new chunk of data using MPACK_MALLOC with the bytes contained by this node.  <a href="#ga2799b6fabe286b3a7093c529e61739ef">More...</a><br /></td></tr>
+<tr class="separator:ga2799b6fabe286b3a7093c529e61739ef"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga6d7814632a852596f475994e0f388b99"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#ga6d7814632a852596f475994e0f388b99">mpack_node_cstr_alloc</a> (<a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a> node, size_t maxsize)</td></tr>
+<tr class="memdesc:ga6d7814632a852596f475994e0f388b99"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocates a new null-terminated string using MPACK_MALLOC with the string contained by this node.  <a href="#ga6d7814632a852596f475994e0f388b99">More...</a><br /></td></tr>
+<tr class="separator:ga6d7814632a852596f475994e0f388b99"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaa52c0130b46f8e0c8efa9f38079ffd1c"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#gaa52c0130b46f8e0c8efa9f38079ffd1c">mpack_node_utf8_cstr_alloc</a> (<a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a> node, size_t maxsize)</td></tr>
+<tr class="memdesc:gaa52c0130b46f8e0c8efa9f38079ffd1c"><td class="mdescLeft">&#160;</td><td class="mdescRight">Allocates a new null-terminated string using MPACK_MALLOC with the UTF-8 string contained by this node.  <a href="#gaa52c0130b46f8e0c8efa9f38079ffd1c">More...</a><br /></td></tr>
+<tr class="separator:gaa52c0130b46f8e0c8efa9f38079ffd1c"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
 Compound Node Functions</h2></td></tr>
-<tr class="memitem:ga2bd87d088707edb2c334d6227c3a3d5b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga2bd87d088707edb2c334d6227c3a3d5b"></a>
-<a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_node_map_str_impl</b> (<a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a> node, const char *str, size_t length, bool optional)</td></tr>
-<tr class="separator:ga2bd87d088707edb2c334d6227c3a3d5b"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gab39e3e80924cab324f9066d3155a2c92"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="gab39e3e80924cab324f9066d3155a2c92"></a>
-<a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_node_map_int_impl</b> (<a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a> node, int64_t num, bool optional)</td></tr>
-<tr class="separator:gab39e3e80924cab324f9066d3155a2c92"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga932541ce7fa9e984025839cc335eab4b"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga932541ce7fa9e984025839cc335eab4b"></a>
-<a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a>&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_node_map_uint_impl</b> (<a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a> node, uint64_t num, bool optional)</td></tr>
-<tr class="separator:ga932541ce7fa9e984025839cc335eab4b"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga831f47fdd6223dce326fe0f8ecc943d4"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#ga831f47fdd6223dce326fe0f8ecc943d4">mpack_node_array_length</a> (<a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a> node)</td></tr>
 <tr class="memdesc:ga831f47fdd6223dce326fe0f8ecc943d4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the length of the given array node.  <a href="#ga831f47fdd6223dce326fe0f8ecc943d4">More...</a><br /></td></tr>
 <tr class="separator:ga831f47fdd6223dce326fe0f8ecc943d4"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -296,11 +305,17 @@ Compound Node Functions</h2></td></tr>
 <tr class="memitem:ga349940b9a92f53b8dbdfdab049cc667e"><td class="memItemLeft" align="right" valign="top"><a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a>&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#ga349940b9a92f53b8dbdfdab049cc667e">mpack_node_map_cstr_optional</a> (<a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a> node, const char *cstr)</td></tr>
 <tr class="memdesc:ga349940b9a92f53b8dbdfdab049cc667e"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the value node in the given map for the given null-terminated string key, or a nil node if the map does not contain the given key.  <a href="#ga349940b9a92f53b8dbdfdab049cc667e">More...</a><br /></td></tr>
 <tr class="separator:ga349940b9a92f53b8dbdfdab049cc667e"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaf8682cff06a6b350f392d6e9ceaf6d9b"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#gaf8682cff06a6b350f392d6e9ceaf6d9b">mpack_node_map_contains_int</a> (<a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a> node, int64_t num)</td></tr>
+<tr class="memdesc:gaf8682cff06a6b350f392d6e9ceaf6d9b"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns true if the given node map contains exactly one entry with the given integer key.  <a href="#gaf8682cff06a6b350f392d6e9ceaf6d9b">More...</a><br /></td></tr>
+<tr class="separator:gaf8682cff06a6b350f392d6e9ceaf6d9b"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga9ab9e368bbde89763962102bff9933b2"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#ga9ab9e368bbde89763962102bff9933b2">mpack_node_map_contains_uint</a> (<a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a> node, uint64_t num)</td></tr>
+<tr class="memdesc:ga9ab9e368bbde89763962102bff9933b2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns true if the given node map contains exactly one entry with the given unsigned integer key.  <a href="#ga9ab9e368bbde89763962102bff9933b2">More...</a><br /></td></tr>
+<tr class="separator:ga9ab9e368bbde89763962102bff9933b2"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga5da5d0fcfeae4bc1edb7904fd230f783"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#ga5da5d0fcfeae4bc1edb7904fd230f783">mpack_node_map_contains_str</a> (<a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a> node, const char *str, size_t length)</td></tr>
-<tr class="memdesc:ga5da5d0fcfeae4bc1edb7904fd230f783"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns true if the given node map contains a value for the given string key.  <a href="#ga5da5d0fcfeae4bc1edb7904fd230f783">More...</a><br /></td></tr>
+<tr class="memdesc:ga5da5d0fcfeae4bc1edb7904fd230f783"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns true if the given node map contains exactly one entry with the given string key.  <a href="#ga5da5d0fcfeae4bc1edb7904fd230f783">More...</a><br /></td></tr>
 <tr class="separator:ga5da5d0fcfeae4bc1edb7904fd230f783"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga1be7c8845cff656408450ca31c3c3cad"><td class="memItemLeft" align="right" valign="top">bool&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#ga1be7c8845cff656408450ca31c3c3cad">mpack_node_map_contains_cstr</a> (<a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a> node, const char *cstr)</td></tr>
-<tr class="memdesc:ga1be7c8845cff656408450ca31c3c3cad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns true if the given node map contains a value for the given null-terminated string key.  <a href="#ga1be7c8845cff656408450ca31c3c3cad">More...</a><br /></td></tr>
+<tr class="memdesc:ga1be7c8845cff656408450ca31c3c3cad"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns true if the given node map contains exactly one entry with the given null-terminated string key.  <a href="#ga1be7c8845cff656408450ca31c3c3cad">More...</a><br /></td></tr>
 <tr class="separator:ga1be7c8845cff656408450ca31c3c3cad"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
@@ -351,7 +366,7 @@ Compound Node Functions</h2></td></tr>
 <p>An error handler function to be called when an error is flagged on the tree. </p>
 <p>The error handler will only be called once on the first error flagged; any subsequent node reads and errors are ignored, and the tree is permanently in that error state.</p>
 <p>MPack is safe against non-local jumps out of error handler callbacks. This means you are allowed to longjmp or throw an exception (in C++, Objective-C, or with SEH) out of this callback.</p>
-<p>Bear in mind when using longjmp that local non-volatile variables that have changed are undefined when setjmp() returns, so you can't put the tree on the stack in the same activation frame as the setjmp without declaring it volatile.)</p>
+<p>Bear in mind when using longjmp that local non-volatile variables that have changed are undefined when setjmp() returns, so you can't put the tree on the stack in the same activation frame as the setjmp without declaring it volatile.</p>
 <p>You must still eventually destroy the tree. It is not destroyed automatically when an error is flagged. It is safe to destroy the tree within this error callback, but you will either need to perform a non-local jump, or store something in your context to identify that the tree is destroyed since any future accesses to it cause undefined behavior. </p>
 
 </div>
@@ -449,7 +464,80 @@ Compound Node Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Returns the bool value of the node. </p>
-<p>If this node is not of the correct type, mpack_error_type is raised, and the return value should be discarded. </p>
+<p>If this node is not of the correct type, false is returned and mpack_error_type is raised. </p>
+
+</div>
+</div>
+<a class="anchor" id="gacb8292add714bdf140793a83469d8e9f"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void mpack_node_check_utf8 </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a>&#160;</td>
+          <td class="paramname"><em>node</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Checks that the given node contains a valid UTF-8 string. </p>
+<p>If the string is invalid, this flags an error, which would cause subsequent calls to <a class="el" href="group__node.html#ga9019bed33210791449cd9c594446fc8f" title="Returns a pointer to the data contained by this node, ensuring it is a string. ">mpack_node_str()</a> to return NULL and <a class="el" href="group__node.html#gae8a777b769930bea4e8a11738179ae7e" title="Returns the length in bytes of the given string node. ">mpack_node_strlen()</a> to return zero. So you can check the node for error immediately after calling this, or you can call those functions to use the data anyway and check for errors later.</p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_type</td><td>If this node is not a string or does not contain valid UTF-8.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">node</td><td>The string node to test</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__node.html#ga9019bed33210791449cd9c594446fc8f" title="Returns a pointer to the data contained by this node, ensuring it is a string. ">mpack_node_str()</a> </dd>
+<dd>
+<a class="el" href="group__node.html#gae8a777b769930bea4e8a11738179ae7e" title="Returns the length in bytes of the given string node. ">mpack_node_strlen()</a> </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gaa4dc121daf1202070c03fd56a5cd4fa8"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void mpack_node_check_utf8_cstr </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a>&#160;</td>
+          <td class="paramname"><em>node</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Checks that the given node contains a valid UTF-8 string with no NUL bytes. </p>
+<p>This does not check that the string has a null-terminator! It only checks whether the string could safely be represented as a C-string by appending a null-terminator. (If the string does already contain a null-terminator, this will flag an error.)</p>
+<p>This is performed automatically by other UTF-8 cstr helper functions. Only call this if you will do something else with the data directly, but you still want to ensure it will be valid as a UTF-8 C-string.</p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_type</td><td>If this node is not a string, does not contain valid UTF-8, or contains a NUL byte.</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">node</td><td>The string node to test</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__node.html#ga9019bed33210791449cd9c594446fc8f" title="Returns a pointer to the data contained by this node, ensuring it is a string. ">mpack_node_str()</a> </dd>
+<dd>
+<a class="el" href="group__node.html#gae8a777b769930bea4e8a11738179ae7e" title="Returns the length in bytes of the given string node. ">mpack_node_strlen()</a> </dd>
+<dd>
+<a class="el" href="group__node.html#gaf89e330244c3266c22bb8ce88f85dd66" title="Checks that the given node contains a valid UTF-8 string with no NUL bytes, copies the string into th...">mpack_node_copy_utf8_cstr()</a> </dd>
+<dd>
+<a class="el" href="group__node.html#gaa52c0130b46f8e0c8efa9f38079ffd1c" title="Allocates a new null-terminated string using MPACK_MALLOC with the UTF-8 string contained by this nod...">mpack_node_utf8_cstr_alloc()</a> </dd></dl>
 
 </div>
 </div>
@@ -483,9 +571,9 @@ Compound Node Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Copies the bytes contained by this string node into the given buffer and adds a null terminator. </p>
-<p>If this node is not of a string type, mpack_error_type is raised, and the buffer should be discarded. If the string does not fit, mpack_error_data is raised, and the buffer should be discarded.</p>
-<p>If this node is not of a string type, mpack_error_type is raised, and the buffer and return value should be discarded. If the string and null-terminator do not fit in the given buffer, mpack_error_data is raised, and the buffer and return value should be discarded.</p>
+<p>Checks that the given node contains a string with no NUL bytes, copies the string into the given buffer, and adds a null terminator. </p>
+<p>If this node is not of a string type, mpack_error_type is raised. If the string does not fit, mpack_error_data is raised.</p>
+<p>If any error occurs, the buffer will contain an empty null-terminated string.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">node</td><td>The string node from which to copy data </td></tr>
@@ -497,12 +585,112 @@ Compound Node Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="ga1e1bd729f15f8016502555da95e2c2ea"></a>
+<a class="anchor" id="ga1133de49c7725d34512e096752be8f33"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
         <tr>
           <td class="memname">size_t mpack_node_copy_data </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a>&#160;</td>
+          <td class="paramname"><em>node</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>buffer</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>bufsize</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Copies the bytes contained by this node into the given buffer, returning the number of bytes in the node. </p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_type</td><td>If this node is not a str, bin or ext type </td></tr>
+    <tr><td class="paramname">mpack_error_too_big</td><td>If the string does not fit in the given buffer</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">node</td><td>The string node from which to copy data </td></tr>
+    <tr><td class="paramname">buffer</td><td>A buffer in which to copy the node's bytes </td></tr>
+    <tr><td class="paramname">bufsize</td><td>The size of the given buffer</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The number of bytes in the node, or zero if an error occurs. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="ga3c572f76b9b6870eaa765e3acb6954c1"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">size_t mpack_node_copy_utf8 </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a>&#160;</td>
+          <td class="paramname"><em>node</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">char *&#160;</td>
+          <td class="paramname"><em>buffer</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>bufsize</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Checks that the given node contains a valid UTF-8 string and copies the string into the given buffer, returning the number of bytes in the string. </p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_type</td><td>If this node is not a string </td></tr>
+    <tr><td class="paramname">mpack_error_too_big</td><td>If the string does not fit in the given buffer</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">node</td><td>The string node from which to copy data </td></tr>
+    <tr><td class="paramname">buffer</td><td>A buffer in which to copy the node's bytes </td></tr>
+    <tr><td class="paramname">bufsize</td><td>The size of the given buffer</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The number of bytes in the node, or zero if an error occurs. </dd></dl>
+
+</div>
+</div>
+<a class="anchor" id="gaf89e330244c3266c22bb8ce88f85dd66"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">void mpack_node_copy_utf8_cstr </td>
           <td>(</td>
           <td class="paramtype"><a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a>&#160;</td>
           <td class="paramname"><em>node</em>, </td>
@@ -527,12 +715,13 @@ Compound Node Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Copies the bytes contained by this node into the given buffer, returning the number of bytes in the node. </p>
-<p>If this node is not of a str, bin or map, mpack_error_type is raised, and the buffer and return value should be discarded. If the node's data does not fit in the given buffer, mpack_error_data is raised, and the buffer and return value should be discarded.</p>
+<p>Checks that the given node contains a valid UTF-8 string with no NUL bytes, copies the string into the given buffer, and adds a null terminator. </p>
+<p>If this node is not of a string type, mpack_error_type is raised. If the string does not fit, mpack_error_data is raised.</p>
+<p>If any error occurs, the buffer will contain an empty null-terminated string.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">node</td><td>The string node from which to copy data </td></tr>
-    <tr><td class="paramname">buffer</td><td>A buffer in which to copy the node's bytes </td></tr>
+    <tr><td class="paramname">buffer</td><td>A buffer in which to copy the node's string </td></tr>
     <tr><td class="paramname">size</td><td>The size of the given buffer </td></tr>
   </table>
   </dd>
@@ -540,7 +729,7 @@ Compound Node Functions</h2></td></tr>
 
 </div>
 </div>
-<a class="anchor" id="gab441ab5ddeb1ec3e80cf28cfeb50e372"></a>
+<a class="anchor" id="ga6d7814632a852596f475994e0f388b99"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -554,7 +743,7 @@ Compound Node Functions</h2></td></tr>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>maxlen</em>&#160;</td>
+          <td class="paramname"><em>maxsize</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -566,13 +755,22 @@ Compound Node Functions</h2></td></tr>
 
 <p>Allocates a new null-terminated string using MPACK_MALLOC with the string contained by this node. </p>
 <p>The allocated string must be freed with MPACK_FREE() (or simply free() if MPack's allocator hasn't been customized.)</p>
-<p>If this node is not a string type, mpack_error_type is raised, and the return value should be discarded.</p>
-<dl class="params"><dt>Parameters</dt><dd>
-  <table class="params">
-    <tr><td class="paramname">maxlen</td><td>The maximum size to allocate, including the null-terminator. </td></tr>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_type</td><td>If this node is not a string or contains NUL bytes </td></tr>
+    <tr><td class="paramname">mpack_error_too_big</td><td>If the size of the string plus null-terminator is larger than the given maximum size </td></tr>
+    <tr><td class="paramname">mpack_error_memory</td><td>If an allocation failure occurs</td></tr>
   </table>
   </dd>
 </dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">node</td><td>The node from which to allocate and copy string data </td></tr>
+    <tr><td class="paramname">maxsize</td><td>The maximum size to allocate, including the null-terminator</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The allocated string, or NULL if any error occurs. </dd></dl>
 
 </div>
 </div>
@@ -594,15 +792,15 @@ Compound Node Functions</h2></td></tr>
 <p>Note that strings are not null-terminated! Use one of the cstr functions to get a null-terminated string.</p>
 <p>The pointer is valid as long as the data backing the tree is valid.</p>
 <p>If this node is not of a str, bin or map, mpack_error_type is raised, and NULL is returned.</p>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__node.html#gaf38c3d482a5eb473aa37594ee0ebf593" title="Copies the bytes contained by this string node into the given buffer and adds a null terminator...">mpack_node_copy_cstr()</a> </dd>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__node.html#gaf38c3d482a5eb473aa37594ee0ebf593" title="Checks that the given node contains a string with no NUL bytes, copies the string into the given buff...">mpack_node_copy_cstr()</a> </dd>
 <dd>
-<a class="el" href="group__node.html#gab441ab5ddeb1ec3e80cf28cfeb50e372" title="Allocates a new null-terminated string using MPACK_MALLOC with the string contained by this node...">mpack_node_cstr_alloc()</a> </dd>
+<a class="el" href="group__node.html#ga6d7814632a852596f475994e0f388b99" title="Allocates a new null-terminated string using MPACK_MALLOC with the string contained by this node...">mpack_node_cstr_alloc()</a> </dd>
 <dd>
-mpack_node_utf8_cstr_alloc() </dd></dl>
+<a class="el" href="group__node.html#gaa52c0130b46f8e0c8efa9f38079ffd1c" title="Allocates a new null-terminated string using MPACK_MALLOC with the UTF-8 string contained by this nod...">mpack_node_utf8_cstr_alloc()</a> </dd></dl>
 
 </div>
 </div>
-<a class="anchor" id="ga1d04e99353869175c85198e12e958992"></a>
+<a class="anchor" id="ga2799b6fabe286b3a7093c529e61739ef"></a>
 <div class="memitem">
 <div class="memproto">
       <table class="memname">
@@ -616,7 +814,7 @@ mpack_node_utf8_cstr_alloc() </dd></dl>
           <td class="paramkey"></td>
           <td></td>
           <td class="paramtype">size_t&#160;</td>
-          <td class="paramname"><em>maxlen</em>&#160;</td>
+          <td class="paramname"><em>maxsize</em>&#160;</td>
         </tr>
         <tr>
           <td></td>
@@ -628,7 +826,22 @@ mpack_node_utf8_cstr_alloc() </dd></dl>
 
 <p>Allocates a new chunk of data using MPACK_MALLOC with the bytes contained by this node. </p>
 <p>The allocated data must be freed with MPACK_FREE() (or simply free() if MPack's allocator hasn't been customized.)</p>
-<p>If this node is not a str, bin or ext type, mpack_error_type is raised and the return value should be discarded. If the string and null-terminator are longer than the given maximum length, mpack_error_too_big is raised, and the return value should be discarded. If an allocation failure occurs, mpack_error_memory is raised and the return value should be discarded. </p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_type</td><td>If this node is not a str, bin or ext type </td></tr>
+    <tr><td class="paramname">mpack_error_too_big</td><td>If the size of the data is larger than the given maximum size </td></tr>
+    <tr><td class="paramname">mpack_error_memory</td><td>If an allocation failure occurs</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">node</td><td>The node from which to allocate and copy data </td></tr>
+    <tr><td class="paramname">maxsize</td><td>The maximum size to allocate</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The allocated data, or NULL if any error occurs. </dd></dl>
 
 </div>
 </div>
@@ -647,6 +860,7 @@ mpack_node_utf8_cstr_alloc() </dd></dl>
 </div><div class="memdoc">
 
 <p>Returns the length of the given str, bin or ext node. </p>
+<p>This returns zero if the tree is in an error state. </p>
 
 </div>
 </div>
@@ -734,6 +948,7 @@ mpack_node_utf8_cstr_alloc() </dd></dl>
 </div><div class="memdoc">
 
 <p>Returns the extension type of the given ext node. </p>
+<p>This returns zero if the tree is in an error state. </p>
 
 </div>
 </div>
@@ -851,7 +1066,7 @@ mpack_node_utf8_cstr_alloc() </dd></dl>
 </div><div class="memdoc">
 
 <p>Returns the 16-bit signed value of the node. </p>
-<p>If this node is not of a compatible type, mpack_error_type is raised, and the return value should be discarded. </p>
+<p>If this node is not of a compatible type, mpack_error_type is raised and zero is returned. </p>
 
 </div>
 </div>
@@ -870,7 +1085,7 @@ mpack_node_utf8_cstr_alloc() </dd></dl>
 </div><div class="memdoc">
 
 <p>Returns the 32-bit signed value of the node. </p>
-<p>If this node is not of a compatible type, mpack_error_type is raised, and the return value should be discarded. </p>
+<p>If this node is not of a compatible type, mpack_error_type is raised and zero is returned. </p>
 
 </div>
 </div>
@@ -889,7 +1104,7 @@ mpack_node_utf8_cstr_alloc() </dd></dl>
 </div><div class="memdoc">
 
 <p>Returns the 64-bit signed value of the node. </p>
-<p>If this node is not of a compatible type, mpack_error_type is raised, and the return value should be discarded. </p>
+<p>If this node is not of a compatible type, mpack_error_type is raised and zero is returned. </p>
 
 </div>
 </div>
@@ -908,7 +1123,7 @@ mpack_node_utf8_cstr_alloc() </dd></dl>
 </div><div class="memdoc">
 
 <p>Returns the 8-bit signed value of the node. </p>
-<p>If this node is not of a compatible type, mpack_error_type is raised, and the return value should be discarded. </p>
+<p>If this node is not of a compatible type, mpack_error_type is raised and zero is returned. </p>
 
 </div>
 </div>
@@ -936,8 +1151,51 @@ mpack_node_utf8_cstr_alloc() </dd></dl>
       </table>
 </div><div class="memdoc">
 
-<p>Returns true if the given node map contains a value for the given null-terminated string key. </p>
-<p>If the given node is not a map, mpack_error_type is raised and null is returned. </p>
+<p>Returns true if the given node map contains exactly one entry with the given null-terminated string key. </p>
+<p>The key must be unique. An error is flagged if the node has multiple entries with the given key.</p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_type</td><td>If the node is not a map </td></tr>
+    <tr><td class="paramname">mpack_error_data</td><td>If the node contains more than one entry with the given key </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="gaf8682cff06a6b350f392d6e9ceaf6d9b"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool mpack_node_map_contains_int </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a>&#160;</td>
+          <td class="paramname"><em>node</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">int64_t&#160;</td>
+          <td class="paramname"><em>num</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Returns true if the given node map contains exactly one entry with the given integer key. </p>
+<p>The key must be unique. An error is flagged if the node has multiple entries with the given key.</p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_type</td><td>If the node is not a map </td></tr>
+    <tr><td class="paramname">mpack_error_data</td><td>If the node contains more than one entry with the given key </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -971,8 +1229,51 @@ mpack_node_utf8_cstr_alloc() </dd></dl>
       </table>
 </div><div class="memdoc">
 
-<p>Returns true if the given node map contains a value for the given string key. </p>
-<p>If the given node is not a map, mpack_error_type is raised and null is returned. </p>
+<p>Returns true if the given node map contains exactly one entry with the given string key. </p>
+<p>The key must be unique. An error is flagged if the node has multiple entries with the given key.</p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_type</td><td>If the node is not a map </td></tr>
+    <tr><td class="paramname">mpack_error_data</td><td>If the node contains more than one entry with the given key </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
+<a class="anchor" id="ga9ab9e368bbde89763962102bff9933b2"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">bool mpack_node_map_contains_uint </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a>&#160;</td>
+          <td class="paramname"><em>node</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">uint64_t&#160;</td>
+          <td class="paramname"><em>num</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Returns true if the given node map contains exactly one entry with the given unsigned integer key. </p>
+<p>The key must be unique. An error is flagged if the node has multiple entries with the given key.</p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_type</td><td>If the node is not a map </td></tr>
+    <tr><td class="paramname">mpack_error_data</td><td>If the node contains more than one entry with the given key </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
@@ -1020,7 +1321,16 @@ mpack_node_utf8_cstr_alloc() </dd></dl>
 </div><div class="memdoc">
 
 <p>Returns the value node in the given map for the given null-terminated string key. </p>
-<p>If the given node is not a map, mpack_error_type is raised and a nil node is returned. If the given key does not exist in the map, mpack_error_data is raised and a nil node is returned. </p>
+<p>The key must exist within the map. Use <a class="el" href="group__node.html#ga349940b9a92f53b8dbdfdab049cc667e" title="Returns the value node in the given map for the given null-terminated string key, or a nil node if th...">mpack_node_map_cstr_optional()</a> to check for optional keys.</p>
+<p>The key must be unique. An error is flagged if the node has multiple entries with the given key.</p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_type</td><td>If the node is not a map </td></tr>
+    <tr><td class="paramname">mpack_error_data</td><td>If the node does not contain exactly one entry with the given key</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The value node for the given key, or a nil node in case of error </dd></dl>
 
 </div>
 </div>
@@ -1049,12 +1359,15 @@ mpack_node_utf8_cstr_alloc() </dd></dl>
 </div><div class="memdoc">
 
 <p>Returns the value node in the given map for the given null-terminated string key, or a nil node if the map does not contain the given key. </p>
+<p>The key must be unique. An error is flagged if the node has multiple entries with the given key.</p>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
-    <tr><td class="paramname">mpack_error_type</td><td>if the node is not a map </td></tr>
+    <tr><td class="paramname">mpack_error_type</td><td>If the node is not a map </td></tr>
+    <tr><td class="paramname">mpack_error_data</td><td>If the node contains more than one entry with the given key</td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd>The value node for the given key, or a nil node in case of error </dd></dl>
 
 </div>
 </div>
@@ -1083,7 +1396,16 @@ mpack_node_utf8_cstr_alloc() </dd></dl>
 </div><div class="memdoc">
 
 <p>Returns the value node in the given map for the given integer key. </p>
-<p>If the given node is not a map, mpack_error_type is raised and a nil node is returned. If the given key does not exist in the map, mpack_error_data is raised and a nil node is returned. </p>
+<p>The key must exist within the map. Use <a class="el" href="group__node.html#ga107c576a3abc79e7dd0048e8ecdbcffc" title="Returns the value node in the given map for the given integer key, or a nil node if the map does not ...">mpack_node_map_int_optional()</a> to check for optional keys.</p>
+<p>The key must be unique. An error is flagged if the node has multiple entries with the given key.</p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_type</td><td>If the node is not a map </td></tr>
+    <tr><td class="paramname">mpack_error_data</td><td>If the node does not contain exactly one entry with the given key</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The value node for the given key, or a nil node in case of error </dd></dl>
 
 </div>
 </div>
@@ -1112,12 +1434,15 @@ mpack_node_utf8_cstr_alloc() </dd></dl>
 </div><div class="memdoc">
 
 <p>Returns the value node in the given map for the given integer key, or a nil node if the map does not contain the given key. </p>
+<p>The key must be unique. An error is flagged if the node has multiple entries with the given key.</p>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
-    <tr><td class="paramname">mpack_error_type</td><td>if the node is not a map </td></tr>
+    <tr><td class="paramname">mpack_error_type</td><td>If the node is not a map </td></tr>
+    <tr><td class="paramname">mpack_error_data</td><td>If the node contains more than one entry with the given key</td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd>The value node for the given key, or a nil node in case of error </dd></dl>
 
 </div>
 </div>
@@ -1188,7 +1513,16 @@ mpack_node_utf8_cstr_alloc() </dd></dl>
 </div><div class="memdoc">
 
 <p>Returns the value node in the given map for the given string key. </p>
-<p>If the given node is not a map, mpack_error_type is raised and a nil node is returned. If the given key does not exist in the map, mpack_error_data is raised and a nil node is returned. </p>
+<p>The key must exist within the map. Use <a class="el" href="group__node.html#ga6adb4420a9f506885e65bb54f35909ce" title="Returns the value node in the given map for the given string key, or a nil node if the map does not c...">mpack_node_map_str_optional()</a> to check for optional keys.</p>
+<p>The key must be unique. An error is flagged if the node has multiple entries with the given key.</p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_type</td><td>If the node is not a map </td></tr>
+    <tr><td class="paramname">mpack_error_data</td><td>If the node does not contain exactly one entry with the given key</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The value node for the given key, or a nil node in case of error </dd></dl>
 
 </div>
 </div>
@@ -1223,12 +1557,15 @@ mpack_node_utf8_cstr_alloc() </dd></dl>
 </div><div class="memdoc">
 
 <p>Returns the value node in the given map for the given string key, or a nil node if the map does not contain the given key. </p>
+<p>The key must be unique. An error is flagged if the node has multiple entries with the given key.</p>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
-    <tr><td class="paramname">mpack_error_type</td><td>if the node is not a map </td></tr>
+    <tr><td class="paramname">mpack_error_type</td><td>If the node is not a map </td></tr>
+    <tr><td class="paramname">mpack_error_data</td><td>If the node contains more than one entry with the given key</td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd>The value node for the given key, or a nil node in case of error </dd></dl>
 
 </div>
 </div>
@@ -1257,7 +1594,16 @@ mpack_node_utf8_cstr_alloc() </dd></dl>
 </div><div class="memdoc">
 
 <p>Returns the value node in the given map for the given unsigned integer key. </p>
-<p>If the given node is not a map, mpack_error_type is raised and a nil node is returned. If the given key does not exist in the map, mpack_error_data is raised and a nil node is returned. </p>
+<p>The key must exist within the map. Use <a class="el" href="group__node.html#gab11b76ad94a8b758203b3c530af88112" title="Returns the value node in the given map for the given unsigned integer key, or a nil node if the map ...">mpack_node_map_uint_optional()</a> to check for optional keys.</p>
+<p>The key must be unique. An error is flagged if the node has multiple entries with the given key.</p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_type</td><td>If the node is not a map </td></tr>
+    <tr><td class="paramname">mpack_error_data</td><td>If the node does not contain exactly one entry with the given key</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The value node for the given key, or a nil node in case of error </dd></dl>
 
 </div>
 </div>
@@ -1286,12 +1632,15 @@ mpack_node_utf8_cstr_alloc() </dd></dl>
 </div><div class="memdoc">
 
 <p>Returns the value node in the given map for the given unsigned integer key, or a nil node if the map does not contain the given key. </p>
+<p>The key must be unique. An error is flagged if the node has multiple entries with the given key.</p>
 <dl class="exception"><dt>Exceptions</dt><dd>
   <table class="exception">
-    <tr><td class="paramname">mpack_error_type</td><td>if the node is not a map </td></tr>
+    <tr><td class="paramname">mpack_error_type</td><td>If the node is not a map </td></tr>
+    <tr><td class="paramname">mpack_error_data</td><td>If the node contains more than one entry with the given key</td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section return"><dt>Returns</dt><dd>The value node for the given key, or a nil node in case of error </dd></dl>
 
 </div>
 </div>
@@ -1395,6 +1744,32 @@ mpack_node_utf8_cstr_alloc() </dd></dl>
 
 </div>
 </div>
+<a class="anchor" id="ga9019bed33210791449cd9c594446fc8f"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">const char* mpack_node_str </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a>&#160;</td>
+          <td class="paramname"><em>node</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Returns a pointer to the data contained by this node, ensuring it is a string. </p>
+<p>Note that strings are not null-terminated! Use one of the cstr functions to get a null-terminated string.</p>
+<p>The pointer is valid as long as the data backing the tree is valid.</p>
+<p>If this node is not a string, mpack_error_type is raised and NULL is returned.</p>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__node.html#gaf38c3d482a5eb473aa37594ee0ebf593" title="Checks that the given node contains a string with no NUL bytes, copies the string into the given buff...">mpack_node_copy_cstr()</a> </dd>
+<dd>
+<a class="el" href="group__node.html#ga6d7814632a852596f475994e0f388b99" title="Allocates a new null-terminated string using MPACK_MALLOC with the string contained by this node...">mpack_node_cstr_alloc()</a> </dd>
+<dd>
+<a class="el" href="group__node.html#gaa52c0130b46f8e0c8efa9f38079ffd1c" title="Allocates a new null-terminated string using MPACK_MALLOC with the UTF-8 string contained by this nod...">mpack_node_utf8_cstr_alloc()</a> </dd></dl>
+
+</div>
+</div>
 <a class="anchor" id="gae8a777b769930bea4e8a11738179ae7e"></a>
 <div class="memitem">
 <div class="memproto">
@@ -1410,7 +1785,8 @@ mpack_node_utf8_cstr_alloc() </dd></dl>
 </div><div class="memdoc">
 
 <p>Returns the length in bytes of the given string node. </p>
-<p>This does not include any null-terminator. </p>
+<p>This does not include any null-terminator.</p>
+<p>This returns zero if the tree is in an error state. </p>
 
 </div>
 </div>
@@ -1483,7 +1859,7 @@ mpack_node_utf8_cstr_alloc() </dd></dl>
 </div><div class="memdoc">
 
 <p>Returns the 16-bit unsigned value of the node. </p>
-<p>If this node is not of a compatible type, mpack_error_type is raised, and the return value should be discarded. </p>
+<p>If this node is not of a compatible type, mpack_error_type is raised and zero is returned. </p>
 
 </div>
 </div>
@@ -1502,7 +1878,7 @@ mpack_node_utf8_cstr_alloc() </dd></dl>
 </div><div class="memdoc">
 
 <p>Returns the 32-bit unsigned value of the node. </p>
-<p>If this node is not of a compatible type, mpack_error_type is raised, and the return value should be discarded. </p>
+<p>If this node is not of a compatible type, mpack_error_type is raised and zero is returned. </p>
 
 </div>
 </div>
@@ -1521,7 +1897,7 @@ mpack_node_utf8_cstr_alloc() </dd></dl>
 </div><div class="memdoc">
 
 <p>Returns the 64-bit unsigned value of the node. </p>
-<p>If this node is not of a compatible type, mpack_error_type is raised, and the return value should be discarded. </p>
+<p>If this node is not of a compatible type, mpack_error_type is raised, and zero is returned. </p>
 
 </div>
 </div>
@@ -1540,7 +1916,52 @@ mpack_node_utf8_cstr_alloc() </dd></dl>
 </div><div class="memdoc">
 
 <p>Returns the 8-bit unsigned value of the node. </p>
-<p>If this node is not of a compatible type, mpack_error_type is raised, and the return value should be discarded. </p>
+<p>If this node is not of a compatible type, mpack_error_type is raised and zero is returned. </p>
+
+</div>
+</div>
+<a class="anchor" id="gaa52c0130b46f8e0c8efa9f38079ffd1c"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">char* mpack_node_utf8_cstr_alloc </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a>&#160;</td>
+          <td class="paramname"><em>node</em>, </td>
+        </tr>
+        <tr>
+          <td class="paramkey"></td>
+          <td></td>
+          <td class="paramtype">size_t&#160;</td>
+          <td class="paramname"><em>maxsize</em>&#160;</td>
+        </tr>
+        <tr>
+          <td></td>
+          <td>)</td>
+          <td></td><td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Allocates a new null-terminated string using MPACK_MALLOC with the UTF-8 string contained by this node. </p>
+<p>The allocated string must be freed with MPACK_FREE() (or simply free() if MPack's allocator hasn't been customized.)</p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_type</td><td>If this node is not a string, is not valid UTF-8, or contains NUL bytes </td></tr>
+    <tr><td class="paramname">mpack_error_too_big</td><td>If the size of the string plus null-terminator is larger than the given maximum size </td></tr>
+    <tr><td class="paramname">mpack_error_memory</td><td>If an allocation failure occurs</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="params"><dt>Parameters</dt><dd>
+  <table class="params">
+    <tr><td class="paramname">node</td><td>The node from which to allocate and copy string data </td></tr>
+    <tr><td class="paramname">maxsize</td><td>The maximum size to allocate, including the null-terminator</td></tr>
+  </table>
+  </dd>
+</dl>
+<dl class="section return"><dt>Returns</dt><dd>The allocated string, or NULL if any error occurs. </dd></dl>
 
 </div>
 </div>
@@ -1853,7 +2274,7 @@ mpack_node_utf8_cstr_alloc() </dd></dl>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">tree</td><td>The MPack tree. </td></tr>
-    <tr><td class="paramname">error</td><td>The function to call when an error is flagged on the tree. </td></tr>
+    <tr><td class="paramname">error_fn</td><td>The function to call when an error is flagged on the tree. </td></tr>
   </table>
   </dd>
 </dl>
@@ -1911,7 +2332,8 @@ mpack_node_utf8_cstr_alloc() </dd></dl>
 </div><div class="memdoc">
 
 <p>Returns the number of bytes used in the buffer when the tree was parsed. </p>
-<p>If there is something in the buffer after the MessagePack object (such as another object), this can be used to find it. </p>
+<p>If there is something in the buffer after the MessagePack object (such as another object), this can be used to find it.</p>
+<p>This is zero if an error occurred during tree parsing (since the portion of the data that the first complete object occupies cannot be determined if the data is invalid or corrupted.) </p>
 
 </div>
 </div>
