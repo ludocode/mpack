@@ -22,6 +22,8 @@ static const char* test_filename = "mpack-test-file";
 static const char* test_dir = "mpack-test-dir";
 
 static const int nesting_depth = 150;
+const char* lipsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed nec justo purus. Nunc finibus dolor id lorem sagittis, euismod efficitur arcu aliquam. Nullam a ante eget mi porttitor dignissim vitae at libero. Maecenas in justo massa. Mauris ultricies leo nisl, at ullamcorper erat maximus sit amet. Quisque pharetra sed ligula nec tristique. Mauris consectetur sapien lacus, et pharetra turpis rhoncus a. Sed in eleifend eros. Donec in libero lacus. Sed et finibus ipsum. Etiam eros leo, mollis eget molestie quis, rhoncus ac magna. Donec dolor risus, bibendum et scelerisque at, faucibus in mi. Interdum et malesuada fames ac ante ipsum primis in faucibus. Vestibulum convallis accumsan mollis.";
+const char* quick_brown_fox = "The quick brown fox jumps over a lazy dog.";
 
 static char* test_file_fetch(const char* filename, size_t* out_size) {
     *out_size = 0;
@@ -165,14 +167,14 @@ static void test_file_write(void) {
     // fails, otherwise fclose() fails. we test both here.)
 
     mpack_writer_init_file(&writer, "/dev/full");
-    mpack_write_cstr(&writer, "The quick brown fox jumps over the lazy dog.");
+    mpack_write_cstr(&writer, quick_brown_fox);
     TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_io);
 
     int count = UINT16_MAX / 20;
     mpack_writer_init_file(&writer, "/dev/full");
     mpack_start_array(&writer, count);
     for (int i = 0; i < count; ++i)
-        mpack_write_cstr(&writer, "The quick brown fox jumps over the lazy dog.");
+        mpack_write_cstr(&writer, quick_brown_fox);
     mpack_finish_array(&writer);
     TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_io);
 }
@@ -188,11 +190,12 @@ static bool test_file_write_failure(void) {
     mpack_writer_init_file(&writer, test_filename);
 
     mpack_start_array(&writer, 2);
-    mpack_start_array(&writer, 6);
+    mpack_start_array(&writer, 7);
 
     // write a large string near the start to cause a
     // more than double buffer size growth
-    mpack_write_cstr(&writer, "The quick brown fox jumps over a lazy dog.");
+    mpack_write_cstr(&writer, lipsum);
+    mpack_write_cstr(&writer, quick_brown_fox);
 
     mpack_write_cstr(&writer, "one");
     mpack_write_cstr(&writer, "two");
@@ -421,24 +424,25 @@ static bool test_file_expect_failure(void) {
     char** strings = mpack_expect_array_alloc(&reader, char*, 50, &count);
     TEST_POSSIBLE_FAILURE();
     TEST_TRUE(strings != NULL);
-    TEST_TRUE(count == 6);
+    TEST_TRUE(count == 7);
     MPACK_FREE(strings);
+
+    // discard lipsum to test a large skip/seek
+    mpack_discard(&reader);
 
     char* str = mpack_expect_cstr_alloc(&reader, 100);
     TEST_POSSIBLE_FAILURE();
     TEST_TRUE(str != NULL);
-    const char* expected = "The quick brown fox jumps over a lazy dog.";
     if (str) {
-        TEST_TRUE(strcmp(str, expected) == 0);
+        TEST_TRUE(strcmp(str, quick_brown_fox) == 0);
         MPACK_FREE(str);
     }
 
     str = mpack_expect_utf8_cstr_alloc(&reader, 100);
     TEST_POSSIBLE_FAILURE();
     TEST_TRUE(str != NULL);
-    expected = "one";
     if (str) {
-        TEST_TRUE(strcmp(str, expected) == 0);
+        TEST_TRUE(strcmp(str, "one") == 0);
         MPACK_FREE(str);
     }
 
@@ -622,9 +626,9 @@ static bool test_file_node_failure(void) {
     mpack_node_t strings = mpack_node_array_at(root, 0);
     size_t length = mpack_node_array_length(strings);
     TEST_POSSIBLE_FAILURE();
-    TEST_TRUE(6 == length);
+    TEST_TRUE(7 == length);
 
-    mpack_node_t node = mpack_node_array_at(strings, 0);
+    mpack_node_t node = mpack_node_array_at(strings, 1);
     char* str = mpack_node_data_alloc(node, 100);
     TEST_POSSIBLE_FAILURE();
     TEST_TRUE(str != NULL);
@@ -635,7 +639,7 @@ static bool test_file_node_failure(void) {
         MPACK_FREE(str);
     }
 
-    node = mpack_node_array_at(strings, 1);
+    node = mpack_node_array_at(strings, 2);
 
     str = mpack_node_cstr_alloc(node, 100);
     TEST_POSSIBLE_FAILURE();
