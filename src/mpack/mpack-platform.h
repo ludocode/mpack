@@ -399,6 +399,7 @@ MPACK_HEADER_START
 
 #if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && defined(__ORDER_BIG_ENDIAN__)
     #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+        #define MPACK_NHSWAP16(x) (x)
         #define MPACK_NHSWAP32(x) (x)
         #define MPACK_NHSWAP64(x) (x)
     #elif __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
@@ -406,6 +407,9 @@ MPACK_HEADER_START
         #if !MPACK_NO_BUILTINS
             #if defined(__clang__)
                 #ifdef __has_builtin
+                    #if __has_builtin(__builtin_bswap16)
+                        #define MPACK_NHSWAP16(x) __builtin_bswap16(x)
+                    #endif
                     #if __has_builtin(__builtin_bswap32)
                         #define MPACK_NHSWAP32(x) __builtin_bswap32(x)
                     #endif
@@ -425,6 +429,14 @@ MPACK_HEADER_START
                     #define MPACK_NHSWAP64(x) __builtin_bswap64(x)
                 #endif
 
+                // __builtin_bswap16() was only implemented for certain platforms
+                // before GCC 4.8.0.
+                //     https://gcc.gnu.org/bugzilla/show_bug.cgi?id=52624
+
+                #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8)
+                    #define MPACK_NHSWAP16(x) __builtin_bswap16(x)
+                #endif
+
             #endif
         #endif
     #endif
@@ -437,6 +449,7 @@ MPACK_HEADER_START
     // compiler is ever used with a big-endian ARM device.
 
     #if defined(_M_IX86) || defined(_M_X64) || defined(_M_AMD64)
+        #define MPACK_NHSWAP16(x) _byteswap_ushort(x)
         #define MPACK_NHSWAP32(x) _byteswap_ulong(x)
         #define MPACK_NHSWAP64(x) _byteswap_uint64(x)
     #endif
