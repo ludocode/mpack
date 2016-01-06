@@ -407,6 +407,8 @@ MPACK_HEADER_START
         #if !MPACK_NO_BUILTINS
             #if defined(__clang__)
                 #ifdef __has_builtin
+                    // Unlike the GCC builtins, the bswap builtins in Clang
+                    // significantly improve ARM performance.
                     #if __has_builtin(__builtin_bswap16)
                         #define MPACK_NHSWAP16(x) __builtin_bswap16(x)
                     #endif
@@ -425,17 +427,15 @@ MPACK_HEADER_START
                 //     http://hardwarebug.org/2010/01/14/beware-the-builtins/
 
                 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
-                    #define MPACK_NHSWAP32(x) __builtin_bswap32(x)
                     #define MPACK_NHSWAP64(x) __builtin_bswap64(x)
                 #endif
 
-                // __builtin_bswap16() was only implemented for certain platforms
-                // before GCC 4.8.0.
+                // __builtin_bswap16() was not implemented on all platforms
+                // until GCC 4.8.0:
                 //     https://gcc.gnu.org/bugzilla/show_bug.cgi?id=52624
-
-                #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8)
-                    #define MPACK_NHSWAP16(x) __builtin_bswap16(x)
-                #endif
+                //
+                // The 16- and 32-bit versions in GCC significantly reduce performance
+                // on ARM with little effect on code size so we don't use them.
 
             #endif
         #endif
