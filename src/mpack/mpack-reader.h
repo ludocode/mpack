@@ -146,6 +146,11 @@ struct mpack_reader_t {
 /** @endcond */
 
 /**
+ * @name Lifecycle Functions
+ * @{
+ */
+
+/**
  * Initializes an MPack reader with the given buffer. The reader does
  * not assume ownership of the buffer, but the buffer must be writeable
  * if a fill function will be used to refill it.
@@ -217,6 +222,15 @@ void mpack_reader_init_file(mpack_reader_t* reader, const char* filename);
  * @see mpack_error_data
  */
 mpack_error_t mpack_reader_destroy(mpack_reader_t* reader);
+
+/**
+ * @}
+ */
+
+/**
+ * @name Callbacks
+ * @{
+ */
 
 /**
  * Sets the custom pointer to pass to the reader callbacks, such as fill
@@ -295,6 +309,15 @@ MPACK_INLINE void mpack_reader_set_error_handler(mpack_reader_t* reader, mpack_r
 MPACK_INLINE void mpack_reader_set_teardown(mpack_reader_t* reader, mpack_reader_teardown_t teardown) {
     reader->teardown = teardown;
 }
+
+/**
+ * @}
+ */
+
+/**
+ * @name Core Reader Functions
+ * @{
+ */
 
 /**
  * Queries the error state of the MPack reader.
@@ -392,6 +415,15 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader);
  * @see mpack_discard()
  */
 mpack_tag_t mpack_peek_tag(mpack_reader_t* reader);
+
+/**
+ * @}
+ */
+
+/**
+ * @name String and Data Functions
+ * @{
+ */
 
 /**
  * Skips bytes from the underlying stream. This is used only to
@@ -605,6 +637,15 @@ MPACK_INLINE bool mpack_should_read_bytes_inplace(mpack_reader_t* reader, size_t
     return (reader->size == 0 || count > reader->size / 8);
 }
 
+/**
+ * @}
+ */
+
+/**
+ * @name Core Reader Functions
+ * @{
+ */
+
 #if MPACK_READ_TRACKING
 /**
  * Finishes reading an array.
@@ -671,7 +712,16 @@ MPACK_INLINE void mpack_done_type(mpack_reader_t* reader, mpack_type_t type) {MP
  */
 void mpack_discard(mpack_reader_t* reader);
 
+/**
+ * @}
+ */
+
 #if MPACK_STDIO
+/**
+ * @name Debugging Functions
+ * @{
+ */
+
 /**
  * Converts a blob of MessagePack to pseudo-JSON for debugging purposes
  * and pretty-prints it to the given file.
@@ -687,6 +737,10 @@ MPACK_INLINE void mpack_print(const char* data, size_t len) {
     mpack_print_file(data, len, stdout);
 }
 #endif
+
+/**
+ * @}
+ */
 #endif
 
 /**
