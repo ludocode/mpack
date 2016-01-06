@@ -34,7 +34,10 @@ void mpack_reader_init(mpack_reader_t* reader, char* buffer, size_t size, size_t
     reader->buffer = buffer;
     reader->size = size;
     reader->left = count;
-    MPACK_UNUSED(MPACK_READER_TRACK(reader, mpack_track_init(&reader->track)));
+
+    #if MPACK_READ_TRACKING
+    mpack_reader_flag_if_error(reader, mpack_track_init(&reader->track));
+    #endif
 
     mpack_log("===========================\n");
     mpack_log("initializing reader with buffer size %i\n", (int)size);
@@ -64,7 +67,9 @@ void mpack_reader_init_data(mpack_reader_t* reader, const char* data, size_t cou
     reader->buffer = (char*)data;
     #endif
 
-    MPACK_UNUSED(MPACK_READER_TRACK(reader, mpack_track_init(&reader->track)));
+    #if MPACK_READ_TRACKING
+    mpack_reader_flag_if_error(reader, mpack_track_init(&reader->track));
+    #endif
 
     mpack_log("===========================\n");
     mpack_log("initializing reader with data size %i\n", (int)count);
@@ -179,7 +184,7 @@ mpack_error_t mpack_reader_destroy(mpack_reader_t* reader) {
 
     // clean up tracking, asserting if we're not already in an error state
     #if MPACK_READ_TRACKING
-    mpack_track_destroy(&reader->track, reader->error != mpack_ok);
+    mpack_reader_flag_if_error(reader, mpack_track_destroy(&reader->track, mpack_reader_error(reader) != mpack_ok));
     #endif
 
     if (reader->teardown)
@@ -190,7 +195,14 @@ mpack_error_t mpack_reader_destroy(mpack_reader_t* reader) {
 }
 
 size_t mpack_reader_remaining(mpack_reader_t* reader, const char** data) {
-    MPACK_UNUSED(MPACK_READER_TRACK(reader, mpack_track_check_empty(&reader->track)));
+    if (mpack_reader_error(reader) != mpack_ok)
+        return 0;
+
+    #if MPACK_READ_TRACKING
+    if (mpack_reader_flag_if_error(reader, mpack_track_check_empty(&reader->track)) != mpack_ok)
+        return 0;
+    #endif
+
     if (data)
         *data = reader->buffer + reader->pos;
     return reader->left;
@@ -1071,28 +1083,9 @@ void mpack_discard(mpack_reader_t* reader) {
 }
 
 #if MPACK_READ_TRACKING
-void mpack_done_array(mpack_reader_t* reader) {
-    MPACK_UNUSED(MPACK_READER_TRACK(reader, mpack_track_pop(&reader->track, mpack_type_array)));
-}
-
-void mpack_done_map(mpack_reader_t* reader) {
-    MPACK_UNUSED(MPACK_READER_TRACK(reader, mpack_track_pop(&reader->track, mpack_type_map)));
-}
-
-void mpack_done_str(mpack_reader_t* reader) {
-    MPACK_UNUSED(MPACK_READER_TRACK(reader, mpack_track_pop(&reader->track, mpack_type_str)));
-}
-
-void mpack_done_bin(mpack_reader_t* reader) {
-    MPACK_UNUSED(MPACK_READER_TRACK(reader, mpack_track_pop(&reader->track, mpack_type_bin)));
-}
-
-void mpack_done_ext(mpack_reader_t* reader) {
-    MPACK_UNUSED(MPACK_READER_TRACK(reader, mpack_track_pop(&reader->track, mpack_type_ext)));
-}
-
 void mpack_done_type(mpack_reader_t* reader, mpack_type_t type) {
-    MPACK_UNUSED(MPACK_READER_TRACK(reader, mpack_track_pop(&reader->track, type)));
+    if (mpack_reader_error(reader) == mpack_ok)
+        mpack_reader_flag_if_error(reader, mpack_track_pop(&reader->track, type));
 }
 #endif
 

@@ -369,6 +369,8 @@ MPACK_INLINE mpack_error_t mpack_reader_flag_if_error(mpack_reader_t* reader, mp
  * have your fill function limit the data it reads so that the reader does not
  * have extra data. In this case you can simply check that this returns zero.
  *
+ * Returns 0 if the reader is in an error state.
+ *
  * @param reader The MPack reader from which to query remaining data.
  * @param data [out] A pointer to the remaining data, or NULL.
  * @return The number of bytes remaining in the buffer.
@@ -648,11 +650,27 @@ MPACK_INLINE bool mpack_should_read_bytes_inplace(mpack_reader_t* reader, size_t
 
 #if MPACK_READ_TRACKING
 /**
+ * Finishes reading the given type.
+ *
+ * This will track reads to ensure that the correct number of elements
+ * or bytes are read.
+ */
+void mpack_done_type(mpack_reader_t* reader, mpack_type_t type);
+#else
+MPACK_INLINE void mpack_done_type(mpack_reader_t* reader, mpack_type_t type) {
+    MPACK_UNUSED(reader);
+    MPACK_UNUSED(type);
+}
+#endif
+
+/**
  * Finishes reading an array.
  *
  * This will track reads to ensure that the correct number of elements are read.
  */
-void mpack_done_array(mpack_reader_t* reader);
+MPACK_INLINE void mpack_done_array(mpack_reader_t* reader) {
+    mpack_done_type(reader, mpack_type_array);
+}
 
 /**
  * @fn mpack_done_map(mpack_reader_t* reader)
@@ -661,7 +679,9 @@ void mpack_done_array(mpack_reader_t* reader);
  *
  * This will track reads to ensure that the correct number of elements are read.
  */
-void mpack_done_map(mpack_reader_t* reader);
+MPACK_INLINE void mpack_done_map(mpack_reader_t* reader) {
+    mpack_done_type(reader, mpack_type_map);
+}
 
 /**
  * @fn mpack_done_str(mpack_reader_t* reader)
@@ -670,7 +690,9 @@ void mpack_done_map(mpack_reader_t* reader);
  *
  * This will track reads to ensure that the correct number of bytes are read.
  */
-void mpack_done_str(mpack_reader_t* reader);
+MPACK_INLINE void mpack_done_str(mpack_reader_t* reader) {
+    mpack_done_type(reader, mpack_type_str);
+}
 
 /**
  * @fn mpack_done_bin(mpack_reader_t* reader)
@@ -679,7 +701,9 @@ void mpack_done_str(mpack_reader_t* reader);
  *
  * This will track reads to ensure that the correct number of bytes are read.
  */
-void mpack_done_bin(mpack_reader_t* reader);
+MPACK_INLINE void mpack_done_bin(mpack_reader_t* reader) {
+    mpack_done_type(reader, mpack_type_bin);
+}
 
 /**
  * @fn mpack_done_ext(mpack_reader_t* reader)
@@ -688,23 +712,9 @@ void mpack_done_bin(mpack_reader_t* reader);
  *
  * This will track reads to ensure that the correct number of bytes are read.
  */
-void mpack_done_ext(mpack_reader_t* reader);
-
-/**
- * Finishes reading the given type.
- *
- * This will track reads to ensure that the correct number of elements
- * or bytes are read.
- */
-void mpack_done_type(mpack_reader_t* reader, mpack_type_t type);
-#else
-MPACK_INLINE void mpack_done_array(mpack_reader_t* reader) {MPACK_UNUSED(reader);}
-MPACK_INLINE void mpack_done_map(mpack_reader_t* reader) {MPACK_UNUSED(reader);}
-MPACK_INLINE void mpack_done_str(mpack_reader_t* reader) {MPACK_UNUSED(reader);}
-MPACK_INLINE void mpack_done_bin(mpack_reader_t* reader) {MPACK_UNUSED(reader);}
-MPACK_INLINE void mpack_done_ext(mpack_reader_t* reader) {MPACK_UNUSED(reader);}
-MPACK_INLINE void mpack_done_type(mpack_reader_t* reader, mpack_type_t type) {MPACK_UNUSED(reader); MPACK_UNUSED(type);}
-#endif
+MPACK_INLINE void mpack_done_ext(mpack_reader_t* reader) {
+    mpack_done_type(reader, mpack_type_ext);
+}
 
 /**
  * Reads and discards the next object. This will read and discard all
