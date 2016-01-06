@@ -86,46 +86,46 @@ static void mpack_growable_writer_flush(mpack_writer_t* writer, const char* data
     // in response to a flush instead of emptying it in order to add more
     // capacity for data. This removes the need to copy data from a fixed buffer
     // into a growable one, improving performance.
-    //
+
     // There are three ways flush can be called:
-    //   - flushing the buffer during writing (used is zero, count is all data, data is buffer)
-    //   - flushing extra data during writing (used is all flushed data, count is extra data, data is not buffer)
-    //   - flushing during teardown (used and count are both all flushed data, data is buffer)
-    //
-    // We handle these here, making sure used is the total count in all three cases.
-    mpack_log("flush size %i used %i data %p buffer %p\n", (int)writer->size, (int)writer->used, data, writer->buffer);
+    //   - flushing the buffer during writing
+    //   - flushing extra data during writing
+    //   - flushing the buffer during teardown
 
-    // if the given data is not the old buffer, we'll need to actually copy it into the buffer
-    bool is_extra_data = (data != writer->buffer);
-
-    // if we're flushing all data (used is zero), we should actually grow
-    size_t new_size = writer->size;
-    if (writer->used == 0 && count != 0)
-        new_size *= 2;
-    while (new_size < (is_extra_data ? writer->used + count : count))
-        new_size *= 2;
-
-    if (new_size > writer->size) {
-        mpack_log("flush growing from %i to %i\n", (int)writer->size, (int)new_size);
-
-        char* new_buffer = (char*)mpack_realloc(writer->buffer, count, new_size);
-        if (new_buffer == NULL) {
-            mpack_writer_flag_error(writer, mpack_error_memory);
-            return;
-        }
-
-        writer->buffer = new_buffer;
-        writer->size = new_size;
-    }
-
-    if (is_extra_data) {
-        mpack_memcpy(writer->buffer + writer->used, data, count);
-        // add our extra data to count
-        writer->used += count;
-    } else {
-        // used is either zero or count; set it to count
+    // if we're not flushing extra data, we just reset the current
+    // byte count and keep our current buffer
+    if (data == writer->buffer) {
         writer->used = count;
+        return;
     }
+
+    mpack_log("extra flush size %i used %i data %p buffer %p\n",
+            (int)count, (int)writer->used, data, writer->buffer);
+
+    mpack_assert(writer->used + count > writer->size,
+            "extra flush for %i but there is %i space left in the buffer! (%i/%i)",
+            (int)count, (int)writer->size - (int)writer->used, (int)writer->used, (int)writer->size);
+
+    // increase the buffer size to fit
+    // TODO: this really needs to correctly test for overflow
+    size_t new_size = writer->size * 2;
+    while (new_size < writer->used + count)
+        new_size *= 2;
+    mpack_log("extra flush growing buffer size from %i to %i\n", (int)writer->size, (int)new_size);
+
+    // grow the buffer
+    char* new_buffer = (char*)mpack_realloc(writer->buffer, writer->used, new_size);
+    if (new_buffer == NULL) {
+        mpack_writer_flag_error(writer, mpack_error_memory);
+        return;
+    }
+    writer->buffer = new_buffer;
+    writer->size = new_size;
+
+    // append the extra data
+    mpack_memcpy(writer->buffer + writer->used, data, count);
+    writer->used += count;
+    mpack_log("new buffer %p, used %i\n", new_buffer, (int)writer->used);
 }
 
 static void mpack_growable_writer_teardown(mpack_writer_t* writer) {
@@ -280,18 +280,6 @@ static void mpack_write_native_straddle(mpack_writer_t* writer, const char* p, s
         mpack_writer_flag_error(writer, mpack_error_too_big);
         return;
     }
-
-    // we assume that the flush function is orders of magnitude slower
-    // than memcpy(), so we fill the buffer up first to try to flush as
-    // infrequently as possible.
-    
-    // fill the remaining space in the buffer
-    size_t n = writer->size - writer->used;
-    mpack_memcpy(writer->buffer + writer->used, p, n);
-    writer->used += n;
-    p += n;
-    count -= n;
-    mpack_assert(count > 0, "no bytes left to flush??");
 
     // flush the buffer
     mpack_writer_flush_unchecked(writer);
@@ -1064,8 +1052,6 @@ void mpack_write_ext(mpack_writer_t* writer, int8_t exttype, const char* data, u
 void mpack_write_bytes(mpack_writer_t* writer, const char* data, size_t count) {
     mpack_assert(data != NULL, "data pointer for %i bytes is NULL", (int)count);
     mpack_writer_track_bytes(writer, count);
-    if (mpack_writer_error(writer) != mpack_ok)
-        return;
     mpack_write_native(writer, data, count);
 }
 
