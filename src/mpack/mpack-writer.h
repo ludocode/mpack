@@ -571,7 +571,9 @@ void mpack_write_utf8(mpack_writer_t* writer, const char* str, uint32_t length);
  * Writes a null-terminated string. (The null-terminator is not written.)
  *
  * MPack does not care about the underlying encoding, but UTF-8 is highly
- * recommended, especially for compatibility with JSON.
+ * recommended, especially for compatibility with JSON. You should consider
+ * calling mpack_write_utf8_cstr() instead, especially if you will be reading
+ * it back as UTF-8.
  *
  * You should not call mpack_finish_str() after calling this; this
  * performs both start and finish.
@@ -583,7 +585,9 @@ void mpack_write_cstr(mpack_writer_t* writer, const char* cstr);
  * is NULL. (The null-terminator is not written.)
  *
  * MPack does not care about the underlying encoding, but UTF-8 is highly
- * recommended, especially for compatibility with JSON.
+ * recommended, especially for compatibility with JSON. You should consider
+ * calling mpack_write_utf8_cstr_or_nil() instead, especially if you will
+ * be reading it back as UTF-8.
  *
  * You should not call mpack_finish_str() after calling this; this
  * performs both start and finish.

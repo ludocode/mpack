@@ -431,6 +431,9 @@ void mpack_read_bytes(mpack_reader_t* reader, char* p, size_t count);
  * returned by the tag or expect function. You must ensure that the
  * buffer fits the data.
  *
+ * This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or
+ * WTF-8. Only pure UTF-8 is allowed.
+ *
  * If an error occurs, the buffer contents are undefined.
  *
  * Unlike mpack_read_bytes(), this cannot be used to read the data in
@@ -482,6 +485,10 @@ void mpack_read_cstr(mpack_reader_t* reader, char* buf, size_t buffer_size, size
  * by the tag or expect function. The string will only be copied if
  * the buffer is large enough to store it.
  *
+ * This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or
+ * WTF-8. Only pure UTF-8 is allowed, but without the NUL character, since
+ * it cannot be represented in a null-terminated string.
+ *
  * If an error occurs, the buffer will contain an empty string.
  *
  * @note If you know the object will be a string before reading it,
@@ -532,6 +539,10 @@ MPACK_INLINE char* mpack_read_bytes_alloc(mpack_reader_t* reader, size_t count) 
  * whether a small size is reasonable (for example you intend to handle small and
  * large sizes differently), you can call mpack_should_read_bytes_inplace().
  *
+ * This can be called multiple times for a single str, bin or ext
+ * to read the data in chunks. The total data read must add up
+ * to the size of the object.
+ *
  * NULL is returned if the reader is in an error state.
  *
  * @throws mpack_error_too_big if the requested size is larger than the buffer size
@@ -548,6 +559,9 @@ const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count);
  * yielded a string, or by a call to an expect function such as
  * mpack_expect_str().
  *
+ * The string is not null-terminated! Use mpack_read_utf8_cstr() to
+ * read the string into a buffer and add a null-terminator.
+ *
  * The returned pointer is invalidated the next time the reader's fill
  * function is called, or when the buffer is destroyed.
  *
@@ -556,6 +570,13 @@ const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count);
  * count is very small compared to the buffer size. If you need to check
  * whether a small size is reasonable (for example you intend to handle small and
  * large sizes differently), you can call mpack_should_read_bytes_inplace().
+ *
+ * This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or
+ * WTF-8. Only pure UTF-8 is allowed.
+ *
+ * Unlike mpack_read_bytes_inplace(), this cannot be used to read the data in
+ * chunks (since this might split a character's UTF-8 bytes, and the
+ * reader does not keep track of the UTF-8 decoding state between reads.)
  *
  * NULL is returned if the reader is in an error state.
  *

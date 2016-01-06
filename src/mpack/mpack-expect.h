@@ -819,7 +819,7 @@ void* mpack_expect_array_alloc_impl(mpack_reader_t* reader,
  * Reads the start of a string, returning its size in bytes.
  *
  * The bytes follow and must be read separately with mpack_read_bytes()
- * or mpack_read_bytes_inplace(). @ref mpack_done_str() must be called
+ * or mpack_read_bytes_inplace(). mpack_done_str() must be called
  * once all bytes have been read.
  *
  * NUL bytes are allowed in the string, and no encoding checks are done.
@@ -832,8 +832,8 @@ uint32_t mpack_expect_str(mpack_reader_t* reader);
  * Reads a string of at most the given size, writing it into the
  * given buffer and returning its size in bytes.
  *
- * This does not add a null-terminator! No null-terminator is written, even
- * if the string fits. Use mpack_expect_cstr() to get a null-terminator.
+ * This does not add a null-terminator! Use mpack_expect_cstr() to
+ * add a null-terminator.
  *
  * NUL bytes are allowed in the string, and no encoding checks are done.
  */
@@ -842,6 +842,9 @@ size_t mpack_expect_str_buf(mpack_reader_t* reader, char* buf, size_t bufsize);
 /**
  * Reads a string into the given buffer, ensuring it is a valid UTF-8 string
  * and returning its size in bytes.
+ *
+ * This does not add a null-terminator! Use mpack_expect_utf8_cstr() to
+ * add a null-terminator.
  *
  * This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or
  * WTF-8. Only pure UTF-8 is allowed.
