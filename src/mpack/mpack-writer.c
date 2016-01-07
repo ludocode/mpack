@@ -192,49 +192,45 @@ void mpack_writer_init_growable(mpack_writer_t* writer, char** target_data, size
 #endif
 
 #if MPACK_STDIO
-typedef struct mpack_file_writer_t {
-    FILE* file;
-    char buffer[MPACK_BUFFER_SIZE];
-} mpack_file_writer_t;
-
 static void mpack_file_writer_flush(mpack_writer_t* writer, const char* buffer, size_t count) {
-    mpack_file_writer_t* file_writer = (mpack_file_writer_t*)writer->context;
-    size_t written = fwrite((const void*)buffer, 1, count, file_writer->file);
+    FILE* file = (FILE*)writer->context;
+    size_t written = fwrite((const void*)buffer, 1, count, file);
     if (written != count)
         mpack_writer_flag_error(writer, mpack_error_io);
 }
 
 static void mpack_file_writer_teardown(mpack_writer_t* writer) {
-    mpack_file_writer_t* file_writer = (mpack_file_writer_t*)writer->context;
+    FILE* file = (FILE*)writer->context;
 
-    if (file_writer->file) {
-        int ret = fclose(file_writer->file);
-        file_writer->file = NULL;
+    if (file) {
+        int ret = fclose(file);
+        writer->context = NULL;
         if (ret != 0)
             mpack_writer_flag_error(writer, mpack_error_io);
     }
 
-    MPACK_FREE(file_writer);
+    MPACK_FREE(writer->buffer);
+    writer->buffer = NULL;
 }
 
 void mpack_writer_init_file(mpack_writer_t* writer, const char* filename) {
     mpack_assert(filename != NULL, "filename is NULL");
 
-    mpack_file_writer_t* file_writer = (mpack_file_writer_t*) MPACK_MALLOC(sizeof(mpack_file_writer_t));
-    if (file_writer == NULL) {
+    char* buffer = (char*)MPACK_MALLOC(MPACK_BUFFER_SIZE);
+    if (buffer == NULL) {
         mpack_writer_init_error(writer, mpack_error_memory);
         return;
     }
 
-    file_writer->file = fopen(filename, "wb");
-    if (file_writer->file == NULL) {
+    FILE* file = fopen(filename, "wb");
+    if (file == NULL) {
+        MPACK_FREE(buffer);
         mpack_writer_init_error(writer, mpack_error_io);
-        MPACK_FREE(file_writer);
         return;
     }
 
-    mpack_writer_init(writer, file_writer->buffer, sizeof(file_writer->buffer));
-    mpack_writer_set_context(writer, file_writer);
+    mpack_writer_init(writer, buffer, MPACK_BUFFER_SIZE);
+    mpack_writer_set_context(writer, file);
     mpack_writer_set_flush(writer, mpack_file_writer_flush);
     mpack_writer_set_teardown(writer, mpack_file_writer_teardown);
 }
