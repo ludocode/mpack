@@ -439,7 +439,7 @@ void mpack_skip_bytes(mpack_reader_t* reader, size_t count);
  *
  * A str, bin or ext must have been opened by a call to mpack_read_tag()
  * which yielded one of these types, or by a call to an expect function
- * such as mpack_expect_str().
+ * such as mpack_expect_str() or mpack_expect_bin().
  *
  * If an error occurs, the buffer contents are undefined.
  *
@@ -564,11 +564,18 @@ MPACK_INLINE char* mpack_read_bytes_alloc(mpack_reader_t* reader, size_t count) 
  * Reads bytes from a string, binary blob or extension object in-place in
  * the buffer. This can be used to avoid copying the data.
  *
- * The returned pointer is invalidated the next time the reader's fill
- * function is called, or when the buffer is destroyed.
+ * A str, bin or ext must have been opened by a call to mpack_read_tag()
+ * which yielded one of these types, or by a call to an expect function
+ * such as mpack_expect_str() or mpack_expect_bin().
+ *
+ * If the bytes are from a string, the string is not null-terminated! Use
+ * mpack_read_cstr() to copy the string into a buffer and add a null-terminator.
+ *
+ * The returned pointer is invalidated on the next read, or when the buffer
+ * is destroyed.
  *
  * The reader will move data around in the buffer if needed to ensure that
- * the pointer can always be returned, so it is unlikely to be faster unless
+ * the pointer can always be returned, so this should only be used if
  * count is very small compared to the buffer size. If you need to check
  * whether a small size is reasonable (for example you intend to handle small and
  * large sizes differently), you can call mpack_should_read_bytes_inplace().
@@ -594,13 +601,13 @@ const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count);
  * mpack_expect_str().
  *
  * The string is not null-terminated! Use mpack_read_utf8_cstr() to
- * read the string into a buffer and add a null-terminator.
+ * copy the string into a buffer and add a null-terminator.
  *
- * The returned pointer is invalidated the next time the reader's fill
- * function is called, or when the buffer is destroyed.
+ * The returned pointer is invalidated on the next read, or when the buffer
+ * is destroyed.
  *
  * The reader will move data around in the buffer if needed to ensure that
- * the pointer can always be returned, so it is unlikely to be faster unless
+ * the pointer can always be returned, so this should only be used if
  * count is very small compared to the buffer size. If you need to check
  * whether a small size is reasonable (for example you intend to handle small and
  * large sizes differently), you can call mpack_should_read_bytes_inplace().
