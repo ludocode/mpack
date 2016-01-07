@@ -1042,8 +1042,6 @@ MPACK_INLINE void mpack_expect_bin_size(mpack_reader_t* reader, uint32_t count) 
  */
 size_t mpack_expect_bin_buf(mpack_reader_t* reader, char* buf, size_t size);
 
-const char* mpack_expect_bin_inplace(mpack_reader_t* reader, size_t maxsize, size_t* size);
-
 /**
  * Reads a binary blob with the given total maximum size, allocating storage for it.
  */
