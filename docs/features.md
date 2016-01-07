@@ -30,7 +30,7 @@ Feedback is welcome! Please let me know if any entries in the table are incorrec
 | Tree stream parser                  |     | ✓   |     |
 | Asynchronous tree stream parser     |     | ✓   |     |
 | Support for new (2.0) spec          | ✓   | ✓   | ✓   |
-| Compatible with older (1.0) spec    |     |     | ✓   |
+| Compatible with older (1.0) spec    |     | ✓   | ✓   |
 | UTF-8 verification                  | ✓   |     |     |
 
 Most of the features above are optional when supported and can be configured in all libraries. In particular, UTF-8 verification is optional with MPack; compound size tracking is optional and disabled in release by default with MPack; and 1.0 (v4) spec compatibility is optional with CMP (v5/2.0 is the recommended and default usage.)
@@ -59,5 +59,5 @@ Most of the features above are optional when supported and can be configured in 
 
 *Asynchronous* means the parser is cooperative and re-entrant; when not enough data is available, it will return out of the parser with a "continue later" result rather than failing or blocking the read. There are two asynchronous entries in the above table, one for incremental parsing and one for tree parsing.
 
-*Compatible with older (1.0) spec* means the ability to produce messages compatible with parsers that only understand the old v4/1.0 version of MessagePack. A backwards-compatible encoder must at a minimum support the option to disable "str8", since there was no "raw8" type in old MessagePack.
+*Compatible with older (1.0) spec* means the ability to produce messages compatible with parsers that only understand the old v4/1.0 version of MessagePack. A backwards-compatible encoder must at a minimum support writing an old-style raw without "str8", since there was no "raw8" type in old MessagePack.
 
