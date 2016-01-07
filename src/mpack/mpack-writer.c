@@ -52,9 +52,25 @@ void mpack_writer_track_bytes(mpack_writer_t* writer, size_t count) {
 }
 #endif
 
+static void mpack_writer_clear(mpack_writer_t* writer) {
+    writer->flush = NULL;
+    writer->error_fn = NULL;
+    writer->teardown = NULL;
+    writer->context = NULL;
+
+    writer->buffer = NULL;
+    writer->size = 0;
+    writer->used = 0;
+    writer->error = mpack_ok;
+
+    #if MPACK_WRITE_TRACKING
+    mpack_memset(&writer->track, 0, sizeof(writer->track));
+    #endif
+}
+
 void mpack_writer_init(mpack_writer_t* writer, char* buffer, size_t size) {
     mpack_assert(buffer != NULL, "cannot initialize writer with empty buffer");
-    mpack_memset(writer, 0, sizeof(*writer));
+    mpack_writer_clear(writer);
     writer->buffer = buffer;
     writer->size = size;
 
@@ -67,7 +83,7 @@ void mpack_writer_init(mpack_writer_t* writer, char* buffer, size_t size) {
 }
 
 void mpack_writer_init_error(mpack_writer_t* writer, mpack_error_t error) {
-    mpack_memset(writer, 0, sizeof(*writer));
+    mpack_writer_clear(writer);
     writer->error = error;
 
     mpack_log("===========================\n");
@@ -155,8 +171,14 @@ static void mpack_growable_writer_teardown(mpack_writer_t* writer) {
         writer->buffer = NULL;
     }
 
-    MPACK_FREE(growable_writer);
     writer->context = NULL;
+}
+
+static char* mpack_writer_get_reserved(mpack_writer_t* writer) {
+    // This is in a separate function in order to avoid false strict aliasing
+    // warnings. We aren't actually violating strict aliasing (the reserved
+    // space is only ever dereferenced as an mpack_growable_writer_t.)
+    return (char*)writer->reserved;
 }
 
 void mpack_writer_init_growable(mpack_writer_t* writer, char** target_data, size_t* target_size) {
@@ -166,12 +188,9 @@ void mpack_writer_init_growable(mpack_writer_t* writer, char** target_data, size
     *target_data = NULL;
     *target_size = 0;
 
-    mpack_growable_writer_t* growable_writer = (mpack_growable_writer_t*) MPACK_MALLOC(sizeof(mpack_growable_writer_t));
-    if (growable_writer == NULL) {
-        mpack_writer_init_error(writer, mpack_error_memory);
-        return;
-    }
-    mpack_memset(growable_writer, 0, sizeof(*growable_writer));
+    MPACK_STATIC_ASSERT(sizeof(mpack_growable_writer_t) <= sizeof(writer->reserved),
+            "not enough reserved space for growable writer!");
+    mpack_growable_writer_t* growable_writer = (mpack_growable_writer_t*)mpack_writer_get_reserved(writer);
 
     growable_writer->target_data = target_data;
     growable_writer->target_size = target_size;
@@ -179,7 +198,6 @@ void mpack_writer_init_growable(mpack_writer_t* writer, char** target_data, size
     size_t capacity = MPACK_BUFFER_SIZE;
     char* buffer = (char*)MPACK_MALLOC(capacity);
     if (buffer == NULL) {
-        MPACK_FREE(growable_writer);
         mpack_writer_init_error(writer, mpack_error_memory);
         return;
     }

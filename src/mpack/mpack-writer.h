@@ -114,6 +114,12 @@ struct mpack_writer_t {
     #if MPACK_WRITE_TRACKING
     mpack_track_t track; /* Stack of map/array/str/bin/ext writes */
     #endif
+
+    #ifdef MPACK_MALLOC
+    /* Reserved. You can use this space to allocate a custom
+     * context in order to reduce heap allocations. */
+    void* reserved[2];
+    #endif
 };
 
 #if MPACK_WRITE_TRACKING

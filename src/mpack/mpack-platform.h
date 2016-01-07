@@ -560,6 +560,8 @@ MPACK_HEADER_START
         #pragma GCC poison memmove
         #pragma GCC poison memset
         #pragma GCC poison strlen
+        #pragma GCC poison malloc
+        #pragma GCC poison free
     #endif
 
 #elif defined(__GNUC__) && !MPACK_NO_BUILTINS
