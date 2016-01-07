@@ -643,7 +643,7 @@ const char* mpack_read_utf8_inplace(mpack_reader_t* reader, size_t count);
  * @see mpack_read_bytes_inplace()
  */
 MPACK_INLINE bool mpack_should_read_bytes_inplace(mpack_reader_t* reader, size_t count) {
-    return (reader->size == 0 || count > reader->size / 8);
+    return (reader->size == 0 || count <= reader->size / 32);
 }
 
 /**
