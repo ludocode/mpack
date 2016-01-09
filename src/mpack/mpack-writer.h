@@ -47,6 +47,13 @@ struct mpack_track_t;
  */
 
 /**
+ * @def MPACK_WRITER_MINIMUM_BUFFER_SIZE
+ *
+ * The minimum buffer size for a writer with a flush function.
+ */
+#define MPACK_WRITER_MINIMUM_BUFFER_SIZE 32
+
+/**
  * A buffered MessagePack encoder.
  *
  * The encoder wraps an existing buffer and, optionally, a flush function.
@@ -286,10 +293,7 @@ MPACK_INLINE void mpack_writer_set_context(mpack_writer_t* writer, void* context
  * @param writer The MPack writer.
  * @param flush The function to write out data from the buffer.
  */
-MPACK_INLINE void mpack_writer_set_flush(mpack_writer_t* writer, mpack_writer_flush_t flush) {
-    mpack_assert(writer->size != 0, "cannot use flush function without a writeable buffer!");
-    writer->flush = flush;
-}
+void mpack_writer_set_flush(mpack_writer_t* writer, mpack_writer_flush_t flush);
 
 /**
  * Sets the error function to call when an error is flagged on the writer.

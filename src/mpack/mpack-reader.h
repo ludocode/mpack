@@ -39,13 +39,6 @@ struct mpack_track_t;
 #endif
 
 /**
- * @def MPACK_READER_MINIMUM_BUFFER_SIZE
- *
- * The minimum buffer size for a reader with a fill function.
- */
-#define MPACK_READER_MINIMUM_BUFFER_SIZE 32
-
-/**
  * @defgroup reader Core Reader API
  *
  * The MPack Core Reader API contains functions for imperatively reading
@@ -54,6 +47,13 @@ struct mpack_track_t;
  *
  * @{
  */
+
+/**
+ * @def MPACK_READER_MINIMUM_BUFFER_SIZE
+ *
+ * The minimum buffer size for a reader with a fill function.
+ */
+#define MPACK_READER_MINIMUM_BUFFER_SIZE 32
 
 /**
  * A buffered MessagePack decoder.
@@ -778,6 +778,9 @@ bool mpack_reader_ensure_straddle(mpack_reader_t* reader, size_t count);
 // is called.
 MPACK_INLINE bool mpack_reader_ensure(mpack_reader_t* reader, size_t count) {
     mpack_assert(count != 0, "cannot ensure zero bytes!");
+    mpack_assert(count <= MPACK_READER_MINIMUM_BUFFER_SIZE,
+            "cannot ensure %i bytes, this is more than the minimum buffer size %i!", count,
+            (int)count, (int)MPACK_READER_MINIMUM_BUFFER_SIZE);
     mpack_assert(reader->error == mpack_ok, "reader cannot be in an error state!");
 
     if (count <= reader->left)
