@@ -582,6 +582,50 @@ MPACK_INLINE int64_t mpack_node_i64(mpack_node_t node) {
 }
 
 /**
+ * Returns the unsigned int value of the node.
+ *
+ * Returns zero if an error occurs.
+ *
+ * @throws mpack_error_type If the node is not an integer type or does not fit in the range of an unsigned int
+ */
+MPACK_INLINE unsigned int mpack_node_uint(mpack_node_t node) {
+
+    // This should be true at compile-time, so this just wraps the 32-bit function.
+    if (sizeof(unsigned int) == 4)
+        return (unsigned int)mpack_node_u32(node);
+
+    // Otherwise we use u64 and check the range.
+    uint64_t val = mpack_node_u64(node);
+    if (val <= UINT_MAX)
+        return (unsigned int)val;
+
+    mpack_node_flag_error(node, mpack_error_type);
+    return 0;
+}
+
+/**
+ * Returns the int value of the node.
+ *
+ * Returns zero if an error occurs.
+ *
+ * @throws mpack_error_type If the node is not an integer type or does not fit in the range of an int
+ */
+MPACK_INLINE int mpack_node_int(mpack_node_t node) {
+
+    // This should be true at compile-time, so this just wraps the 32-bit function.
+    if (sizeof(int) == 4)
+        return (int)mpack_node_i32(node);
+
+    // Otherwise we use i64 and check the range.
+    int64_t val = mpack_node_i64(node);
+    if (val >= INT_MIN && val <= INT_MAX)
+        return (int)val;
+
+    mpack_node_flag_error(node, mpack_error_type);
+    return 0;
+}
+
+/**
  * Returns the float value of the node. The underlying value can be an
  * integer, float or double; the value is converted to a float.
  *
