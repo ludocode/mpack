@@ -336,85 +336,102 @@ mpack_error_t mpack_track_destroy(mpack_track_t* track, bool cancel) {
 
 
 
-/* The below code is from Bjoern Hoehrmann's Flexible and Economical */
-/* UTF-8 decoder, modified to add the mpack prefix. */
+static bool mpack_utf8_check_impl(const uint8_t* str, size_t count, bool allow_null) {
+    while (count > 0) {
+        uint8_t lead = str[0];
 
-/* Copyright (c) 2008-2010 Bjoern Hoehrmann <bjoern@hoehrmann.de> */
-/* See http://bjoern.hoehrmann.de/utf-8/decoder/dfa/ for details. */
+        // NUL
+        if (!allow_null && lead == '\0') // we don't allow NUL bytes in MPack C-strings
+            return false;
 
-#define MPACK_UTF8_ACCEPT 0
-#define MPACK_UTF8_REJECT 12
+        // ASCII
+        if (lead <= 0x7F) {
+            ++str;
+            --count;
 
-static const uint8_t mpack_utf8d[] = {
-  /* The first part of the table maps bytes to character classes that */
-  /* to reduce the size of the transition table and create bitmasks. */
-   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-   0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,  0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
-   1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,  9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,9,
-   7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,  7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
-   8,8,2,2,2,2,2,2,2,2,2,2,2,2,2,2,  2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,
-  10,3,3,3,3,3,3,3,3,3,3,3,3,4,3,3, 11,6,6,6,5,8,8,8,8,8,8,8,8,8,8,8,
+        // 2-byte sequence
+        } else if ((lead & 0xE0) == 0xC0) {
+            if (count < 2) // truncated sequence
+                return false;
 
-  /* The second part is a transition table that maps a combination */
-  /* of a state of the automaton and a character class to a state. */
-   0,12,24,36,60,96,84,12,12,12,48,72, 12,12,12,12,12,12,12,12,12,12,12,12,
-  12, 0,12,12,12,12,12, 0,12, 0,12,12, 12,24,12,12,12,12,12,24,12,24,12,12,
-  12,12,12,12,12,12,12,24,12,12,12,12, 12,24,12,12,12,12,12,12,12,24,12,12,
-  12,12,12,12,12,12,12,36,12,36,12,12, 12,36,12,12,12,12,12,36,12,36,12,12,
-  12,36,12,12,12,12,12,12,12,12,12,12,
-};
+            uint8_t cont = str[1];
+            if ((cont & 0xC0) != 0x80) // not a continuation byte
+                return false;
 
-/**
- * Parses one byte from a UTF-8 stream.
- *
- * Returns and sets state to:
- *   - MPACK_UTF8_ACCEPT if the byte completes a valid unicode code point, placing it in codep
- *   - MPACK_UTF8_REJECT if the byte is invalid UTF-8
- *   - something else if more bytes are needed to form a valid character
- *
- * If more bytes are needed, this should be called again with the next byte
- * in the string. state and codep should not be modified, since they will
- * contain the partially read code point.
- *
- * The initial state should be set to MPACK_UTF8_ACCEPT before parsing a string.
- *
- * This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or
- * WTF-8. Overlong sequences and UTF-16 surrogates will be rejected. Only
- * pure UTF-8 is accepted.
- */
-MPACK_STATIC_INLINE uint32_t mpack_utf8_decode(uint32_t* state, uint32_t* codep, uint8_t byte) {
-  uint32_t type = mpack_utf8d[byte];
+            str += 2;
+            count -= 2;
 
-  *codep = (*state != MPACK_UTF8_ACCEPT) ?
-    (byte & 0x3fu) | (*codep << 6) :
-    (0xff >> type) & (byte);
+            uint32_t z = ((uint32_t)(lead & ~0xE0) << 6) |
+                          (uint32_t)(cont & ~0xC0);
 
-  *state = mpack_utf8d[256 + *state + type];
-  return *state;
+            if (z < 0x80) // overlong sequence
+                return false;
+
+        // 3-byte sequence
+        } else if ((lead & 0xF0) == 0xE0) {
+            if (count < 3) // truncated sequence
+                return false;
+
+            uint8_t cont1 = str[1];
+            if ((cont1 & 0xC0) != 0x80) // not a continuation byte
+                return false;
+            uint8_t cont2 = str[2];
+            if ((cont2 & 0xC0) != 0x80) // not a continuation byte
+                return false;
+
+            str += 3;
+            count -= 3;
+
+            uint32_t z = ((uint32_t)(lead  & ~0xF0) << 12) |
+                         ((uint32_t)(cont1 & ~0xC0) <<  6) |
+                          (uint32_t)(cont2 & ~0xC0);
+
+            if (z < 0x800) // overlong sequence
+                return false;
+            if (z >= 0xD800 && z <= 0xDFFF) // surrogate
+                return false;
+
+        // 4-byte sequence
+        } else if ((lead & 0xF8) == 0xF0) {
+            if (count < 4) // truncated sequence
+                return false;
+
+            uint8_t cont1 = str[1];
+            if ((cont1 & 0xC0) != 0x80) // not a continuation byte
+                return false;
+            uint8_t cont2 = str[2];
+            if ((cont2 & 0xC0) != 0x80) // not a continuation byte
+                return false;
+            uint8_t cont3 = str[3];
+            if ((cont3 & 0xC0) != 0x80) // not a continuation byte
+                return false;
+
+            str += 4;
+            count -= 4;
+
+            uint32_t z = ((uint32_t)(lead  & ~0xF8) << 18) |
+                         ((uint32_t)(cont1 & ~0xC0) << 12) |
+                         ((uint32_t)(cont2 & ~0xC0) <<  6) |
+                          (uint32_t)(cont3 & ~0xC0);
+
+            if (z < 0x10000) // overlong sequence
+                return false;
+            if (z > 0x10FFFF) // codepoint limit
+                return false;
+
+        } else {
+            return false; // continuation byte without a lead, or lead for a 5-byte sequence or longer
+        }
+    }
+    return true;
 }
 
-/* End of UTF-8 decoder code */
-
-
-
 bool mpack_utf8_check(const char* str, size_t bytes) {
-    uint32_t state = MPACK_UTF8_ACCEPT;
-    uint32_t codepoint;
-    for (size_t i = 0; i < bytes; ++i)
-        if (mpack_utf8_decode(&state, &codepoint, str[i]) == MPACK_UTF8_REJECT)
-            return false;
-    return state == MPACK_UTF8_ACCEPT;
+    return mpack_utf8_check_impl((const uint8_t*)str, bytes, true);
 }
 
 bool mpack_utf8_check_no_null(const char* str, size_t bytes) {
-    uint32_t state = MPACK_UTF8_ACCEPT;
-    uint32_t codepoint;
-    for (size_t i = 0; i < bytes; ++i)
-        if (str[i] == '\0' || mpack_utf8_decode(&state, &codepoint, str[i]) == MPACK_UTF8_REJECT)
-            return false;
-    return state == MPACK_UTF8_ACCEPT;
+    return mpack_utf8_check_impl((const uint8_t*)str, bytes, false);
 }
 
 bool mpack_str_check_no_null(const char* str, size_t bytes) {
