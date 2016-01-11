@@ -12,6 +12,10 @@ def CheckFlags(context, cppflags, linkflags = [], message = None):
     context.Result(result)
     return result
 
+def AddFlagIfSupported(flag):
+    if conf.CheckFlags([flag]):
+        env.Append(CPPFLAGS = [flag])
+
 
 # Common environment setup
 
@@ -35,17 +39,12 @@ env.Append(LINKFLAGS = [
     "-g",
     ])
 
-if conf.CheckFlags(["-Wmissing-variable-declarations"]):
-    env.Append(CPPFLAGS = ["-Wmissing-variable-declarations"])
-if conf.CheckFlags(["-Wstrict-aliasing=1"]):
-    env.Append(CPPFLAGS = ["-Wstrict-aliasing=1"]) # use level 1 for maximum false positives
-
 # Additional warning flags are passed in SConscript based on the language (C/C++)
 
-if 'TRAVIS' not in env["ENV"]:
-    # Travis-CI currently uses Clang 3.4 which does not support this option,
-    # and it also appears to be incompatible with other GCC options on Travis-CI
-    env.Append(CPPFLAGS = ["-Wno-float-conversion"])
+AddFlagIfSupported("-Wmissing-variable-declarations")
+AddFlagIfSupported("-Wstrict-aliasing=1")
+AddFlagIfSupported("-Wno-float-conversion")
+AddFlagIfSupported("-Wmisleading-indentation")
 
 
 # Optional flags used in various builds
