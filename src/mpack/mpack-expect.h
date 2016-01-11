@@ -44,11 +44,11 @@ MPACK_HEADER_START
  * The MPack Expect API allows you to easily read MessagePack data when you
  * expect it to follow a predefined schema.
  *
+ * See @ref docs/expect.md for examples.
+ *
  * The main purpose of the Expect API is convenience, so the API is lax. It
- * allows overlong / inefficiently encoded sequences, and it automatically
- * converts between similar types where there is no loss of precision (unless
- * otherwise noted.) It will convert from unsigned to signed or from float to
- * double for example.
+ * automatically converts between similar types where there is no loss of
+ * precision.
  *
  * When using any of the expect functions, if the type or value of what was
  * read does not match what is expected, @ref mpack_error_type is raised.
@@ -1081,7 +1081,8 @@ void mpack_expect_tag(mpack_reader_t* reader, mpack_tag_t tag);
  *
  * This is a helper for switching among int keys in a map. It is
  * typically used with an enum to define the key values. It should
- * be called in the expression of a switch() statement.
+ * be called in the expression of a switch() statement. See @ref
+ * docs/expect.md for an example.
  *
  * The found array should be cleared before expecting a key. If the flag for
  * a given key is already set when found (i.e. the map contains a duplicate
@@ -1096,6 +1097,8 @@ void mpack_expect_tag(mpack_reader_t* reader, mpack_tag_t tag);
  * @param found An array of bool flags of length count
  * @param count The number of values in the found array, and one more than the
  *              maximum allowed key
+ *
+ * @see @ref docs/expect.md
  */
 size_t mpack_expect_key_uint(mpack_reader_t* reader, bool found[], size_t count);
 
@@ -1106,7 +1109,7 @@ size_t mpack_expect_key_uint(mpack_reader_t* reader, bool found[], size_t count)
  * This is a helper for switching among string keys in a map. It is
  * typically used with an enum with names matching the strings in the
  * array to define the key indices. It should be called in the expression
- * of a switch() statement.
+ * of a switch() statement. See @ref docs/expect.md for an example.
  *
  * The found array should be cleared before expecting a key. If the flag for
  * a given key is already set when found (i.e. the map contains a duplicate
@@ -1122,6 +1125,8 @@ size_t mpack_expect_key_uint(mpack_reader_t* reader, bool found[], size_t count)
  * @param keys An array of expected string keys of length count
  * @param found An array of bool flags of length count
  * @param count The number of values in the keys and found arrays
+ *
+ * @see @ref docs/expect.md
  */
 size_t mpack_expect_key_cstr(mpack_reader_t* reader, const char* keys[],
         bool found[], size_t count);

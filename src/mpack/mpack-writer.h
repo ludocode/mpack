@@ -387,6 +387,7 @@ MPACK_INLINE mpack_error_t mpack_writer_error(mpack_writer_t* writer) {
  * appropriate finish function must be called (as though one of the
  * mpack_start_*() functions was called.)
  *
+ * @see mpack_write_bytes()
  * @see mpack_finish_map()
  * @see mpack_finish_array()
  * @see mpack_finish_str()
@@ -395,19 +396,6 @@ MPACK_INLINE mpack_error_t mpack_writer_error(mpack_writer_t* writer) {
  * @see mpack_finish_type()
  */
 void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t tag);
-
-/**
- * Finishes writing the given compound type.
- *
- * This will track writes to ensure that the correct number of elements
- * or bytes are written.
- *
- * This can be called with the appropriate type instead the corresponding
- * mpack_finish_*() function if you want to finish a dynamic type.
- */
-MPACK_INLINE void mpack_finish_type(mpack_writer_t* writer, mpack_type_t type) {
-    mpack_writer_track_pop(writer, type);
-}
 
 /**
  * @}
@@ -697,7 +685,7 @@ void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count);
 
 /**
  * Writes a portion of bytes for a string, binary blob or extension type which
- * was opened by one of the mpack_start_*() functions.
+ * was opened by mpack_write_tag() or one of the mpack_start_*() functions.
  *
  * This can be called multiple times to write the data in chunks, as long as
  * the total amount of bytes written matches the count given when the compound
@@ -708,6 +696,7 @@ void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count);
  * To write an entire string, binary blob or extension type at
  * once, use one of the mpack_write_*() functions instead.
  *
+ * @see mpack_write_tag()
  * @see mpack_start_str()
  * @see mpack_start_bin()
  * @see mpack_start_ext()
@@ -761,6 +750,19 @@ MPACK_INLINE void mpack_finish_bin(mpack_writer_t* writer) {
  */
 MPACK_INLINE void mpack_finish_ext(mpack_writer_t* writer) {
     mpack_writer_track_pop(writer, mpack_type_ext);
+}
+
+/**
+ * Finishes writing the given compound type.
+ *
+ * This will track writes to ensure that the correct number of elements
+ * or bytes are written.
+ *
+ * This can be called with the appropriate type instead the corresponding
+ * mpack_finish_*() function if you want to finish a dynamic type.
+ */
+MPACK_INLINE void mpack_finish_type(mpack_writer_t* writer, mpack_type_t type) {
+    mpack_writer_track_pop(writer, type);
 }
 
 /**
