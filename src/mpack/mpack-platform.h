@@ -358,9 +358,14 @@ MPACK_HEADER_START
         #if defined(__GNUC__)
             #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
                 #ifndef __cplusplus
+                    #if __GNUC__ >= 5
+                    #define MPACK_IGNORE_PEDANTIC "GCC diagnostic ignored \"-Wpedantic\""
+                    #else
+                    #define MPACK_IGNORE_PEDANTIC "GCC diagnostic ignored \"-pedantic\""
+                    #endif
                     #define MPACK_STATIC_ASSERT(expr, str) do { \
                         _Pragma ("GCC diagnostic push") \
-                        _Pragma ("GCC diagnostic ignored \"-pedantic\"") \
+                        _Pragma (MPACK_IGNORE_PEDANTIC) \
                         _Pragma ("GCC diagnostic ignored \"-Wc++-compat\"") \
                         _Static_assert(expr, str); \
                         _Pragma ("GCC diagnostic pop") \
