@@ -25,7 +25,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">MPack
-   &#160;<span id="projectnumber">0.8</span>
+   &#160;<span id="projectnumber">0.8.1</span>
    </div>
    <div id="projectbrief">A C encoding/decoding library for the MessagePack serialization format.</div>
   </td>
@@ -125,7 +125,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <tr>
 <td align="left">Support for new (2.0) spec </td><td align="center">✓ </td><td align="center">✓ </td><td align="center">✓ </td></tr>
 <tr>
-<td align="left">Compatible with older (1.0) spec </td><td align="center"></td><td align="center"></td><td align="center">✓ </td></tr>
+<td align="left">Compatible with older (1.0) spec </td><td align="center"></td><td align="center">✓ </td><td align="center">✓ </td></tr>
 <tr>
 <td align="left">UTF-8 verification </td><td align="center">✓ </td><td align="center"></td><td align="center"></td></tr>
 </table>
@@ -142,7 +142,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <p><em>Peeking the next element</em> means being able to view the next element during incremental parsing without popping it from the data buffer.</p>
 <p><em>Tree stream parsing</em> means the ability to parse a continuous stream of MessagePack with no external delimitation, emitting complete objects with a DOM-style tree API as they are found. The parser must be able to pause if the data is incomplete and continue parsing later when more data is available. This is necessary for implementing RPC over a socket with a tree parser (without needing to delimit messages by size.)</p>
 <p><em>Asynchronous</em> means the parser is cooperative and re-entrant; when not enough data is available, it will return out of the parser with a "continue later" result rather than failing or blocking the read. There are two asynchronous entries in the above table, one for incremental parsing and one for tree parsing.</p>
-<p><em>Compatible with older (1.0) spec</em> means the ability to produce messages compatible with parsers that only understand the old v4/1.0 version of MessagePack. A backwards-compatible encoder must at a minimum support the option to disable "str8", since there was no "raw8" type in old MessagePack. </p>
+<p><em>Compatible with older (1.0) spec</em> means the ability to produce messages compatible with parsers that only understand the old v4/1.0 version of MessagePack. A backwards-compatible encoder must at a minimum support writing an old-style raw without "str8", since there was no "raw8" type in old MessagePack. </p>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>

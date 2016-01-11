@@ -25,7 +25,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">MPack
-   &#160;<span id="projectnumber">0.8</span>
+   &#160;<span id="projectnumber">0.8.1</span>
    </div>
    <div id="projectbrief">A C encoding/decoding library for the MessagePack serialization format.</div>
   </td>
@@ -318,9 +318,6 @@ Binary Data / Extension Functions</h2></td></tr>
 <tr class="memitem:ga98004c26b9ebc1b80b4bdec5a1d4b093"><td class="memItemLeft" align="right" valign="top">size_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga98004c26b9ebc1b80b4bdec5a1d4b093">mpack_expect_bin_buf</a> (<a class="el" href="group__reader.html#gaee791c36a15344b9e57edae160c86615">mpack_reader_t</a> *reader, char *buf, size_t size)</td></tr>
 <tr class="memdesc:ga98004c26b9ebc1b80b4bdec5a1d4b093"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a binary blob into the given buffer, returning its size in bytes.  <a href="#ga98004c26b9ebc1b80b4bdec5a1d4b093">More...</a><br /></td></tr>
 <tr class="separator:ga98004c26b9ebc1b80b4bdec5a1d4b093"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ga2745fe313f15c619a9a44f8dc79a3777"><td class="memItemLeft" align="right" valign="top"><a class="anchor" id="ga2745fe313f15c619a9a44f8dc79a3777"></a>
-const char *&#160;</td><td class="memItemRight" valign="bottom"><b>mpack_expect_bin_inplace</b> (<a class="el" href="group__reader.html#gaee791c36a15344b9e57edae160c86615">mpack_reader_t</a> *reader, size_t maxsize, size_t *size)</td></tr>
-<tr class="separator:ga2745fe313f15c619a9a44f8dc79a3777"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga513a9ce0e5bf78128d2d174bf1434538"><td class="memItemLeft" align="right" valign="top">char *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__expect.html#ga513a9ce0e5bf78128d2d174bf1434538">mpack_expect_bin_alloc</a> (<a class="el" href="group__reader.html#gaee791c36a15344b9e57edae160c86615">mpack_reader_t</a> *reader, size_t maxsize, size_t *size)</td></tr>
 <tr class="memdesc:ga513a9ce0e5bf78128d2d174bf1434538"><td class="mdescLeft">&#160;</td><td class="mdescRight">Reads a binary blob with the given total maximum size, allocating storage for it.  <a href="#ga513a9ce0e5bf78128d2d174bf1434538">More...</a><br /></td></tr>
 <tr class="separator:ga513a9ce0e5bf78128d2d174bf1434538"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -339,7 +336,8 @@ Special Functions</h2></td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>The MPack Expect API allows you to easily read MessagePack data when you expect it to follow a predefined schema. </p>
-<p>The main purpose of the Expect API is convenience, so the API is lax. It allows overlong / inefficiently encoded sequences, and it automatically converts between similar types where there is no loss of precision (unless otherwise noted.) It will convert from unsigned to signed or from float to double for example.</p>
+<p>See <a class="el" href="md_docs_expect.html">Using the Expect API</a> for examples.</p>
+<p>The main purpose of the Expect API is convenience, so the API is lax. It automatically converts between similar types where there is no loss of precision.</p>
 <p>When using any of the expect functions, if the type or value of what was read does not match what is expected, <a class="el" href="group__common.html#gga9d9f282ca4183ab5190e09d04c1f74c4ac91d0dcefbb9c7b9f41403bbc674aef2">mpack_error_type</a> is raised. </p>
 <h2 class="groupheader">Macro Definition Documentation</h2>
 <a class="anchor" id="ga7e69ee365f459dec5cdc3c797c7d0642"></a>
@@ -1623,7 +1621,7 @@ Special Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Expects a string map key matching one of the strings in the given key list, marking it as found in the given bool array and returning its index. </p>
-<p>This is a helper for switching among string keys in a map. It is typically used with an enum with names matching the strings in the array to define the key indices. It should be called in the expression of a switch() statement.</p>
+<p>This is a helper for switching among string keys in a map. It is typically used with an enum with names matching the strings in the array to define the key indices. It should be called in the expression of a switch() statement. See <a class="el" href="md_docs_expect.html">Using the Expect API</a> for an example.</p>
 <p>The found array should be cleared before expecting a key. If the flag for a given key is already set when found (i.e. the map contains a duplicate key), mpack_error_invalid is flagged.</p>
 <p>If the key is unrecognized, count is returned and no error is flagged. If you want an error on unrecognized keys, flag an error in the default case in your switch; otherwise you must call <a class="el" href="group__reader.html#ga438bb2b85fbbd06cd8f10d5c8079427e" title="Reads and discards the next object. ">mpack_discard()</a> to discard its content.</p>
 <p>The maximum key length is the size of the buffer (keys are read in-place.)</p>
@@ -1632,10 +1630,11 @@ Special Functions</h2></td></tr>
     <tr><td class="paramname">reader</td><td>The reader </td></tr>
     <tr><td class="paramname">keys</td><td>An array of expected string keys of length count </td></tr>
     <tr><td class="paramname">found</td><td>An array of bool flags of length count </td></tr>
-    <tr><td class="paramname">count</td><td>The number of values in the keys and found arrays </td></tr>
+    <tr><td class="paramname">count</td><td>The number of values in the keys and found arrays</td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="md_docs_expect.html">Using the Expect API</a> </dd></dl>
 
 </div>
 </div>
@@ -1670,17 +1669,18 @@ Special Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Expects an unsigned integer map key between 0 and count-1, marking it as found in the given bool array and returning it. </p>
-<p>This is a helper for switching among int keys in a map. It is typically used with an enum to define the key values. It should be called in the expression of a switch() statement.</p>
+<p>This is a helper for switching among int keys in a map. It is typically used with an enum to define the key values. It should be called in the expression of a switch() statement. See <a class="el" href="md_docs_expect.html">Using the Expect API</a> for an example.</p>
 <p>The found array should be cleared before expecting a key. If the flag for a given key is already set when found (i.e. the map contains a duplicate key), mpack_error_invalid is flagged.</p>
 <p>If the key is count or larger, count is returned and no error is flagged. If you want an error on unrecognized keys, flag an error in the default case in your switch; otherwise you must call <a class="el" href="group__reader.html#ga438bb2b85fbbd06cd8f10d5c8079427e" title="Reads and discards the next object. ">mpack_discard()</a> to discard its content.</p>
 <dl class="params"><dt>Parameters</dt><dd>
   <table class="params">
     <tr><td class="paramname">reader</td><td>The reader </td></tr>
     <tr><td class="paramname">found</td><td>An array of bool flags of length count </td></tr>
-    <tr><td class="paramname">count</td><td>The number of values in the found array, and one more than the maximum allowed key </td></tr>
+    <tr><td class="paramname">count</td><td>The number of values in the found array, and one more than the maximum allowed key</td></tr>
   </table>
   </dd>
 </dl>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="md_docs_expect.html">Using the Expect API</a> </dd></dl>
 
 </div>
 </div>
@@ -1939,7 +1939,7 @@ Special Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Reads the start of a string, returning its size in bytes. </p>
-<p>The bytes follow and must be read separately with <a class="el" href="group__reader.html#gaeb91e8d4e2a7b7f6562d8bbb7400275c" title="Reads bytes from a string, binary blob or extension object, copying them into the given buffer...">mpack_read_bytes()</a> or <a class="el" href="group__reader.html#ga654d697da6a0eaf25246adf3ed343572" title="Reads bytes from a string, binary blob or extension object in-place in the buffer. ">mpack_read_bytes_inplace()</a>. <a class="el" href="group__reader.html#gaaad37015e0c53704d9356de06b493de6">mpack_done_str()</a> must be called once all bytes have been read.</p>
+<p>The bytes follow and must be read separately with <a class="el" href="group__reader.html#gaeb91e8d4e2a7b7f6562d8bbb7400275c" title="Reads bytes from a string, binary blob or extension object, copying them into the given buffer...">mpack_read_bytes()</a> or <a class="el" href="group__reader.html#ga654d697da6a0eaf25246adf3ed343572" title="Reads bytes from a string, binary blob or extension object in-place in the buffer. ">mpack_read_bytes_inplace()</a>. <a class="el" href="group__reader.html#gaaad37015e0c53704d9356de06b493de6" title="Finishes reading a string. ">mpack_done_str()</a> must be called once all bytes have been read.</p>
 <p>NUL bytes are allowed in the string, and no encoding checks are done.</p>
 <p>mpack_error_type is raised if the value is not a string. </p>
 
@@ -1976,7 +1976,7 @@ Special Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Reads a string of at most the given size, writing it into the given buffer and returning its size in bytes. </p>
-<p>This does not add a null-terminator! No null-terminator is written, even if the string fits. Use <a class="el" href="group__expect.html#ga94489d03628c1fb1a3d0ac6971600fe8" title="Reads a string into the given buffer, ensures it has no null bytes, and adds a null-terminator at the...">mpack_expect_cstr()</a> to get a null-terminator.</p>
+<p>This does not add a null-terminator! Use <a class="el" href="group__expect.html#ga94489d03628c1fb1a3d0ac6971600fe8" title="Reads a string into the given buffer, ensures it has no null bytes, and adds a null-terminator at the...">mpack_expect_cstr()</a> to add a null-terminator.</p>
 <p>NUL bytes are allowed in the string, and no encoding checks are done. </p>
 
 </div>
@@ -2636,6 +2636,7 @@ Special Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Reads a string into the given buffer, ensuring it is a valid UTF-8 string and returning its size in bytes. </p>
+<p>This does not add a null-terminator! Use <a class="el" href="group__expect.html#ga62be63032f3c84181eeed4609f0dddb4" title="Reads a string into the given buffer, ensures it is a valid UTF-8 string without NUL characters...">mpack_expect_utf8_cstr()</a> to add a null-terminator.</p>
 <p>This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or WTF-8. Only pure UTF-8 is allowed.</p>
 <p>NUL bytes are allowed in the string (as they are in UTF-8.)</p>
 <p>Raises mpack_error_too_big if there is not enough room for the string. Raises mpack_error_type if the value is not a string or is not a valid UTF-8 string. </p>

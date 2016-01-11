@@ -25,7 +25,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">MPack
-   &#160;<span id="projectnumber">0.8</span>
+   &#160;<span id="projectnumber">0.8.1</span>
    </div>
    <div id="projectbrief">A C encoding/decoding library for the MessagePack serialization format.</div>
   </td>
@@ -78,6 +78,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 
 <div class="header">
   <div class="summary">
+<a href="#define-members">Macros</a> &#124;
 <a href="#typedef-members">Typedefs</a>  </div>
   <div class="headertitle">
 <div class="title">Write API</div>  </div>
@@ -87,6 +88,12 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <p>The MPack Write API encodes structured data of a fixed (hardcoded) schema to MessagePack.  
 <a href="#details">More...</a></p>
 <table class="memberdecls">
+<tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="define-members"></a>
+Macros</h2></td></tr>
+<tr class="memitem:ga34786576628c2f814b5d109daf0af7d1"><td class="memItemLeft" align="right" valign="top">#define&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#ga34786576628c2f814b5d109daf0af7d1">MPACK_WRITER_MINIMUM_BUFFER_SIZE</a>&#160;&#160;&#160;32</td></tr>
+<tr class="memdesc:ga34786576628c2f814b5d109daf0af7d1"><td class="mdescLeft">&#160;</td><td class="mdescRight">The minimum buffer size for a writer with a flush function.  <a href="#ga34786576628c2f814b5d109daf0af7d1">More...</a><br /></td></tr>
+<tr class="separator:ga34786576628c2f814b5d109daf0af7d1"><td class="memSeparator" colspan="2">&#160;</td></tr>
+</table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="typedef-members"></a>
 Typedefs</h2></td></tr>
 <tr class="memitem:ga65d410be0305a59ec15cfe700f8b036a"><td class="memItemLeft" align="right" valign="top">typedef void(*&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#ga65d410be0305a59ec15cfe700f8b036a">mpack_writer_error_t</a>) (<a class="el" href="group__writer.html#gabdb207d4ba6a6ae47efa5ede13436f31">mpack_writer_t</a> *writer, <a class="el" href="group__common.html#ga9d9f282ca4183ab5190e09d04c1f74c4">mpack_error_t</a> error)</td></tr>
@@ -152,9 +159,6 @@ Core Writer Functions</h2></td></tr>
 <tr class="memitem:ga17155afc35912817c13802d502f14e80"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#ga17155afc35912817c13802d502f14e80">mpack_write_tag</a> (<a class="el" href="group__writer.html#gabdb207d4ba6a6ae47efa5ede13436f31">mpack_writer_t</a> *writer, <a class="el" href="group__common.html#structmpack__tag__t">mpack_tag_t</a> tag)</td></tr>
 <tr class="memdesc:ga17155afc35912817c13802d502f14e80"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes a MessagePack object header (an MPack Tag.)  <a href="#ga17155afc35912817c13802d502f14e80">More...</a><br /></td></tr>
 <tr class="separator:ga17155afc35912817c13802d502f14e80"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:gaecfb47a0e86d293ca002f1e11b2edb38"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#gaecfb47a0e86d293ca002f1e11b2edb38">mpack_finish_type</a> (<a class="el" href="group__writer.html#gabdb207d4ba6a6ae47efa5ede13436f31">mpack_writer_t</a> *writer, <a class="el" href="group__common.html#ga22f03cf1240d5a917e1b3e7be8ab327e">mpack_type_t</a> type)</td></tr>
-<tr class="memdesc:gaecfb47a0e86d293ca002f1e11b2edb38"><td class="mdescLeft">&#160;</td><td class="mdescRight">Finishes writing the given compound type.  <a href="#gaecfb47a0e86d293ca002f1e11b2edb38">More...</a><br /></td></tr>
-<tr class="separator:gaecfb47a0e86d293ca002f1e11b2edb38"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 class="groupheader"><a name="member-group"></a>
 Integers</h2></td></tr>
@@ -264,7 +268,7 @@ Chunked Data Functions</h2></td></tr>
 <tr class="memdesc:gab9cd08887689641c3d71cea6f536b6f8"><td class="mdescLeft">&#160;</td><td class="mdescRight">Opens an extension type.  <a href="#gab9cd08887689641c3d71cea6f536b6f8">More...</a><br /></td></tr>
 <tr class="separator:gab9cd08887689641c3d71cea6f536b6f8"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga7f594d59ddfd2729aa2b3758e1641139"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#ga7f594d59ddfd2729aa2b3758e1641139">mpack_write_bytes</a> (<a class="el" href="group__writer.html#gabdb207d4ba6a6ae47efa5ede13436f31">mpack_writer_t</a> *writer, const char *data, size_t count)</td></tr>
-<tr class="memdesc:ga7f594d59ddfd2729aa2b3758e1641139"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes a portion of bytes for a string, binary blob or extension type which was opened by one of the mpack_start_*() functions.  <a href="#ga7f594d59ddfd2729aa2b3758e1641139">More...</a><br /></td></tr>
+<tr class="memdesc:ga7f594d59ddfd2729aa2b3758e1641139"><td class="mdescLeft">&#160;</td><td class="mdescRight">Writes a portion of bytes for a string, binary blob or extension type which was opened by <a class="el" href="group__writer.html#ga17155afc35912817c13802d502f14e80" title="Writes a MessagePack object header (an MPack Tag.) ">mpack_write_tag()</a> or one of the mpack_start_*() functions.  <a href="#ga7f594d59ddfd2729aa2b3758e1641139">More...</a><br /></td></tr>
 <tr class="separator:ga7f594d59ddfd2729aa2b3758e1641139"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga44f9dd4d379b70fb9534cf1e359e3d4a"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#ga44f9dd4d379b70fb9534cf1e359e3d4a">mpack_finish_str</a> (<a class="el" href="group__writer.html#gabdb207d4ba6a6ae47efa5ede13436f31">mpack_writer_t</a> *writer)</td></tr>
 <tr class="memdesc:ga44f9dd4d379b70fb9534cf1e359e3d4a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Finishes writing a string.  <a href="#ga44f9dd4d379b70fb9534cf1e359e3d4a">More...</a><br /></td></tr>
@@ -275,9 +279,27 @@ Chunked Data Functions</h2></td></tr>
 <tr class="memitem:ga7f93f96c951f17bba8cd26a6f50db8e2"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#ga7f93f96c951f17bba8cd26a6f50db8e2">mpack_finish_ext</a> (<a class="el" href="group__writer.html#gabdb207d4ba6a6ae47efa5ede13436f31">mpack_writer_t</a> *writer)</td></tr>
 <tr class="memdesc:ga7f93f96c951f17bba8cd26a6f50db8e2"><td class="mdescLeft">&#160;</td><td class="mdescRight">Finishes writing an extended type binary data blob.  <a href="#ga7f93f96c951f17bba8cd26a6f50db8e2">More...</a><br /></td></tr>
 <tr class="separator:ga7f93f96c951f17bba8cd26a6f50db8e2"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:gaecfb47a0e86d293ca002f1e11b2edb38"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__writer.html#gaecfb47a0e86d293ca002f1e11b2edb38">mpack_finish_type</a> (<a class="el" href="group__writer.html#gabdb207d4ba6a6ae47efa5ede13436f31">mpack_writer_t</a> *writer, <a class="el" href="group__common.html#ga22f03cf1240d5a917e1b3e7be8ab327e">mpack_type_t</a> type)</td></tr>
+<tr class="memdesc:gaecfb47a0e86d293ca002f1e11b2edb38"><td class="mdescLeft">&#160;</td><td class="mdescRight">Finishes writing the given compound type.  <a href="#gaecfb47a0e86d293ca002f1e11b2edb38">More...</a><br /></td></tr>
+<tr class="separator:gaecfb47a0e86d293ca002f1e11b2edb38"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
 <p>The MPack Write API encodes structured data of a fixed (hardcoded) schema to MessagePack. </p>
+<h2 class="groupheader">Macro Definition Documentation</h2>
+<a class="anchor" id="ga34786576628c2f814b5d109daf0af7d1"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">#define MPACK_WRITER_MINIMUM_BUFFER_SIZE&#160;&#160;&#160;32</td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>The minimum buffer size for a writer with a flush function. </p>
+
+</div>
+</div>
 <h2 class="groupheader">Typedef Documentation</h2>
 <a class="anchor" id="ga65d410be0305a59ec15cfe700f8b036a"></a>
 <div class="memitem">
@@ -380,11 +402,11 @@ Chunked Data Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Finishes writing a binary blob. </p>
-<p>This should be called only after a corresponding call to <a class="el" href="group__writer.html#ga9d9d905358fe553360e3071485f75b4d" title="Opens a binary blob. ">mpack_start_bin()</a> and after the binary bytes are written with <a class="el" href="group__writer.html#ga7f594d59ddfd2729aa2b3758e1641139" title="Writes a portion of bytes for a string, binary blob or extension type which was opened by one of the ...">mpack_write_bytes()</a>.</p>
+<p>This should be called only after a corresponding call to <a class="el" href="group__writer.html#ga9d9d905358fe553360e3071485f75b4d" title="Opens a binary blob. ">mpack_start_bin()</a> and after the binary bytes are written with <a class="el" href="group__writer.html#ga7f594d59ddfd2729aa2b3758e1641139" title="Writes a portion of bytes for a string, binary blob or extension type which was opened by mpack_write...">mpack_write_bytes()</a>.</p>
 <p>This will track writes to ensure that the correct number of bytes are written.</p>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="group__writer.html#ga9d9d905358fe553360e3071485f75b4d" title="Opens a binary blob. ">mpack_start_bin()</a> </dd>
 <dd>
-<a class="el" href="group__writer.html#ga7f594d59ddfd2729aa2b3758e1641139" title="Writes a portion of bytes for a string, binary blob or extension type which was opened by one of the ...">mpack_write_bytes()</a> </dd></dl>
+<a class="el" href="group__writer.html#ga7f594d59ddfd2729aa2b3758e1641139" title="Writes a portion of bytes for a string, binary blob or extension type which was opened by mpack_write...">mpack_write_bytes()</a> </dd></dl>
 
 </div>
 </div>
@@ -403,11 +425,11 @@ Chunked Data Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Finishes writing an extended type binary data blob. </p>
-<p>This should be called only after a corresponding call to <a class="el" href="group__writer.html#ga9d9d905358fe553360e3071485f75b4d" title="Opens a binary blob. ">mpack_start_bin()</a> and after the binary bytes are written with <a class="el" href="group__writer.html#ga7f594d59ddfd2729aa2b3758e1641139" title="Writes a portion of bytes for a string, binary blob or extension type which was opened by one of the ...">mpack_write_bytes()</a>.</p>
+<p>This should be called only after a corresponding call to <a class="el" href="group__writer.html#ga9d9d905358fe553360e3071485f75b4d" title="Opens a binary blob. ">mpack_start_bin()</a> and after the binary bytes are written with <a class="el" href="group__writer.html#ga7f594d59ddfd2729aa2b3758e1641139" title="Writes a portion of bytes for a string, binary blob or extension type which was opened by mpack_write...">mpack_write_bytes()</a>.</p>
 <p>This will track writes to ensure that the correct number of bytes are written.</p>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="group__writer.html#gab9cd08887689641c3d71cea6f536b6f8" title="Opens an extension type. ">mpack_start_ext()</a> </dd>
 <dd>
-<a class="el" href="group__writer.html#ga7f594d59ddfd2729aa2b3758e1641139" title="Writes a portion of bytes for a string, binary blob or extension type which was opened by one of the ...">mpack_write_bytes()</a> </dd></dl>
+<a class="el" href="group__writer.html#ga7f594d59ddfd2729aa2b3758e1641139" title="Writes a portion of bytes for a string, binary blob or extension type which was opened by mpack_write...">mpack_write_bytes()</a> </dd></dl>
 
 </div>
 </div>
@@ -447,11 +469,11 @@ Chunked Data Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Finishes writing a string. </p>
-<p>This should be called only after a corresponding call to <a class="el" href="group__writer.html#ga0f293abb4441a1113b2ed956c3e735ad" title="Opens a string. ">mpack_start_str()</a> and after the string bytes are written with <a class="el" href="group__writer.html#ga7f594d59ddfd2729aa2b3758e1641139" title="Writes a portion of bytes for a string, binary blob or extension type which was opened by one of the ...">mpack_write_bytes()</a>.</p>
+<p>This should be called only after a corresponding call to <a class="el" href="group__writer.html#ga0f293abb4441a1113b2ed956c3e735ad" title="Opens a string. ">mpack_start_str()</a> and after the string bytes are written with <a class="el" href="group__writer.html#ga7f594d59ddfd2729aa2b3758e1641139" title="Writes a portion of bytes for a string, binary blob or extension type which was opened by mpack_write...">mpack_write_bytes()</a>.</p>
 <p>This will track writes to ensure that the correct number of elements are written.</p>
 <dl class="section see"><dt>See also</dt><dd><a class="el" href="group__writer.html#ga0f293abb4441a1113b2ed956c3e735ad" title="Opens a string. ">mpack_start_str()</a> </dd>
 <dd>
-<a class="el" href="group__writer.html#ga7f594d59ddfd2729aa2b3758e1641139" title="Writes a portion of bytes for a string, binary blob or extension type which was opened by one of the ...">mpack_write_bytes()</a> </dd></dl>
+<a class="el" href="group__writer.html#ga7f594d59ddfd2729aa2b3758e1641139" title="Writes a portion of bytes for a string, binary blob or extension type which was opened by mpack_write...">mpack_write_bytes()</a> </dd></dl>
 
 </div>
 </div>
@@ -540,7 +562,7 @@ Chunked Data Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Opens a binary blob. </p>
-<p><code>count</code> bytes should be written with calls to <a class="el" href="group__writer.html#ga7f594d59ddfd2729aa2b3758e1641139" title="Writes a portion of bytes for a string, binary blob or extension type which was opened by one of the ...">mpack_write_bytes()</a>, and <a class="el" href="group__writer.html#gaaff7b65b611db3cf5b165b7efed0f0f2" title="Finishes writing a binary blob. ">mpack_finish_bin()</a> should be called when done. </p>
+<p><code>count</code> bytes should be written with calls to <a class="el" href="group__writer.html#ga7f594d59ddfd2729aa2b3758e1641139" title="Writes a portion of bytes for a string, binary blob or extension type which was opened by mpack_write...">mpack_write_bytes()</a>, and <a class="el" href="group__writer.html#gaaff7b65b611db3cf5b165b7efed0f0f2" title="Finishes writing a binary blob. ">mpack_finish_bin()</a> should be called when done. </p>
 
 </div>
 </div>
@@ -575,7 +597,7 @@ Chunked Data Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Opens an extension type. </p>
-<p><code>count</code> bytes should be written with calls to <a class="el" href="group__writer.html#ga7f594d59ddfd2729aa2b3758e1641139" title="Writes a portion of bytes for a string, binary blob or extension type which was opened by one of the ...">mpack_write_bytes()</a>, and <a class="el" href="group__writer.html#ga7f93f96c951f17bba8cd26a6f50db8e2" title="Finishes writing an extended type binary data blob. ">mpack_finish_ext()</a> should be called when done.</p>
+<p><code>count</code> bytes should be written with calls to <a class="el" href="group__writer.html#ga7f594d59ddfd2729aa2b3758e1641139" title="Writes a portion of bytes for a string, binary blob or extension type which was opened by mpack_write...">mpack_write_bytes()</a>, and <a class="el" href="group__writer.html#ga7f93f96c951f17bba8cd26a6f50db8e2" title="Finishes writing an extended type binary data blob. ">mpack_finish_ext()</a> should be called when done.</p>
 <p>Extension types [0, 127] are available for application-specific types. Extension types [-128, -1] are reserved for future extensions of MessagePack. </p>
 
 </div>
@@ -636,7 +658,7 @@ Chunked Data Functions</h2></td></tr>
 </div><div class="memdoc">
 
 <p>Opens a string. </p>
-<p><code>count</code> bytes should be written with calls to <a class="el" href="group__writer.html#ga7f594d59ddfd2729aa2b3758e1641139" title="Writes a portion of bytes for a string, binary blob or extension type which was opened by one of the ...">mpack_write_bytes()</a>, and <a class="el" href="group__writer.html#ga44f9dd4d379b70fb9534cf1e359e3d4a" title="Finishes writing a string. ">mpack_finish_str()</a> should be called when done.</p>
+<p><code>count</code> bytes should be written with calls to <a class="el" href="group__writer.html#ga7f594d59ddfd2729aa2b3758e1641139" title="Writes a portion of bytes for a string, binary blob or extension type which was opened by mpack_write...">mpack_write_bytes()</a>, and <a class="el" href="group__writer.html#ga44f9dd4d379b70fb9534cf1e359e3d4a" title="Finishes writing a string. ">mpack_finish_str()</a> should be called when done.</p>
 <p>To write an entire string at once, use <a class="el" href="group__writer.html#gabdd346fe4eb4e1737807932d19a2909f" title="Writes a string. ">mpack_write_str()</a> or <a class="el" href="group__writer.html#ga3bd01df04f36b5feb770f449b83995b6" title="Writes a null-terminated string. ">mpack_write_cstr()</a> instead.</p>
 <p>MPack does not care about the underlying encoding, but UTF-8 is highly recommended, especially for compatibility with JSON. </p>
 
@@ -736,11 +758,13 @@ Chunked Data Functions</h2></td></tr>
       </table>
 </div><div class="memdoc">
 
-<p>Writes a portion of bytes for a string, binary blob or extension type which was opened by one of the mpack_start_*() functions. </p>
+<p>Writes a portion of bytes for a string, binary blob or extension type which was opened by <a class="el" href="group__writer.html#ga17155afc35912817c13802d502f14e80" title="Writes a MessagePack object header (an MPack Tag.) ">mpack_write_tag()</a> or one of the mpack_start_*() functions. </p>
 <p>This can be called multiple times to write the data in chunks, as long as the total amount of bytes written matches the count given when the compound type was started.</p>
 <p>The corresponding mpack_finish_*() function must be called when done.</p>
 <p>To write an entire string, binary blob or extension type at once, use one of the mpack_write_*() functions instead.</p>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__writer.html#ga0f293abb4441a1113b2ed956c3e735ad" title="Opens a string. ">mpack_start_str()</a> </dd>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__writer.html#ga17155afc35912817c13802d502f14e80" title="Writes a MessagePack object header (an MPack Tag.) ">mpack_write_tag()</a> </dd>
+<dd>
+<a class="el" href="group__writer.html#ga0f293abb4441a1113b2ed956c3e735ad" title="Opens a string. ">mpack_start_str()</a> </dd>
 <dd>
 <a class="el" href="group__writer.html#ga9d9d905358fe553360e3071485f75b4d" title="Opens a binary blob. ">mpack_start_bin()</a> </dd>
 <dd>
@@ -782,7 +806,7 @@ Chunked Data Functions</h2></td></tr>
 
 <p>Writes a null-terminated string. </p>
 <p>(The null-terminator is not written.)</p>
-<p>MPack does not care about the underlying encoding, but UTF-8 is highly recommended, especially for compatibility with JSON.</p>
+<p>MPack does not care about the underlying encoding, but UTF-8 is highly recommended, especially for compatibility with JSON. You should consider calling <a class="el" href="group__writer.html#ga5c82b06ba51952b2c8f6508e69f3bcc5" title="Writes a null-terminated string, ensuring that it is valid UTF-8. ">mpack_write_utf8_cstr()</a> instead, especially if you will be reading it back as UTF-8.</p>
 <p>You should not call <a class="el" href="group__writer.html#ga44f9dd4d379b70fb9534cf1e359e3d4a" title="Finishes writing a string. ">mpack_finish_str()</a> after calling this; this performs both start and finish. </p>
 
 </div>
@@ -813,7 +837,7 @@ Chunked Data Functions</h2></td></tr>
 
 <p>Writes a null-terminated string, or a nil node if the given cstr pointer is NULL. </p>
 <p>(The null-terminator is not written.)</p>
-<p>MPack does not care about the underlying encoding, but UTF-8 is highly recommended, especially for compatibility with JSON.</p>
+<p>MPack does not care about the underlying encoding, but UTF-8 is highly recommended, especially for compatibility with JSON. You should consider calling <a class="el" href="group__writer.html#ga2ef20cf65309d8deb6a11f6811c6b639" title="Writes a null-terminated string ensuring that it is valid UTF-8, or writes nil if the given cstr poin...">mpack_write_utf8_cstr_or_nil()</a> instead, especially if you will be reading it back as UTF-8.</p>
 <p>You should not call <a class="el" href="group__writer.html#ga44f9dd4d379b70fb9534cf1e359e3d4a" title="Finishes writing a string. ">mpack_finish_str()</a> after calling this; this performs both start and finish. </p>
 
 </div>
@@ -1156,7 +1180,9 @@ Chunked Data Functions</h2></td></tr>
 
 <p>Writes a MessagePack object header (an MPack Tag.) </p>
 <p>If the value is a map, array, string, binary or extension type, the containing elements or bytes must be written separately and the appropriate finish function must be called (as though one of the mpack_start_*() functions was called.)</p>
-<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__writer.html#gabf0ab209845e7c9c3df7aa00b0d59a03" title="Finishes writing a map. ">mpack_finish_map()</a> </dd>
+<dl class="section see"><dt>See also</dt><dd><a class="el" href="group__writer.html#ga7f594d59ddfd2729aa2b3758e1641139" title="Writes a portion of bytes for a string, binary blob or extension type which was opened by mpack_write...">mpack_write_bytes()</a> </dd>
+<dd>
+<a class="el" href="group__writer.html#gabf0ab209845e7c9c3df7aa00b0d59a03" title="Finishes writing a map. ">mpack_finish_map()</a> </dd>
 <dd>
 <a class="el" href="group__writer.html#gaa7ae76ab1bf912e1db537cad69cf5f31" title="Finishes writing an array. ">mpack_finish_array()</a> </dd>
 <dd>

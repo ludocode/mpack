@@ -25,7 +25,7 @@
  <tr style="height: 56px;">
   <td id="projectalign" style="padding-left: 0.5em;">
    <div id="projectname">MPack
-   &#160;<span id="projectnumber">0.8</span>
+   &#160;<span id="projectnumber">0.8.1</span>
    </div>
    <div id="projectbrief">A C encoding/decoding library for the MessagePack serialization format.</div>
   </td>
@@ -203,6 +203,12 @@ Node Primitive Value Functions</h2></td></tr>
 <tr class="memitem:gae1364528bea1667a421d39bad3e0453a"><td class="memItemLeft" align="right" valign="top">int64_t&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#gae1364528bea1667a421d39bad3e0453a">mpack_node_i64</a> (<a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a> node)</td></tr>
 <tr class="memdesc:gae1364528bea1667a421d39bad3e0453a"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the 64-bit signed value of the node.  <a href="#gae1364528bea1667a421d39bad3e0453a">More...</a><br /></td></tr>
 <tr class="separator:gae1364528bea1667a421d39bad3e0453a"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga28f422427efed19ce0a292b135a13067"><td class="memItemLeft" align="right" valign="top">unsigned int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#ga28f422427efed19ce0a292b135a13067">mpack_node_uint</a> (<a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a> node)</td></tr>
+<tr class="memdesc:ga28f422427efed19ce0a292b135a13067"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the unsigned int value of the node.  <a href="#ga28f422427efed19ce0a292b135a13067">More...</a><br /></td></tr>
+<tr class="separator:ga28f422427efed19ce0a292b135a13067"><td class="memSeparator" colspan="2">&#160;</td></tr>
+<tr class="memitem:ga7beb8942f1d779d6fd688a4db84a3358"><td class="memItemLeft" align="right" valign="top">int&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#ga7beb8942f1d779d6fd688a4db84a3358">mpack_node_int</a> (<a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a> node)</td></tr>
+<tr class="memdesc:ga7beb8942f1d779d6fd688a4db84a3358"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the int value of the node.  <a href="#ga7beb8942f1d779d6fd688a4db84a3358">More...</a><br /></td></tr>
+<tr class="separator:ga7beb8942f1d779d6fd688a4db84a3358"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:ga66fed30759650f65e7edaef79b2c73f4"><td class="memItemLeft" align="right" valign="top">float&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="group__node.html#ga66fed30759650f65e7edaef79b2c73f4">mpack_node_float</a> (<a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a> node)</td></tr>
 <tr class="memdesc:ga66fed30759650f65e7edaef79b2c73f4"><td class="mdescLeft">&#160;</td><td class="mdescRight">Returns the float value of the node.  <a href="#ga66fed30759650f65e7edaef79b2c73f4">More...</a><br /></td></tr>
 <tr class="separator:ga66fed30759650f65e7edaef79b2c73f4"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -1127,6 +1133,31 @@ Compound Node Functions</h2></td></tr>
 
 </div>
 </div>
+<a class="anchor" id="ga7beb8942f1d779d6fd688a4db84a3358"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">int mpack_node_int </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a>&#160;</td>
+          <td class="paramname"><em>node</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Returns the int value of the node. </p>
+<p>Returns zero if an error occurs.</p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_type</td><td>If the node is not an integer type or does not fit in the range of an int </td></tr>
+  </table>
+  </dd>
+</dl>
+
+</div>
+</div>
 <a class="anchor" id="ga1be7c8845cff656408450ca31c3c3cad"></a>
 <div class="memitem">
 <div class="memproto">
@@ -1917,6 +1948,31 @@ Compound Node Functions</h2></td></tr>
 
 <p>Returns the 8-bit unsigned value of the node. </p>
 <p>If this node is not of a compatible type, mpack_error_type is raised and zero is returned. </p>
+
+</div>
+</div>
+<a class="anchor" id="ga28f422427efed19ce0a292b135a13067"></a>
+<div class="memitem">
+<div class="memproto">
+      <table class="memname">
+        <tr>
+          <td class="memname">unsigned int mpack_node_uint </td>
+          <td>(</td>
+          <td class="paramtype"><a class="el" href="group__node.html#ga08f46371c0c59a2e4dd7bdf1891fb3cb">mpack_node_t</a>&#160;</td>
+          <td class="paramname"><em>node</em></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+</div><div class="memdoc">
+
+<p>Returns the unsigned int value of the node. </p>
+<p>Returns zero if an error occurs.</p>
+<dl class="exception"><dt>Exceptions</dt><dd>
+  <table class="exception">
+    <tr><td class="paramname">mpack_error_type</td><td>If the node is not an integer type or does not fit in the range of an unsigned int </td></tr>
+  </table>
+  </dd>
+</dl>
 
 </div>
 </div>
