@@ -11,8 +11,8 @@ Suppose we have data that we know will have the following schema:
 
 ```
 an array containing three elements
-  a UTF-8 string of less than 127 characters
-  a UTF-8 string of less than 127 characters
+  a UTF-8 string of at most 127 characters
+  a UTF-8 string of at most 127 characters
   an array containing up to ten elements
     where all elements are ints
 ```

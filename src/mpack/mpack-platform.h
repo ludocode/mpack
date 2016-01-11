@@ -358,9 +358,14 @@ MPACK_HEADER_START
         #if defined(__GNUC__)
             #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
                 #ifndef __cplusplus
+                    #if __GNUC__ >= 5
+                    #define MPACK_IGNORE_PEDANTIC "GCC diagnostic ignored \"-Wpedantic\""
+                    #else
+                    #define MPACK_IGNORE_PEDANTIC "GCC diagnostic ignored \"-pedantic\""
+                    #endif
                     #define MPACK_STATIC_ASSERT(expr, str) do { \
                         _Pragma ("GCC diagnostic push") \
-                        _Pragma ("GCC diagnostic ignored \"-pedantic\"") \
+                        _Pragma (MPACK_IGNORE_PEDANTIC) \
                         _Pragma ("GCC diagnostic ignored \"-Wc++-compat\"") \
                         _Static_assert(expr, str); \
                         _Pragma ("GCC diagnostic pop") \
@@ -399,6 +404,7 @@ MPACK_HEADER_START
 
 #if defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && defined(__ORDER_BIG_ENDIAN__)
     #if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
+        #define MPACK_NHSWAP16(x) (x)
         #define MPACK_NHSWAP32(x) (x)
         #define MPACK_NHSWAP64(x) (x)
     #elif __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
@@ -406,6 +412,11 @@ MPACK_HEADER_START
         #if !MPACK_NO_BUILTINS
             #if defined(__clang__)
                 #ifdef __has_builtin
+                    // Unlike the GCC builtins, the bswap builtins in Clang
+                    // significantly improve ARM performance.
+                    #if __has_builtin(__builtin_bswap16)
+                        #define MPACK_NHSWAP16(x) __builtin_bswap16(x)
+                    #endif
                     #if __has_builtin(__builtin_bswap32)
                         #define MPACK_NHSWAP32(x) __builtin_bswap32(x)
                     #endif
@@ -421,9 +432,15 @@ MPACK_HEADER_START
                 //     http://hardwarebug.org/2010/01/14/beware-the-builtins/
 
                 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 5)
-                    #define MPACK_NHSWAP32(x) __builtin_bswap32(x)
                     #define MPACK_NHSWAP64(x) __builtin_bswap64(x)
                 #endif
+
+                // __builtin_bswap16() was not implemented on all platforms
+                // until GCC 4.8.0:
+                //     https://gcc.gnu.org/bugzilla/show_bug.cgi?id=52624
+                //
+                // The 16- and 32-bit versions in GCC significantly reduce performance
+                // on ARM with little effect on code size so we don't use them.
 
             #endif
         #endif
@@ -437,6 +454,7 @@ MPACK_HEADER_START
     // compiler is ever used with a big-endian ARM device.
 
     #if defined(_M_IX86) || defined(_M_X64) || defined(_M_AMD64)
+        #define MPACK_NHSWAP16(x) _byteswap_ushort(x)
         #define MPACK_NHSWAP32(x) _byteswap_ulong(x)
         #define MPACK_NHSWAP64(x) _byteswap_uint64(x)
     #endif
@@ -547,6 +565,8 @@ MPACK_HEADER_START
         #pragma GCC poison memmove
         #pragma GCC poison memset
         #pragma GCC poison strlen
+        #pragma GCC poison malloc
+        #pragma GCC poison free
     #endif
 
 #elif defined(__GNUC__) && !MPACK_NO_BUILTINS

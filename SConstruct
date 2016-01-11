@@ -34,6 +34,12 @@ env.Append(CPPFLAGS = [
 env.Append(LINKFLAGS = [
     "-g",
     ])
+
+if conf.CheckFlags(["-Wmissing-variable-declarations"]):
+    env.Append(CPPFLAGS = ["-Wmissing-variable-declarations"])
+if conf.CheckFlags(["-Wstrict-aliasing=1"]):
+    env.Append(CPPFLAGS = ["-Wstrict-aliasing=1"]) # use level 1 for maximum false positives
+
 # Additional warning flags are passed in SConscript based on the language (C/C++)
 
 if 'TRAVIS' not in env["ENV"]:
@@ -70,6 +76,12 @@ if ARGUMENTS.get('gcov'):
     gcovflags = ["-DMPACK_GCOV=1", "--coverage"]
 
 ltoflags = ["-O3", "-flto", "-fuse-linker-plugin", "-fno-fat-lto-objects"]
+
+if conf.CheckFlags(["-Wstrict-aliasing=3"]):
+    ltoflags.append("-Wstrict-aliasing=3")
+elif conf.CheckFlags(["-Wstrict-aliasing=2"]):
+    ltoflags.append("-Wstrict-aliasing=2")
+
 
 # -lstdc++ is added in SConscript
 cxxflags = ["-x", "c++"]

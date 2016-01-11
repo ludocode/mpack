@@ -2,3 +2,9 @@ table.doxtable th {
 	background-color: #e0e7ff;
 	color: #000;
 }
+.textblock code {
+    background-color: #f3f3f3;
+}
+.textblock li {
+    margin: 3pt 0 3pt 0;
+}

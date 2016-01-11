@@ -19,6 +19,9 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+// we need internal to access the utf-8 check functions
+#define MPACK_INTERNAL 1
+
 #include "test-common.h"
 
 #include <math.h>
@@ -277,6 +280,142 @@ static void test_strings() {
     #endif
 }
 
+static void test_utf8_check(void) {
+    #define EXPAND_STR_ARGS(str) str, sizeof(str) - 1
+
+
+    // ascii
+    TEST_TRUE(true  == mpack_utf8_check(EXPAND_STR_ARGS("")));
+    TEST_TRUE(true  == mpack_utf8_check(EXPAND_STR_ARGS("test")));
+    TEST_TRUE(true  == mpack_utf8_check(EXPAND_STR_ARGS("\x00")));
+    TEST_TRUE(true  == mpack_utf8_check(EXPAND_STR_ARGS("\x7F")));
+    TEST_TRUE(true  == mpack_utf8_check(EXPAND_STR_ARGS("\x00""\x7F")));
+
+    // nul
+    TEST_TRUE(true  == mpack_utf8_check(EXPAND_STR_ARGS("\x00")));
+    TEST_TRUE(true  == mpack_utf8_check(EXPAND_STR_ARGS("test\x00""test")));
+    TEST_TRUE(false == mpack_utf8_check_no_null(EXPAND_STR_ARGS("\x00")));
+    TEST_TRUE(false == mpack_utf8_check_no_null(EXPAND_STR_ARGS("test\x00""test")));
+
+
+    // 2-byte sequences
+    TEST_TRUE(true  == mpack_utf8_check(EXPAND_STR_ARGS("\xC2\x80")));
+    TEST_TRUE(true  == mpack_utf8_check(EXPAND_STR_ARGS("\xDF\xBF")));
+    TEST_TRUE(true  == mpack_utf8_check(EXPAND_STR_ARGS("test\xC2\x80""test")));
+    TEST_TRUE(true  == mpack_utf8_check(EXPAND_STR_ARGS("test\xDF\xBF""test")));
+
+    // truncated 2-byte sequences
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xC2")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xDF")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("test\xC2")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("test\xDF")));
+
+    // 2-byte overlong sequences
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xC0\xBF")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xC1\xBF")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("test\xC0\xBF""test")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("test\xC1\xBF""test")));
+
+    // not continuation bytes
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xC2\x02")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xC2\xC0")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xC2\xE0")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("test\xC2\x02""test")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("test\xC2\xC0""test")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("test\xC2\xE0""test")));
+
+    // miscellaneous 2-byte sequences
+    TEST_TRUE(true  == mpack_utf8_check(EXPAND_STR_ARGS("\xC2\x80\xDF\xBF")));
+    TEST_TRUE(true  == mpack_utf8_check(EXPAND_STR_ARGS("test\xC2\x80""test\xDF\xBF""test")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xC2\x70\xDF\xBF")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xC2\x80\xDF\xEF")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("test\xC2\x00""test\xDF\xBF""test")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("test\xC2\x80""test\xDF\xEF""test")));
+
+
+    // 3-byte sequences
+    TEST_TRUE(true  == mpack_utf8_check(EXPAND_STR_ARGS("\xE0\xA0\x80")));
+    TEST_TRUE(true  == mpack_utf8_check(EXPAND_STR_ARGS("\xE7\xA0\xBF")));
+    TEST_TRUE(true  == mpack_utf8_check(EXPAND_STR_ARGS("\xEF\xBF\xBF")));
+    TEST_TRUE(true  == mpack_utf8_check(EXPAND_STR_ARGS("test\xE0\xA0\x80""test")));
+    TEST_TRUE(true  == mpack_utf8_check(EXPAND_STR_ARGS("test\xE7\xA0\xBF""test")));
+    TEST_TRUE(true  == mpack_utf8_check(EXPAND_STR_ARGS("test\xEF\xBF\xBF""test")));
+
+    // truncated 3-byte sequences
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xE0")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xEF")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xE7\x80")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xEA\xBF")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("test\xE0")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("test\xEA\xBF")));
+
+    // 3-byte overlong sequences
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xE0\x80\x80")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xE0\x9F\xFF")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("test\xE0\x80\x80""test")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("test\xE0\x9F\xFF""test")));
+
+    // not continuation bytes
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xE0\x00\x80")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xE0\xF0\x80")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xE0\x80\x00")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xE0\x80\xF0")));
+
+    // surrogates
+    TEST_TRUE(true  == mpack_utf8_check(EXPAND_STR_ARGS("\xED\x9F\xBF")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xED\xA0\x80")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xED\xBF\xBF")));
+    TEST_TRUE(true  == mpack_utf8_check(EXPAND_STR_ARGS("\xEE\x80\x80")));
+    TEST_TRUE(true  == mpack_utf8_check(EXPAND_STR_ARGS("\xED\x9F\xBF\xEE\x80\x80")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xED\x9F\xBF\xED\xBF\xBF\xEE\x80\x80")));
+
+    // miscellaneous 3-byte sequences
+    TEST_TRUE(true  == mpack_utf8_check(EXPAND_STR_ARGS("\xE0\xA0\x80\xE7\xA0\xBF\xEF\xBF\xBF")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xE0\xA0\x80\xE7\x00\xBF\xEF\xBF\xBF")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xE0\xA0\x80\xE7\xA0\xBF\xEF\xBF\x7F")));
+    TEST_TRUE(true  == mpack_utf8_check(EXPAND_STR_ARGS("test\xE0\xA0\x80""test\xE7\xA0\xBF""test\xEF\xBF\xBF""test")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("test\xE0\xA0\x80""test\xE7\xD0\xBF""test\xEF\xBF\xBF""test")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("test\xE0\xA0\x80""test\xE7\xA0\xBF""test\xEF\x1F\xBF""test")));
+
+
+    // 4-byte sequences
+    TEST_TRUE(true  == mpack_utf8_check(EXPAND_STR_ARGS("\xF0\x90\x80\x80"))); // U+10000
+    TEST_TRUE(true  == mpack_utf8_check(EXPAND_STR_ARGS("\xF4\x8F\xBF\xBF"))); // limit
+    TEST_TRUE(true  == mpack_utf8_check(EXPAND_STR_ARGS("\xF0\x90\x80\x80\xF4\x8F\xBF\xBF")));
+    TEST_TRUE(true  == mpack_utf8_check(EXPAND_STR_ARGS("test\xF0\x90\x80\x80""test"))); // U+10000
+    TEST_TRUE(true  == mpack_utf8_check(EXPAND_STR_ARGS("test\xF4\x8F\xBF\xBF""test"))); // limit
+
+    // truncated 4-byte sequences
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xF0\x90")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xF1\x90\xB0")));
+
+    // 4-byte overlong sequences
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xF0\x80\x80\x80"))); // NUL
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xF0\x8F\xBF\xBF"))); // U+9999 (overlong)
+
+    // not continuation bytes
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xF0\x60\x80\x80")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xF1\x90\xD0\x80")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xF2\x90\x80\xF0")));
+
+    // unicode limit
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xF4\x90\x80\x80"))); // U+110000 (out of bounds)
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xF6\x80\x80\x80")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("\xF7\x80\x80\x80")));
+
+
+    // 5- and 6-byte sequences
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("test\xF8\x80\x80\x80\x80""test")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("test\xFB\x80\x80\x80\x80""test")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("test\xFD\x80\x80\x80\x80\x80""test")));
+
+    // other invalid bytes
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("test\xC0""testtesttest")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("test\xC1""testtesttest")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("test\xF5""testtesttest")));
+    TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("test\xFF""testtesttest")));
+}
+
 void test_common() {
     test_tags_special();
     test_tags_simple();
@@ -284,5 +423,6 @@ void test_common() {
     test_tags_compound();
 
     test_strings();
+    test_utf8_check();
 }
 

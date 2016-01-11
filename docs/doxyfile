@@ -9,6 +9,7 @@ INPUT = \
     README.md \
     docs/expect.md \
     docs/features.md \
+    docs/protocol.md \
     src/mpack/mpack-common.h \
     src/mpack/mpack-reader.h \
     src/mpack/mpack-writer.h \

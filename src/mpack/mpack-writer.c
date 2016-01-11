@@ -52,9 +52,25 @@ void mpack_writer_track_bytes(mpack_writer_t* writer, size_t count) {
 }
 #endif
 
+static void mpack_writer_clear(mpack_writer_t* writer) {
+    writer->flush = NULL;
+    writer->error_fn = NULL;
+    writer->teardown = NULL;
+    writer->context = NULL;
+
+    writer->buffer = NULL;
+    writer->size = 0;
+    writer->used = 0;
+    writer->error = mpack_ok;
+
+    #if MPACK_WRITE_TRACKING
+    mpack_memset(&writer->track, 0, sizeof(writer->track));
+    #endif
+}
+
 void mpack_writer_init(mpack_writer_t* writer, char* buffer, size_t size) {
     mpack_assert(buffer != NULL, "cannot initialize writer with empty buffer");
-    mpack_memset(writer, 0, sizeof(*writer));
+    mpack_writer_clear(writer);
     writer->buffer = buffer;
     writer->size = size;
 
@@ -67,11 +83,25 @@ void mpack_writer_init(mpack_writer_t* writer, char* buffer, size_t size) {
 }
 
 void mpack_writer_init_error(mpack_writer_t* writer, mpack_error_t error) {
-    mpack_memset(writer, 0, sizeof(*writer));
+    mpack_writer_clear(writer);
     writer->error = error;
 
     mpack_log("===========================\n");
     mpack_log("initializing writer in error state %i\n", (int)error);
+}
+
+void mpack_writer_set_flush(mpack_writer_t* writer, mpack_writer_flush_t flush) {
+    MPACK_STATIC_ASSERT(MPACK_WRITER_MINIMUM_BUFFER_SIZE >= MPACK_MAXIMUM_TAG_SIZE,
+            "minimum buffer size must fit any tag!");
+
+    if (writer->size < MPACK_WRITER_MINIMUM_BUFFER_SIZE) {
+        mpack_break("buffer size is %i, but minimum buffer size for flush is %i",
+                (int)writer->size, MPACK_WRITER_MINIMUM_BUFFER_SIZE);
+        mpack_writer_flag_error(writer, mpack_error_bug);
+        return;
+    }
+
+    writer->flush = flush;
 }
 
 #ifdef MPACK_MALLOC
@@ -92,40 +122,51 @@ static void mpack_growable_writer_flush(mpack_writer_t* writer, const char* data
     //   - flushing extra data during writing (used is all flushed data, count is extra data, data is not buffer)
     //   - flushing during teardown (used and count are both all flushed data, data is buffer)
     //
-    // We handle these here, making sure used is the total count in all three cases.
-    mpack_log("flush size %i used %i data %p buffer %p\n", (int)writer->size, (int)writer->used, data, writer->buffer);
+    // In the first two cases, we grow the buffer by at least double, enough
+    // to ensure that new data will fit. We ignore the teardown flush.
 
-    // if the given data is not the old buffer, we'll need to actually copy it into the buffer
-    bool is_extra_data = (data != writer->buffer);
+    if (data == writer->buffer) {
 
-    // if we're flushing all data (used is zero), we should actually grow
-    size_t new_size = writer->size;
-    if (writer->used == 0 && count != 0)
-        new_size *= 2;
-    while (new_size < (is_extra_data ? writer->used + count : count))
-        new_size *= 2;
-
-    if (new_size > writer->size) {
-        mpack_log("flush growing from %i to %i\n", (int)writer->size, (int)new_size);
-
-        char* new_buffer = (char*)mpack_realloc(writer->buffer, count, new_size);
-        if (new_buffer == NULL) {
-            mpack_writer_flag_error(writer, mpack_error_memory);
+        // teardown, do nothing
+        if (writer->used == count)
             return;
-        }
 
-        writer->buffer = new_buffer;
-        writer->size = new_size;
-    }
-
-    if (is_extra_data) {
-        mpack_memcpy(writer->buffer + writer->used, data, count);
-        // add our extra data to count
-        writer->used += count;
-    } else {
-        // used is either zero or count; set it to count
+        // otherwise leave the data in the buffer and just grow
         writer->used = count;
+        count = 0;
     }
+
+    mpack_log("flush size %i used %i data %p buffer %p\n",
+            (int)count, (int)writer->used, data, writer->buffer);
+
+    mpack_assert(data == writer->buffer || writer->used + count > writer->size,
+            "extra flush for %i but there is %i space left in the buffer! (%i/%i)",
+            (int)count, (int)writer->size - (int)writer->used, (int)writer->used, (int)writer->size);
+
+    // grow to fit the data
+    // TODO: this really needs to correctly test for overflow
+    size_t new_size = writer->size * 2;
+    while (new_size < writer->used + count)
+        new_size *= 2;
+
+    mpack_log("flush growing buffer size from %i to %i\n", (int)writer->size, (int)new_size);
+
+    // grow the buffer
+    char* new_buffer = (char*)mpack_realloc(writer->buffer, writer->used, new_size);
+    if (new_buffer == NULL) {
+        mpack_writer_flag_error(writer, mpack_error_memory);
+        return;
+    }
+    writer->buffer = new_buffer;
+    writer->size = new_size;
+
+    // append the extra data
+    if (count > 0) {
+        mpack_memcpy(writer->buffer + writer->used, data, count);
+        writer->used += count;
+    }
+
+    mpack_log("new buffer %p, used %i\n", new_buffer, (int)writer->used);
 }
 
 static void mpack_growable_writer_teardown(mpack_writer_t* writer) {
@@ -155,8 +196,14 @@ static void mpack_growable_writer_teardown(mpack_writer_t* writer) {
         writer->buffer = NULL;
     }
 
-    MPACK_FREE(growable_writer);
     writer->context = NULL;
+}
+
+static char* mpack_writer_get_reserved(mpack_writer_t* writer) {
+    // This is in a separate function in order to avoid false strict aliasing
+    // warnings. We aren't actually violating strict aliasing (the reserved
+    // space is only ever dereferenced as an mpack_growable_writer_t.)
+    return (char*)writer->reserved;
 }
 
 void mpack_writer_init_growable(mpack_writer_t* writer, char** target_data, size_t* target_size) {
@@ -166,12 +213,9 @@ void mpack_writer_init_growable(mpack_writer_t* writer, char** target_data, size
     *target_data = NULL;
     *target_size = 0;
 
-    mpack_growable_writer_t* growable_writer = (mpack_growable_writer_t*) MPACK_MALLOC(sizeof(mpack_growable_writer_t));
-    if (growable_writer == NULL) {
-        mpack_writer_init_error(writer, mpack_error_memory);
-        return;
-    }
-    mpack_memset(growable_writer, 0, sizeof(*growable_writer));
+    MPACK_STATIC_ASSERT(sizeof(mpack_growable_writer_t) <= sizeof(writer->reserved),
+            "not enough reserved space for growable writer!");
+    mpack_growable_writer_t* growable_writer = (mpack_growable_writer_t*)mpack_writer_get_reserved(writer);
 
     growable_writer->target_data = target_data;
     growable_writer->target_size = target_size;
@@ -179,7 +223,6 @@ void mpack_writer_init_growable(mpack_writer_t* writer, char** target_data, size
     size_t capacity = MPACK_BUFFER_SIZE;
     char* buffer = (char*)MPACK_MALLOC(capacity);
     if (buffer == NULL) {
-        MPACK_FREE(growable_writer);
         mpack_writer_init_error(writer, mpack_error_memory);
         return;
     }
@@ -192,49 +235,46 @@ void mpack_writer_init_growable(mpack_writer_t* writer, char** target_data, size
 #endif
 
 #if MPACK_STDIO
-typedef struct mpack_file_writer_t {
-    FILE* file;
-    char buffer[MPACK_BUFFER_SIZE];
-} mpack_file_writer_t;
-
 static void mpack_file_writer_flush(mpack_writer_t* writer, const char* buffer, size_t count) {
-    mpack_file_writer_t* file_writer = (mpack_file_writer_t*)writer->context;
-    size_t written = fwrite((const void*)buffer, 1, count, file_writer->file);
+    FILE* file = (FILE*)writer->context;
+    size_t written = fwrite((const void*)buffer, 1, count, file);
     if (written != count)
         mpack_writer_flag_error(writer, mpack_error_io);
 }
 
 static void mpack_file_writer_teardown(mpack_writer_t* writer) {
-    mpack_file_writer_t* file_writer = (mpack_file_writer_t*)writer->context;
+    FILE* file = (FILE*)writer->context;
 
-    if (file_writer->file) {
-        int ret = fclose(file_writer->file);
-        file_writer->file = NULL;
+    if (file) {
+        int ret = fclose(file);
+        writer->context = NULL;
         if (ret != 0)
             mpack_writer_flag_error(writer, mpack_error_io);
     }
 
-    MPACK_FREE(file_writer);
+    MPACK_FREE(writer->buffer);
+    writer->buffer = NULL;
 }
 
 void mpack_writer_init_file(mpack_writer_t* writer, const char* filename) {
     mpack_assert(filename != NULL, "filename is NULL");
 
-    mpack_file_writer_t* file_writer = (mpack_file_writer_t*) MPACK_MALLOC(sizeof(mpack_file_writer_t));
-    if (file_writer == NULL) {
+    size_t capacity = MPACK_BUFFER_SIZE;
+    char* buffer = (char*)MPACK_MALLOC(capacity);
+    if (buffer == NULL) {
         mpack_writer_init_error(writer, mpack_error_memory);
         return;
     }
 
-    file_writer->file = fopen(filename, "wb");
-    if (file_writer->file == NULL) {
+    FILE* file = fopen(filename, "wb");
+    if (file == NULL) {
+        MPACK_FREE(buffer);
         mpack_writer_init_error(writer, mpack_error_io);
-        MPACK_FREE(file_writer);
         return;
     }
 
-    mpack_writer_init(writer, file_writer->buffer, sizeof(file_writer->buffer));
-    mpack_writer_set_context(writer, file_writer);
+    mpack_writer_init(writer, buffer, capacity);
+    mpack_writer_set_context(writer, file);
     mpack_writer_set_flush(writer, mpack_file_writer_flush);
     mpack_writer_set_teardown(writer, mpack_file_writer_teardown);
 }
@@ -250,13 +290,46 @@ void mpack_writer_flag_error(mpack_writer_t* writer, mpack_error_t error) {
     }
 }
 
-static void mpack_writer_flush_unchecked(mpack_writer_t* writer) {
+MPACK_STATIC_INLINE void mpack_writer_flush_unchecked(mpack_writer_t* writer) {
     // This is a bit ugly; we reset used before calling flush so that
     // a flush function can distinguish between flushing the buffer
     // versus flushing external data. see mpack_growable_writer_flush()
     size_t used = writer->used;
     writer->used = 0;
     writer->flush(writer, writer->buffer, used);
+}
+
+// Ensures there are at least count bytes free in the buffer. This
+// will flag an error if the flush function fails to make enough
+// room in the buffer.
+static bool mpack_writer_ensure(mpack_writer_t* writer, size_t count) {
+    mpack_assert(count != 0, "cannot ensure zero bytes!");
+    mpack_assert(count <= MPACK_WRITER_MINIMUM_BUFFER_SIZE,
+            "cannot ensure %i bytes, this is more than the minimum buffer size %i!",
+            (int)count, (int)MPACK_WRITER_MINIMUM_BUFFER_SIZE);
+    mpack_assert(count > mpack_writer_buffer_left(writer),
+            "request to ensure %i bytes but there are already %i left in the buffer!",
+            (int)count, (int)mpack_writer_buffer_left(writer));
+
+    mpack_log("ensuring %i bytes, %i left\n", (int)count, (int)mpack_writer_buffer_left(writer));
+
+    if (mpack_writer_error(writer) != mpack_ok)
+        return false;
+
+    if (writer->flush == NULL) {
+        mpack_writer_flag_error(writer, mpack_error_too_big);
+        return false;
+    }
+
+    mpack_writer_flush_unchecked(writer);
+    if (mpack_writer_error(writer) != mpack_ok)
+        return false;
+
+    if (mpack_writer_buffer_left(writer) >= count)
+        return true;
+
+    mpack_writer_flag_error(writer, mpack_error_io);
+    return false;
 }
 
 // Writes encoded bytes to the buffer when we already know the data
@@ -280,18 +353,6 @@ static void mpack_write_native_straddle(mpack_writer_t* writer, const char* p, s
         mpack_writer_flag_error(writer, mpack_error_too_big);
         return;
     }
-
-    // we assume that the flush function is orders of magnitude slower
-    // than memcpy(), so we fill the buffer up first to try to flush as
-    // infrequently as possible.
-    
-    // fill the remaining space in the buffer
-    size_t n = writer->size - writer->used;
-    mpack_memcpy(writer->buffer + writer->used, p, n);
-    writer->used += n;
-    p += n;
-    count -= n;
-    mpack_assert(count > 0, "no bytes left to flush??");
 
     // flush the buffer
     mpack_writer_flush_unchecked(writer);
@@ -370,7 +431,8 @@ void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t value) {
 
 MPACK_STATIC_INLINE void mpack_write_byte_element(mpack_writer_t* writer, char value) {
     mpack_writer_track_element(writer);
-    mpack_write_native(writer, &value, 1);
+    if (mpack_writer_buffer_left(writer) >= 1 || mpack_writer_ensure(writer, 1))
+        writer->buffer[writer->used++] = value;
 }
 
 void mpack_write_nil(mpack_writer_t* writer) {
@@ -593,25 +655,20 @@ MPACK_STATIC_INLINE void mpack_encode_ext32(char* p, int8_t exttype, uint32_t co
  */
 
 // This is a macro wrapper to the encode functions to encode
-// directly into the buffer if there is enough room. It depends
-// on the scope of the write functions (e.g. "left")
-#define MPACK_WRITE_ENCODED(encode_fn, size, ...) do {          \
-    if (left >= size) {                                         \
-        encode_fn(writer->buffer + writer->used, __VA_ARGS__);  \
-        writer->used += size;                                   \
-    } else {                                                    \
-        char buf[size];                                         \
-        encode_fn(buf, __VA_ARGS__);                            \
-        mpack_write_native_straddle(writer, buf, sizeof(buf));  \
-    }                                                           \
+// directly into the buffer. If mpack_writer_ensure() fails
+// it will flag an error so we don't have to do anything.
+#define MPACK_WRITE_ENCODED(encode_fn, size, ...) do {                                    \
+    if (mpack_writer_buffer_left(writer) >= size || mpack_writer_ensure(writer, size)) {  \
+        encode_fn(writer->buffer + writer->used, __VA_ARGS__);                            \
+        writer->used += size;                                                             \
+    }                                                                                     \
 } while (0)
 
 void mpack_write_u8(mpack_writer_t* writer, uint8_t value) {
     #if MPACK_OPTIMIZE_FOR_SIZE
-    mpack_write_u32(writer, value);
+    mpack_write_u64(writer, value);
     #else
     mpack_writer_track_element(writer);
-    size_t left = mpack_writer_buffer_left(writer);
     if (value <= 127) {
         MPACK_WRITE_ENCODED(mpack_encode_fixuint, MPACK_TAG_SIZE_FIXUINT, value);
     } else {
@@ -622,10 +679,9 @@ void mpack_write_u8(mpack_writer_t* writer, uint8_t value) {
 
 void mpack_write_u16(mpack_writer_t* writer, uint16_t value) {
     #if MPACK_OPTIMIZE_FOR_SIZE
-    mpack_write_u32(writer, value);
+    mpack_write_u64(writer, value);
     #else
     mpack_writer_track_element(writer);
-    size_t left = mpack_writer_buffer_left(writer);
     if (value <= 127) {
         MPACK_WRITE_ENCODED(mpack_encode_fixuint, MPACK_TAG_SIZE_FIXUINT, (uint8_t)value);
     } else if (value <= UINT8_MAX) {
@@ -641,7 +697,6 @@ void mpack_write_u32(mpack_writer_t* writer, uint32_t value) {
     mpack_write_u64(writer, value);
     #else
     mpack_writer_track_element(writer);
-    size_t left = mpack_writer_buffer_left(writer);
     if (value <= 127) {
         MPACK_WRITE_ENCODED(mpack_encode_fixuint, MPACK_TAG_SIZE_FIXUINT, (uint8_t)value);
     } else if (value <= UINT8_MAX) {
@@ -657,29 +712,6 @@ void mpack_write_u32(mpack_writer_t* writer, uint32_t value) {
 void mpack_write_u64(mpack_writer_t* writer, uint64_t value) {
     mpack_writer_track_element(writer);
 
-    #if MPACK_OPTIMIZE_FOR_SIZE
-    size_t bytes;
-    char buf[MPACK_TAG_SIZE_U64];
-    if (value <= 127) {
-        mpack_encode_fixuint(buf, (uint8_t)value);
-        bytes = MPACK_TAG_SIZE_FIXUINT;
-    } else if (value <= UINT8_MAX) {
-        mpack_encode_u8(buf, (uint8_t)value);
-        bytes = MPACK_TAG_SIZE_U8;
-    } else if (value <= UINT16_MAX) {
-        mpack_encode_u16(buf, (uint16_t)value);
-        bytes = MPACK_TAG_SIZE_U16;
-    } else if (value <= UINT32_MAX) {
-        mpack_encode_u32(buf, (uint32_t)value);
-        bytes = MPACK_TAG_SIZE_U32;
-    } else {
-        mpack_encode_u64(buf, value);
-        bytes = MPACK_TAG_SIZE_U64;
-    }
-    mpack_write_native(writer, buf, bytes);
-    #else
-
-    size_t left = mpack_writer_buffer_left(writer);
     if (value <= 127) {
         MPACK_WRITE_ENCODED(mpack_encode_fixuint, MPACK_TAG_SIZE_FIXUINT, (uint8_t)value);
     } else if (value <= UINT8_MAX) {
@@ -691,15 +723,13 @@ void mpack_write_u64(mpack_writer_t* writer, uint64_t value) {
     } else {
         MPACK_WRITE_ENCODED(mpack_encode_u64, MPACK_TAG_SIZE_U64, value);
     }
-    #endif
 }
 
 void mpack_write_i8(mpack_writer_t* writer, int8_t value) {
     #if MPACK_OPTIMIZE_FOR_SIZE
-    mpack_write_i32(writer, value);
+    mpack_write_i64(writer, value);
     #else
     mpack_writer_track_element(writer);
-    size_t left = mpack_writer_buffer_left(writer);
     if (value >= -32) {
         // we encode positive and negative fixints together
         MPACK_WRITE_ENCODED(mpack_encode_fixint, MPACK_TAG_SIZE_FIXINT, (int8_t)value);
@@ -711,10 +741,9 @@ void mpack_write_i8(mpack_writer_t* writer, int8_t value) {
 
 void mpack_write_i16(mpack_writer_t* writer, int16_t value) {
     #if MPACK_OPTIMIZE_FOR_SIZE
-    mpack_write_i32(writer, value);
+    mpack_write_i64(writer, value);
     #else
     mpack_writer_track_element(writer);
-    size_t left = mpack_writer_buffer_left(writer);
     if (value >= -32) {
         if (value <= 127) {
             // we encode positive and negative fixints together
@@ -737,7 +766,6 @@ void mpack_write_i32(mpack_writer_t* writer, int32_t value) {
     mpack_write_i64(writer, value);
     #else
     mpack_writer_track_element(writer);
-    size_t left = mpack_writer_buffer_left(writer);
     if (value >= -32) {
         if (value <= 127) {
             // we encode positive and negative fixints together
@@ -766,35 +794,14 @@ void mpack_write_i64(mpack_writer_t* writer, int64_t value) {
         mpack_write_u64(writer, (uint64_t)value);
         return;
     }
+    #endif
 
     mpack_writer_track_element(writer);
-    size_t bytes;
-    char buf[MPACK_TAG_SIZE_I64];
     if (value >= -32) {
-        // we encode positive and negative fixints together
-        mpack_encode_fixint(buf, (int8_t)value);
-        bytes = MPACK_TAG_SIZE_FIXINT;
-    } else if (value >= INT8_MIN) {
-        mpack_encode_i8(buf, (int8_t)value);
-        bytes = MPACK_TAG_SIZE_I8;
-    } else if (value >= INT16_MIN) {
-        mpack_encode_i16(buf, (int16_t)value);
-        bytes = MPACK_TAG_SIZE_I16;
-    } else if (value >= INT32_MIN) {
-        mpack_encode_i32(buf, (int32_t)value);
-        bytes = MPACK_TAG_SIZE_I32;
-    } else {
-        mpack_encode_i64(buf, value);
-        bytes = MPACK_TAG_SIZE_I64;
-    }
-    mpack_write_native(writer, buf, bytes);
-    #else
-
-    mpack_writer_track_element(writer);
-    size_t left = mpack_writer_buffer_left(writer);
-    if (value >= -32) {
+        #if MPACK_OPTIMIZE_FOR_SIZE
+        MPACK_WRITE_ENCODED(mpack_encode_fixint, MPACK_TAG_SIZE_FIXINT, (int8_t)value);
+        #else
         if (value <= 127) {
-            // we encode positive and negative fixints together
             MPACK_WRITE_ENCODED(mpack_encode_fixint, MPACK_TAG_SIZE_FIXINT, (int8_t)value);
         } else if (value <= UINT8_MAX) {
             MPACK_WRITE_ENCODED(mpack_encode_u8, MPACK_TAG_SIZE_U8, (uint8_t)value);
@@ -805,6 +812,7 @@ void mpack_write_i64(mpack_writer_t* writer, int64_t value) {
         } else {
             MPACK_WRITE_ENCODED(mpack_encode_u64, MPACK_TAG_SIZE_U64, (uint64_t)value);
         }
+        #endif
     } else if (value >= INT8_MIN) {
         MPACK_WRITE_ENCODED(mpack_encode_i8, MPACK_TAG_SIZE_I8, (int8_t)value);
     } else if (value >= INT16_MIN) {
@@ -814,52 +822,20 @@ void mpack_write_i64(mpack_writer_t* writer, int64_t value) {
     } else {
         MPACK_WRITE_ENCODED(mpack_encode_i64, MPACK_TAG_SIZE_I64, value);
     }
-    #endif
 }
 
 void mpack_write_float(mpack_writer_t* writer, float value) {
     mpack_writer_track_element(writer);
-    #if MPACK_OPTIMIZE_FOR_SIZE
-    char buf[MPACK_TAG_SIZE_FLOAT];
-    mpack_encode_float(buf, value);
-    mpack_write_native(writer, buf, sizeof(buf));
-    #else
-    size_t left = mpack_writer_buffer_left(writer);
     MPACK_WRITE_ENCODED(mpack_encode_float, MPACK_TAG_SIZE_FLOAT, value);
-    #endif
 }
 void mpack_write_double(mpack_writer_t* writer, double value) {
     mpack_writer_track_element(writer);
-    #if MPACK_OPTIMIZE_FOR_SIZE
-    char buf[MPACK_TAG_SIZE_DOUBLE];
-    mpack_encode_double(buf, value);
-    mpack_write_native(writer, buf, sizeof(buf));
-    #else
-    size_t left = mpack_writer_buffer_left(writer);
     MPACK_WRITE_ENCODED(mpack_encode_double, MPACK_TAG_SIZE_DOUBLE, value);
-    #endif
 }
 
 void mpack_start_array(mpack_writer_t* writer, uint32_t count) {
     mpack_writer_track_element(writer);
 
-    #if MPACK_OPTIMIZE_FOR_SIZE
-    size_t bytes;
-    char buf[MPACK_TAG_SIZE_ARRAY32];
-    if (count <= 15) {
-        mpack_encode_fixarray(buf, (uint8_t)count);
-        bytes = MPACK_TAG_SIZE_FIXARRAY;
-    } else if (count <= UINT16_MAX) {
-        mpack_encode_array16(buf, (uint16_t)count);
-        bytes = MPACK_TAG_SIZE_ARRAY16;
-    } else {
-        mpack_encode_array32(buf, (uint32_t)count);
-        bytes = MPACK_TAG_SIZE_ARRAY32;
-    }
-    mpack_write_native(writer, buf, bytes);
-    #else
-
-    size_t left = mpack_writer_buffer_left(writer);
     if (count <= 15) {
         MPACK_WRITE_ENCODED(mpack_encode_fixarray, MPACK_TAG_SIZE_FIXARRAY, (uint8_t)count);
     } else if (count <= UINT16_MAX) {
@@ -867,7 +843,6 @@ void mpack_start_array(mpack_writer_t* writer, uint32_t count) {
     } else {
         MPACK_WRITE_ENCODED(mpack_encode_array32, MPACK_TAG_SIZE_ARRAY32, (uint32_t)count);
     }
-    #endif
 
     mpack_writer_track_push(writer, mpack_type_array, count);
 }
@@ -875,23 +850,6 @@ void mpack_start_array(mpack_writer_t* writer, uint32_t count) {
 void mpack_start_map(mpack_writer_t* writer, uint32_t count) {
     mpack_writer_track_element(writer);
 
-    #if MPACK_OPTIMIZE_FOR_SIZE
-    size_t bytes;
-    char buf[MPACK_TAG_SIZE_MAP32];
-    if (count <= 15) {
-        mpack_encode_fixmap(buf, (uint8_t)count);
-        bytes = MPACK_TAG_SIZE_FIXMAP;
-    } else if (count <= UINT16_MAX) {
-        mpack_encode_map16(buf, (uint16_t)count);
-        bytes = MPACK_TAG_SIZE_MAP16;
-    } else {
-        mpack_encode_map32(buf, (uint32_t)count);
-        bytes = MPACK_TAG_SIZE_MAP32;
-    }
-    mpack_write_native(writer, buf, bytes);
-    #else
-
-    size_t left = mpack_writer_buffer_left(writer);
     if (count <= 15) {
         MPACK_WRITE_ENCODED(mpack_encode_fixmap, MPACK_TAG_SIZE_FIXMAP, (uint8_t)count);
     } else if (count <= UINT16_MAX) {
@@ -899,7 +857,6 @@ void mpack_start_map(mpack_writer_t* writer, uint32_t count) {
     } else {
         MPACK_WRITE_ENCODED(mpack_encode_map32, MPACK_TAG_SIZE_MAP32, (uint32_t)count);
     }
-    #endif
 
     mpack_writer_track_push(writer, mpack_type_map, count);
 }
@@ -907,28 +864,6 @@ void mpack_start_map(mpack_writer_t* writer, uint32_t count) {
 void mpack_start_str(mpack_writer_t* writer, uint32_t count) {
     mpack_writer_track_element(writer);
 
-    #if MPACK_OPTIMIZE_FOR_SIZE
-    size_t bytes;
-    char buf[MPACK_TAG_SIZE_STR32];
-    if (count <= 31) {
-        mpack_encode_fixstr(buf, (uint8_t)count);
-        bytes = MPACK_TAG_SIZE_FIXSTR;
-    } else if (count <= UINT8_MAX) {
-        // TODO: str8 had no counterpart in MessagePack 1.0; there was only
-        // fixraw, raw16 and raw32. This should not be used in compatibility mode.
-        mpack_encode_str8(buf, (uint8_t)count);
-        bytes = MPACK_TAG_SIZE_STR8;
-    } else if (count <= UINT16_MAX) {
-        mpack_encode_str16(buf, (uint16_t)count);
-        bytes = MPACK_TAG_SIZE_STR16;
-    } else {
-        mpack_encode_str32(buf, (uint32_t)count);
-        bytes = MPACK_TAG_SIZE_STR32;
-    }
-    mpack_write_native(writer, buf, bytes);
-    #else
-
-    size_t left = mpack_writer_buffer_left(writer);
     if (count <= 31) {
         MPACK_WRITE_ENCODED(mpack_encode_fixstr, MPACK_TAG_SIZE_FIXSTR, (uint8_t)count);
     } else if (count <= UINT8_MAX) {
@@ -940,7 +875,6 @@ void mpack_start_str(mpack_writer_t* writer, uint32_t count) {
     } else {
         MPACK_WRITE_ENCODED(mpack_encode_str32, MPACK_TAG_SIZE_STR32, (uint32_t)count);
     }
-    #endif
 
     mpack_writer_track_push(writer, mpack_type_str, count);
 }
@@ -948,23 +882,6 @@ void mpack_start_str(mpack_writer_t* writer, uint32_t count) {
 void mpack_start_bin(mpack_writer_t* writer, uint32_t count) {
     mpack_writer_track_element(writer);
 
-    #if MPACK_OPTIMIZE_FOR_SIZE
-    size_t bytes;
-    char buf[MPACK_TAG_SIZE_BIN32];
-    if (count <= UINT8_MAX) {
-        mpack_encode_bin8(buf, (uint8_t)count);
-        bytes = MPACK_TAG_SIZE_BIN8;
-    } else if (count <= UINT16_MAX) {
-        mpack_encode_bin16(buf, (uint16_t)count);
-        bytes = MPACK_TAG_SIZE_BIN16;
-    } else {
-        mpack_encode_bin32(buf, (uint32_t)count);
-        bytes = MPACK_TAG_SIZE_BIN32;
-    }
-    mpack_write_native(writer, buf, bytes);
-    #else
-
-    size_t left = mpack_writer_buffer_left(writer);
     if (count <= UINT8_MAX) {
         MPACK_WRITE_ENCODED(mpack_encode_bin8, MPACK_TAG_SIZE_BIN8, (uint8_t)count);
     } else if (count <= UINT16_MAX) {
@@ -972,7 +889,6 @@ void mpack_start_bin(mpack_writer_t* writer, uint32_t count) {
     } else {
         MPACK_WRITE_ENCODED(mpack_encode_bin32, MPACK_TAG_SIZE_BIN32, (uint32_t)count);
     }
-    #endif
 
     mpack_writer_track_push(writer, mpack_type_bin, count);
 }
@@ -980,38 +896,6 @@ void mpack_start_bin(mpack_writer_t* writer, uint32_t count) {
 void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count) {
     mpack_writer_track_element(writer);
 
-    #if MPACK_OPTIMIZE_FOR_SIZE
-    size_t bytes;
-    char buf[MPACK_TAG_SIZE_EXT32];
-    if (count == 1) {
-        mpack_encode_fixext1(buf, exttype);
-        bytes = MPACK_TAG_SIZE_FIXEXT1;
-    } else if (count == 2) {
-        mpack_encode_fixext2(buf, exttype);
-        bytes = MPACK_TAG_SIZE_FIXEXT2;
-    } else if (count == 4) {
-        mpack_encode_fixext4(buf, exttype);
-        bytes = MPACK_TAG_SIZE_FIXEXT4;
-    } else if (count == 8) {
-        mpack_encode_fixext8(buf, exttype);
-        bytes = MPACK_TAG_SIZE_FIXEXT8;
-    } else if (count == 16) {
-        mpack_encode_fixext16(buf, exttype);
-        bytes = MPACK_TAG_SIZE_FIXEXT16;
-    } else if (count <= UINT8_MAX) {
-        mpack_encode_ext8(buf, exttype, (uint8_t)count);
-        bytes = MPACK_TAG_SIZE_EXT8;
-    } else if (count <= UINT16_MAX) {
-        mpack_encode_ext16(buf, exttype, (uint16_t)count);
-        bytes = MPACK_TAG_SIZE_EXT16;
-    } else {
-        mpack_encode_ext32(buf, exttype, (uint32_t)count);
-        bytes = MPACK_TAG_SIZE_EXT32;
-    }
-    mpack_write_native(writer, buf, bytes);
-    #else
-
-    size_t left = mpack_writer_buffer_left(writer);
     if (count == 1) {
         MPACK_WRITE_ENCODED(mpack_encode_fixext1, MPACK_TAG_SIZE_FIXEXT1, exttype);
     } else if (count == 2) {
@@ -1029,7 +913,6 @@ void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count) {
     } else {
         MPACK_WRITE_ENCODED(mpack_encode_ext32, MPACK_TAG_SIZE_EXT32, exttype, (uint32_t)count);
     }
-    #endif
 
     mpack_writer_track_push(writer, mpack_type_ext, count);
 }
@@ -1064,8 +947,6 @@ void mpack_write_ext(mpack_writer_t* writer, int8_t exttype, const char* data, u
 void mpack_write_bytes(mpack_writer_t* writer, const char* data, size_t count) {
     mpack_assert(data != NULL, "data pointer for %i bytes is NULL", (int)count);
     mpack_writer_track_bytes(writer, count);
-    if (mpack_writer_error(writer) != mpack_ok)
-        return;
     mpack_write_native(writer, data, count);
 }
 

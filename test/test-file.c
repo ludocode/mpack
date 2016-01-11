@@ -22,8 +22,8 @@ static const char* test_filename = "mpack-test-file";
 static const char* test_dir = "mpack-test-dir";
 
 static const int nesting_depth = 150;
-const char* lipsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed nec justo purus. Nunc finibus dolor id lorem sagittis, euismod efficitur arcu aliquam. Nullam a ante eget mi porttitor dignissim vitae at libero. Maecenas in justo massa. Mauris ultricies leo nisl, at ullamcorper erat maximus sit amet. Quisque pharetra sed ligula nec tristique. Mauris consectetur sapien lacus, et pharetra turpis rhoncus a. Sed in eleifend eros. Donec in libero lacus. Sed et finibus ipsum. Etiam eros leo, mollis eget molestie quis, rhoncus ac magna. Donec dolor risus, bibendum et scelerisque at, faucibus in mi. Interdum et malesuada fames ac ante ipsum primis in faucibus. Vestibulum convallis accumsan mollis.";
-const char* quick_brown_fox = "The quick brown fox jumps over a lazy dog.";
+static const char* lipsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed nec justo purus. Nunc finibus dolor id lorem sagittis, euismod efficitur arcu aliquam. Nullam a ante eget mi porttitor dignissim vitae at libero. Maecenas in justo massa. Mauris ultricies leo nisl, at ullamcorper erat maximus sit amet. Quisque pharetra sed ligula nec tristique. Mauris consectetur sapien lacus, et pharetra turpis rhoncus a. Sed in eleifend eros. Donec in libero lacus. Sed et finibus ipsum. Etiam eros leo, mollis eget molestie quis, rhoncus ac magna. Donec dolor risus, bibendum et scelerisque at, faucibus in mi. Interdum et malesuada fames ac ante ipsum primis in faucibus. Vestibulum convallis accumsan mollis.";
+static const char* quick_brown_fox = "The quick brown fox jumps over a lazy dog.";
 
 static char* test_file_fetch(const char* filename, size_t* out_size) {
     *out_size = 0;

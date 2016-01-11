@@ -96,8 +96,6 @@ static const char test_strings[] =
 // test is run with each of these buffer sizes to test the fill and
 // flush functions.
 static const int test_buffer_sizes[] = {
-    1, 2, 3, 4, 5, 6, 7, 8, 9,
-    11, 13, 16, 17, 19, 23, 29,
     32, 33, 34, 35, 36, 37, 39, 43, 48, 51,
     52, 53, 57, 59, 64, 67, 89, 127, 128,
     129, 131, 160, 163, 191, 192, 193,
@@ -253,8 +251,6 @@ static void test_expect_buffer(void) {
         // initialize the reader with our buffer reader function
         mpack_reader_t reader;
         size_t size = test_buffer_sizes[i];
-        if (size < MPACK_READER_MINIMUM_BUFFER_SIZE)
-            continue;
         char* buffer = (char*)malloc(size);
         test_fill_state_t state = {test_numbers, sizeof(test_numbers) - 1};
         mpack_reader_init(&reader, buffer, size, 0);
@@ -309,8 +305,6 @@ static void test_inplace_buffer(void) {
         // initialize the reader with our buffer reader function
         mpack_reader_t reader;
         size_t size = test_buffer_sizes[i];
-        if (size < MPACK_READER_MINIMUM_BUFFER_SIZE)
-            continue;
         char* buffer = (char*)malloc(size);
         test_fill_state_t state = {test_strings, sizeof(test_strings) - 1};
         mpack_reader_init(&reader, buffer, size, 0);

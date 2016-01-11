@@ -44,11 +44,11 @@ MPACK_HEADER_START
  * The MPack Expect API allows you to easily read MessagePack data when you
  * expect it to follow a predefined schema.
  *
+ * See @ref docs/expect.md for examples.
+ *
  * The main purpose of the Expect API is convenience, so the API is lax. It
- * allows overlong / inefficiently encoded sequences, and it automatically
- * converts between similar types where there is no loss of precision (unless
- * otherwise noted.) It will convert from unsigned to signed or from float to
- * double for example.
+ * automatically converts between similar types where there is no loss of
+ * precision.
  *
  * When using any of the expect functions, if the type or value of what was
  * read does not match what is expected, @ref mpack_error_type is raised.
@@ -819,7 +819,7 @@ void* mpack_expect_array_alloc_impl(mpack_reader_t* reader,
  * Reads the start of a string, returning its size in bytes.
  *
  * The bytes follow and must be read separately with mpack_read_bytes()
- * or mpack_read_bytes_inplace(). @ref mpack_done_str() must be called
+ * or mpack_read_bytes_inplace(). mpack_done_str() must be called
  * once all bytes have been read.
  *
  * NUL bytes are allowed in the string, and no encoding checks are done.
@@ -832,8 +832,8 @@ uint32_t mpack_expect_str(mpack_reader_t* reader);
  * Reads a string of at most the given size, writing it into the
  * given buffer and returning its size in bytes.
  *
- * This does not add a null-terminator! No null-terminator is written, even
- * if the string fits. Use mpack_expect_cstr() to get a null-terminator.
+ * This does not add a null-terminator! Use mpack_expect_cstr() to
+ * add a null-terminator.
  *
  * NUL bytes are allowed in the string, and no encoding checks are done.
  */
@@ -842,6 +842,9 @@ size_t mpack_expect_str_buf(mpack_reader_t* reader, char* buf, size_t bufsize);
 /**
  * Reads a string into the given buffer, ensuring it is a valid UTF-8 string
  * and returning its size in bytes.
+ *
+ * This does not add a null-terminator! Use mpack_expect_utf8_cstr() to
+ * add a null-terminator.
  *
  * This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or
  * WTF-8. Only pure UTF-8 is allowed.
@@ -1039,8 +1042,6 @@ MPACK_INLINE void mpack_expect_bin_size(mpack_reader_t* reader, uint32_t count) 
  */
 size_t mpack_expect_bin_buf(mpack_reader_t* reader, char* buf, size_t size);
 
-const char* mpack_expect_bin_inplace(mpack_reader_t* reader, size_t maxsize, size_t* size);
-
 /**
  * Reads a binary blob with the given total maximum size, allocating storage for it.
  */
@@ -1080,7 +1081,8 @@ void mpack_expect_tag(mpack_reader_t* reader, mpack_tag_t tag);
  *
  * This is a helper for switching among int keys in a map. It is
  * typically used with an enum to define the key values. It should
- * be called in the expression of a switch() statement.
+ * be called in the expression of a switch() statement. See @ref
+ * docs/expect.md for an example.
  *
  * The found array should be cleared before expecting a key. If the flag for
  * a given key is already set when found (i.e. the map contains a duplicate
@@ -1095,6 +1097,8 @@ void mpack_expect_tag(mpack_reader_t* reader, mpack_tag_t tag);
  * @param found An array of bool flags of length count
  * @param count The number of values in the found array, and one more than the
  *              maximum allowed key
+ *
+ * @see @ref docs/expect.md
  */
 size_t mpack_expect_key_uint(mpack_reader_t* reader, bool found[], size_t count);
 
@@ -1105,7 +1109,7 @@ size_t mpack_expect_key_uint(mpack_reader_t* reader, bool found[], size_t count)
  * This is a helper for switching among string keys in a map. It is
  * typically used with an enum with names matching the strings in the
  * array to define the key indices. It should be called in the expression
- * of a switch() statement.
+ * of a switch() statement. See @ref docs/expect.md for an example.
  *
  * The found array should be cleared before expecting a key. If the flag for
  * a given key is already set when found (i.e. the map contains a duplicate
@@ -1121,6 +1125,8 @@ size_t mpack_expect_key_uint(mpack_reader_t* reader, bool found[], size_t count)
  * @param keys An array of expected string keys of length count
  * @param found An array of bool flags of length count
  * @param count The number of values in the keys and found arrays
+ *
+ * @see @ref docs/expect.md
  */
 size_t mpack_expect_key_cstr(mpack_reader_t* reader, const char* keys[],
         bool found[], size_t count);

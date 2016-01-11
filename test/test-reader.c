@@ -32,9 +32,24 @@ void test_read_error_handler(mpack_reader_t* reader, mpack_error_t error) {
     test_read_error = error;
 }
 
-void test_reader() {
-    // almost all reader functions are tested by the expect tests.
-    // minor miscellaneous read tests are added here.
+// almost all reader functions are tested by the expect tests.
+// minor miscellaneous read tests are added here.
+
+static void test_reader_should_inplace() {
+    char buf[4096];
+    mpack_reader_t reader;
+    mpack_reader_init(&reader, buf, sizeof(buf), 0);
+
+    TEST_TRUE(true  == mpack_should_read_bytes_inplace(&reader, 0));
+    TEST_TRUE(true  == mpack_should_read_bytes_inplace(&reader, 1));
+    TEST_TRUE(true  == mpack_should_read_bytes_inplace(&reader, 20));
+    TEST_TRUE(false == mpack_should_read_bytes_inplace(&reader, 500));
+    TEST_TRUE(false == mpack_should_read_bytes_inplace(&reader, 10000));
+
+    mpack_reader_destroy(&reader);
+}
+
+static void test_reader_miscellaneous() {
 
     // 0xc1 is reserved; it should always raise mpack_error_invalid
     TEST_SIMPLE_READ_ERROR("\xc1", mpack_tag_equal(mpack_read_tag(&reader), mpack_tag_nil()), mpack_error_invalid);
@@ -53,6 +68,11 @@ void test_reader() {
     // truncated discard errors
     TEST_SIMPLE_READ_ERROR("\x91", (mpack_discard(&reader), true), mpack_error_invalid); // array
     TEST_SIMPLE_READ_ERROR("\x81", (mpack_discard(&reader), true), mpack_error_invalid); // map
+}
+
+void test_reader() {
+    test_reader_should_inplace();
+    test_reader_miscellaneous();
 }
 
 #endif

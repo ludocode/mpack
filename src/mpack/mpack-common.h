@@ -38,7 +38,7 @@ MPACK_HEADER_START
 
 #define MPACK_VERSION_MAJOR 0  /**< The major version number of MPack. */
 #define MPACK_VERSION_MINOR 8  /**< The minor version number of MPack. */
-#define MPACK_VERSION_PATCH 0  /**< The patch version number of MPack. */
+#define MPACK_VERSION_PATCH 1  /**< The patch version number of MPack. */
 
 /** A number containing the version number of MPack for comparison purposes. */
 #define MPACK_VERSION ((MPACK_VERSION_MAJOR * 10000) + \
@@ -358,8 +358,14 @@ MPACK_INLINE uint8_t mpack_load_u8(const char* p) {
 }
 
 MPACK_INLINE uint16_t mpack_load_u16(const char* p) {
+    #ifdef MPACK_NHSWAP16
+    uint16_t val;
+    mpack_memcpy(&val, p, sizeof(val));
+    return MPACK_NHSWAP16(val);
+    #else
     return (uint16_t)((((uint16_t)(uint8_t)p[0]) << 8) |
            ((uint16_t)(uint8_t)p[1]));
+    #endif
 }
 
 MPACK_INLINE uint32_t mpack_load_u32(const char* p) {
@@ -398,9 +404,14 @@ MPACK_INLINE void mpack_store_u8(char* p, uint8_t val) {
 }
 
 MPACK_INLINE void mpack_store_u16(char* p, uint16_t val) {
+    #ifdef MPACK_NHSWAP16
+    val = MPACK_NHSWAP16(val);
+    mpack_memcpy(p, &val, sizeof(val));
+    #else
     uint8_t* u = (uint8_t*)p;
     u[0] = (uint8_t)((val >> 8) & 0xFF);
     u[1] = (uint8_t)( val       & 0xFF);
+    #endif
 }
 
 MPACK_INLINE void mpack_store_u32(char* p, uint32_t val) {

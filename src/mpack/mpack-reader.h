@@ -39,13 +39,6 @@ struct mpack_track_t;
 #endif
 
 /**
- * @def MPACK_READER_MINIMUM_BUFFER_SIZE
- *
- * The minimum buffer size for a reader with a fill function.
- */
-#define MPACK_READER_MINIMUM_BUFFER_SIZE 32
-
-/**
  * @defgroup reader Core Reader API
  *
  * The MPack Core Reader API contains functions for imperatively reading
@@ -54,6 +47,13 @@ struct mpack_track_t;
  *
  * @{
  */
+
+/**
+ * @def MPACK_READER_MINIMUM_BUFFER_SIZE
+ *
+ * The minimum buffer size for a reader with a fill function.
+ */
+#define MPACK_READER_MINIMUM_BUFFER_SIZE 32
 
 /**
  * A buffered MessagePack decoder.
@@ -146,6 +146,11 @@ struct mpack_reader_t {
 /** @endcond */
 
 /**
+ * @name Lifecycle Functions
+ * @{
+ */
+
+/**
  * Initializes an MPack reader with the given buffer. The reader does
  * not assume ownership of the buffer, but the buffer must be writeable
  * if a fill function will be used to refill it.
@@ -217,6 +222,15 @@ void mpack_reader_init_file(mpack_reader_t* reader, const char* filename);
  * @see mpack_error_data
  */
 mpack_error_t mpack_reader_destroy(mpack_reader_t* reader);
+
+/**
+ * @}
+ */
+
+/**
+ * @name Callbacks
+ * @{
+ */
 
 /**
  * Sets the custom pointer to pass to the reader callbacks, such as fill
@@ -297,6 +311,15 @@ MPACK_INLINE void mpack_reader_set_teardown(mpack_reader_t* reader, mpack_reader
 }
 
 /**
+ * @}
+ */
+
+/**
+ * @name Core Reader Functions
+ * @{
+ */
+
+/**
  * Queries the error state of the MPack reader.
  *
  * If a reader is in an error state, you should discard all data since the
@@ -346,6 +369,8 @@ MPACK_INLINE mpack_error_t mpack_reader_flag_if_error(mpack_reader_t* reader, mp
  * have your fill function limit the data it reads so that the reader does not
  * have extra data. In this case you can simply check that this returns zero.
  *
+ * Returns 0 if the reader is in an error state.
+ *
  * @param reader The MPack reader from which to query remaining data.
  * @param data [out] A pointer to the remaining data, or NULL.
  * @return The number of bytes remaining in the buffer.
@@ -394,6 +419,15 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader);
 mpack_tag_t mpack_peek_tag(mpack_reader_t* reader);
 
 /**
+ * @}
+ */
+
+/**
+ * @name String and Data Functions
+ * @{
+ */
+
+/**
  * Skips bytes from the underlying stream. This is used only to
  * skip the contents of a string, binary blob or extension object.
  */
@@ -405,7 +439,7 @@ void mpack_skip_bytes(mpack_reader_t* reader, size_t count);
  *
  * A str, bin or ext must have been opened by a call to mpack_read_tag()
  * which yielded one of these types, or by a call to an expect function
- * such as mpack_expect_str().
+ * such as mpack_expect_str() or mpack_expect_bin().
  *
  * If an error occurs, the buffer contents are undefined.
  *
@@ -430,6 +464,9 @@ void mpack_read_bytes(mpack_reader_t* reader, char* p, size_t count);
  * The given byte count must match the complete size of the string as
  * returned by the tag or expect function. You must ensure that the
  * buffer fits the data.
+ *
+ * This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or
+ * WTF-8. Only pure UTF-8 is allowed.
  *
  * If an error occurs, the buffer contents are undefined.
  *
@@ -482,6 +519,10 @@ void mpack_read_cstr(mpack_reader_t* reader, char* buf, size_t buffer_size, size
  * by the tag or expect function. The string will only be copied if
  * the buffer is large enough to store it.
  *
+ * This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or
+ * WTF-8. Only pure UTF-8 is allowed, but without the NUL character, since
+ * it cannot be represented in a null-terminated string.
+ *
  * If an error occurs, the buffer will contain an empty string.
  *
  * @note If you know the object will be a string before reading it,
@@ -523,14 +564,25 @@ MPACK_INLINE char* mpack_read_bytes_alloc(mpack_reader_t* reader, size_t count) 
  * Reads bytes from a string, binary blob or extension object in-place in
  * the buffer. This can be used to avoid copying the data.
  *
- * The returned pointer is invalidated the next time the reader's fill
- * function is called, or when the buffer is destroyed.
+ * A str, bin or ext must have been opened by a call to mpack_read_tag()
+ * which yielded one of these types, or by a call to an expect function
+ * such as mpack_expect_str() or mpack_expect_bin().
+ *
+ * If the bytes are from a string, the string is not null-terminated! Use
+ * mpack_read_cstr() to copy the string into a buffer and add a null-terminator.
+ *
+ * The returned pointer is invalidated on the next read, or when the buffer
+ * is destroyed.
  *
  * The reader will move data around in the buffer if needed to ensure that
- * the pointer can always be returned, so it is unlikely to be faster unless
+ * the pointer can always be returned, so this should only be used if
  * count is very small compared to the buffer size. If you need to check
  * whether a small size is reasonable (for example you intend to handle small and
  * large sizes differently), you can call mpack_should_read_bytes_inplace().
+ *
+ * This can be called multiple times for a single str, bin or ext
+ * to read the data in chunks. The total data read must add up
+ * to the size of the object.
  *
  * NULL is returned if the reader is in an error state.
  *
@@ -548,14 +600,24 @@ const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count);
  * yielded a string, or by a call to an expect function such as
  * mpack_expect_str().
  *
- * The returned pointer is invalidated the next time the reader's fill
- * function is called, or when the buffer is destroyed.
+ * The string is not null-terminated! Use mpack_read_utf8_cstr() to
+ * copy the string into a buffer and add a null-terminator.
+ *
+ * The returned pointer is invalidated on the next read, or when the buffer
+ * is destroyed.
  *
  * The reader will move data around in the buffer if needed to ensure that
- * the pointer can always be returned, so it is unlikely to be faster unless
+ * the pointer can always be returned, so this should only be used if
  * count is very small compared to the buffer size. If you need to check
  * whether a small size is reasonable (for example you intend to handle small and
  * large sizes differently), you can call mpack_should_read_bytes_inplace().
+ *
+ * This does not accept any UTF-8 variant such as Modified UTF-8, CESU-8 or
+ * WTF-8. Only pure UTF-8 is allowed.
+ *
+ * Unlike mpack_read_bytes_inplace(), this cannot be used to read the data in
+ * chunks (since this might split a character's UTF-8 bytes, and the
+ * reader does not keep track of the UTF-8 decoding state between reads.)
  *
  * NULL is returned if the reader is in an error state.
  *
@@ -581,53 +643,19 @@ const char* mpack_read_utf8_inplace(mpack_reader_t* reader, size_t count);
  * @see mpack_read_bytes_inplace()
  */
 MPACK_INLINE bool mpack_should_read_bytes_inplace(mpack_reader_t* reader, size_t count) {
-    return (reader->size == 0 || count > reader->size / 8);
+    return (reader->size == 0 || count <= reader->size / 32);
 }
 
+/**
+ * @}
+ */
+
+/**
+ * @name Core Reader Functions
+ * @{
+ */
+
 #if MPACK_READ_TRACKING
-/**
- * Finishes reading an array.
- *
- * This will track reads to ensure that the correct number of elements are read.
- */
-void mpack_done_array(mpack_reader_t* reader);
-
-/**
- * @fn mpack_done_map(mpack_reader_t* reader)
- *
- * Finishes reading a map.
- *
- * This will track reads to ensure that the correct number of elements are read.
- */
-void mpack_done_map(mpack_reader_t* reader);
-
-/**
- * @fn mpack_done_str(mpack_reader_t* reader)
- *
- * Finishes reading a string.
- *
- * This will track reads to ensure that the correct number of bytes are read.
- */
-void mpack_done_str(mpack_reader_t* reader);
-
-/**
- * @fn mpack_done_bin(mpack_reader_t* reader)
- *
- * Finishes reading a binary data blob.
- *
- * This will track reads to ensure that the correct number of bytes are read.
- */
-void mpack_done_bin(mpack_reader_t* reader);
-
-/**
- * @fn mpack_done_ext(mpack_reader_t* reader)
- *
- * Finishes reading an extended type binary data blob.
- *
- * This will track reads to ensure that the correct number of bytes are read.
- */
-void mpack_done_ext(mpack_reader_t* reader);
-
 /**
  * Finishes reading the given type.
  *
@@ -636,13 +664,64 @@ void mpack_done_ext(mpack_reader_t* reader);
  */
 void mpack_done_type(mpack_reader_t* reader, mpack_type_t type);
 #else
-MPACK_INLINE void mpack_done_array(mpack_reader_t* reader) {MPACK_UNUSED(reader);}
-MPACK_INLINE void mpack_done_map(mpack_reader_t* reader) {MPACK_UNUSED(reader);}
-MPACK_INLINE void mpack_done_str(mpack_reader_t* reader) {MPACK_UNUSED(reader);}
-MPACK_INLINE void mpack_done_bin(mpack_reader_t* reader) {MPACK_UNUSED(reader);}
-MPACK_INLINE void mpack_done_ext(mpack_reader_t* reader) {MPACK_UNUSED(reader);}
-MPACK_INLINE void mpack_done_type(mpack_reader_t* reader, mpack_type_t type) {MPACK_UNUSED(reader); MPACK_UNUSED(type);}
+MPACK_INLINE void mpack_done_type(mpack_reader_t* reader, mpack_type_t type) {
+    MPACK_UNUSED(reader);
+    MPACK_UNUSED(type);
+}
 #endif
+
+/**
+ * Finishes reading an array.
+ *
+ * This will track reads to ensure that the correct number of elements are read.
+ */
+MPACK_INLINE void mpack_done_array(mpack_reader_t* reader) {
+    mpack_done_type(reader, mpack_type_array);
+}
+
+/**
+ * @fn mpack_done_map(mpack_reader_t* reader)
+ *
+ * Finishes reading a map.
+ *
+ * This will track reads to ensure that the correct number of elements are read.
+ */
+MPACK_INLINE void mpack_done_map(mpack_reader_t* reader) {
+    mpack_done_type(reader, mpack_type_map);
+}
+
+/**
+ * @fn mpack_done_str(mpack_reader_t* reader)
+ *
+ * Finishes reading a string.
+ *
+ * This will track reads to ensure that the correct number of bytes are read.
+ */
+MPACK_INLINE void mpack_done_str(mpack_reader_t* reader) {
+    mpack_done_type(reader, mpack_type_str);
+}
+
+/**
+ * @fn mpack_done_bin(mpack_reader_t* reader)
+ *
+ * Finishes reading a binary data blob.
+ *
+ * This will track reads to ensure that the correct number of bytes are read.
+ */
+MPACK_INLINE void mpack_done_bin(mpack_reader_t* reader) {
+    mpack_done_type(reader, mpack_type_bin);
+}
+
+/**
+ * @fn mpack_done_ext(mpack_reader_t* reader)
+ *
+ * Finishes reading an extended type binary data blob.
+ *
+ * This will track reads to ensure that the correct number of bytes are read.
+ */
+MPACK_INLINE void mpack_done_ext(mpack_reader_t* reader) {
+    mpack_done_type(reader, mpack_type_ext);
+}
 
 /**
  * Reads and discards the next object. This will read and discard all
@@ -650,7 +729,16 @@ MPACK_INLINE void mpack_done_type(mpack_reader_t* reader, mpack_type_t type) {MP
  */
 void mpack_discard(mpack_reader_t* reader);
 
+/**
+ * @}
+ */
+
 #if MPACK_STDIO
+/**
+ * @name Debugging Functions
+ * @{
+ */
+
 /**
  * Converts a blob of MessagePack to pseudo-JSON for debugging purposes
  * and pretty-prints it to the given file.
@@ -666,6 +754,10 @@ MPACK_INLINE void mpack_print(const char* data, size_t len) {
     mpack_print_file(data, len, stdout);
 }
 #endif
+
+/**
+ * @}
+ */
 #endif
 
 /**
@@ -686,6 +778,9 @@ bool mpack_reader_ensure_straddle(mpack_reader_t* reader, size_t count);
 // is called.
 MPACK_INLINE bool mpack_reader_ensure(mpack_reader_t* reader, size_t count) {
     mpack_assert(count != 0, "cannot ensure zero bytes!");
+    mpack_assert(count <= MPACK_READER_MINIMUM_BUFFER_SIZE,
+            "cannot ensure %i bytes, this is more than the minimum buffer size %i!", count,
+            (int)count, (int)MPACK_READER_MINIMUM_BUFFER_SIZE);
     mpack_assert(reader->error == mpack_ok, "reader cannot be in an error state!");
 
     if (count <= reader->left)

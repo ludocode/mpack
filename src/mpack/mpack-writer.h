@@ -47,6 +47,13 @@ struct mpack_track_t;
  */
 
 /**
+ * @def MPACK_WRITER_MINIMUM_BUFFER_SIZE
+ *
+ * The minimum buffer size for a writer with a flush function.
+ */
+#define MPACK_WRITER_MINIMUM_BUFFER_SIZE 32
+
+/**
  * A buffered MessagePack encoder.
  *
  * The encoder wraps an existing buffer and, optionally, a flush function.
@@ -113,6 +120,12 @@ struct mpack_writer_t {
 
     #if MPACK_WRITE_TRACKING
     mpack_track_t track; /* Stack of map/array/str/bin/ext writes */
+    #endif
+
+    #ifdef MPACK_MALLOC
+    /* Reserved. You can use this space to allocate a custom
+     * context in order to reduce heap allocations. */
+    void* reserved[2];
     #endif
 };
 
@@ -280,10 +293,7 @@ MPACK_INLINE void mpack_writer_set_context(mpack_writer_t* writer, void* context
  * @param writer The MPack writer.
  * @param flush The function to write out data from the buffer.
  */
-MPACK_INLINE void mpack_writer_set_flush(mpack_writer_t* writer, mpack_writer_flush_t flush) {
-    mpack_assert(writer->size != 0, "cannot use flush function without a writeable buffer!");
-    writer->flush = flush;
-}
+void mpack_writer_set_flush(mpack_writer_t* writer, mpack_writer_flush_t flush);
 
 /**
  * Sets the error function to call when an error is flagged on the writer.
@@ -377,6 +387,7 @@ MPACK_INLINE mpack_error_t mpack_writer_error(mpack_writer_t* writer) {
  * appropriate finish function must be called (as though one of the
  * mpack_start_*() functions was called.)
  *
+ * @see mpack_write_bytes()
  * @see mpack_finish_map()
  * @see mpack_finish_array()
  * @see mpack_finish_str()
@@ -385,19 +396,6 @@ MPACK_INLINE mpack_error_t mpack_writer_error(mpack_writer_t* writer) {
  * @see mpack_finish_type()
  */
 void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t tag);
-
-/**
- * Finishes writing the given compound type.
- *
- * This will track writes to ensure that the correct number of elements
- * or bytes are written.
- *
- * This can be called with the appropriate type instead the corresponding
- * mpack_finish_*() function if you want to finish a dynamic type.
- */
-MPACK_INLINE void mpack_finish_type(mpack_writer_t* writer, mpack_type_t type) {
-    mpack_writer_track_pop(writer, type);
-}
 
 /**
  * @}
@@ -571,7 +569,9 @@ void mpack_write_utf8(mpack_writer_t* writer, const char* str, uint32_t length);
  * Writes a null-terminated string. (The null-terminator is not written.)
  *
  * MPack does not care about the underlying encoding, but UTF-8 is highly
- * recommended, especially for compatibility with JSON.
+ * recommended, especially for compatibility with JSON. You should consider
+ * calling mpack_write_utf8_cstr() instead, especially if you will be reading
+ * it back as UTF-8.
  *
  * You should not call mpack_finish_str() after calling this; this
  * performs both start and finish.
@@ -583,7 +583,9 @@ void mpack_write_cstr(mpack_writer_t* writer, const char* cstr);
  * is NULL. (The null-terminator is not written.)
  *
  * MPack does not care about the underlying encoding, but UTF-8 is highly
- * recommended, especially for compatibility with JSON.
+ * recommended, especially for compatibility with JSON. You should consider
+ * calling mpack_write_utf8_cstr_or_nil() instead, especially if you will
+ * be reading it back as UTF-8.
  *
  * You should not call mpack_finish_str() after calling this; this
  * performs both start and finish.
@@ -683,7 +685,7 @@ void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count);
 
 /**
  * Writes a portion of bytes for a string, binary blob or extension type which
- * was opened by one of the mpack_start_*() functions.
+ * was opened by mpack_write_tag() or one of the mpack_start_*() functions.
  *
  * This can be called multiple times to write the data in chunks, as long as
  * the total amount of bytes written matches the count given when the compound
@@ -694,6 +696,7 @@ void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count);
  * To write an entire string, binary blob or extension type at
  * once, use one of the mpack_write_*() functions instead.
  *
+ * @see mpack_write_tag()
  * @see mpack_start_str()
  * @see mpack_start_bin()
  * @see mpack_start_ext()
@@ -747,6 +750,19 @@ MPACK_INLINE void mpack_finish_bin(mpack_writer_t* writer) {
  */
 MPACK_INLINE void mpack_finish_ext(mpack_writer_t* writer) {
     mpack_writer_track_pop(writer, mpack_type_ext);
+}
+
+/**
+ * Finishes writing the given compound type.
+ *
+ * This will track writes to ensure that the correct number of elements
+ * or bytes are written.
+ *
+ * This can be called with the appropriate type instead the corresponding
+ * mpack_finish_*() function if you want to finish a dynamic type.
+ */
+MPACK_INLINE void mpack_finish_type(mpack_writer_t* writer, mpack_type_t type) {
+    mpack_writer_track_pop(writer, type);
 }
 
 /**
