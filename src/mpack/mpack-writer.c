@@ -259,7 +259,8 @@ static void mpack_file_writer_teardown(mpack_writer_t* writer) {
 void mpack_writer_init_file(mpack_writer_t* writer, const char* filename) {
     mpack_assert(filename != NULL, "filename is NULL");
 
-    char* buffer = (char*)MPACK_MALLOC(MPACK_BUFFER_SIZE);
+    size_t capacity = MPACK_BUFFER_SIZE;
+    char* buffer = (char*)MPACK_MALLOC(capacity);
     if (buffer == NULL) {
         mpack_writer_init_error(writer, mpack_error_memory);
         return;
@@ -272,7 +273,7 @@ void mpack_writer_init_file(mpack_writer_t* writer, const char* filename) {
         return;
     }
 
-    mpack_writer_init(writer, buffer, MPACK_BUFFER_SIZE);
+    mpack_writer_init(writer, buffer, capacity);
     mpack_writer_set_context(writer, file);
     mpack_writer_set_flush(writer, mpack_file_writer_flush);
     mpack_writer_set_teardown(writer, mpack_file_writer_teardown);

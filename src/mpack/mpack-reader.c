@@ -106,22 +106,15 @@ void mpack_reader_set_skip(mpack_reader_t* reader, mpack_reader_skip_t skip) {
 }
 
 #if MPACK_STDIO
-typedef struct mpack_file_reader_t {
-    FILE* file;
-    char buffer[MPACK_BUFFER_SIZE];
-} mpack_file_reader_t;
-
 static size_t mpack_file_reader_fill(mpack_reader_t* reader, char* buffer, size_t count) {
-    mpack_file_reader_t* file_reader = (mpack_file_reader_t*)reader->context;
-    return fread((void*)buffer, 1, count, file_reader->file);
+    return fread((void*)buffer, 1, count, (FILE*)reader->context);
 }
 
 #if !MPACK_OPTIMIZE_FOR_SIZE
 static void mpack_file_reader_skip(mpack_reader_t* reader, size_t count) {
-    mpack_file_reader_t* file_reader = (mpack_file_reader_t*)reader->context;
     if (mpack_reader_error(reader) != mpack_ok)
         return;
-    FILE* file = file_reader->file;
+    FILE* file = (FILE*)reader->context;
 
     // We call ftell() to test whether the stream is seekable
     // without causing a file error.
@@ -142,36 +135,40 @@ static void mpack_file_reader_skip(mpack_reader_t* reader, size_t count) {
 #endif
 
 static void mpack_file_reader_teardown(mpack_reader_t* reader) {
-    mpack_file_reader_t* file_reader = (mpack_file_reader_t*)reader->context;
+    FILE* file = (FILE*)reader->context;
 
-    if (file_reader->file) {
-        int ret = fclose(file_reader->file);
-        file_reader->file = NULL;
+    if (file) {
+        int ret = fclose(file);
+        reader->context = NULL;
         if (ret != 0)
             mpack_reader_flag_error(reader, mpack_error_io);
     }
 
-    MPACK_FREE(file_reader);
+    MPACK_FREE(reader->buffer);
+    reader->buffer = NULL;
+    reader->size = 0;
+    reader->fill = NULL;
 }
 
 void mpack_reader_init_file(mpack_reader_t* reader, const char* filename) {
     mpack_assert(filename != NULL, "filename is NULL");
 
-    mpack_file_reader_t* file_reader = (mpack_file_reader_t*) MPACK_MALLOC(sizeof(mpack_file_reader_t));
-    if (file_reader == NULL) {
+    size_t capacity = MPACK_BUFFER_SIZE;
+    char* buffer = (char*)MPACK_MALLOC(capacity);
+    if (buffer == NULL) {
         mpack_reader_init_error(reader, mpack_error_memory);
         return;
     }
 
-    file_reader->file = fopen(filename, "rb");
-    if (file_reader->file == NULL) {
+    FILE* file = fopen(filename, "rb");
+    if (file == NULL) {
+        MPACK_FREE(buffer);
         mpack_reader_init_error(reader, mpack_error_io);
-        MPACK_FREE(file_reader);
         return;
     }
 
-    mpack_reader_init(reader, file_reader->buffer, sizeof(file_reader->buffer), 0);
-    mpack_reader_set_context(reader, file_reader);
+    mpack_reader_init(reader, buffer, capacity, 0);
+    mpack_reader_set_context(reader, file);
     mpack_reader_set_fill(reader, mpack_file_reader_fill);
     #if !MPACK_OPTIMIZE_FOR_SIZE
     mpack_reader_set_skip(reader, mpack_file_reader_skip);
