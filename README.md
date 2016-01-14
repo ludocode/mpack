@@ -6,7 +6,7 @@ MPack is a C implementation of an encoder and decoder for the [MessagePack](http
  * Secure against untrusted data
  * Lightweight, suitable for embedded
  * [Extensively documented](http://ludocode.github.io/mpack/)
- * Extremely fast
+ * [Extremely fast](https://github.com/ludocode/schemaless-benchmarks#speed---desktop-pc)
 
 The core of MPack contains a buffered reader and writer with a custom callback to fill or flush the buffer. Helper functions can be enabled to read values of expected type, to work with files, to allocate strings automatically, to check UTF-8 encoding, and more. The MPack featureset can be configured at compile-time to set which features, components and debug checks are compiled, and what dependencies are available.
 
@@ -111,6 +111,8 @@ MPack is rich in features while maintaining very high performance and a small co
 | UTF-8 verification                  | ✓   |     |     |
 
 A larger feature comparison table is available [here](docs/features.md) which includes descriptions of the various entries in the table.
+
+This [benchmarking suite](https://github.com/ludocode/schemaless-benchmarks) compares the performance of MPack to other implementations of schemaless serialization formats. MPack outperforms all other MessagePack implementations, and in some tests MPack is several times faster than [RapidJSON](https://github.com/miloyip/rapidjson) for equivalent data.
 
 ## Why Not Just Use JSON?
 
