@@ -332,6 +332,30 @@ static void test_write_simple_misc() {
 }
 
 #ifdef MPACK_MALLOC
+static void test_write_tag_tracking() {
+    char* buf;
+    size_t size;
+    mpack_writer_t writer;
+    mpack_writer_init_growable(&writer, &buf, &size);
+
+    mpack_start_array(&writer, 8);
+        mpack_write_tag(&writer, mpack_tag_nil());
+        mpack_write_tag(&writer, mpack_tag_bool(true));
+        mpack_write_tag(&writer, mpack_tag_bool(false));
+        mpack_write_tag(&writer, mpack_tag_uint(4));
+        mpack_write_tag(&writer, mpack_tag_int(-3));
+        mpack_write_tag(&writer, mpack_tag_str(0));
+        mpack_finish_str(&writer);
+        mpack_write_tag(&writer, mpack_tag_bin(0));
+        mpack_finish_bin(&writer);
+        mpack_write_tag(&writer, mpack_tag_array(1));
+            mpack_write_tag(&writer, mpack_tag_nil());
+        mpack_finish_array(&writer);
+    mpack_finish_array(&writer);
+
+    TEST_DESTROY_MATCH("\x98\xC0\xC3\xC2\x04\xFD\xA0\xC4\x00\x91\xC0");
+}
+
 static void test_write_basic_structures() {
     char* buf;
     size_t size;
@@ -876,6 +900,7 @@ void test_writes() {
     test_write_utf8();
 
     #ifdef MPACK_MALLOC
+    test_write_tag_tracking();
     test_write_basic_structures();
     test_write_small_structure_trees();
     test_system_fail_until_ok(&test_write_deep_growth);
