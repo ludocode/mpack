@@ -560,6 +560,13 @@ MPACK_HEADER_START
 
     #if defined(MPACK_UNIT_TESTS) && MPACK_INTERNAL && defined(__GNUC__)
         // make sure we don't use the stdlib directly during development
+        #undef memcmp
+        #undef memcpy
+        #undef memmove
+        #undef memset
+        #undef strlen
+        #undef malloc
+        #undef free
         #pragma GCC poison memcmp
         #pragma GCC poison memcpy
         #pragma GCC poison memmove
