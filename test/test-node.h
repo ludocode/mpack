@@ -93,7 +93,7 @@ mpack_tree_init_pool((tree), (data), (data_size), pool, sizeof(pool) / sizeof(*p
 // (note about volatile, see TEST_ASSERT())
 #define TEST_SIMPLE_TREE_READ_ASSERT(data, read_expr) do { \
     volatile mpack_tree_t v_tree; \
-    mpack_tree_t* tree = (mpack_tree_t*)&v_tree; \
+    mpack_tree_t* tree = (mpack_tree_t*)(uintptr_t)&v_tree; \
     mpack_tree_init_pool(tree, data, sizeof(data) - 1, pool, sizeof(pool) / sizeof(*pool)); \
     mpack_node_t node = mpack_tree_root(tree); \
     TEST_ASSERT(read_expr); \

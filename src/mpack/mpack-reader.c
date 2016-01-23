@@ -64,7 +64,7 @@ void mpack_reader_init_data(mpack_reader_t* reader, const char* data, size_t cou
     #ifdef __cplusplus
     reader->buffer = const_cast<char*>(data);
     #else
-    reader->buffer = (char*)data;
+    reader->buffer = (char*)(uintptr_t)data;
     #endif
 
     #if MPACK_READ_TRACKING

@@ -122,7 +122,7 @@ void test_read_error_handler(mpack_reader_t* reader, mpack_error_t error);
 // (note about volatile, see TEST_ASSERT())
 #define TEST_SIMPLE_READ_ASSERT(data, read_expr) do { \
     volatile mpack_reader_t v_reader; \
-    mpack_reader_t* reader = (mpack_reader_t*)&v_reader; \
+    mpack_reader_t* reader = (mpack_reader_t*)(uintptr_t)&v_reader; \
     mpack_reader_init_data(reader, data, sizeof(data) - 1); \
     TEST_ASSERT(read_expr); \
     mpack_reader_flag_error(reader, mpack_error_data); \
