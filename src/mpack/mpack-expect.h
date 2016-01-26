@@ -1076,6 +1076,58 @@ char* mpack_expect_bin_alloc(mpack_reader_t* reader, size_t maxsize, size_t* siz
 void mpack_expect_tag(mpack_reader_t* reader, mpack_tag_t tag);
 
 /**
+ * Expects a string matching one of the strings in the given array,
+ * returning its array index.
+ *
+ * Unlike mpack_expect_key_cstr(), if the string does not match,
+ * @ref mpack_error_type is flagged. The value must be one of the
+ * given strings.
+ *
+ * If any error occurs or the reader is in an error state, @a count
+ * is returned.
+ *
+ * This can be used to quickly parse a string into an enum when the
+ * enum values range from 0 to @a count-1. If the last value in the
+ * enum is a special "count" value, it can be passed as the count,
+ * and the return value can be cast directly to the enum type.
+ *
+ * The maximum key length is the size of the buffer (keys are read in-place.)
+ *
+ * @param reader The reader
+ * @param strings An array of expected strings of length count
+ * @param count The number of strings
+ * @return The index of the matched string, or @a count in case of error
+ */
+size_t mpack_expect_enum(mpack_reader_t* reader, const char* strings[], size_t count);
+
+/**
+ * Expects a string matching one of the strings in the given array
+ * returning its array index, or @a count if no strings match.
+ *
+ * If the value is not a string, or it does not match any of the
+ * given strings, @a count is returned and no error is flagged.
+ *
+ * If any error occurs or the reader is in an error state, @a count
+ * is returned.
+ *
+ * This can be used to quickly parse a string into an enum when the
+ * enum values range from 0 to @a count-1. If the last value in the
+ * enum is a special "count" value, it can be passed as the count,
+ * and the return value can be cast directly to the enum type. See
+ * @ref docs/expect.md for examples.
+ *
+ * The maximum key length is the size of the buffer (keys are read in-place.)
+ *
+ * @param reader The reader
+ * @param strings An array of expected strings of length count
+ * @param count The number of strings
+ *
+ * @return The index of the matched string, or @a count if it does not
+ * match or an error occurs
+ */
+size_t mpack_expect_enum_optional(mpack_reader_t* reader, const char* strings[], size_t count);
+
+/**
  * Expects an unsigned integer map key between 0 and count-1, marking it
  * as found in the given bool array and returning it.
  *
@@ -1088,10 +1140,10 @@ void mpack_expect_tag(mpack_reader_t* reader, mpack_tag_t tag);
  * a given key is already set when found (i.e. the map contains a duplicate
  * key), mpack_error_invalid is flagged.
  *
- * If the key is count or larger, count is returned and no error is flagged.
- * If you want an error on unrecognized keys, flag an error in the default
- * case in your switch; otherwise you must call mpack_discard() to discard
- * its content.
+ * If the key is not a non-negative integer, or if the key is @a count or
+ * larger, @a count is returned and no error is flagged. If you want an error
+ * on unrecognized keys, flag an error in the default case in your switch;
+ * otherwise you must call mpack_discard() to discard its content.
  *
  * @param reader The reader
  * @param found An array of bool flags of length count

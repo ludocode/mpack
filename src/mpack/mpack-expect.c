@@ -626,6 +626,60 @@ char* mpack_expect_bin_alloc(mpack_reader_t* reader, size_t maxsize, size_t* siz
 }
 #endif
 
+size_t mpack_expect_enum(mpack_reader_t* reader, const char* strings[], size_t count) {
+
+    // read the string in-place
+    size_t keylen = mpack_expect_str(reader);
+    const char* key = mpack_read_bytes_inplace(reader, keylen);
+    mpack_done_str(reader);
+    if (mpack_reader_error(reader) != mpack_ok)
+        return count;
+
+    // find what key it matches
+    for (size_t i = 0; i < count; ++i) {
+        const char* other = strings[i];
+        size_t otherlen = mpack_strlen(other);
+        if (keylen == otherlen && mpack_memcmp(key, other, keylen) == 0)
+            return i;
+    }
+
+    // no matches
+    mpack_reader_flag_error(reader, mpack_error_type);
+    return count;
+}
+
+size_t mpack_expect_enum_optional(mpack_reader_t* reader, const char* strings[], size_t count) {
+    if (mpack_reader_error(reader) != mpack_ok)
+        return count;
+
+    mpack_assert(count != 0, "count cannot be zero; no strings are valid!");
+    mpack_assert(strings != NULL, "strings cannot be NULL");
+
+    // the key is only recognized if it is a string
+    if (mpack_peek_tag(reader).type != mpack_type_str) {
+        mpack_discard(reader);
+        return count;
+    }
+
+    // read the string in-place
+    size_t keylen = mpack_expect_str(reader);
+    const char* key = mpack_read_bytes_inplace(reader, keylen);
+    mpack_done_str(reader);
+    if (mpack_reader_error(reader) != mpack_ok)
+        return count;
+
+    // find what key it matches
+    for (size_t i = 0; i < count; ++i) {
+        const char* other = strings[i];
+        size_t otherlen = mpack_strlen(other);
+        if (keylen == otherlen && mpack_memcmp(key, other, keylen) == 0)
+            return i;
+    }
+
+    // no matches
+    return count;
+}
+
 size_t mpack_expect_key_uint(mpack_reader_t* reader, bool found[], size_t count) {
     if (mpack_reader_error(reader) != mpack_ok)
         return count;
@@ -663,44 +717,14 @@ size_t mpack_expect_key_uint(mpack_reader_t* reader, bool found[], size_t count)
 }
 
 size_t mpack_expect_key_cstr(mpack_reader_t* reader, const char* keys[], bool found[], size_t count) {
-    if (mpack_reader_error(reader) != mpack_ok)
-        return count;
-
-    if (count == 0) {
-        mpack_break("count cannot be zero; no keys are valid!");
-        mpack_reader_flag_error(reader, mpack_error_bug);
-        return count;
-    }
-    mpack_assert(keys != NULL, "keys cannot be NULL");
-    mpack_assert(found != NULL, "found cannot be NULL");
-
-    // the key is only recognized if it is a string
-    if (mpack_peek_tag(reader).type != mpack_type_str) {
-        mpack_discard(reader);
-        return count;
-    }
-
-    // read the string in-place
-    size_t keylen = mpack_expect_str(reader);
-    const char* key = mpack_read_bytes_inplace(reader, keylen);
-    if (mpack_reader_error(reader) != mpack_ok)
-        return count;
-    mpack_done_str(reader);
-
-    // find what key it matches
-    size_t i = 0;
-    for (; i < count; ++i) {
-        const char* other = keys[i];
-        size_t otherlen = mpack_strlen(other);
-        if (keylen == otherlen && mpack_memcmp(key, other, keylen) == 0)
-            break;
-    }
+    size_t i = mpack_expect_enum_optional(reader, keys, count);
 
     // unrecognized keys are fine, we just return count
     if (i == count)
         return count;
 
     // check if this key is a duplicate
+    mpack_assert(found != NULL, "found cannot be NULL");
     if (found[i]) {
         mpack_reader_flag_error(reader, mpack_error_invalid);
         return count;
