@@ -797,6 +797,96 @@ static void test_write_tracking() {
 }
 #endif
 
+#ifdef MPACK_HAS_GENERIC
+static void test_write_generic(void) {
+    char buf[4096];
+
+    // int8
+    TEST_SIMPLE_WRITE("\x7f", mpack_write(&writer, (int8_t)INT8_MAX));
+    TEST_SIMPLE_WRITE("\x01", mpack_write(&writer, (int8_t)1));
+    TEST_SIMPLE_WRITE("\x00", mpack_write(&writer, (int8_t)0));
+    TEST_SIMPLE_WRITE("\xd0\x80", mpack_write(&writer, (int8_t)INT8_MIN));
+
+    // int16
+    TEST_SIMPLE_WRITE("\xcd\x7f\xff", mpack_write(&writer, (int16_t)INT16_MAX));
+    TEST_SIMPLE_WRITE("\x7f", mpack_write(&writer, (int16_t)INT8_MAX));
+    TEST_SIMPLE_WRITE("\x00", mpack_write(&writer, (int16_t)0));
+    TEST_SIMPLE_WRITE("\xd0\x80", mpack_write(&writer, (int16_t)INT8_MIN));
+    TEST_SIMPLE_WRITE("\xd1\x80\x00", mpack_write(&writer, (int16_t)INT16_MIN));
+
+    // int32
+    TEST_SIMPLE_WRITE("\xce\x7f\xff\xff\xff", mpack_write(&writer, (int32_t)INT32_MAX));
+    TEST_SIMPLE_WRITE("\xcd\x7f\xff", mpack_write(&writer, (int32_t)INT16_MAX));
+    TEST_SIMPLE_WRITE("\x7f", mpack_write(&writer, (int32_t)INT8_MAX));
+    TEST_SIMPLE_WRITE("\x00", mpack_write(&writer, (int32_t)0));
+    TEST_SIMPLE_WRITE("\xd0\x80", mpack_write(&writer, (int32_t)INT8_MIN));
+    TEST_SIMPLE_WRITE("\xd1\x80\x00", mpack_write(&writer, (int32_t)INT16_MIN));
+    TEST_SIMPLE_WRITE("\xd2\x80\x00\x00\x00", mpack_write(&writer, (int32_t)INT32_MIN));
+
+    // int64
+    TEST_SIMPLE_WRITE("\xcf\x7f\xff\xff\xff\xff\xff\xff\xff", mpack_write(&writer, (int64_t)INT64_MAX));
+    TEST_SIMPLE_WRITE("\xce\x7f\xff\xff\xff", mpack_write(&writer, (int64_t)INT32_MAX));
+    TEST_SIMPLE_WRITE("\xcd\x7f\xff", mpack_write(&writer, (int64_t)INT16_MAX));
+    TEST_SIMPLE_WRITE("\x7f", mpack_write(&writer, (int64_t)INT8_MAX));
+    TEST_SIMPLE_WRITE("\x00", mpack_write(&writer, (int64_t)0));
+    TEST_SIMPLE_WRITE("\xd0\x80", mpack_write(&writer, (int64_t)INT8_MIN));
+    TEST_SIMPLE_WRITE("\xd1\x80\x00", mpack_write(&writer, (int64_t)INT16_MIN));
+    TEST_SIMPLE_WRITE("\xd2\x80\x00\x00\x00", mpack_write(&writer, (int64_t)INT32_MIN));
+    TEST_SIMPLE_WRITE("\xd3\x80\x00\x00\x00\x00\x00\x00\x00", mpack_write(&writer, (int64_t)INT64_MIN));
+
+    // uint8
+    TEST_SIMPLE_WRITE("\x00", mpack_write(&writer, (uint8_t)0));
+    TEST_SIMPLE_WRITE("\x7f", mpack_write(&writer, (uint8_t)127));
+    TEST_SIMPLE_WRITE("\xcc\xff", mpack_write(&writer, (uint8_t)UINT8_MAX));
+
+    // uint16
+    TEST_SIMPLE_WRITE("\x00", mpack_write(&writer, (uint16_t)0));
+    TEST_SIMPLE_WRITE("\x7f", mpack_write(&writer, (uint16_t)127));
+    TEST_SIMPLE_WRITE("\xcc\xff", mpack_write(&writer, (uint16_t)UINT8_MAX));
+    TEST_SIMPLE_WRITE("\xcd\xff\xff", mpack_write(&writer, (uint16_t)UINT16_MAX));
+
+    // uint32
+    TEST_SIMPLE_WRITE("\x00", mpack_write(&writer, (uint32_t)0));
+    TEST_SIMPLE_WRITE("\x7f", mpack_write(&writer, (uint32_t)127));
+    TEST_SIMPLE_WRITE("\xcc\xff", mpack_write(&writer, (uint32_t)UINT8_MAX));
+    TEST_SIMPLE_WRITE("\xcd\xff\xff", mpack_write(&writer, (uint32_t)UINT16_MAX));
+    TEST_SIMPLE_WRITE("\xce\xff\xff\xff\xff", mpack_write(&writer, (uint32_t)UINT32_MAX));
+
+    // uint64
+    TEST_SIMPLE_WRITE("\x00", mpack_write(&writer, (uint64_t)0));
+    TEST_SIMPLE_WRITE("\x7f", mpack_write(&writer, (uint64_t)127));
+    TEST_SIMPLE_WRITE("\xcc\xff", mpack_write(&writer, (uint64_t)UINT8_MAX));
+    TEST_SIMPLE_WRITE("\xcd\xff\xff", mpack_write(&writer, (uint64_t)UINT16_MAX));
+    TEST_SIMPLE_WRITE("\xce\xff\xff\xff\xff", mpack_write(&writer, (uint64_t)UINT32_MAX));
+    TEST_SIMPLE_WRITE("\xcf\xff\xff\xff\xff\xff\xff\xff\xff", mpack_write(&writer, (uint64_t)UINT64_MAX));
+
+    // float and double
+    // TODO: we just test a few floats for now. this could certainly be extended to
+    // test more values like subnormal floats, infinities, etc.
+    TEST_SIMPLE_WRITE("\xca\x00\x00\x00\x00", mpack_write(&writer, (float)0.0f));
+    TEST_SIMPLE_WRITE("\xca\x40\x2d\xf3\xb6", mpack_write(&writer, (float)2.718f));
+    TEST_SIMPLE_WRITE("\xca\xc0\x2d\xf3\xb6", mpack_write(&writer, (float)-2.718f));
+    TEST_SIMPLE_WRITE("\xcb\x00\x00\x00\x00\x00\x00\x00\x00", mpack_write(&writer, (double)0.0));
+    TEST_SIMPLE_WRITE("\xcb\x40\x09\x21\xfb\x53\xc8\xd4\xf1", mpack_write(&writer, (double)3.14159265));
+    TEST_SIMPLE_WRITE("\xcb\xc0\x09\x21\xfb\x53\xc8\xd4\xf1", mpack_write(&writer, (double)-3.14159265));
+
+    // bool
+    // TODO: when we pass direct true or false into the _Generic it seems not to emit the correct stream
+    bool b = false;
+    TEST_SIMPLE_WRITE("\xc2", mpack_write(&writer, b));
+    b = true;
+    TEST_SIMPLE_WRITE("\xc3", mpack_write(&writer, b));
+
+    // char *
+    TEST_SIMPLE_WRITE("\xc0", mpack_write(&writer, (char *)NULL));
+    TEST_SIMPLE_WRITE("\xa4""1337", mpack_write(&writer, (char *)"1337"));
+
+    // const char *
+    TEST_SIMPLE_WRITE("\xc0", mpack_write(&writer, (const char *)NULL));
+    TEST_SIMPLE_WRITE("\xa4""1337", mpack_write(&writer, (const char *)"1337"));
+}
+#endif
+
 static void test_write_utf8(void) {
     char buf[4096];
 
@@ -896,6 +986,9 @@ void test_writes() {
     test_write_simple_size_int_fixnums();
     test_write_simple_size_int();
     test_write_simple_tag_int();
+    #ifdef MPACK_HAS_GENERIC
+    test_write_generic();
+    #endif
     test_write_simple_misc();
     test_write_utf8();
 

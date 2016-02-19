@@ -120,6 +120,9 @@ if ARGUMENTS.get('more') or ARGUMENTS.get('all'):
     AddBuilds("noio", allfeatures + noioconfigs + cflags)
     AddBuild("debug-size", ["-DMPACK_OPTIMIZE_FOR_SIZE=1"] + debugflags + allfeatures + allconfigs + cflags)
 
+# C11
+if ARGUMENTS.get('c11'):
+    AddBuild("c11", allfeatures + allconfigs + releaseflags + ["-std=c11"])
 
 # Run "scons all=1" to run all builds. This is what the CI runs.
 if ARGUMENTS.get('all'):
