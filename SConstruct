@@ -122,7 +122,7 @@ if ARGUMENTS.get('more') or ARGUMENTS.get('all'):
 
 # C11
 if ARGUMENTS.get('c11'):
-    AddBuild("c11", allfeatures + allconfigs + releaseflags + ["-std=c11"])
+    AddBuild("c11", allfeatures + allconfigs + releaseflags + ["-std=c11", "-DMPACK_HAS_GENERIC=1"])
 
 # Run "scons all=1" to run all builds. This is what the CI runs.
 if ARGUMENTS.get('all'):
@@ -165,6 +165,7 @@ if ARGUMENTS.get('all'):
     AddBuilds("cxx", allfeatures + allconfigs + cxxflags + ["-std=c++98"])
     if conf.CheckFlags(cxxflags + ["-std=c++11"], [], "-std=c++11"):
         AddBuilds("cxx11", allfeatures + allconfigs + cxxflags + ["-std=c++11"])
+        AddBuilds("cxx11_generic", allfeatures + allconfigs + cxxflags + ["-std=c++11", "-DMPACK_HAS_GENERIC=1"])
     if conf.CheckFlags(cxxflags + ["-std=c++14"], [], "-std=c++14"):
         AddBuilds("cxx14", allfeatures + allconfigs + cxxflags + ["-std=c++14"])
 

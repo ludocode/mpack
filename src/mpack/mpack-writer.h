@@ -765,9 +765,36 @@ MPACK_INLINE void mpack_finish_type(mpack_writer_t* writer, mpack_type_t type) {
     mpack_writer_track_pop(writer, type);
 }
 
-#if defined(__cplusplus)
-#define MPACK_HAS_GENERIC 1
+/**
+ * @}
+ */
 
+/**
+ * @}
+ */
+
+#endif
+
+MPACK_HEADER_END
+
+#if MPACK_HAS_GENERIC
+#define mpack_write(writer, value) \
+    _Generic((value),                               \
+              int8_t: mpack_write_i8,               \
+             int16_t: mpack_write_i16,              \
+             int32_t: mpack_write_i32,              \
+             int64_t: mpack_write_i64,              \
+             uint8_t: mpack_write_u8,               \
+            uint16_t: mpack_write_u16,              \
+            uint32_t: mpack_write_u32,              \
+            uint64_t: mpack_write_u64,              \
+                bool: mpack_write_bool,             \
+               float: mpack_write_float,            \
+              double: mpack_write_double,           \
+              char *: mpack_write_cstr_or_nil,      \
+        const char *: mpack_write_cstr_or_nil       \
+    )(writer, value)
+#elif defined(__cplusplus)
 MPACK_INLINE void mpack_write(mpack_writer_t* writer, int8_t value) {
     mpack_write_i8(writer, value);
 }
@@ -819,38 +846,6 @@ MPACK_INLINE void mpack_write(mpack_writer_t* writer, char *value) {
 MPACK_INLINE void mpack_write(mpack_writer_t* writer, const char *value) {
     mpack_write_cstr_or_nil(writer, value);
 }
-
-#elif __STDC_VERSION__ >= 201112L
-#define MPACK_HAS_GENERIC 1
-
-#define mpack_write(writer, value) \
-    _Generic((value),                               \
-              int8_t: mpack_write_i8,               \
-             int16_t: mpack_write_i16,              \
-             int32_t: mpack_write_i32,              \
-             int64_t: mpack_write_i64,              \
-             uint8_t: mpack_write_u8,               \
-            uint16_t: mpack_write_u16,              \
-            uint32_t: mpack_write_u32,              \
-            uint64_t: mpack_write_u64,              \
-                bool: mpack_write_bool,             \
-               float: mpack_write_float,            \
-              double: mpack_write_double,           \
-              char *: mpack_write_cstr_or_nil,      \
-        const char *: mpack_write_cstr_or_nil       \
-    )(writer, value)
 #endif
-
-/**
- * @}
- */
-
-/**
- * @}
- */
-
-#endif
-
-MPACK_HEADER_END
 
 #endif

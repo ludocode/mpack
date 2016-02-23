@@ -76,6 +76,9 @@
 #ifndef MPACK_STDIO
 #define MPACK_STDIO 0
 #endif
+#ifndef MPACK_HAS_GENERIC
+#define MPACK_HAS_GENERIC 0
+#endif
 
 #ifndef MPACK_DEBUG
 #define MPACK_DEBUG 0
@@ -387,8 +390,6 @@ MPACK_HEADER_START
 #ifndef MPACK_STATIC_ASSERT
     #define MPACK_STATIC_ASSERT(expr, str) (MPACK_UNUSED(sizeof(char[1 - 2*!(expr)])))
 #endif
-
-
 
 /*
  * Endianness checks

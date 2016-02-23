@@ -797,7 +797,7 @@ static void test_write_tracking() {
 }
 #endif
 
-#ifdef MPACK_HAS_GENERIC
+#if MPACK_HAS_GENERIC
 static void test_write_generic(void) {
     char buf[4096];
 
@@ -986,7 +986,7 @@ void test_writes() {
     test_write_simple_size_int_fixnums();
     test_write_simple_size_int();
     test_write_simple_tag_int();
-    #ifdef MPACK_HAS_GENERIC
+    #if MPACK_HAS_GENERIC
     test_write_generic();
     #endif
     test_write_simple_misc();
