@@ -778,6 +778,18 @@ MPACK_INLINE void mpack_finish_type(mpack_writer_t* writer, mpack_type_t type) {
 MPACK_HEADER_END
 
 #if MPACK_HAS_GENERIC
+
+/**
+ * @def mpack_write(writer, value)
+ *
+ * Generic writer which accepts all standard C types.
+ * The compiler will automaticly dispatch the function based on the
+ * type of the @value parameter.
+ *
+ * @warning Be carefull when directly supplying true, false or NULL
+ *  as value. It is possible that not the correct function is dispatched
+ *  and invalid messagepack is written!
+ */
 #define mpack_write(writer, value) \
     _Generic((value),                               \
               int8_t: mpack_write_i8,               \
