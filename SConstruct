@@ -69,7 +69,12 @@ if hasOg:
 else:
     debugflags = ["-DDEBUG", "-O0"]
 releaseflags = ["-O2"]
-cflags = ["-std=c99"]
+
+hasC11 = conf.CheckFlags(["-std=c11"])
+if hasC11:
+    cflags = ["-std=c11"]
+else:
+    cflags = ["-std=c99"]
 
 gcovflags = []
 if ARGUMENTS.get('gcov'):
@@ -119,10 +124,8 @@ if ARGUMENTS.get('more') or ARGUMENTS.get('all'):
     AddBuilds("embed", allfeatures + cflags + ["-DMPACK_NO_BUILTINS=1"])
     AddBuilds("noio", allfeatures + noioconfigs + cflags)
     AddBuild("debug-size", ["-DMPACK_OPTIMIZE_FOR_SIZE=1"] + debugflags + allfeatures + allconfigs + cflags)
-
-# C11
-if ARGUMENTS.get('c11'):
-    AddBuild("c11", allfeatures + allconfigs + releaseflags + ["-std=c11", "-DMPACK_HAS_GENERIC=1"])
+    if conf.CheckFlags(cxxflags + ["-std=c++11"], [], "-std=c++11"):
+        AddBuilds("cxx11", allfeatures + allconfigs + cxxflags + ["-std=c++11"])
 
 # Run "scons all=1" to run all builds. This is what the CI runs.
 if ARGUMENTS.get('all'):
@@ -159,15 +162,14 @@ if ARGUMENTS.get('all'):
     if hasOg:
         AddBuild("debug-O0", allfeatures + allconfigs + ["-DDEBUG", "-O0"] + cflags)
 
-    # other language standards (C11, various C++ versions)
-    if conf.CheckFlags(["-std=c11"]):
-        AddBuilds("c11", allfeatures + allconfigs + ["-std=c11"])
+    # other language standards (C99, various C++ versions)
+    if hasC11:
+        AddBuilds("c99", allfeatures + allconfigs + ["-std=c99"])
     AddBuilds("cxx", allfeatures + allconfigs + cxxflags + ["-std=c++98"])
-    if conf.CheckFlags(cxxflags + ["-std=c++11"], [], "-std=c++11"):
-        AddBuilds("cxx11", allfeatures + allconfigs + cxxflags + ["-std=c++11"])
-        AddBuilds("cxx11_generic", allfeatures + allconfigs + cxxflags + ["-std=c++11", "-DMPACK_HAS_GENERIC=1"])
     if conf.CheckFlags(cxxflags + ["-std=c++14"], [], "-std=c++14"):
         AddBuilds("cxx14", allfeatures + allconfigs + cxxflags + ["-std=c++14"])
+    if conf.CheckFlags(cxxflags + ["-std=gnu++11"], [], "-std=gnu++11"):
+        AddBuilds("gnuxx11", allfeatures + allconfigs + cxxflags + ["-std=gnu++11"]) # Clang supports _Generic in gnu++11 mode
 
     # 32-bit build
     if conf.CheckFlags(["-m32"], ["-m32"]):

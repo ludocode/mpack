@@ -76,9 +76,6 @@
 #ifndef MPACK_STDIO
 #define MPACK_STDIO 0
 #endif
-#ifndef MPACK_HAS_GENERIC
-#define MPACK_HAS_GENERIC 0
-#endif
 
 #ifndef MPACK_DEBUG
 #define MPACK_DEBUG 0
@@ -390,6 +387,44 @@ MPACK_HEADER_START
 #ifndef MPACK_STATIC_ASSERT
     #define MPACK_STATIC_ASSERT(expr, str) (MPACK_UNUSED(sizeof(char[1 - 2*!(expr)])))
 #endif
+
+
+
+/* _Generic */
+
+#ifndef MPACK_HAS_GENERIC
+    #if defined(__clang__) && defined(__has_feature)
+        // With Clang we can test for _Generic support directly
+        // and ignore C/C++ version
+        #if __has_feature(c_generic_selections)
+            #define MPACK_HAS_GENERIC 1
+        #else
+            #define MPACK_HAS_GENERIC 0
+        #endif
+    #endif
+#endif
+
+#ifndef MPACK_HAS_GENERIC
+    #if defined(__STDC_VERSION__)
+        #if __STDC_VERSION__ >= 201112L
+            #if defined(__GNUC__) && !defined(__clang__)
+                // GCC does not have full C11 support in GCC 4.7 and 4.8
+                #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)
+                    #define MPACK_HAS_GENERIC 1
+                #endif
+            #else
+                // We hope other compilers aren't lying about C11/_Generic support
+                #define MPACK_HAS_GENERIC 1
+            #endif
+        #endif
+    #endif
+#endif
+
+#ifndef MPACK_HAS_GENERIC
+    #define MPACK_HAS_GENERIC 0
+#endif
+
+
 
 /*
  * Endianness checks
