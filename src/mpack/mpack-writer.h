@@ -780,15 +780,29 @@ MPACK_HEADER_END
 #if MPACK_HAS_GENERIC
 
 /**
+ * @addtogroup writer
+ * @{
+ */
+
+/**
+ * @name Core Writer Functions
+ * @{
+ */
+
+/**
  * @def mpack_write(writer, value)
  *
- * Generic writer which accepts all standard C types.
- * The compiler will automaticly dispatch the function based on the
- * type of the @value parameter.
+ * Type-generic writer for primitive types.
  *
- * @warning Be carefull when directly supplying true, false or NULL
- *  as value. It is possible that not the correct function is dispatched
- *  and invalid messagepack is written!
+ * The compiler will dispatch to an appropriate write function based
+ * on the type of the @a value parameter.
+ *
+ * @note This requires C11 `_Generic` support, or C++. This is implemented
+ * as a set of inline overloads in C++ mode if `_Generic` is not supported.
+ *
+ * @warning In C11, the indentifiers `true`, `false` and `NULL` are
+ * all of type `int`, not `bool` or `void*`! They will emit unexpected
+ * types when passed uncast, so be careful when using them.
  */
 #define mpack_write(writer, value) \
     _Generic((value),                               \
@@ -806,7 +820,17 @@ MPACK_HEADER_END
               char *: mpack_write_cstr_or_nil,      \
         const char *: mpack_write_cstr_or_nil       \
     )(writer, value)
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
+
 #elif defined(__cplusplus)
+
 MPACK_INLINE void mpack_write(mpack_writer_t* writer, int8_t value) {
     mpack_write_i8(writer, value);
 }
