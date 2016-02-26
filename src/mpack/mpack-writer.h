@@ -822,14 +822,29 @@ MPACK_HEADER_END
     )(writer, value)
 
 /**
+ * @def mpack_write_kv(writer, key, value)
+ *
+ * Type-generic writer for key-value. Where key is always
+ * a cstr string.
+ *
+ * @param key   May never be NULL !
+ * @param value Primitive type supported by mpack_write generic.
+ */
+#define mpack_write_kv(writer, key, value) { \
+    mpack_write_cstr(writer, key);                  \
+    mpack_write(writer, value);                     \
+}
+
+/**
  * @}
  */
 
 /**
  * @}
  */
-
 #elif defined(__cplusplus)
+
+/* C++ generic write for primitive values */
 
 MPACK_INLINE void mpack_write(mpack_writer_t* writer, int8_t value) {
     mpack_write_i8(writer, value);
@@ -882,6 +897,73 @@ MPACK_INLINE void mpack_write(mpack_writer_t* writer, char *value) {
 MPACK_INLINE void mpack_write(mpack_writer_t* writer, const char *value) {
     mpack_write_cstr_or_nil(writer, value);
 }
-#endif
+
+/* C++ generic write for key-value pairs */
+
+MPACK_INLINE void mpack_write_kv(mpack_writer_t* writer, const char *key, int8_t value) {
+    mpack_write_cstr(writer, key);
+    mpack_write_i8(writer, value);
+}
+
+MPACK_INLINE void mpack_write_kv(mpack_writer_t* writer, const char *key, int16_t value) {
+    mpack_write_cstr(writer, key);
+    mpack_write_i16(writer, value);
+}
+
+MPACK_INLINE void mpack_write_kv(mpack_writer_t* writer, const char *key, int32_t value) {
+    mpack_write_cstr(writer, key);
+    mpack_write_i32(writer, value);
+}
+
+MPACK_INLINE void mpack_write_kv(mpack_writer_t* writer, const char *key, int64_t value) {
+    mpack_write_cstr(writer, key);
+    mpack_write_i64(writer, value);
+}
+
+MPACK_INLINE void mpack_write_kv(mpack_writer_t* writer, const char *key, uint8_t value) {
+    mpack_write_cstr(writer, key);
+    mpack_write_u8(writer, value);
+}
+
+MPACK_INLINE void mpack_write_kv(mpack_writer_t* writer, const char *key, uint16_t value) {
+    mpack_write_cstr(writer, key);
+    mpack_write_u16(writer, value);
+}
+
+MPACK_INLINE void mpack_write_kv(mpack_writer_t* writer, const char *key, uint32_t value) {
+    mpack_write_cstr(writer, key);
+    mpack_write_u32(writer, value);
+}
+
+MPACK_INLINE void mpack_write_kv(mpack_writer_t* writer, const char *key, uint64_t value) {
+    mpack_write_cstr(writer, key);
+    mpack_write_u64(writer, value);
+}
+
+MPACK_INLINE void mpack_write_kv(mpack_writer_t* writer, const char *key, bool value) {
+    mpack_write_cstr(writer, key);
+    mpack_write_bool(writer, value);
+}
+
+MPACK_INLINE void mpack_write_kv(mpack_writer_t* writer, const char *key, float value) {
+    mpack_write_cstr(writer, key);
+    mpack_write_float(writer, value);
+}
+
+MPACK_INLINE void mpack_write_kv(mpack_writer_t* writer, const char *key, double value) {
+    mpack_write_cstr(writer, key);
+    mpack_write_double(writer, value);
+}
+
+MPACK_INLINE void mpack_write_kv(mpack_writer_t* writer, const char *key, char *value) {
+    mpack_write_cstr(writer, key);
+    mpack_write_cstr_or_nil(writer, value);
+}
+
+MPACK_INLINE void mpack_write_kv(mpack_writer_t* writer, const char *key, const char *value) {
+    mpack_write_cstr(writer, key);
+    mpack_write_cstr_or_nil(writer, value);
+}
+#endif /* __cplusplus */
 
 #endif

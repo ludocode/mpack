@@ -885,6 +885,34 @@ static void test_write_generic(void) {
     TEST_SIMPLE_WRITE("\xc0", mpack_write(&writer, (const char *)NULL));
     TEST_SIMPLE_WRITE("\xa4""1337", mpack_write(&writer, (const char *)"1337"));
 }
+
+static void test_write_generic_kv(void) {
+    char key[] = "foo";
+    char value[] = "bar";
+    char buf[4096];
+
+    // int8, int16, int32, int64
+    TEST_SIMPLE_WRITE("\xa3""foo""\x7f", mpack_write_kv(&writer, key, (int8_t)INT8_MAX));
+    TEST_SIMPLE_WRITE("\xa3""foo""\xcd\x7f\xff", mpack_write_kv(&writer, key, (int16_t)INT16_MAX));
+    TEST_SIMPLE_WRITE("\xa3""foo""\xce\x7f\xff\xff\xff", mpack_write_kv(&writer, key, (int32_t)INT32_MAX));
+    TEST_SIMPLE_WRITE("\xa3""foo""\xcf\x7f\xff\xff\xff\xff\xff\xff\xff", mpack_write_kv(&writer, key, (int64_t)INT64_MAX));
+
+    // uint8, uint16, uint32, uint64
+    TEST_SIMPLE_WRITE("\xa3""foo""\xcc\xff", mpack_write_kv(&writer, key, (uint8_t)UINT8_MAX));
+    TEST_SIMPLE_WRITE("\xa3""foo""\xcd\xff\xff", mpack_write_kv(&writer, key, (uint16_t)UINT16_MAX));
+    TEST_SIMPLE_WRITE("\xa3""foo""\xce\xff\xff\xff\xff", mpack_write_kv(&writer, key, (uint64_t)UINT32_MAX));
+    TEST_SIMPLE_WRITE("\xa3""foo""\xcf\xff\xff\xff\xff\xff\xff\xff\xff", mpack_write_kv(&writer, key, (uint64_t)UINT64_MAX));
+
+    // float, double and bool
+    TEST_SIMPLE_WRITE("\xa3""foo""\xca\xc0\x2d\xf3\xb6", mpack_write_kv(&writer, key, (float)-2.718f));
+    TEST_SIMPLE_WRITE("\xa3""foo""\xcb\xc0\x09\x21\xfb\x53\xc8\xd4\xf1", mpack_write_kv(&writer, key, (double)-3.14159265));
+    TEST_SIMPLE_WRITE("\xa3""foo""\xc2", mpack_write_kv(&writer, key, (bool)false));
+
+    // char *, const char *
+    TEST_SIMPLE_WRITE("\xa3""foo""\xa3""bar", mpack_write_kv(&writer, key, (char *)value));
+    TEST_SIMPLE_WRITE("\xa3""foo""\xa3""bar", mpack_write_kv(&writer, key, (const char *)value));
+}
+
 #endif
 
 static void test_write_utf8(void) {
@@ -988,6 +1016,7 @@ void test_writes() {
     test_write_simple_tag_int();
     #if MPACK_HAS_GENERIC
     test_write_generic();
+    test_write_generic_kv();
     #endif
     test_write_simple_misc();
     test_write_utf8();
