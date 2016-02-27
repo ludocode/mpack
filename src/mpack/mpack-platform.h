@@ -427,6 +427,28 @@ MPACK_HEADER_START
 
 
 /*
+ * Finite Math
+ *
+ * -ffinite-math-only, included in -ffast-math, breaks functions that
+ * that check for non-finite real values such as isnan() and isinf().
+ *
+ * We should use this to trap errors when reading data that contains
+ * non-finite reals. This isn't currently implemented.
+ */
+
+#ifndef MPACK_FINITE_MATH
+#if defined(__FINITE_MATH_ONLY__) && __FINITE_MATH_ONLY__
+#define MPACK_FINITE_MATH 1
+#endif
+#endif
+
+#ifndef MPACK_FINITE_MATH
+#define MPACK_FINITE_MATH 0
+#endif
+
+
+
+/*
  * Endianness checks
  *
  * These define MPACK_NHSWAP*() which swap network<->host byte

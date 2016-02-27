@@ -525,17 +525,22 @@ static void test_expect_reals() {
     TEST_SIMPLE_READ("\xca\x00\x00\x00\x00", 0.0 == mpack_expect_double(&reader));
     TEST_SIMPLE_READ("\xcb\x00\x00\x00\x00\x00\x00\x00\x00", 0.0 == mpack_expect_double(&reader));
 
+    TEST_SIMPLE_READ("\xca\x00\x00\x00\x00", 0.0f == mpack_expect_float_strict(&reader));
+    TEST_SIMPLE_READ("\xca\x00\x00\x00\x00", 0.0 == mpack_expect_double_strict(&reader));
+    TEST_SIMPLE_READ("\xcb\x00\x00\x00\x00\x00\x00\x00\x00", 0.0 == mpack_expect_double_strict(&reader));
+
+    // when -ffinite-math-only is enabled, isnan() can always return false.
+    // TODO: we should probably add at least a reader option to
+    // generate an error on non-finite reals.
+    #if !MPACK_FINITE_MATH
     TEST_SIMPLE_READ("\xca\xff\xff\xff\xff", isnanf(mpack_expect_float(&reader)) != 0);
     TEST_SIMPLE_READ("\xcb\xff\xff\xff\xff\xff\xff\xff\xff", isnanf(mpack_expect_float(&reader)) != 0);
     TEST_SIMPLE_READ("\xca\xff\xff\xff\xff", isnan(mpack_expect_double(&reader)) != 0);
     TEST_SIMPLE_READ("\xcb\xff\xff\xff\xff\xff\xff\xff\xff", isnan(mpack_expect_double(&reader)) != 0);
-
-    TEST_SIMPLE_READ("\xca\x00\x00\x00\x00", 0.0f == mpack_expect_float_strict(&reader));
-    TEST_SIMPLE_READ("\xca\x00\x00\x00\x00", 0.0 == mpack_expect_double_strict(&reader));
-    TEST_SIMPLE_READ("\xcb\x00\x00\x00\x00\x00\x00\x00\x00", 0.0 == mpack_expect_double_strict(&reader));
     TEST_SIMPLE_READ("\xca\xff\xff\xff\xff", 0 != isnanf(mpack_expect_float_strict(&reader)));
     TEST_SIMPLE_READ("\xca\xff\xff\xff\xff", 0 != isnan(mpack_expect_double_strict(&reader)));
     TEST_SIMPLE_READ("\xcb\xff\xff\xff\xff\xff\xff\xff\xff", isnan(mpack_expect_double_strict(&reader)));
+    #endif
 
     TEST_SIMPLE_READ_ERROR("\x00", 0.0f == mpack_expect_float_strict(&reader), mpack_error_type);
     TEST_SIMPLE_READ_ERROR("\xd0\x00", 0.0f == mpack_expect_float_strict(&reader), mpack_error_type);
