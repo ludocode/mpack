@@ -78,7 +78,7 @@ void test_write_error_handler(mpack_writer_t* writer, mpack_error_t error);
     mpack_writer_t writer; \
     mpack_writer_init(&writer, buf, sizeof(buf)); \
     mpack_writer_set_error_handler(&writer, test_write_error_handler); \
-    (write_op); \
+    write_op; \
     TEST_DESTROY_MATCH_SIZE(expect, mpack_writer_buffer_used(&writer)); \
     TEST_TRUE(test_write_error == mpack_ok); \
     test_write_error = mpack_ok; \

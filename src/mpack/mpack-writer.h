@@ -824,16 +824,19 @@ MPACK_HEADER_END
 /**
  * @def mpack_write_kv(writer, key, value)
  *
- * Type-generic writer for key-value. Where key is always
+ * Type-generic writer for key-value pairs of null-terminated string
+ * keys and primitive values.
  * a cstr string.
  *
- * @param key   May never be NULL !
- * @param value Primitive type supported by mpack_write generic.
+ * @warning @a writer may be evaluated multiple times.
+ *
+ * @param key   A null-terminated C string.
+ * @param value A primitive type supported by mpack_write().
  */
-#define mpack_write_kv(writer, key, value) { \
+#define mpack_write_kv(writer, key, value) do {     \
     mpack_write_cstr(writer, key);                  \
     mpack_write(writer, value);                     \
-}
+} while (0)
 
 /**
  * @}
