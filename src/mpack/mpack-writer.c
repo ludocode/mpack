@@ -574,7 +574,6 @@ MPACK_STATIC_INLINE void mpack_encode_str8(char* p, uint8_t count) {
 }
 
 MPACK_STATIC_INLINE void mpack_encode_str16(char* p, uint16_t count) {
-    mpack_assert(count > UINT8_MAX);
     mpack_store_u8(p, 0xda);
     mpack_store_u16(p + 1, count);
 }
@@ -866,10 +865,6 @@ void mpack_start_str(mpack_writer_t* writer, uint32_t count) {
 
     if (count <= 31) {
         MPACK_WRITE_ENCODED(mpack_encode_fixstr, MPACK_TAG_SIZE_FIXSTR, (uint8_t)count);
-    } else if (count <= UINT8_MAX) {
-        // TODO: str8 had no counterpart in MessagePack 1.0; there was only
-        // fixraw, raw16 and raw32. This should not be used in compatibility mode.
-        MPACK_WRITE_ENCODED(mpack_encode_str8, MPACK_TAG_SIZE_STR8, (uint8_t)count);
     } else if (count <= UINT16_MAX) {
         MPACK_WRITE_ENCODED(mpack_encode_str16, MPACK_TAG_SIZE_STR16, (uint16_t)count);
     } else {
