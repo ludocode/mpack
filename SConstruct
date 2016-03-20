@@ -135,7 +135,7 @@ if ARGUMENTS.get('all'):
     AddBuild("release-fastmath", allfeatures + allconfigs + releaseflags + cflags + ["-ffast-math"])
     if conf.CheckFlags(ltoflags, ltoflags, "-flto"):
         AddBuild("release-lto", allfeatures + allconfigs + ltoflags + cflags, ltoflags)
-    AddBuild("release-size", ["-Os"] + allfeatures + allconfigs + cflags)
+    AddBuild("release-size", ["-Os", "-DMPACK_STRINGS=0"] + allfeatures + allconfigs + cflags)
 
     # feature subsets with default configuration
     AddBuilds("empty", allconfigs + cflags)

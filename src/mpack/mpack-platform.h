@@ -80,6 +80,9 @@
 #ifndef MPACK_DEBUG
 #define MPACK_DEBUG 0
 #endif
+#ifndef MPACK_STRINGS
+#define MPACK_STRINGS 1 /* default on unless explicitly disabled */
+#endif
 #ifndef MPACK_CUSTOM_ASSERT
 #define MPACK_CUSTOM_ASSERT 0
 #endif

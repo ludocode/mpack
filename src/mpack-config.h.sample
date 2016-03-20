@@ -123,6 +123,21 @@
 #endif
 
 /**
+ * \def MPACK_STRINGS
+ *
+ * Enables descriptive error and type strings.
+ *
+ * This can be turned off (by defining it to 0) to maximize space savings
+ * on embedded devices. If this is disabled, string functions such as
+ * mpack_error_to_string() and mpack_type_to_string() return an empty string.
+ *
+ * This is on by default if MPACK_STRINGS is not defined.
+ */
+#if !defined(MPACK_STRINGS)
+#define MPACK_STRINGS 1
+#endif
+
+/**
  * Set this to 1 to implement a custom mpack_assert_fail() function. This
  * function must not return, and must have the following signature:
  *

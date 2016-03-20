@@ -236,11 +236,11 @@ static void test_tags_compound() {
 }
 
 static void test_string(const char* str, const char* content) {
-    #if MPACK_DEBUG
-    // in debug mode, the string should contain the expected content
+    #if MPACK_STRINGS
+    // with strings enabled, the string should contain the expected content
     TEST_TRUE(strstr(str, content) != NULL, "string \"%s\" does not contain \"%s\"", str, content);
     #else
-    // in release mode, strings should be blank
+    // strings should be blank when disabled
     MPACK_UNUSED(content);
     TEST_TRUE(strcmp(str, "") == 0, "string is not empty: %s", str);
     #endif
