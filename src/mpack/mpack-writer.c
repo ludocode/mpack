@@ -451,7 +451,10 @@ void mpack_write_false(mpack_writer_t* writer) {
     mpack_write_byte_element(writer, (char)0xc2);
 }
 
-
+void mpack_write_object_bytes(mpack_writer_t* writer, const char* data, size_t bytes) {
+    mpack_writer_track_element(writer);
+    mpack_write_native(writer, data, bytes);
+}
 
 /*
  * Encode functions
