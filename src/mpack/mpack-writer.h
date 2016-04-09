@@ -467,6 +467,9 @@ void mpack_write_false(mpack_writer_t* writer);
 /** Writes a nil. */
 void mpack_write_nil(mpack_writer_t* writer);
 
+/** Write a pre-encoded messagepack object */
+void mpack_write_object_bytes(mpack_writer_t* writer, const char* data, size_t bytes);
+
 /**
  * @}
  */

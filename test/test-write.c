@@ -329,6 +329,7 @@ static void test_write_simple_misc() {
     TEST_SIMPLE_WRITE("\xcb\x40\x09\x21\xfb\x53\xc8\xd4\xf1", mpack_write_double(&writer, 3.14159265));
     TEST_SIMPLE_WRITE("\xcb\xc0\x09\x21\xfb\x53\xc8\xd4\xf1", mpack_write_double(&writer, -3.14159265));
 
+    TEST_SIMPLE_WRITE("\xde\xad\xbe\xef", mpack_write_object_bytes(&writer, "\xde\xad\xbe\xef", 4));
 }
 
 #ifdef MPACK_MALLOC
