@@ -19,7 +19,7 @@ INPUT = \
 
 LAYOUT_FILE = docs/doxygen-layout.xml
 USE_MDFILE_AS_MAINPAGE = README.md
-HTML_OUTPUT = docs/html
+HTML_OUTPUT = build/docs
 GENERATE_LATEX = no
 STRIP_FROM_PATH = . ./src
 HTML_EXTRA_STYLESHEET = docs/doxygen-mpack-css.css

@@ -8,6 +8,7 @@ cat README.md | \
     > README.temp.md
 
 # Generate docs with edited README.md and correct version number
+mkdir -p build
 (
     cat docs/doxyfile | sed -e "s/README\.md/README.temp.md/"
     echo "PROJECT_NUMBER = $VERSION"
