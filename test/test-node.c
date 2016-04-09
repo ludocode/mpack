@@ -737,6 +737,28 @@ static void test_node_read_strings() {
     #endif
 }
 
+static void test_node_read_enum() {
+    mpack_node_data_t pool[128];
+
+    typedef enum           { APPLE ,  BANANA ,  ORANGE , COUNT} fruit_t;
+    const char* fruits[] = {"apple", "banana", "orange"};
+
+    TEST_SIMPLE_TREE_READ("\xa5""apple", APPLE == (fruit_t)mpack_node_enum(node, fruits, COUNT));
+    TEST_SIMPLE_TREE_READ("\xa6""banana", BANANA == (fruit_t)mpack_node_enum(node, fruits, COUNT));
+    TEST_SIMPLE_TREE_READ("\xa6""orange", ORANGE == (fruit_t)mpack_node_enum(node, fruits, COUNT));
+    TEST_SIMPLE_TREE_READ_ERROR("\xa4""kiwi", COUNT == (fruit_t)mpack_node_enum(node, fruits, COUNT), mpack_error_type);
+    TEST_SIMPLE_TREE_READ_ERROR("\x01", COUNT == (fruit_t)mpack_node_enum(node, fruits, COUNT), mpack_error_type);
+
+    TEST_SIMPLE_TREE_READ("\xa5""apple", APPLE == (fruit_t)mpack_node_enum_optional(node, fruits, COUNT));
+    TEST_SIMPLE_TREE_READ("\xa6""banana", BANANA == (fruit_t)mpack_node_enum_optional(node, fruits, COUNT));
+    TEST_SIMPLE_TREE_READ("\xa6""orange", ORANGE == (fruit_t)mpack_node_enum_optional(node, fruits, COUNT));
+    TEST_SIMPLE_TREE_READ("\xa4""kiwi", COUNT == (fruit_t)mpack_node_enum_optional(node, fruits, COUNT));
+    TEST_SIMPLE_TREE_READ("\x01", COUNT == (fruit_t)mpack_node_enum_optional(node, fruits, COUNT));
+
+    // test pre-existing error
+    TEST_SIMPLE_TREE_READ_ERROR("\x01", (mpack_node_nil(node), COUNT == (fruit_t)mpack_node_enum(node, fruits, COUNT)), mpack_error_type);
+}
+
 static void test_node_read_array() {
     static const char test[] = "\x93\x90\x91\xc3\x92\xc3\xc3";
     mpack_tree_t tree;
@@ -977,6 +999,7 @@ void test_node(void) {
     test_node_read_possible();
     test_node_read_pre_error();
     test_node_read_strings();
+    test_node_read_enum();
 
     // compound types
     test_node_read_array();

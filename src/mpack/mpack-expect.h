@@ -1079,9 +1079,9 @@ void mpack_expect_tag(mpack_reader_t* reader, mpack_tag_t tag);
  * Expects a string matching one of the strings in the given array,
  * returning its array index.
  *
- * Unlike mpack_expect_key_cstr(), if the string does not match,
- * @ref mpack_error_type is flagged. The value must be one of the
- * given strings.
+ * If the value does not match any of the given strings,
+ * @ref mpack_error_type is flagged. Use mpack_expect_enum_optional()
+ * if you want to allow other values than the given strings.
  *
  * If any error occurs or the reader is in an error state, @a count
  * is returned.
@@ -1091,7 +1091,16 @@ void mpack_expect_tag(mpack_reader_t* reader, mpack_tag_t tag);
  * enum is a special "count" value, it can be passed as the count,
  * and the return value can be cast directly to the enum type.
  *
- * The maximum key length is the size of the buffer (keys are read in-place.)
+ * @code{.c}
+ * typedef enum           { APPLE ,  BANANA ,  ORANGE , COUNT} fruit_t;
+ * const char* fruits[] = {"apple", "banana", "orange"};
+ *
+ * fruit_t fruit = (fruit_t)mpack_expect_enum(reader, fruits, COUNT);
+ * @endcode
+ *
+ * See @ref docs/expect.md for more examples.
+ *
+ * The maximum string length is the size of the buffer (strings are read in-place.)
  *
  * @param reader The reader
  * @param strings An array of expected strings of length count
@@ -1113,10 +1122,18 @@ size_t mpack_expect_enum(mpack_reader_t* reader, const char* strings[], size_t c
  * This can be used to quickly parse a string into an enum when the
  * enum values range from 0 to @a count-1. If the last value in the
  * enum is a special "count" value, it can be passed as the count,
- * and the return value can be cast directly to the enum type. See
- * @ref docs/expect.md for examples.
+ * and the return value can be cast directly to the enum type.
  *
- * The maximum key length is the size of the buffer (keys are read in-place.)
+ * @code{.c}
+ * typedef enum           { APPLE ,  BANANA ,  ORANGE , COUNT} fruit_t;
+ * const char* fruits[] = {"apple", "banana", "orange"};
+ *
+ * fruit_t fruit = (fruit_t)mpack_expect_enum_optional(reader, fruits, COUNT);
+ * @endcode
+ *
+ * See @ref docs/expect.md for more examples.
+ *
+ * The maximum string length is the size of the buffer (strings are read in-place.)
  *
  * @param reader The reader
  * @param strings An array of expected strings of length count
@@ -1136,9 +1153,9 @@ size_t mpack_expect_enum_optional(mpack_reader_t* reader, const char* strings[],
  * be called in the expression of a switch() statement. See @ref
  * docs/expect.md for an example.
  *
- * The found array should be cleared before expecting a key. If the flag for
- * a given key is already set when found (i.e. the map contains a duplicate
- * key), mpack_error_invalid is flagged.
+ * The found array must be cleared before expecting the first key. If the
+ * flag for a given key is already set when found (i.e. the map contains a
+ * duplicate key), mpack_error_invalid is flagged.
  *
  * If the key is not a non-negative integer, or if the key is @a count or
  * larger, @a count is returned and no error is flagged. If you want an error
@@ -1163,9 +1180,9 @@ size_t mpack_expect_key_uint(mpack_reader_t* reader, bool found[], size_t count)
  * array to define the key indices. It should be called in the expression
  * of a switch() statement. See @ref docs/expect.md for an example.
  *
- * The found array should be cleared before expecting a key. If the flag for
- * a given key is already set when found (i.e. the map contains a duplicate
- * key), mpack_error_invalid is flagged.
+ * The found array must be cleared before expecting the first key. If the
+ * flag for a given key is already set when found (i.e. the map contains a
+ * duplicate key), mpack_error_invalid is flagged.
  *
  * If the key is unrecognized, count is returned and no error is flagged. If
  * you want an error on unrecognized keys, flag an error in the default case
