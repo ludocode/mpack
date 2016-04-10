@@ -44,13 +44,16 @@ MPACK_HEADER_START
  */
 
 /**
- * A handle to node in a parsed MPack tree. Note that mpack_node_t is passed by value.
+ * A handle to node data in a parsed MPack tree.
  *
  * Nodes represent either primitive values or compound types. If a
  * node is a compound type, it contains a pointer to its child nodes,
  * or a pointer to its underlying data.
  *
  * Nodes are immutable.
+ *
+ * @note @ref mpack_node_t is a handle, not the node data itself. It
+ *     is passed by value in the Node API.
  */
 typedef struct mpack_node_t mpack_node_t;
 
@@ -629,7 +632,7 @@ MPACK_INLINE int mpack_node_int(mpack_node_t node) {
  * Returns the float value of the node. The underlying value can be an
  * integer, float or double; the value is converted to a float.
  *
- * Note that reading a double or a large integer with this function can incur a
+ * @note Reading a double or a large integer with this function can incur a
  * loss of precision.
  *
  * @throws mpack_error_type if the underlying value is not a float, double or integer.
@@ -655,7 +658,7 @@ MPACK_INLINE float mpack_node_float(mpack_node_t node) {
  * Returns the double value of the node. The underlying value can be an
  * integer, float or double; the value is converted to a double.
  *
- * Note that reading a very large integer with this function can incur a
+ * @note Reading a very large integer with this function can incur a
  * loss of precision.
  *
  * @throws mpack_error_type if the underlying value is not a float, double or integer.
@@ -816,12 +819,12 @@ MPACK_INLINE size_t mpack_node_strlen(mpack_node_t node) {
 /**
  * Returns a pointer to the data contained by this node, ensuring it is a string.
  *
- * Note that strings are not null-terminated! Use one of the cstr functions
+ * @note Strings are not null-terminated! Use one of the cstr functions
  * to get a null-terminated string.
  *
  * The pointer is valid as long as the data backing the tree is valid.
  *
- * If this node is not a string, mpack_error_type is raised and NULL is returned.
+ * If this node is not a string, @ref mpack_error_type is raised and @c NULL is returned.
  *
  * @see mpack_node_copy_cstr()
  * @see mpack_node_cstr_alloc()
@@ -842,13 +845,13 @@ MPACK_INLINE const char* mpack_node_str(mpack_node_t node) {
 /**
  * Returns a pointer to the data contained by this node.
  *
- * Note that strings are not null-terminated! Use one of the cstr functions
+ * @note Strings are not null-terminated! Use one of the cstr functions
  * to get a null-terminated string.
  *
  * The pointer is valid as long as the data backing the tree is valid.
  *
  * If this node is not of a str, bin or map, mpack_error_type is raised, and
- * NULL is returned.
+ * @c NULL is returned.
  *
  * @see mpack_node_copy_cstr()
  * @see mpack_node_cstr_alloc()

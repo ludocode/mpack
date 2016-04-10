@@ -344,15 +344,11 @@ MPACK_INLINE bool mpack_tag_equal(mpack_tag_t left, mpack_tag_t right) {
 
 /*
  * Helpers to perform unaligned network-endian loads and stores
- * at arbitrary addresses.
+ * at arbitrary addresses. Byte-swapping builtins are used if they
+ * are available and if they improve performance.
  *
  * These will remain available in the public API so feel free to
  * use them for other purposes, but they are undocumented.
- *
- * The bswap builtins are used when needed and available. With
- * GCC 5.2 they appear to give better performance and smaller
- * code size on little-endian ARM while compiling to the same
- * assembly as the bit-shifting code on x86_64.
  */
 
 MPACK_INLINE uint8_t mpack_load_u8(const char* p) {

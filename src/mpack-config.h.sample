@@ -15,7 +15,6 @@
  *
  * Copy @c mpack-config.h.sample to @c mpack-config.h somewhere in your
  * project's include tree and, optionally, edit it to suit your setup.
- *
  * In almost all cases you can leave this file with the default config.
  *
  * You can also override the default configuration by pre-defining options
@@ -109,34 +108,34 @@
 /**
  * @def MPACK_MALLOC
  *
- * Defines the memory allocation function used by mpack. This is used by
+ * Defines the memory allocation function used by MPack. This is used by
  * helpers for automatically allocating data the correct size, and for
  * debugging functions. If this macro is undefined, the allocation helpers
  * will not be compiled.
  *
- * The default is malloc() if MPACK_STDLIB is enabled.
+ * The default is malloc() if @ref MPACK_STDLIB is enabled.
  */
 /**
  * @def MPACK_FREE
  *
- * Defines the memory free function used by mpack. This is used by helpers
+ * Defines the memory free function used by MPack. This is used by helpers
  * for automatically allocating data the correct size. If this macro is
  * undefined, the allocation helpers will not be compiled.
  *
- * The default is free() if MPACK_MALLOC has not been customized and
- * MPACK_STDLIB is enabled.
+ * The default is free() if @ref MPACK_MALLOC has not been customized and
+ * @ref MPACK_STDLIB is enabled.
  */
 /**
  * @def MPACK_REALLOC
  *
- * Defines the realloc function used by mpack. It is used by growable
+ * Defines the realloc function used by MPack. It is used by growable
  * buffers to resize more efficiently.
  *
- * The default is realloc() if MPACK_MALLOC has not been customized and
- * MPACK_STDLIB is enabled.
+ * The default is realloc() if @ref MPACK_MALLOC has not been customized and
+ * @ref MPACK_STDLIB is enabled.
  *
- * This is optional, even when MPACK_MALLOC is used. If MPACK_MALLOC is
- * set and MPACK_REALLOC is not, MPACK_MALLOC is used with a simple copy
+ * This is optional, even when @ref MPACK_MALLOC is used. If @ref MPACK_MALLOC is
+ * set and @ref MPACK_REALLOC is not, @ref MPACK_MALLOC is used with a simple copy
  * to grow buffers.
  */
 #if defined(MPACK_STDLIB) && !defined(MPACK_MALLOC)
@@ -158,13 +157,13 @@
  * @def MPACK_DEBUG
  *
  * Enables debug features. You may want to wrap this around your
- * own debug preprocs. By default, they are enabled if DEBUG or _DEBUG
+ * own debug preprocs. By default, this is enabled if @c DEBUG or @c _DEBUG
  * are defined.
  *
- * Note that MPACK_DEBUG cannot be defined differently for different
+ * Note that @ref MPACK_DEBUG cannot be defined differently for different
  * source files because it affects layout of structs defined in header
  * files. Your entire project must be compiled with the same value of
- * MPACK_DEBUG. (This is why NDEBUG is not used.)
+ * @ref MPACK_DEBUG. (This is why @c NDEBUG is not used.)
  */
 #if !defined(MPACK_DEBUG) && (defined(DEBUG) || defined(_DEBUG))
 #define MPACK_DEBUG 1
@@ -179,7 +178,7 @@
  * on embedded devices. If this is disabled, string functions such as
  * mpack_error_to_string() and mpack_type_to_string() return an empty string.
  *
- * This is on by default if MPACK_STRINGS is not defined.
+ * This is on by default if it is not defined.
  */
 #if !defined(MPACK_STRINGS)
 #define MPACK_STRINGS 1
@@ -189,10 +188,12 @@
  * Set this to 1 to implement a custom mpack_assert_fail() function. This
  * function must not return, and must have the following signature:
  *
- *     void mpack_assert_fail(const char* message)
+ * @code{.c}
+ * void mpack_assert_fail(const char* message)
+ * @endcode
  *
- * Asserts are only used when MPACK_DEBUG is enabled, and can be triggered
- * by bugs in mpack or bugs due to incorrect usage of mpack.
+ * Asserts are only used when @ref MPACK_DEBUG is enabled, and can be triggered
+ * by bugs in MPack or bugs due to incorrect usage of MPack.
  */
 #ifndef MPACK_CUSTOM_ASSERT
 #define MPACK_CUSTOM_ASSERT 0
@@ -223,7 +224,7 @@
  * Note that without write tracking enabled, it is possible for buggy code
  * to emit invalid MessagePack without flagging an error by writing the wrong
  * number of elements or bytes in a compound type. With tracking enabled,
- * MPACK will catch such errors and break on the offending line of code.
+ * MPack will catch such errors and break on the offending line of code.
  *
  * This is enabled by default in debug builds (provided a malloc() is
  * available.)
@@ -310,7 +311,7 @@
 #endif
 
 /**
- * The maximum depth for the node parser if MPACK_MALLOC is not available.
+ * The maximum depth for the node parser if @ref MPACK_MALLOC is not available.
  * The parsing stack is placed on the call stack.
  */
 #ifndef MPACK_NODE_MAX_DEPTH_WITHOUT_MALLOC

@@ -17,6 +17,3 @@ cp src/mpack-config.h.sample build/docs/mpack-config.h
     echo "PROJECT_NUMBER = $VERSION"
     echo
 ) | doxygen -
-RET=$?
-
-(exit $RET)

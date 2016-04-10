@@ -780,7 +780,7 @@ MPACK_INLINE void mpack_finish_type(mpack_writer_t* writer, mpack_type_t type) {
 
 MPACK_HEADER_END
 
-#if MPACK_HAS_GENERIC
+#if MPACK_WRITER && MPACK_HAS_GENERIC
 
 /**
  * @addtogroup writer
@@ -833,7 +833,8 @@ MPACK_HEADER_END
  *
  * @warning @a writer may be evaluated multiple times.
  *
- * @param key   A null-terminated C string.
+ * @param writer The writer.
+ * @param key A null-terminated C string.
  * @param value A primitive type supported by mpack_write().
  */
 #define mpack_write_kv(writer, key, value) do {     \

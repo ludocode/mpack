@@ -3,7 +3,7 @@
 
 The Expect API is used to imperatively parse data of a fixed (hardcoded) schema. It is most useful when parsing very large MessagePack files, parsing in memory-constrained environments, or generating parsing code from a schema. The API is similar to [CMP](https://github.com/camgunz/cmp), but has many helper functions especially for map keys and expected value ranges. Some of these will be covered below.
 
-If you are not writing code for an embedded device or generating parsing code from a schema, you should not follow this guide. You should most likely be using the Node API instead.
+*If you are not writing code for an embedded device or generating parsing code from a schema, you should not follow this guide. You should most likely be using the Node API instead.*
 
 ## A simple example
 
