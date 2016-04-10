@@ -3,7 +3,7 @@
 
 "`dirname $0`"/clean.sh
 . "`dirname $0`"/gendocs.sh
-cp -ar build/docs docs-html
+cp -ar build/docs/html docs-html
 "`dirname $0`"/clean.sh
 
 git checkout gh-pages || exit $?

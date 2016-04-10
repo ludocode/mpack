@@ -1,47 +1,84 @@
 
 /**
- * This is a sample MPack configuration file. Copy it to mpack-config.h somewhere
- * in your project's include tree and, optionally, edit it to suit your setup.
+ * @file
  *
- * In most cases you can leave this file with the default config.
- *
- * You can also override the default configuration by pre-defining options to 0 or 1.
+ * Defines the MPack configuration options.
  */
 
 #ifndef MPACK_CONFIG_H
 #define MPACK_CONFIG_H 1
 
-
-/*
- * Features
+/**
+ * @defgroup config Configuration Options
+ *
+ * Defines the MPack configuration options.
+ *
+ * Copy @c mpack-config.h.sample to @c mpack-config.h somewhere in your
+ * project's include tree and, optionally, edit it to suit your setup.
+ *
+ * In almost all cases you can leave this file with the default config.
+ *
+ * You can also override the default configuration by pre-defining options
+ * to 0 or 1.
+ *
+ * @{
  */
 
-/** Enables compilation of the base Tag Reader. */
+
+/**
+ * @name Features
+ * @{
+ */
+
+/**
+ * @def MPACK_READER
+ *
+ * Enables compilation of the base Tag Reader.
+ */
 #ifndef MPACK_READER
 #define MPACK_READER 1
 #endif
 
-/** Enables compilation of the static Expect API. */
+/**
+ * @def MPACK_EXPECT
+ *
+ * Enables compilation of the static Expect API.
+ */
 #ifndef MPACK_EXPECT
 #define MPACK_EXPECT 1
 #endif
 
-/** Enables compilation of the dynamic Node API. */
+/**
+ * @def MPACK_NODE
+ *
+ * Enables compilation of the dynamic Node API.
+ */
 #ifndef MPACK_NODE
 #define MPACK_NODE 1
 #endif
 
-/** Enables compilation of the Writer. */
+/**
+ * @def MPACK_WRITER
+ *
+ * Enables compilation of the Writer.
+ */
 #ifndef MPACK_WRITER
 #define MPACK_WRITER 1
 #endif
 
+/**
+ * @}
+ */
 
-/*
- * Dependencies
+
+/**
+ * @name Dependencies
+ * @{
  */
 
 /**
+ * @def MPACK_STDLIB
+ *
  * Enables the use of C stdlib. This allows the library to use malloc
  * for debugging and in allocation helpers.
  */
@@ -50,6 +87,8 @@
 #endif
 
 /**
+ * @def MPACK_STDIO
+ *
  * Enables the use of C stdio. This adds helpers for easily
  * reading/writing C files and makes debugging easier.
  */
@@ -57,13 +96,18 @@
 #define MPACK_STDIO 1
 #endif
 
+/**
+ * @}
+ */
 
-/*
- * System Functions
+
+/**
+ * @name System Functions
+ * @{
  */
 
 /**
- * \def MPACK_MALLOC
+ * @def MPACK_MALLOC
  *
  * Defines the memory allocation function used by mpack. This is used by
  * helpers for automatically allocating data the correct size, and for
@@ -73,7 +117,7 @@
  * The default is malloc() if MPACK_STDLIB is enabled.
  */
 /**
- * \def MPACK_FREE
+ * @def MPACK_FREE
  *
  * Defines the memory free function used by mpack. This is used by helpers
  * for automatically allocating data the correct size. If this macro is
@@ -83,7 +127,7 @@
  * MPACK_STDLIB is enabled.
  */
 /**
- * \def MPACK_REALLOC
+ * @def MPACK_REALLOC
  *
  * Defines the realloc function used by mpack. It is used by growable
  * buffers to resize more efficiently.
@@ -101,13 +145,17 @@
 #define MPACK_FREE free
 #endif
 
+/**
+ * @}
+ */
 
-/*
- * Debugging options
+
+/**
+ * @name Debugging options
  */
 
 /**
- * \def MPACK_DEBUG
+ * @def MPACK_DEBUG
  *
  * Enables debug features. You may want to wrap this around your
  * own debug preprocs. By default, they are enabled if DEBUG or _DEBUG
@@ -123,7 +171,7 @@
 #endif
 
 /**
- * \def MPACK_STRINGS
+ * @def MPACK_STRINGS
  *
  * Enables descriptive error and type strings.
  *
@@ -151,7 +199,7 @@
 #endif
 
 /**
- * \def MPACK_READ_TRACKING
+ * @def MPACK_READ_TRACKING
  *
  * Enables compound type size tracking for readers. This ensures that the
  * correct number of elements or bytes are read from a compound type.
@@ -167,7 +215,7 @@
 #endif
 
 /**
- * \def MPACK_WRITE_TRACKING
+ * @def MPACK_WRITE_TRACKING
  *
  * Enables compound type size tracking for writers. This ensures that the
  * correct number of elements or bytes are written in a compound type.
@@ -187,9 +235,14 @@
 #define MPACK_WRITE_TRACKING 1
 #endif
 
+/**
+ * @}
+ */
 
-/*
- * Miscellaneous
+
+/**
+ * @name Miscellaneous
+ * @{
  */
 
 /**
@@ -264,6 +317,15 @@
 #define MPACK_NODE_MAX_DEPTH_WITHOUT_MALLOC 32
 #endif
 
+/**
+ * @}
+ */
+
+
+
+/**
+ * @}
+ */
 
 #endif
 

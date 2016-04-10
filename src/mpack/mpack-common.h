@@ -34,6 +34,15 @@ MPACK_HEADER_START
 
 
 
+/**
+ * @defgroup common Common Elements
+ *
+ * Contains types, constants and functions shared by both the encoding
+ * and decoding portions of MPack.
+ *
+ * @{
+ */
+
 /* Version information */
 
 #define MPACK_VERSION_MAJOR 0  /**< The major version number of MPack. */
@@ -85,23 +94,16 @@ MPACK_HEADER_START
 #define MPACK_LIBRARY_STRING "MPack " MPACK_VERSION_STRING
 #endif
 
+/** @cond */
 /**
  * @def MPACK_MAXIMUM_TAG_SIZE
  *
- * The maximum size of a tag in bytes, as of the "new" MessagePack spec.
+ * The maximum encoded size of a tag in bytes, as of the "new" MessagePack spec.
  */
 #define MPACK_MAXIMUM_TAG_SIZE 9
+/** @endcond */
 
 
-
-/**
- * @defgroup common Common Elements
- *
- * Contains types and functions shared by both the encoding and decoding
- * portions of MPack.
- *
- * @{
- */
 
 /**
  * Error states for MPack objects.

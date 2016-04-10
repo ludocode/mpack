@@ -32,11 +32,6 @@
 
 
 
-/* For now, nothing in here should be seen by Doxygen. */
-/** @cond */
-
-
-
 /* Pre-include checks */
 
 #if defined(_MSC_VER) && _MSC_VER < 1800 && !defined(__cplusplus)
@@ -50,6 +45,8 @@
 
 
 #include "mpack-config.h"
+
+
 
 /*
  * Now that the config is included, we define to 0 any of the configuration
@@ -736,8 +733,6 @@ size_t mpack_strlen(const char* s);
  */
 
 MPACK_HEADER_END
-
-/** @endcond */
 
 #endif
 
