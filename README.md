@@ -19,14 +19,14 @@ The MPack featureset can also be customized at compile-time to set which feature
 MPack is beta software under development.
 
 [travis-home]: https://travis-ci.org/
-[travis-badge]: https://travis-ci.org/ludocode/mpack.svg?branch=master
+[travis-badge]: https://travis-ci.org/ludocode/mpack.svg?branch=develop
 [travis-mpack]: https://travis-ci.org/ludocode/mpack/branches
 [appveyor-home]: https://ci.appveyor.com/
-[appveyor-badge]: https://ci.appveyor.com/api/projects/status/tux06aefpqq83k30/branch/master?svg=true
-[appveyor-mpack]: https://ci.appveyor.com/project/ludocode/mpack/branch/master
+[appveyor-badge]: https://ci.appveyor.com/api/projects/status/tux06aefpqq83k30/branch/develop?svg=true
+[appveyor-mpack]: https://ci.appveyor.com/project/ludocode/mpack/branch/develop
 [coveralls-home]: https://coveralls.io/
-[coveralls-badge]: https://coveralls.io/repos/ludocode/mpack/badge.svg?branch=master&service=github
-[coveralls-mpack]: https://coveralls.io/github/ludocode/mpack?branch=master
+[coveralls-badge]: https://coveralls.io/repos/ludocode/mpack/badge.svg?branch=develop&service=github
+[coveralls-mpack]: https://coveralls.io/github/ludocode/mpack?branch=develop
 
 | [Travis-CI][travis-home] | [AppVeyor][appveyor-home] | [Coveralls.io][coveralls-home] |
 | :-------: | :----------: | :----------: |
