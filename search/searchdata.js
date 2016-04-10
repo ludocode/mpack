@@ -1,6 +1,6 @@
 var indexSectionsWithContent =
 {
-  0: "cefmnptuvw",
+  0: "cefimnptuvw",
   1: "m",
   2: "m",
   3: "etv",
@@ -8,7 +8,7 @@ var indexSectionsWithContent =
   5: "m",
   6: "m",
   7: "cenw",
-  8: "fpu"
+  8: "fipu"
 };
 
 var indexSectionNames =
