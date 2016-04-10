@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Nicholas Fraser
+ * Copyright (c) 2015-2016 Nicholas Fraser
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -43,7 +43,7 @@ struct mpack_track_t;
  *
  * The MPack Core Reader API contains functions for imperatively reading
  * dynamically typed data from a MessagePack stream. This forms the basis
- * of the Expect and Node APIs.
+ * of the Expect API.
  *
  * @{
  */
@@ -380,15 +380,15 @@ size_t mpack_reader_remaining(mpack_reader_t* reader, const char** data);
 /**
  * Reads a MessagePack object header (an MPack tag.)
  *
- * If an error occurs, the mpack_reader_t is placed in an error state and
- * a nil tag is returned. If the reader is already in an error state, a
- * nil tag is returned.
+ * If an error occurs, the reader is placed in an error state and a
+ * nil tag is returned. If the reader is already in an error state,
+ * a nil tag is returned.
  *
  * If the type is compound (i.e. is a map, array, string, binary or
  * extension type), additional reads are required to get the contained
  * data, and the corresponding done function must be called when done.
  *
- * Note that maps in JSON are unordered, so it is recommended not to expect
+ * @note Maps in JSON are unordered, so it is recommended not to expect
  * a specific ordering for your map values in case your data is converted
  * to/from JSON.
  * 
@@ -405,11 +405,11 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader);
  * Parses the next MessagePack object header (an MPack tag) without
  * advancing the reader.
  *
- * If an error occurs, the mpack_reader_t is placed in an error state and
- * a nil tag is returned. If the reader is already in an error state, a
- * nil tag is returned.
+ * If an error occurs, the reader is placed in an error state and a
+ * nil tag is returned. If the reader is already in an error state,
+ * a nil tag is returned.
  *
- * Note that maps in JSON are unordered, so it is recommended not to expect
+ * @note Maps in JSON are unordered, so it is recommended not to expect
  * a specific ordering for your map values in case your data is converted
  * to/from JSON.
  *
@@ -637,8 +637,8 @@ const char* mpack_read_utf8_inplace(mpack_reader_t* reader, size_t count);
  * in the buffer.
  *
  * Use this if you're expecting arbitrary size data, and you want to read
- * in-place where possible but will fall back to a normal read if the data
- * is too large.
+ * in-place for the best performance when possible but will fall back to
+ * a normal read if the data is too large.
  *
  * @see mpack_read_bytes_inplace()
  */

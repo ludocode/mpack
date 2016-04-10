@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Nicholas Fraser
+ * Copyright (c) 2015-2016 Nicholas Fraser
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -442,18 +442,23 @@ static void test_node_read_floats() {
     TEST_SIMPLE_TREE_READ("\xca\x00\x00\x00\x00", 0.0 == mpack_node_double(node));
     TEST_SIMPLE_TREE_READ("\xcb\x00\x00\x00\x00\x00\x00\x00\x00", 0.0 == mpack_node_double(node));
 
-    TEST_SIMPLE_TREE_READ("\xca\xff\xff\xff\xff", isnanf(mpack_node_float(node)) != 0);
-    TEST_SIMPLE_TREE_READ("\xcb\xff\xff\xff\xff\xff\xff\xff\xff", isnanf(mpack_node_float(node)) != 0);
-    TEST_SIMPLE_TREE_READ("\xca\xff\xff\xff\xff", isnan(mpack_node_double(node)) != 0);
-    TEST_SIMPLE_TREE_READ("\xcb\xff\xff\xff\xff\xff\xff\xff\xff", isnan(mpack_node_double(node)) != 0);
-
     TEST_SIMPLE_TREE_READ("\xca\x00\x00\x00\x00", 0.0f == mpack_node_float_strict(node));
     TEST_SIMPLE_TREE_READ("\xca\x00\x00\x00\x00", mpack_tag_equal(mpack_tag_float(0.0f), mpack_node_tag(node)));
     TEST_SIMPLE_TREE_READ("\xca\x00\x00\x00\x00", 0.0 == mpack_node_double_strict(node));
     TEST_SIMPLE_TREE_READ("\xcb\x00\x00\x00\x00\x00\x00\x00\x00", mpack_tag_equal(mpack_tag_double(0.0), mpack_node_tag(node)));
+
+    // when -ffinite-math-only is enabled, isnan() can always return false.
+    // TODO: we should probably add at least a reader option to
+    // generate an error on non-finite reals.
+    #if !MPACK_FINITE_MATH
+    TEST_SIMPLE_TREE_READ("\xca\xff\xff\xff\xff", isnanf(mpack_node_float(node)) != 0);
+    TEST_SIMPLE_TREE_READ("\xcb\xff\xff\xff\xff\xff\xff\xff\xff", isnanf(mpack_node_float(node)) != 0);
+    TEST_SIMPLE_TREE_READ("\xca\xff\xff\xff\xff", isnan(mpack_node_double(node)) != 0);
+    TEST_SIMPLE_TREE_READ("\xcb\xff\xff\xff\xff\xff\xff\xff\xff", isnan(mpack_node_double(node)) != 0);
     TEST_SIMPLE_TREE_READ("\xca\xff\xff\xff\xff", isnanf(mpack_node_float_strict(node)) != 0);
     TEST_SIMPLE_TREE_READ("\xca\xff\xff\xff\xff", isnan(mpack_node_double_strict(node)) != 0);
     TEST_SIMPLE_TREE_READ("\xcb\xff\xff\xff\xff\xff\xff\xff\xff", isnan(mpack_node_double_strict(node)) != 0);
+    #endif
 
     TEST_SIMPLE_TREE_READ_ERROR("\x00", 0.0f == mpack_node_float_strict(node), mpack_error_type);
     TEST_SIMPLE_TREE_READ_ERROR("\xd0\x00", 0.0f == mpack_node_float_strict(node), mpack_error_type);
@@ -732,6 +737,28 @@ static void test_node_read_strings() {
     #endif
 }
 
+static void test_node_read_enum() {
+    mpack_node_data_t pool[128];
+
+    typedef enum           { APPLE ,  BANANA ,  ORANGE , COUNT} fruit_t;
+    const char* fruits[] = {"apple", "banana", "orange"};
+
+    TEST_SIMPLE_TREE_READ("\xa5""apple", APPLE == (fruit_t)mpack_node_enum(node, fruits, COUNT));
+    TEST_SIMPLE_TREE_READ("\xa6""banana", BANANA == (fruit_t)mpack_node_enum(node, fruits, COUNT));
+    TEST_SIMPLE_TREE_READ("\xa6""orange", ORANGE == (fruit_t)mpack_node_enum(node, fruits, COUNT));
+    TEST_SIMPLE_TREE_READ_ERROR("\xa4""kiwi", COUNT == (fruit_t)mpack_node_enum(node, fruits, COUNT), mpack_error_type);
+    TEST_SIMPLE_TREE_READ_ERROR("\x01", COUNT == (fruit_t)mpack_node_enum(node, fruits, COUNT), mpack_error_type);
+
+    TEST_SIMPLE_TREE_READ("\xa5""apple", APPLE == (fruit_t)mpack_node_enum_optional(node, fruits, COUNT));
+    TEST_SIMPLE_TREE_READ("\xa6""banana", BANANA == (fruit_t)mpack_node_enum_optional(node, fruits, COUNT));
+    TEST_SIMPLE_TREE_READ("\xa6""orange", ORANGE == (fruit_t)mpack_node_enum_optional(node, fruits, COUNT));
+    TEST_SIMPLE_TREE_READ("\xa4""kiwi", COUNT == (fruit_t)mpack_node_enum_optional(node, fruits, COUNT));
+    TEST_SIMPLE_TREE_READ("\x01", COUNT == (fruit_t)mpack_node_enum_optional(node, fruits, COUNT));
+
+    // test pre-existing error
+    TEST_SIMPLE_TREE_READ_ERROR("\x01", (mpack_node_nil(node), COUNT == (fruit_t)mpack_node_enum(node, fruits, COUNT)), mpack_error_type);
+}
+
 static void test_node_read_array() {
     static const char test[] = "\x93\x90\x91\xc3\x92\xc3\xc3";
     mpack_tree_t tree;
@@ -972,6 +999,7 @@ void test_node(void) {
     test_node_read_possible();
     test_node_read_pre_error();
     test_node_read_strings();
+    test_node_read_enum();
 
     // compound types
     test_node_read_array();

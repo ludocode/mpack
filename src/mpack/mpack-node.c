@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Nicholas Fraser
+ * Copyright (c) 2015-2016 Nicholas Fraser
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -919,9 +919,8 @@ mpack_error_t mpack_tree_destroy(mpack_tree_t* tree) {
 }
 
 void mpack_tree_flag_error(mpack_tree_t* tree, mpack_error_t error) {
-    mpack_log("tree %p setting error %i: %s\n", tree, (int)error, mpack_error_to_string(error));
-
     if (tree->error == mpack_ok) {
+        mpack_log("tree %p setting error %i: %s\n", tree, (int)error, mpack_error_to_string(error));
         tree->error = error;
         if (tree->error_fn)
             tree->error_fn(tree, error);
@@ -1471,6 +1470,38 @@ bool mpack_node_map_contains_str(mpack_node_t node, const char* str, size_t leng
 bool mpack_node_map_contains_cstr(mpack_node_t node, const char* cstr) {
     mpack_assert(cstr != NULL, "cstr is NULL");
     return mpack_node_map_contains_str(node, cstr, mpack_strlen(cstr));
+}
+
+size_t mpack_node_enum_optional(mpack_node_t node, const char* strings[], size_t count) {
+    if (mpack_node_error(node) != mpack_ok)
+        return count;
+
+    // the value is only recognized if it is a string
+    if (mpack_node_type(node) != mpack_type_str)
+        return count;
+
+    // fetch the string
+    const char* key = mpack_node_str(node);
+    size_t keylen = mpack_node_strlen(node);
+    mpack_assert(mpack_node_error(node) == mpack_ok, "these should not fail");
+
+    // find what key it matches
+    for (size_t i = 0; i < count; ++i) {
+        const char* other = strings[i];
+        size_t otherlen = mpack_strlen(other);
+        if (keylen == otherlen && mpack_memcmp(key, other, keylen) == 0)
+            return i;
+    }
+
+    // no matches
+    return count;
+}
+
+size_t mpack_node_enum(mpack_node_t node, const char* strings[], size_t count) {
+    size_t value = mpack_node_enum_optional(node, strings, count);
+    if (value == count)
+        mpack_node_flag_error(node, mpack_error_type);
+    return value;
 }
 
 #endif

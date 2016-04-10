@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Nicholas Fraser
+ * Copyright (c) 2015-2016 Nicholas Fraser
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -64,7 +64,7 @@ void mpack_reader_init_data(mpack_reader_t* reader, const char* data, size_t cou
     #ifdef __cplusplus
     reader->buffer = const_cast<char*>(data);
     #else
-    reader->buffer = (char*)data;
+    reader->buffer = (char*)(uintptr_t)data;
     #endif
 
     #if MPACK_READ_TRACKING

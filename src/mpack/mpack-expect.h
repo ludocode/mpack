@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Nicholas Fraser
+ * Copyright (c) 2015-2016 Nicholas Fraser
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -145,7 +145,7 @@ int64_t mpack_expect_i64(mpack_reader_t* reader);
  * Reads a number, returning the value as a float. The underlying value can be an
  * integer, float or double; the value is converted to a float.
  *
- * Note that reading a double or a large integer with this function can incur a
+ * @note Reading a double or a large integer with this function can incur a
  * loss of precision.
  *
  * @throws mpack_error_type if the underlying value is not a float, double or integer.
@@ -156,7 +156,7 @@ float mpack_expect_float(mpack_reader_t* reader);
  * Reads a number, returning the value as a double. The underlying value can be an
  * integer, float or double; the value is converted to a double.
  *
- * Note that reading a very large integer with this function can incur a
+ * @note Reading a very large integer with this function can incur a
  * loss of precision.
  *
  * @throws mpack_error_type if the underlying value is not a float, double or integer.
@@ -245,7 +245,7 @@ MPACK_INLINE unsigned int mpack_expect_uint_range(mpack_reader_t* reader, unsign
 }
 
 /**
- * Reads an 8-bit unsigned integer, ensuring that it is at most max_value.
+ * Reads an 8-bit unsigned integer, ensuring that it is at most @a max_value.
  *
  * The underlying type may be an integer type of any size and signedness,
  * as long as the value can be represented in an 8-bit unsigned int.
@@ -257,7 +257,7 @@ MPACK_INLINE uint8_t mpack_expect_u8_max(mpack_reader_t* reader, uint8_t max_val
 }
 
 /**
- * Reads a 16-bit unsigned integer, ensuring that it is at most max_value.
+ * Reads a 16-bit unsigned integer, ensuring that it is at most @a max_value.
  *
  * The underlying type may be an integer type of any size and signedness,
  * as long as the value can be represented in a 16-bit unsigned int.
@@ -269,7 +269,7 @@ MPACK_INLINE uint16_t mpack_expect_u16_max(mpack_reader_t* reader, uint16_t max_
 }
 
 /**
- * Reads a 32-bit unsigned integer, ensuring that it is at most max_value.
+ * Reads a 32-bit unsigned integer, ensuring that it is at most @a max_value.
  *
  * The underlying type may be an integer type of any size and signedness,
  * as long as the value can be represented in a 32-bit unsigned int.
@@ -281,7 +281,7 @@ MPACK_INLINE uint32_t mpack_expect_u32_max(mpack_reader_t* reader, uint32_t max_
 }
 
 /**
- * Reads a 64-bit unsigned integer, ensuring that it is at most max_value.
+ * Reads a 64-bit unsigned integer, ensuring that it is at most @a max_value.
  *
  * The underlying type may be an integer type of any size and signedness,
  * as long as the value can be represented in a 64-bit unsigned int.
@@ -293,7 +293,7 @@ MPACK_INLINE uint64_t mpack_expect_u64_max(mpack_reader_t* reader, uint64_t max_
 }
 
 /**
- * Reads an unsigned integer, ensuring that it is at most max_value.
+ * Reads an unsigned integer, ensuring that it is at most @a max_value.
  *
  * The underlying type may be an integer type of any size and signedness,
  * as long as the value can be represented in an unsigned int.
@@ -362,7 +362,7 @@ MPACK_INLINE int mpack_expect_int_range(mpack_reader_t* reader, int min_value, i
 
 /**
  * Reads an 8-bit signed integer, ensuring that it is at least zero and at
- * most max_value.
+ * most @a max_value.
  *
  * The underlying type may be an integer type of any size and signedness,
  * as long as the value can be represented in an 8-bit signed int.
@@ -375,7 +375,7 @@ MPACK_INLINE int8_t mpack_expect_i8_max(mpack_reader_t* reader, int8_t max_value
 
 /**
  * Reads a 16-bit signed integer, ensuring that it is at least zero and at
- * most max_value.
+ * most @a max_value.
  *
  * The underlying type may be an integer type of any size and signedness,
  * as long as the value can be represented in a 16-bit signed int.
@@ -388,7 +388,7 @@ MPACK_INLINE int16_t mpack_expect_i16_max(mpack_reader_t* reader, int16_t max_va
 
 /**
  * Reads a 32-bit signed integer, ensuring that it is at least zero and at
- * most max_value.
+ * most @a max_value.
  *
  * The underlying type may be an integer type of any size and signedness,
  * as long as the value can be represented in a 32-bit signed int.
@@ -401,7 +401,7 @@ MPACK_INLINE int32_t mpack_expect_i32_max(mpack_reader_t* reader, int32_t max_va
 
 /**
  * Reads a 64-bit signed integer, ensuring that it is at least zero and at
- * most max_value.
+ * most @a max_value.
  *
  * The underlying type may be an integer type of any size and signedness,
  * as long as the value can be represented in a 64-bit signed int.
@@ -413,7 +413,7 @@ MPACK_INLINE int64_t mpack_expect_i64_max(mpack_reader_t* reader, int64_t max_va
 }
 
 /**
- * Reads an int, ensuring that it is at least zero and at most max_value.
+ * Reads an int, ensuring that it is at least zero and at most @a max_value.
  *
  * The underlying type may be an integer type of any size and signedness,
  * as long as the value can be represented in a signed int.
@@ -429,7 +429,7 @@ MPACK_INLINE int mpack_expect_int_max(mpack_reader_t* reader, int max_value) {
  * the value as a float. The underlying value can be an integer, float or
  * double; the value is converted to a float.
  *
- * Note that reading a double or a large integer with this function can incur a
+ * @note Reading a double or a large integer with this function can incur a
  * loss of precision.
  *
  * @throws mpack_error_type if the underlying value is not a float, double or integer.
@@ -441,7 +441,7 @@ float mpack_expect_float_range(mpack_reader_t* reader, float min_value, float ma
  * the value as a double. The underlying value can be an integer, float or
  * double; the value is converted to a double.
  *
- * Note that reading a very large integer with this function can incur a
+ * @note Reading a very large integer with this function can incur a
  * loss of precision.
  *
  * @throws mpack_error_type if the underlying value is not a float, double or integer.
@@ -532,23 +532,24 @@ void mpack_expect_int_match(mpack_reader_t* reader, int64_t value);
  */
 
 /**
- * Reads a nil.
+ * Reads a nil, raising @ref mpack_error_type if the value is not nil.
  */
 void mpack_expect_nil(mpack_reader_t* reader);
 
 /**
- * Reads a bool. Note that integers will raise mpack_error_type; the value
- * must be strictly a bool.
+ * Reads a boolean.
+ *
+ * @note Integers will raise mpack_error_type; the value must be strictly a boolean.
  */
 bool mpack_expect_bool(mpack_reader_t* reader);
 
 /**
- * Reads a bool, raising a mpack_error_type if it is not true.
+ * Reads a boolean, raising @ref mpack_error_type if its value is not @c true.
  */
 void mpack_expect_true(mpack_reader_t* reader);
 
 /**
- * Reads a bool, raising a mpack_error_type if it is not false.
+ * Reads a boolean, raising @ref mpack_error_type if its value is not @c false.
  */
 void mpack_expect_false(mpack_reader_t* reader);
 
@@ -569,9 +570,18 @@ void mpack_expect_false(mpack_reader_t* reader);
  * alternating between keys and values. @ref mpack_done_map() must be called
  * once all elements have been read.
  *
- * Note that maps in JSON are unordered, so it is recommended not to expect
+ * @note Maps in JSON are unordered, so it is recommended not to expect
  * a specific ordering for your map values in case your data is converted
  * to/from JSON.
+ *
+ * @warning This call is dangerous! It does not have a size limit, and it
+ * does not have any way of checking whether there is enough data in the
+ * message (since the data could be coming from a stream.) When looping
+ * through the map's contents, you must check for errors on each iteration
+ * of the loop. Otherwise an attacker could craft a message declaring a map
+ * of a billion elements which would throw your parsing code into an
+ * infinite loop! You should strongly consider using mpack_expect_map_max()
+ * with a safe maximum size instead.
  *
  * @throws mpack_error_type if the value is not a map.
  */
@@ -585,7 +595,7 @@ uint32_t mpack_expect_map(mpack_reader_t* reader);
  * alternating between keys and values. @ref mpack_done_map() must be called
  * once all elements have been read.
  *
- * Note that maps in JSON are unordered, so it is recommended not to expect
+ * @note Maps in JSON are unordered, so it is recommended not to expect
  * a specific ordering for your map values in case your data is converted
  * to/from JSON.
  *
@@ -597,14 +607,14 @@ uint32_t mpack_expect_map(mpack_reader_t* reader);
 uint32_t mpack_expect_map_range(mpack_reader_t* reader, uint32_t min_count, uint32_t max_count);
 
 /**
- * Reads the start of a map with a number of elements at most max_count,
+ * Reads the start of a map with a number of elements at most @a max_count,
  * returning its element count.
  *
  * A number of values follow equal to twice the element count of the map,
  * alternating between keys and values. @ref mpack_done_map() must be called
  * once all elements have been read.
  *
- * Note that maps in JSON are unordered, so it is recommended not to expect
+ * @note Maps in JSON are unordered, so it is recommended not to expect
  * a specific ordering for your map values in case your data is converted
  * to/from JSON.
  *
@@ -624,7 +634,7 @@ MPACK_INLINE uint32_t mpack_expect_map_max(mpack_reader_t* reader, uint32_t max_
  * alternating between keys and values. @ref mpack_done_map() must be called
  * once all elements have been read.
  *
- * Note that maps in JSON are unordered, so it is recommended not to expect
+ * @note Maps in JSON are unordered, so it is recommended not to expect
  * a specific ordering for your map values in case your data is converted
  * to/from JSON.
  *
@@ -641,11 +651,21 @@ void mpack_expect_map_match(mpack_reader_t* reader, uint32_t count);
  * of the map, alternating between keys and values. @ref mpack_done_map() should
  * also be called once all elements have been read (only if a map was read.)
  *
- * Note that maps in JSON are unordered, so it is recommended not to expect
+ * @note Maps in JSON are unordered, so it is recommended not to expect
  * a specific ordering for your map values in case your data is converted
  * to/from JSON.
  *
- * @returns true if a map was read successfully; false if nil was read or an error occured.
+ * @warning This call is dangerous! It does not have a size limit, and it
+ * does not have any way of checking whether there is enough data in the
+ * message (since the data could be coming from a stream.) When looping
+ * through the map's contents, you must check for errors on each iteration
+ * of the loop. Otherwise an attacker could craft a message declaring a map
+ * of a billion elements which would throw your parsing code into an
+ * infinite loop! You should strongly consider using mpack_expect_map_max_or_nil()
+ * with a safe maximum size instead.
+ *
+ * @returns @c true if a map was read successfully; @c false if nil was read
+ *     or an error occured.
  * @throws mpack_error_type if the value is not a nil or map.
  */
 bool mpack_expect_map_or_nil(mpack_reader_t* reader, uint32_t* count);
@@ -659,11 +679,13 @@ bool mpack_expect_map_or_nil(mpack_reader_t* reader, uint32_t* count);
  * of the map, alternating between keys and values. @ref mpack_done_map() should
  * anlso be called once all elements have been read (only if a map was read.)
  *
- * Note that maps in JSON are unordered, so it is recommended not to expect
+ * @note Maps in JSON are unordered, so it is recommended not to expect
  * a specific ordering for your map values in case your data is converted
- * to/from JSON.
+ * to/from JSON. Consider using mpack_expect_key_cstr() or mpack_expect_key_uint()
+ * to switch on the key; see @ref docs/expect.md for examples.
  *
- * @returns true if a map was read successfully; false if nil was read or an error occured.
+ * @returns @c true if a map was read successfully; @c false if nil was read
+ *     or an error occured.
  * @throws mpack_error_type if the value is not a nil or map.
  */
 bool mpack_expect_map_max_or_nil(mpack_reader_t* reader, uint32_t max_count, uint32_t* count);
@@ -673,6 +695,15 @@ bool mpack_expect_map_max_or_nil(mpack_reader_t* reader, uint32_t max_count, uin
  *
  * A number of values follow equal to the element count of the array.
  * @ref mpack_done_array() must be called once all elements have been read.
+ *
+ * @warning This call is dangerous! It does not have a size limit, and it
+ * does not have any way of checking whether there is enough data in the
+ * message (since the data could be coming from a stream.) When looping
+ * through the array's contents, you must check for errors on each iteration
+ * of the loop. Otherwise an attacker could craft a message declaring an array
+ * of a billion elements which would throw your parsing code into an
+ * infinite loop! You should strongly consider using mpack_expect_array_max()
+ * with a safe maximum size instead.
  */
 uint32_t mpack_expect_array(mpack_reader_t* reader);
 
@@ -691,7 +722,7 @@ uint32_t mpack_expect_array(mpack_reader_t* reader);
 uint32_t mpack_expect_array_range(mpack_reader_t* reader, uint32_t min_count, uint32_t max_count);
 
 /**
- * Reads the start of an array with a number of elements at most max_count,
+ * Reads the start of an array with a number of elements at most @a max_count,
  * returning its element count.
  *
  * A number of values follow equal to the element count of the array.
@@ -725,7 +756,17 @@ void mpack_expect_array_match(mpack_reader_t* reader, uint32_t count);
  * of the array. @ref mpack_done_array() should also be called once all elements
  * have been read (only if an array was read.)
  *
- * @returns true if an array was read successfully; false if nil was read or an error occured.
+ * @warning This call is dangerous! It does not have a size limit, and it
+ * does not have any way of checking whether there is enough data in the
+ * message (since the data could be coming from a stream.) When looping
+ * through the array's contents, you must check for errors on each iteration
+ * of the loop. Otherwise an attacker could craft a message declaring an array
+ * of a billion elements which would throw your parsing code into an
+ * infinite loop! You should strongly consider using mpack_expect_array_max_or_nil()
+ * with a safe maximum size instead.
+ *
+ * @returns @c true if an array was read successfully; @c false if nil was read
+ *     or an error occured.
  * @throws mpack_error_type if the value is not a nil or array.
  */
 bool mpack_expect_array_or_nil(mpack_reader_t* reader, uint32_t* count);
@@ -739,7 +780,8 @@ bool mpack_expect_array_or_nil(mpack_reader_t* reader, uint32_t* count);
  * of the array. @ref mpack_done_array() should also be called once all elements
  * have been read (only if an array was read.)
  *
- * @returns true if an array was read successfully; false if nil was read or an error occured.
+ * @returns @c true if an array was read successfully; @c false if nil was read
+ *     or an error occured.
  * @throws mpack_error_type if the value is not a nil or array.
  */
 bool mpack_expect_array_max_or_nil(mpack_reader_t* reader, uint32_t max_count, uint32_t* count);
@@ -1076,6 +1118,75 @@ char* mpack_expect_bin_alloc(mpack_reader_t* reader, size_t maxsize, size_t* siz
 void mpack_expect_tag(mpack_reader_t* reader, mpack_tag_t tag);
 
 /**
+ * Expects a string matching one of the strings in the given array,
+ * returning its array index.
+ *
+ * If the value does not match any of the given strings,
+ * @ref mpack_error_type is flagged. Use mpack_expect_enum_optional()
+ * if you want to allow other values than the given strings.
+ *
+ * If any error occurs or the reader is in an error state, @a count
+ * is returned.
+ *
+ * This can be used to quickly parse a string into an enum when the
+ * enum values range from 0 to @a count-1. If the last value in the
+ * enum is a special "count" value, it can be passed as the count,
+ * and the return value can be cast directly to the enum type.
+ *
+ * @code{.c}
+ * typedef enum           { APPLE ,  BANANA ,  ORANGE , COUNT} fruit_t;
+ * const char* fruits[] = {"apple", "banana", "orange"};
+ *
+ * fruit_t fruit = (fruit_t)mpack_expect_enum(reader, fruits, COUNT);
+ * @endcode
+ *
+ * See @ref docs/expect.md for more examples.
+ *
+ * The maximum string length is the size of the buffer (strings are read in-place.)
+ *
+ * @param reader The reader
+ * @param strings An array of expected strings of length count
+ * @param count The number of strings
+ * @return The index of the matched string, or @a count in case of error
+ */
+size_t mpack_expect_enum(mpack_reader_t* reader, const char* strings[], size_t count);
+
+/**
+ * Expects a string matching one of the strings in the given array
+ * returning its array index, or @a count if no strings match.
+ *
+ * If the value is not a string, or it does not match any of the
+ * given strings, @a count is returned and no error is flagged.
+ *
+ * If any error occurs or the reader is in an error state, @a count
+ * is returned.
+ *
+ * This can be used to quickly parse a string into an enum when the
+ * enum values range from 0 to @a count-1. If the last value in the
+ * enum is a special "count" value, it can be passed as the count,
+ * and the return value can be cast directly to the enum type.
+ *
+ * @code{.c}
+ * typedef enum           { APPLE ,  BANANA ,  ORANGE , COUNT} fruit_t;
+ * const char* fruits[] = {"apple", "banana", "orange"};
+ *
+ * fruit_t fruit = (fruit_t)mpack_expect_enum_optional(reader, fruits, COUNT);
+ * @endcode
+ *
+ * See @ref docs/expect.md for more examples.
+ *
+ * The maximum string length is the size of the buffer (strings are read in-place.)
+ *
+ * @param reader The reader
+ * @param strings An array of expected strings of length count
+ * @param count The number of strings
+ *
+ * @return The index of the matched string, or @a count if it does not
+ * match or an error occurs
+ */
+size_t mpack_expect_enum_optional(mpack_reader_t* reader, const char* strings[], size_t count);
+
+/**
  * Expects an unsigned integer map key between 0 and count-1, marking it
  * as found in the given bool array and returning it.
  *
@@ -1084,14 +1195,14 @@ void mpack_expect_tag(mpack_reader_t* reader, mpack_tag_t tag);
  * be called in the expression of a switch() statement. See @ref
  * docs/expect.md for an example.
  *
- * The found array should be cleared before expecting a key. If the flag for
- * a given key is already set when found (i.e. the map contains a duplicate
- * key), mpack_error_invalid is flagged.
+ * The found array must be cleared before expecting the first key. If the
+ * flag for a given key is already set when found (i.e. the map contains a
+ * duplicate key), mpack_error_invalid is flagged.
  *
- * If the key is count or larger, count is returned and no error is flagged.
- * If you want an error on unrecognized keys, flag an error in the default
- * case in your switch; otherwise you must call mpack_discard() to discard
- * its content.
+ * If the key is not a non-negative integer, or if the key is @a count or
+ * larger, @a count is returned and no error is flagged. If you want an error
+ * on unrecognized keys, flag an error in the default case in your switch;
+ * otherwise you must call mpack_discard() to discard its content.
  *
  * @param reader The reader
  * @param found An array of bool flags of length count
@@ -1111,9 +1222,9 @@ size_t mpack_expect_key_uint(mpack_reader_t* reader, bool found[], size_t count)
  * array to define the key indices. It should be called in the expression
  * of a switch() statement. See @ref docs/expect.md for an example.
  *
- * The found array should be cleared before expecting a key. If the flag for
- * a given key is already set when found (i.e. the map contains a duplicate
- * key), mpack_error_invalid is flagged.
+ * The found array must be cleared before expecting the first key. If the
+ * flag for a given key is already set when found (i.e. the map contains a
+ * duplicate key), mpack_error_invalid is flagged.
  *
  * If the key is unrecognized, count is returned and no error is flagged. If
  * you want an error on unrecognized keys, flag an error in the default case

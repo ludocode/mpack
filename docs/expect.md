@@ -3,7 +3,7 @@
 
 The Expect API is used to imperatively parse data of a fixed (hardcoded) schema. It is most useful when parsing very large MessagePack files, parsing in memory-constrained environments, or generating parsing code from a schema. The API is similar to [CMP](https://github.com/camgunz/cmp), but has many helper functions especially for map keys and expected value ranges. Some of these will be covered below.
 
-If you are not writing code for an embedded device or generating parsing code from a schema, you should not follow this guide. You should most likely be using the Node API instead.
+*If you are not writing code for an embedded device or generating parsing code from a schema, you should not follow this guide. You should most likely be using the Node API instead.*
 
 ## A simple example
 
@@ -158,7 +158,7 @@ bool compact = false;
 bool has_schema = false;
 int schema = -1;
 
-for (size_t i = mpack_expect_map_max(&reader, 2); i > 0; --i) {
+for (size_t i = mpack_expect_map_max(&reader, 100); i > 0 && mpack_reader_error(&reader) == mpack_ok; --i) {
     char key[20];
     mpack_expect_cstr(&reader, key, sizeof(key));
 
@@ -186,9 +186,7 @@ if (!has_compact)
     mpack_reader_flag_error(&reader, mpack_error_data);
 ```
 
-Note above the importance of using `mpack_expect_map_max()` rather than `mpack_expect_map()`. Without the maximum range, an attacker could craft a messaging declaring an array of a billion elements, forcing this code into an infinite loop. Alternatively you could check the reader for errors in each iteration of the loop.
-
-In order to simplify this code, MPack includes an Expect function called `mpack_expect_key_cstr()` to switch on string keys. This function should be passed an array of key strings and an array of bool flags storing whether each key was found. It will parse the key and check for duplicate keys, and returns the index of the found key (or the key count if it is unrecognized or if an error occurs.) You would use it with an `enum` and a `switch`, like this:
+This is obviously way too verbose. In order to simplify this code, MPack includes an Expect function called `mpack_expect_key_cstr()` to switch on string keys. This function should be passed an array of key strings and an array of bool flags storing whether each key was found. It will find the key in the given string array, check for duplicate keys, and return the index of the found key (or the key count if it is unrecognized or if an error occurs.) You would use it with an `enum` and a `switch`, like this:
 
 ```C
 enum key_names       {KEY_COMPACT, KEY_SCHEMA, KEY_COUNT};
@@ -198,7 +196,7 @@ bool found[KEY_COUNT] = {0};
 bool compact = false;
 int schema = -1;
 
-for (size_t i = mpack_expect_map_max(&reader, KEY_COUNT); i > 0; --i) {
+for (size_t i = mpack_expect_map_max(&reader, 100); i > 0 && mpack_reader_error(&reader) == mpack_ok; --i) {
     switch (mpack_expect_key_cstr(&reader, keys, found, key_count)) {
         case KEY_COMPACT: compact = mpack_expect_bool(&reader); break;
         case KEY_SCHEMA:  schema  = mpack_expect_int(&reader);  break;
@@ -211,8 +209,10 @@ if (!found[KEY_COMPACT])
     mpack_reader_flag_error(&reader, mpack_error_data);
 ```
 
-In both of the above examples, the call to `mpack_discard(&reader);` skips over the value for unrecognized keys, allowing the data to be extensible and providing forwards-compatibility. If you want to forbid unrecognized keys, you can flag an error (e.g. `mpack_reader_flag_error(&reader, mpack_error_data);`) instead of discarding the value.
+In the above examples, the call to `mpack_discard(&reader);` skips over the value for unrecognized keys, allowing the format to be extensible and providing forwards-compatibility. If you want to forbid unrecognized keys, you can flag an error (e.g. `mpack_reader_flag_error(&reader, mpack_error_data);`) instead of discarding the value.
+
+*Note above the importance of using a reasonable limit on `mpack_expect_map_max()`, and of checking for errors in each iteration of the loop. If we were to leave these out, an attacker could craft a message declaring an array of a billion elements, forcing this code into an infinite loop. We specify a size of 100 here as an arbitrary limit that leaves enough space for the schema to grow in the future. If you forbid unrecognized keys, you could specify the key count as the limit. Alternatively you could specify an unlimited size (`UINT32_MAX`), as long as you are checking for errors in each iteration (since the stream will eventually run out of data.) It's safest to use both the limit and the error check, so we use both in these examples.*
 
 Unlike JSON, MessagePack supports any type as a map key, so the enum integer values can themselves be used as keys. This reduces message size at some expense of debuggability (losing some of the value of a schemaless format.) There is a simpler function `mpack_expect_key_uint()` which can be used to switch on small non-negative enum values directly.
 
-On the surface this doesn't appear much shorter than the previous code, but it becomes much nicer when you have many possible keys in a map. (Of course if at all possible you should consider using the Node API which is much less error-prone and will handle all of this for you. It can be used with a fixed node pool even without an allocator or libc.)
+On the surface this doesn't appear much shorter than the previous code, but it becomes much nicer when you have many possible keys in a map. Of course if at all possible you should consider using the Node API which is much less error-prone and will handle all of this for you.

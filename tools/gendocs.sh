@@ -1,20 +1,19 @@
 #!/bin/bash
 . "`dirname $0`"/getversion.sh
+mkdir -p build/docs
 
 # Write temporary README.md without "Build Status" section
 cat README.md | \
     sed '/^## Build Status/,/^##/{//!d}' | \
     sed '/^## Build Status/d' \
-    > README.temp.md
+    > build/docs/README.temp.md
 
-# Generate docs with edited README.md and correct version number
+# Copy mpack config to source folder so doxygen can find it
+cp src/mpack-config.h.sample build/docs/mpack-config.h
+
+# Generate docs with correct version number
 (
-    cat docs/doxyfile | sed -e "s/README\.md/README.temp.md/"
+    cat docs/doxyfile
     echo "PROJECT_NUMBER = $VERSION"
-    echo "USE_MDFILE_AS_MAINPAGE = README.temp.md"
     echo
 ) | doxygen -
-
-RET=$?
-rm README.temp.md
-(exit $RET)

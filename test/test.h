@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Nicholas Fraser
+ * Copyright (c) 2015-2016 Nicholas Fraser
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -36,15 +36,6 @@
 #include <setjmp.h>
 
 #ifdef WIN32
-#include <float.h>
-#define isnanf _isnan
-#endif
-
-#ifdef __APPLE__
-#define isnanf isnan
-#endif
-
-#ifdef WIN32
 #include <direct.h>
 #define mkdir(path, mode) ((void)(mode), _mkdir(path))
 #define rmdir _rmdir
@@ -61,6 +52,16 @@
 #endif
 
 #include "mpack/mpack.h"
+
+#if !MPACK_FINITE_MATH
+#ifdef WIN32
+#include <float.h>
+#define isnanf _isnan
+#endif
+#ifdef __APPLE__
+#define isnanf isnan
+#endif
+#endif
 
 extern mpack_tag_t (*fn_mpack_tag_nil)(void);
 

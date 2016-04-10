@@ -2,8 +2,11 @@ table.doxtable th {
 	background-color: #e0e7ff;
 	color: #000;
 }
-.textblock code {
-    background-color: #f3f3f3;
+.textblock code,
+.contents p code, .contents p em,
+.contents dd code, .contents dd em {
+    padding: 1pt 2pt 1pt 2pt;
+    background-color: #f5f5f5;
 }
 .textblock li {
     margin: 3pt 0 3pt 0;

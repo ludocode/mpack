@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Nicholas Fraser
+ * Copyright (c) 2015-2016 Nicholas Fraser
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -34,11 +34,20 @@ MPACK_HEADER_START
 
 
 
+/**
+ * @defgroup common Common Elements
+ *
+ * Contains types, constants and functions shared by both the encoding
+ * and decoding portions of MPack.
+ *
+ * @{
+ */
+
 /* Version information */
 
 #define MPACK_VERSION_MAJOR 0  /**< The major version number of MPack. */
 #define MPACK_VERSION_MINOR 8  /**< The minor version number of MPack. */
-#define MPACK_VERSION_PATCH 1  /**< The patch version number of MPack. */
+#define MPACK_VERSION_PATCH 2  /**< The patch version number of MPack. */
 
 /** A number containing the version number of MPack for comparison purposes. */
 #define MPACK_VERSION ((MPACK_VERSION_MAJOR * 10000) + \
@@ -85,23 +94,16 @@ MPACK_HEADER_START
 #define MPACK_LIBRARY_STRING "MPack " MPACK_VERSION_STRING
 #endif
 
+/** @cond */
 /**
  * @def MPACK_MAXIMUM_TAG_SIZE
  *
- * The maximum size of a tag in bytes, as of the "new" MessagePack spec.
+ * The maximum encoded size of a tag in bytes, as of the "new" MessagePack spec.
  */
 #define MPACK_MAXIMUM_TAG_SIZE 9
+/** @endcond */
 
 
-
-/**
- * @defgroup common Common Elements
- *
- * Contains types and functions shared by both the encoding and decoding
- * portions of MPack.
- *
- * @{
- */
 
 /**
  * Error states for MPack objects.
@@ -342,15 +344,11 @@ MPACK_INLINE bool mpack_tag_equal(mpack_tag_t left, mpack_tag_t right) {
 
 /*
  * Helpers to perform unaligned network-endian loads and stores
- * at arbitrary addresses.
+ * at arbitrary addresses. Byte-swapping builtins are used if they
+ * are available and if they improve performance.
  *
  * These will remain available in the public API so feel free to
  * use them for other purposes, but they are undocumented.
- *
- * The bswap builtins are used when needed and available. With
- * GCC 5.2 they appear to give better performance and smaller
- * code size on little-endian ARM while compiling to the same
- * assembly as the bit-shifting code on x86_64.
  */
 
 MPACK_INLINE uint8_t mpack_load_u8(const char* p) {

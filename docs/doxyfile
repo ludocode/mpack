@@ -1,4 +1,6 @@
-# Doxyfile 1.8.3.1
+# Doxyfile for MPack
+#
+# The documentation must be generated with tools/gendocs.sh
 
 PROJECT_NAME = "MPack"
 PROJECT_BRIEF = "A C encoding/decoding library for the MessagePack serialization format."
@@ -6,7 +8,8 @@ PROJECT_BRIEF = "A C encoding/decoding library for the MessagePack serialization
 PROJECT_NUMBER = develop
 
 INPUT = \
-    README.md \
+    build/docs/README.temp.md \
+    build/docs/mpack-config.h \
     docs/expect.md \
     docs/features.md \
     docs/protocol.md \
@@ -15,42 +18,33 @@ INPUT = \
     src/mpack/mpack-writer.h \
     src/mpack/mpack-expect.h \
     src/mpack/mpack-node.h \
-    src/mpack/mpack.h
+    src/mpack/mpack.h \
 
 LAYOUT_FILE = docs/doxygen-layout.xml
-USE_MDFILE_AS_MAINPAGE = README.md
-HTML_OUTPUT = docs/html
+USE_MDFILE_AS_MAINPAGE = README.temp.md
+HTML_OUTPUT = build/docs/html
 GENERATE_LATEX = no
-STRIP_FROM_PATH = . ./src
+STRIP_FROM_PATH = . src build/docs
 HTML_EXTRA_STYLESHEET = docs/doxygen-mpack-css.css
 
 PREDEFINED = \
+    DEBUG=1 \
+    \
     inline= \
     MPACK_INLINE= \
     \
-    MPACK_READER=1 \
-    MPACK_WRITER=1 \
-    MPACK_EXPECT=1 \
-    MPACK_NODE=1 \
-    \
-    MPACK_STDLIB=1 \
-    MPACK_STDIO=1 \
-    MPACK_SETJMP=1 \
-    MPACK_MALLOC=malloc \
-    MPACK_FREE=free \
-    \
-    MPACK_DEBUG=1 \
-    MPACK_READ_TRACKING=1 \
-    MPACK_WRITE_TRACKING=1 \
-    \
     MPACK_HEADER_START= \
     MPACK_HEADER_END= \
+    \
+    MPACK_HAS_GENERIC=1
 
 MARKDOWN_SUPPORT = YES
 JAVADOC_AUTOBRIEF = YES
 ALWAYS_DETAILED_SEC = YES
 SORT_BRIEF_DOCS = YES
 
+SEARCH_INCLUDES = YES
+INCLUDE_PATH = build/docs
 MACRO_EXPANSION = YES
 OPTIMIZE_OUTPUT_FOR_C = YES
 INLINE_SIMPLE_STRUCTS = YES
@@ -68,4 +62,3 @@ WARN_IF_DOC_ERROR     = YES
 #WARN_NO_PARAMDOC      = YES
 
 QUIET = YES
-

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Nicholas Fraser
+ * Copyright (c) 2015-2016 Nicholas Fraser
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -44,13 +44,16 @@ MPACK_HEADER_START
  */
 
 /**
- * A handle to node in a parsed MPack tree. Note that mpack_node_t is passed by value.
+ * A handle to node data in a parsed MPack tree.
  *
  * Nodes represent either primitive values or compound types. If a
  * node is a compound type, it contains a pointer to its child nodes,
  * or a pointer to its underlying data.
  *
  * Nodes are immutable.
+ *
+ * @note @ref mpack_node_t is a handle, not the node data itself. It
+ *     is passed by value in the Node API.
  */
 typedef struct mpack_node_t mpack_node_t;
 
@@ -629,7 +632,7 @@ MPACK_INLINE int mpack_node_int(mpack_node_t node) {
  * Returns the float value of the node. The underlying value can be an
  * integer, float or double; the value is converted to a float.
  *
- * Note that reading a double or a large integer with this function can incur a
+ * @note Reading a double or a large integer with this function can incur a
  * loss of precision.
  *
  * @throws mpack_error_type if the underlying value is not a float, double or integer.
@@ -655,7 +658,7 @@ MPACK_INLINE float mpack_node_float(mpack_node_t node) {
  * Returns the double value of the node. The underlying value can be an
  * integer, float or double; the value is converted to a double.
  *
- * Note that reading a very large integer with this function can incur a
+ * @note Reading a very large integer with this function can incur a
  * loss of precision.
  *
  * @throws mpack_error_type if the underlying value is not a float, double or integer.
@@ -718,7 +721,7 @@ MPACK_INLINE double mpack_node_double_strict(mpack_node_t node) {
  */
 
 /**
- * @name Node Data Functions
+ * @name Node String and Data Functions
  * @{
  */
 
@@ -816,12 +819,12 @@ MPACK_INLINE size_t mpack_node_strlen(mpack_node_t node) {
 /**
  * Returns a pointer to the data contained by this node, ensuring it is a string.
  *
- * Note that strings are not null-terminated! Use one of the cstr functions
+ * @note Strings are not null-terminated! Use one of the cstr functions
  * to get a null-terminated string.
  *
  * The pointer is valid as long as the data backing the tree is valid.
  *
- * If this node is not a string, mpack_error_type is raised and NULL is returned.
+ * If this node is not a string, @ref mpack_error_type is raised and @c NULL is returned.
  *
  * @see mpack_node_copy_cstr()
  * @see mpack_node_cstr_alloc()
@@ -842,13 +845,13 @@ MPACK_INLINE const char* mpack_node_str(mpack_node_t node) {
 /**
  * Returns a pointer to the data contained by this node.
  *
- * Note that strings are not null-terminated! Use one of the cstr functions
+ * @note Strings are not null-terminated! Use one of the cstr functions
  * to get a null-terminated string.
  *
  * The pointer is valid as long as the data backing the tree is valid.
  *
  * If this node is not of a str, bin or map, mpack_error_type is raised, and
- * NULL is returned.
+ * @c NULL is returned.
  *
  * @see mpack_node_copy_cstr()
  * @see mpack_node_cstr_alloc()
@@ -985,6 +988,65 @@ char* mpack_node_cstr_alloc(mpack_node_t node, size_t maxsize);
  */
 char* mpack_node_utf8_cstr_alloc(mpack_node_t node, size_t maxsize);
 #endif
+
+/**
+ * Searches the given string array for a string matching the given
+ * node and returns its index.
+ *
+ * If the node does not match any of the given strings,
+ * @ref mpack_error_type is flagged. Use mpack_node_enum_optional()
+ * if you want to allow values other than the given strings.
+ *
+ * If any error occurs or if the tree is in an error state, @a count
+ * is returned.
+ *
+ * This can be used to quickly parse a string into an enum when the
+ * enum values range from 0 to @a count-1. If the last value in the
+ * enum is a special "count" value, it can be passed as the count,
+ * and the return value can be cast directly to the enum type.
+ *
+ * @code{.c}
+ * typedef enum           { APPLE ,  BANANA ,  ORANGE , COUNT} fruit_t;
+ * const char* fruits[] = {"apple", "banana", "orange"};
+ *
+ * fruit_t fruit = (fruit_t)mpack_node_enum(node, fruits, COUNT);
+ * @endcode
+ *
+ * @param node The node
+ * @param strings An array of expected strings of length count
+ * @param count The number of strings
+ * @return The index of the matched string, or @a count in case of error
+ */
+size_t mpack_node_enum(mpack_node_t node, const char* strings[], size_t count);
+
+/**
+ * Searches the given string array for a string matching the given node,
+ * returning its index or @a count if no strings match.
+ *
+ * If the value is not a string, or it does not match any of the
+ * given strings, @a count is returned and no error is flagged.
+ *
+ * If any error occurs or if the tree is in an error state, @a count
+ * is returned.
+ *
+ * This can be used to quickly parse a string into an enum when the
+ * enum values range from 0 to @a count-1. If the last value in the
+ * enum is a special "count" value, it can be passed as the count,
+ * and the return value can be cast directly to the enum type.
+ *
+ * @code{.c}
+ * typedef enum           { APPLE ,  BANANA ,  ORANGE , COUNT} fruit_t;
+ * const char* fruits[] = {"apple", "banana", "orange"};
+ *
+ * fruit_t fruit = (fruit_t)mpack_node_enum_optional(node, fruits, COUNT);
+ * @endcode
+ *
+ * @param node The node
+ * @param strings An array of expected strings of length count
+ * @param count The number of strings
+ * @return The index of the matched string, or @a count in case of error
+ */
+size_t mpack_node_enum_optional(mpack_node_t node, const char* strings[], size_t count);
 
 /**
  * @}

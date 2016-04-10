@@ -3,11 +3,10 @@
 
 "`dirname $0`"/clean.sh
 . "`dirname $0`"/gendocs.sh
-cp -ar docs/html docs-html
+cp -ar build/docs/html docs-html
 "`dirname $0`"/clean.sh
 
 git checkout gh-pages || exit $?
-git pull
 
 rm -r *.{html,png,js,css} search
 cp -r docs-html/* .

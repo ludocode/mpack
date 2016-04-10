@@ -8,7 +8,7 @@ MPack is a C implementation of an encoder and decoder for the [MessagePack](http
  * [Extensively documented](http://ludocode.github.io/mpack/)
  * [Extremely fast](https://github.com/ludocode/schemaless-benchmarks#speed---desktop-pc)
 
-The core of MPack contains a buffered reader and writer with a custom callback to fill or flush the buffer. Helper functions can be enabled to read values of expected type, to work with files, to allocate strings automatically, to check UTF-8 encoding, and more. The MPack featureset can be configured at compile-time to set which features, components and debug checks are compiled, and what dependencies are available.
+The core of MPack contains a buffered reader and writer, and a tree-style parser that decodes into a tree of dynamically typed nodes. Helper functions can be enabled to read values of expected type, to work with files, to allocate strings automatically, to check UTF-8 encoding, and more. The MPack featureset can be configured at compile-time to set which features, components and debug checks are compiled, and what dependencies are available.
 
 The MPack code is small enough to be embedded directly into your codebase. The easiest way to use it is to download the [amalgamation package](https://github.com/ludocode/mpack/releases) and insert the source files directly into your project. Copy `mpack.h` and `mpack.c` into to your codebase, and copy `mpack-config.h.sample` as `mpack-config.h`. You can use the defaults or edit it if you'd like to customize the MPack featureset.
 
@@ -52,6 +52,8 @@ if (mpack_tree_destroy(tree) != mpack_ok) {
 ```
 
 Note that no additional error handling is needed in the above code. If the file is missing or corrupt, if map keys are missing or if nodes are not in the expected types, special "nil" nodes and false/zero values are returned and the tree is placed in an error state. An error check is only needed before using the data.
+
+The above example decodes into allocated pages of nodes. A fixed node pool can be provided to the parser instead in memory-constrained environments. For maximum performance and minimal memory usage, the [Expect API](docs/expect.md) can be used to parse data of a predefined schema.
 
 ## The Write API
 
@@ -112,7 +114,7 @@ MPack is rich in features while maintaining very high performance and a small co
 
 A larger feature comparison table is available [here](docs/features.md) which includes descriptions of the various entries in the table.
 
-This [benchmarking suite](https://github.com/ludocode/schemaless-benchmarks) compares the performance of MPack to other implementations of schemaless serialization formats. MPack outperforms all other MessagePack implementations, and in some tests MPack is several times faster than [RapidJSON](https://github.com/miloyip/rapidjson) for equivalent data.
+[This benchmarking suite](https://github.com/ludocode/schemaless-benchmarks) compares the performance of MPack to other implementations of schemaless serialization formats. MPack outperforms all JSON and MessagePack libraries, and in some tests MPack is several times faster than [RapidJSON](https://github.com/miloyip/rapidjson) for equivalent data.
 
 ## Why Not Just Use JSON?
 
@@ -126,7 +128,7 @@ Conceptually, MessagePack stores data similarly to JSON: they are both composed 
 
 - Binary data is not supported by JSON at all. Small binary blobs such as icons and thumbnails need to be Base64 encoded or passed out-of-band.
 
-The above issues greatly increase the complexity of the decoder. Full-featured JSON decoders are quite large, and minimal decoders tend to leave out such features as string unescaping and float parsing, instead leaving these up to the user or platform. This can lead to hard-to-find platform-specific and locale-specific bugs. This also significantly decreases performance, making JSON unattractive for use in applications such as mobile games.
+The above issues greatly increase the complexity of the decoder. Full-featured JSON decoders are quite large, and minimal decoders tend to leave out such features as string unescaping and float parsing, instead leaving these up to the user or platform. This can lead to hard-to-find platform-specific and locale-specific bugs, as well as a greater potential for security vulnerabilites. This also significantly decreases performance, making JSON unattractive for use in applications such as mobile games.
 
 While the space inefficiencies of JSON can be partially mitigated through minification and compression, the performance inefficiencies cannot. More importantly, if you are minifying and compressing the data, then why use a human-readable format in the first place?
 

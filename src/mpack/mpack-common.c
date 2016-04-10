@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Nicholas Fraser
+ * Copyright (c) 2015-2016 Nicholas Fraser
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -28,7 +28,7 @@
 #endif
 
 const char* mpack_error_to_string(mpack_error_t error) {
-    #if MPACK_DEBUG
+    #if MPACK_STRINGS
     switch (error) {
         #define MPACK_ERROR_STRING_CASE(e) case e: return #e
         MPACK_ERROR_STRING_CASE(mpack_ok);
@@ -51,7 +51,7 @@ const char* mpack_error_to_string(mpack_error_t error) {
 }
 
 const char* mpack_type_to_string(mpack_type_t type) {
-    #if MPACK_DEBUG
+    #if MPACK_STRINGS
     switch (type) {
         #define MPACK_TYPE_STRING_CASE(e) case e: return #e
         MPACK_TYPE_STRING_CASE(mpack_type_nil);

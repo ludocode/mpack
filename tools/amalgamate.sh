@@ -58,7 +58,7 @@ for f in $FILES; do
 done
 
 # assemble package contents
-CONTENTS="test SConscript SConstruct LICENSE README.md"
+CONTENTS="test SConscript SConstruct LICENSE AUTHORS README.md"
 cp -ar $CONTENTS build/amalgamation
 mkdir -p build/amalgamation/projects/{vs,xcode/MPack.xcodeproj}
 cp projects/vs/mpack.{sln,vcxproj,vcxproj.filters} build/amalgamation/projects/vs

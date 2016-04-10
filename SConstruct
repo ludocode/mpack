@@ -12,6 +12,10 @@ def CheckFlags(context, cppflags, linkflags = [], message = None):
     context.Result(result)
     return result
 
+def AddFlagIfSupported(flag):
+    if conf.CheckFlags([flag]):
+        env.Append(CPPFLAGS = [flag])
+
 
 # Common environment setup
 
@@ -26,7 +30,8 @@ for x in os.environ.keys():
 
 env.Append(CPPFLAGS = [
     "-Wall", "-Wextra", "-Werror",
-    "-Wconversion", "-Wno-sign-conversion", "-Wundef", "-Wshadow",
+    "-Wconversion", "-Wno-sign-conversion", "-Wundef",
+    "-Wshadow", "-Wcast-qual",
     "-Isrc", "-Itest",
     "-DMPACK_SCONS=1",
     "-g",
@@ -35,17 +40,12 @@ env.Append(LINKFLAGS = [
     "-g",
     ])
 
-if conf.CheckFlags(["-Wmissing-variable-declarations"]):
-    env.Append(CPPFLAGS = ["-Wmissing-variable-declarations"])
-if conf.CheckFlags(["-Wstrict-aliasing=1"]):
-    env.Append(CPPFLAGS = ["-Wstrict-aliasing=1"]) # use level 1 for maximum false positives
-
 # Additional warning flags are passed in SConscript based on the language (C/C++)
 
-if 'TRAVIS' not in env["ENV"]:
-    # Travis-CI currently uses Clang 3.4 which does not support this option,
-    # and it also appears to be incompatible with other GCC options on Travis-CI
-    env.Append(CPPFLAGS = ["-Wno-float-conversion"])
+AddFlagIfSupported("-Wmissing-variable-declarations")
+AddFlagIfSupported("-Wstrict-aliasing=1")
+AddFlagIfSupported("-Wno-float-conversion")
+AddFlagIfSupported("-Wmisleading-indentation")
 
 
 # Optional flags used in various builds
@@ -69,7 +69,12 @@ if hasOg:
 else:
     debugflags = ["-DDEBUG", "-O0"]
 releaseflags = ["-O2"]
-cflags = ["-std=c99"]
+
+hasC11 = conf.CheckFlags(["-std=c11"])
+if hasC11:
+    cflags = ["-std=c11"]
+else:
+    cflags = ["-std=c99"]
 
 gcovflags = []
 if ARGUMENTS.get('gcov'):
@@ -90,21 +95,22 @@ cxxflags = ["-x", "c++"]
 # Functions to add a variant build. One variant build will build and run the
 # entire library and test suite in a given configuration.
 
-def AddBuild(variant_dir, cppflags, linkflags = []):
+def AddBuild(variant_dir, cppflags, linkflags = [], valgrind = True):
     env.SConscript("SConscript",
             variant_dir="build/" + variant_dir,
             src="../..",
             exports={
                 'env': env,
                 'CPPFLAGS': cppflags,
-                'LINKFLAGS': linkflags
+                'LINKFLAGS': linkflags,
+                'valgrind': valgrind
                 },
             duplicate=0)
 
-def AddBuilds(variant_dir, cppflags, linkflags = []):
-    AddBuild("debug-" + variant_dir, debugflags + cppflags, debugflags + linkflags)
+def AddBuilds(variant_dir, cppflags, linkflags = [], valgrind = True):
+    AddBuild("debug-" + variant_dir, debugflags + cppflags, debugflags + linkflags, valgrind)
     if ARGUMENTS.get('all'):
-        AddBuild("release-" + variant_dir, releaseflags + cppflags, releaseflags + linkflags)
+        AddBuild("release-" + variant_dir, releaseflags + cppflags, releaseflags + linkflags, valgrind)
 
 
 # The default build, everything in debug. This is the build used
@@ -119,7 +125,8 @@ if ARGUMENTS.get('more') or ARGUMENTS.get('all'):
     AddBuilds("embed", allfeatures + cflags + ["-DMPACK_NO_BUILTINS=1"])
     AddBuilds("noio", allfeatures + noioconfigs + cflags)
     AddBuild("debug-size", ["-DMPACK_OPTIMIZE_FOR_SIZE=1"] + debugflags + allfeatures + allconfigs + cflags)
-
+    if conf.CheckFlags(cxxflags + ["-std=c++11"], [], "-std=c++11"):
+        AddBuilds("cxx11", allfeatures + allconfigs + cxxflags + ["-std=c++11"])
 
 # Run "scons all=1" to run all builds. This is what the CI runs.
 if ARGUMENTS.get('all'):
@@ -129,7 +136,7 @@ if ARGUMENTS.get('all'):
     AddBuild("release-fastmath", allfeatures + allconfigs + releaseflags + cflags + ["-ffast-math"])
     if conf.CheckFlags(ltoflags, ltoflags, "-flto"):
         AddBuild("release-lto", allfeatures + allconfigs + ltoflags + cflags, ltoflags)
-    AddBuild("release-size", ["-Os"] + allfeatures + allconfigs + cflags)
+    AddBuild("release-size", ["-Os", "-DMPACK_STRINGS=0"] + allfeatures + allconfigs + cflags)
 
     # feature subsets with default configuration
     AddBuilds("empty", allconfigs + cflags)
@@ -156,16 +163,27 @@ if ARGUMENTS.get('all'):
     if hasOg:
         AddBuild("debug-O0", allfeatures + allconfigs + ["-DDEBUG", "-O0"] + cflags)
 
-    # other language standards (C11, various C++ versions)
-    if conf.CheckFlags(["-std=c11"]):
-        AddBuilds("c11", allfeatures + allconfigs + ["-std=c11"])
+    # other language standards (C99, various C++ versions)
+    if hasC11:
+        AddBuilds("c99", allfeatures + allconfigs + ["-std=c99"])
     AddBuilds("cxx", allfeatures + allconfigs + cxxflags + ["-std=c++98"])
-    if conf.CheckFlags(cxxflags + ["-std=c++11"], [], "-std=c++11"):
-        AddBuilds("cxx11", allfeatures + allconfigs + cxxflags + ["-std=c++11"])
     if conf.CheckFlags(cxxflags + ["-std=c++14"], [], "-std=c++14"):
         AddBuilds("cxx14", allfeatures + allconfigs + cxxflags + ["-std=c++14"])
+    if conf.CheckFlags(cxxflags + ["-std=gnu++11"], [], "-std=gnu++11"):
+        AddBuilds("gnuxx11", allfeatures + allconfigs + cxxflags + ["-std=gnu++11"]) # Clang supports _Generic in gnu++11 mode
 
     # 32-bit build
     if conf.CheckFlags(["-m32"], ["-m32"]):
         AddBuilds("32",     allfeatures + allconfigs + cflags + ["-m32"], ["-m32"])
         AddBuilds("cxx32",  allfeatures + allconfigs + cxxflags + ["-std=c++98", "-m32"], ["-m32"])
+
+    # sanitize build tests
+    sanitizers = {
+        "stack-protector": ["-Wstack-protector", "-fstack-protector-all"],
+        "memory": ["-fsanitize=memory"],
+        "address": ["-fsanitize=address"],
+        "safestack": ["-fsanitize=safe-stack"],
+    }
+    for name, flags in sanitizers.items():
+        if conf.CheckFlags(flags, flags):
+            AddBuilds("sanitize-" + name, allfeatures + allconfigs + cflags + flags, flags, valgrind=False)

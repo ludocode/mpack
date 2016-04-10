@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015 Nicholas Fraser
+ * Copyright (c) 2015-2016 Nicholas Fraser
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -32,11 +32,6 @@
 
 
 
-/* For now, nothing in here should be seen by Doxygen. */
-/** @cond */
-
-
-
 /* Pre-include checks */
 
 #if defined(_MSC_VER) && _MSC_VER < 1800 && !defined(__cplusplus)
@@ -50,6 +45,8 @@
 
 
 #include "mpack-config.h"
+
+
 
 /*
  * Now that the config is included, we define to 0 any of the configuration
@@ -79,6 +76,9 @@
 
 #ifndef MPACK_DEBUG
 #define MPACK_DEBUG 0
+#endif
+#ifndef MPACK_STRINGS
+#define MPACK_STRINGS 1 /* default on unless explicitly disabled */
 #endif
 #ifndef MPACK_CUSTOM_ASSERT
 #define MPACK_CUSTOM_ASSERT 0
@@ -390,6 +390,64 @@ MPACK_HEADER_START
 
 
 
+/* _Generic */
+
+#ifndef MPACK_HAS_GENERIC
+    #if defined(__clang__) && defined(__has_feature)
+        // With Clang we can test for _Generic support directly
+        // and ignore C/C++ version
+        #if __has_feature(c_generic_selections)
+            #define MPACK_HAS_GENERIC 1
+        #else
+            #define MPACK_HAS_GENERIC 0
+        #endif
+    #endif
+#endif
+
+#ifndef MPACK_HAS_GENERIC
+    #if defined(__STDC_VERSION__)
+        #if __STDC_VERSION__ >= 201112L
+            #if defined(__GNUC__) && !defined(__clang__)
+                // GCC does not have full C11 support in GCC 4.7 and 4.8
+                #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)
+                    #define MPACK_HAS_GENERIC 1
+                #endif
+            #else
+                // We hope other compilers aren't lying about C11/_Generic support
+                #define MPACK_HAS_GENERIC 1
+            #endif
+        #endif
+    #endif
+#endif
+
+#ifndef MPACK_HAS_GENERIC
+    #define MPACK_HAS_GENERIC 0
+#endif
+
+
+
+/*
+ * Finite Math
+ *
+ * -ffinite-math-only, included in -ffast-math, breaks functions that
+ * that check for non-finite real values such as isnan() and isinf().
+ *
+ * We should use this to trap errors when reading data that contains
+ * non-finite reals. This isn't currently implemented.
+ */
+
+#ifndef MPACK_FINITE_MATH
+#if defined(__FINITE_MATH_ONLY__) && __FINITE_MATH_ONLY__
+#define MPACK_FINITE_MATH 1
+#endif
+#endif
+
+#ifndef MPACK_FINITE_MATH
+#define MPACK_FINITE_MATH 0
+#endif
+
+
+
 /*
  * Endianness checks
  *
@@ -560,6 +618,13 @@ MPACK_HEADER_START
 
     #if defined(MPACK_UNIT_TESTS) && MPACK_INTERNAL && defined(__GNUC__)
         // make sure we don't use the stdlib directly during development
+        #undef memcmp
+        #undef memcpy
+        #undef memmove
+        #undef memset
+        #undef strlen
+        #undef malloc
+        #undef free
         #pragma GCC poison memcmp
         #pragma GCC poison memcpy
         #pragma GCC poison memmove
@@ -668,8 +733,6 @@ size_t mpack_strlen(const char* s);
  */
 
 MPACK_HEADER_END
-
-/** @endcond */
 
 #endif
 
