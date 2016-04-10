@@ -48,7 +48,6 @@ void test_read_error_handler(mpack_reader_t* reader, mpack_error_t error);
             (int)error, mpack_error_to_string(error)); \
     TEST_TRUE(remaining == 0, \
             "reader has %i extra bytes", (int)remaining); \
-    mpack_reader_destroy(reader); \
 } while (0)
 
 // tears down a reader, ensuring it is in the given error state
@@ -58,7 +57,6 @@ void test_read_error_handler(mpack_reader_t* reader, mpack_error_t error);
     TEST_TRUE(actual == expected, "reader is in error state %i (%s) instead of %i (%s)", \
             (int)actual, mpack_error_to_string(actual), \
             (int)expected, mpack_error_to_string(expected)); \
-    mpack_reader_destroy(reader); \
 } while (0)
 
 
