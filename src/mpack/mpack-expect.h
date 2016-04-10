@@ -573,6 +573,15 @@ void mpack_expect_false(mpack_reader_t* reader);
  * a specific ordering for your map values in case your data is converted
  * to/from JSON.
  *
+ * @warning This call is dangerous! It does not have a size limit, and it
+ * does not have any way of checking whether there is enough data in the
+ * message (since the data could be coming from a stream.) When looping
+ * through the map's contents, you must check for errors on each iteration
+ * of the loop. Otherwise an attacker could craft a message declaring a map
+ * of a billion elements which would throw your parsing code into an
+ * infinite loop! You should strongly consider using mpack_expect_map_max()
+ * with a safe maximum size instead.
+ *
  * @throws mpack_error_type if the value is not a map.
  */
 uint32_t mpack_expect_map(mpack_reader_t* reader);
@@ -645,7 +654,17 @@ void mpack_expect_map_match(mpack_reader_t* reader, uint32_t count);
  * a specific ordering for your map values in case your data is converted
  * to/from JSON.
  *
- * @returns true if a map was read successfully; false if nil was read or an error occured.
+ * @warning This call is dangerous! It does not have a size limit, and it
+ * does not have any way of checking whether there is enough data in the
+ * message (since the data could be coming from a stream.) When looping
+ * through the map's contents, you must check for errors on each iteration
+ * of the loop. Otherwise an attacker could craft a message declaring a map
+ * of a billion elements which would throw your parsing code into an
+ * infinite loop! You should strongly consider using mpack_expect_map_max_or_nil()
+ * with a safe maximum size instead.
+ *
+ * @returns @c true if a map was read successfully; @c false if nil was read
+ *     or an error occured.
  * @throws mpack_error_type if the value is not a nil or map.
  */
 bool mpack_expect_map_or_nil(mpack_reader_t* reader, uint32_t* count);
@@ -673,6 +692,15 @@ bool mpack_expect_map_max_or_nil(mpack_reader_t* reader, uint32_t max_count, uin
  *
  * A number of values follow equal to the element count of the array.
  * @ref mpack_done_array() must be called once all elements have been read.
+ *
+ * @warning This call is dangerous! It does not have a size limit, and it
+ * does not have any way of checking whether there is enough data in the
+ * message (since the data could be coming from a stream.) When looping
+ * through the array's contents, you must check for errors on each iteration
+ * of the loop. Otherwise an attacker could craft a message declaring an array
+ * of a billion elements which would throw your parsing code into an
+ * infinite loop! You should strongly consider using mpack_expect_array_max()
+ * with a safe maximum size instead.
  */
 uint32_t mpack_expect_array(mpack_reader_t* reader);
 
@@ -725,7 +753,17 @@ void mpack_expect_array_match(mpack_reader_t* reader, uint32_t count);
  * of the array. @ref mpack_done_array() should also be called once all elements
  * have been read (only if an array was read.)
  *
- * @returns true if an array was read successfully; false if nil was read or an error occured.
+ * @warning This call is dangerous! It does not have a size limit, and it
+ * does not have any way of checking whether there is enough data in the
+ * message (since the data could be coming from a stream.) When looping
+ * through the array's contents, you must check for errors on each iteration
+ * of the loop. Otherwise an attacker could craft a message declaring an array
+ * of a billion elements which would throw your parsing code into an
+ * infinite loop! You should strongly consider using mpack_expect_array_max_or_nil()
+ * with a safe maximum size instead.
+ *
+ * @returns @c true if an array was read successfully; @c false if nil was read
+ *     or an error occured.
  * @throws mpack_error_type if the value is not a nil or array.
  */
 bool mpack_expect_array_or_nil(mpack_reader_t* reader, uint32_t* count);
@@ -739,7 +777,8 @@ bool mpack_expect_array_or_nil(mpack_reader_t* reader, uint32_t* count);
  * of the array. @ref mpack_done_array() should also be called once all elements
  * have been read (only if an array was read.)
  *
- * @returns true if an array was read successfully; false if nil was read or an error occured.
+ * @returns @c true if an array was read successfully; @c false if nil was read
+ *     or an error occured.
  * @throws mpack_error_type if the value is not a nil or array.
  */
 bool mpack_expect_array_max_or_nil(mpack_reader_t* reader, uint32_t max_count, uint32_t* count);
