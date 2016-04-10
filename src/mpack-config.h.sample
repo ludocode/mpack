@@ -1,27 +1,23 @@
 
 /**
- * @file
- *
- * Defines the MPack configuration options.
- */
-
-#ifndef MPACK_CONFIG_H
-#define MPACK_CONFIG_H 1
-
-/**
+ * @file mpack-config.h
  * @defgroup config Configuration Options
  *
  * Defines the MPack configuration options.
  *
- * Copy @c mpack-config.h.sample to @c mpack-config.h somewhere in your
- * project's include tree and, optionally, edit it to suit your setup.
- * In almost all cases you can leave this file with the default config.
+ * Custom configuration of MPack is not usually necessary. In almost all
+ * cases you can ignore this file and use the defaults.
  *
- * You can also override the default configuration by pre-defining options
- * to 0 or 1.
+ * To use a configuration file, define MPACK_HAS_CONFIG=1 in your build
+ * system or project settings. You can then copy this file to
+ * @c mpack-config.h, or create a blank file and set only the options
+ * you want. The below settings are the defaults if they are not set
+ * by your configuration file.
  *
- * @{
+ * You can also configure MPack by pre-defining any of the below options
+ * in your build system or project settings.
  */
+
 
 
 /**
@@ -177,10 +173,8 @@
  * This can be turned off (by defining it to 0) to maximize space savings
  * on embedded devices. If this is disabled, string functions such as
  * mpack_error_to_string() and mpack_type_to_string() return an empty string.
- *
- * This is on by default if it is not defined.
  */
-#if !defined(MPACK_STRINGS)
+#ifndef MPACK_STRINGS
 #define MPACK_STRINGS 1
 #endif
 
@@ -327,6 +321,4 @@
 /**
  * @}
  */
-
-#endif
 

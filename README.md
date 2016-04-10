@@ -8,9 +8,11 @@ MPack is a C implementation of an encoder and decoder for the [MessagePack](http
  * [Extensively documented](http://ludocode.github.io/mpack/)
  * [Extremely fast](https://github.com/ludocode/schemaless-benchmarks#speed---desktop-pc)
 
-The core of MPack contains a buffered reader and writer, and a tree-style parser that decodes into a tree of dynamically typed nodes. Helper functions can be enabled to read values of expected type, to work with files, to allocate strings automatically, to check UTF-8 encoding, and more. The MPack featureset can be configured at compile-time to set which features, components and debug checks are compiled, and what dependencies are available.
+The core of MPack contains a buffered reader and writer, and a tree-style parser that decodes into a tree of dynamically typed nodes. Helper functions can be enabled to read values of expected type, to work with files, to allocate strings automatically, to check UTF-8 encoding, and more.
 
-The MPack code is small enough to be embedded directly into your codebase. The easiest way to use it is to download the [amalgamation package](https://github.com/ludocode/mpack/releases) and insert the source files directly into your project. Copy `mpack.h` and `mpack.c` into to your codebase, and copy `mpack-config.h.sample` as `mpack-config.h`. You can use the defaults or edit it if you'd like to customize the MPack featureset.
+The MPack code is small enough to be embedded directly into your codebase. The easiest way to use it is to download the [amalgamation package](https://github.com/ludocode/mpack/releases) and insert `mpack.h` and `mpack.c` directly into your project.
+
+The MPack featureset can also be customized at compile-time to set which features, components and debug checks are compiled, and what dependencies are available.
 
 ## Build Status
 

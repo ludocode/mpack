@@ -44,62 +44,34 @@
 
 
 
+/* Include the custom config file if enabled */
+
+#if defined(MPACK_HAS_CONFIG) && MPACK_HAS_CONFIG
 #include "mpack-config.h"
-
-
+#endif
 
 /*
- * Now that the config is included, we define to 0 any of the configuration
- * options and other switches that aren't defined. This supports -Wundef
- * without us having to write "#if defined(X) && X" everywhere (and while
- * allowing configs to be pre-defined to 0.)
+ * Now that the optional config is included, we define the defaults
+ * for any of the configuration options and other switches that aren't
+ * yet defined.
+ *
+ * In development mode, or when the library is used without being
+ * amalgamated, we set the defaults by including the sample config
+ * directly. When amalgamated, this is disabled and the contents
+ * of the sample config have been inserted into the top of mpack.h.
  */
-#ifndef MPACK_READER
-#define MPACK_READER 0
-#endif
-#ifndef MPACK_EXPECT
-#define MPACK_EXPECT 0
-#endif
-#ifndef MPACK_NODE
-#define MPACK_NODE 0
-#endif
-#ifndef MPACK_WRITER
-#define MPACK_WRITER 0
-#endif
+#include "mpack-config.h.sample"
 
-#ifndef MPACK_STDLIB
-#define MPACK_STDLIB 0
-#endif
-#ifndef MPACK_STDIO
-#define MPACK_STDIO 0
-#endif
-
+/*
+ * All remaining configuration options that have not yet been set must
+ * be defined here in order to support -Wundef.
+ */
 #ifndef MPACK_DEBUG
 #define MPACK_DEBUG 0
-#endif
-#ifndef MPACK_STRINGS
-#define MPACK_STRINGS 1 /* default on unless explicitly disabled */
-#endif
-#ifndef MPACK_CUSTOM_ASSERT
-#define MPACK_CUSTOM_ASSERT 0
 #endif
 #ifndef MPACK_CUSTOM_BREAK
 #define MPACK_CUSTOM_BREAK 0
 #endif
-
-#ifndef MPACK_READ_TRACKING
-#define MPACK_READ_TRACKING 0
-#endif
-#ifndef MPACK_WRITE_TRACKING
-#define MPACK_WRITE_TRACKING 0
-#endif
-#ifndef MPACK_NO_TRACKING
-#define MPACK_NO_TRACKING 0
-#endif
-#ifndef MPACK_OPTIMIZE_FOR_SIZE
-#define MPACK_OPTIMIZE_FOR_SIZE 0
-#endif
-
 #ifndef MPACK_EMIT_INLINE_DEFS
 #define MPACK_EMIT_INLINE_DEFS 0
 #endif

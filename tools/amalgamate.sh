@@ -5,13 +5,22 @@
 
 . "`dirname $0`"/getversion.sh
 
-FILES="\
-    mpack-platform \
-    mpack-common \
-    mpack-writer \
-    mpack-reader \
-    mpack-expect \
-    mpack-node"
+HEADERS="\
+    mpack-config.h.sample \
+    mpack/mpack-platform.h \
+    mpack/mpack-common.h \
+    mpack/mpack-writer.h \
+    mpack/mpack-reader.h \
+    mpack/mpack-expect.h \
+    mpack/mpack-node.h"
+
+SOURCES="\
+    mpack/mpack-platform.c \
+    mpack/mpack-common.c \
+    mpack/mpack-writer.c \
+    mpack/mpack-reader.c \
+    mpack/mpack-expect.c \
+    mpack/mpack-node.c"
 
 TOOLS="\
     tools/clean.sh \
@@ -41,10 +50,12 @@ cp $HEADER $SOURCE
 # assemble header
 echo -e "#ifndef MPACK_H\n#define MPACK_H 1\n" >> $HEADER
 echo -e "#define MPACK_AMALGAMATED 1\n" >> $HEADER
-echo -e "#include \"mpack-config.h\"\n" >> $HEADER
-for f in $FILES; do
+echo -e "#if defined(MPACK_HAS_CONFIG) && MPACK_HAS_CONFIG" >> $HEADER
+echo -e "#include \"mpack-config.h\"" >> $HEADER
+echo -e "#endif\n" >> $HEADER
+for f in $HEADERS; do
     echo -e "\n/* $f.h */" >> $HEADER
-    sed -e 's@^#include ".*@/* & */@' -e '0,/^ \*\/$/d' src/mpack/$f.h >> $HEADER
+    sed -e 's@^#include ".*@/* & */@' -e '0,/^ \*\/$/d' src/$f >> $HEADER
 done
 echo -e "#endif\n" >> $HEADER
 
@@ -52,9 +63,9 @@ echo -e "#endif\n" >> $HEADER
 echo -e "#define MPACK_INTERNAL 1" >> $SOURCE
 echo -e "#define MPACK_EMIT_INLINE_DEFS 1\n" >> $SOURCE
 echo -e "#include \"mpack.h\"\n" >> $SOURCE
-for f in $FILES; do
+for f in $SOURCES; do
     echo -e "\n/* $f.c */" >> $SOURCE
-    sed -e 's@^#include ".*@/* & */@' -e '0,/^ \*\/$/d' src/mpack/$f.c >> $SOURCE
+    sed -e 's@^#include ".*@/* & */@' -e '0,/^ \*\/$/d' src/$f >> $SOURCE
 done
 
 # assemble package contents

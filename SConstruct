@@ -34,6 +34,7 @@ env.Append(CPPFLAGS = [
     "-Wshadow", "-Wcast-qual",
     "-Isrc", "-Itest",
     "-DMPACK_SCONS=1",
+    "-DMPACK_HAS_CONFIG=1",
     "-g",
     ])
 env.Append(LINKFLAGS = [
