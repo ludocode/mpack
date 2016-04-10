@@ -12,6 +12,7 @@ mpack-test-blank-file
 /mpack-test-dir/
 /analysis/
 /docs/html/
+/vgcore.*
 
 # visual studio project
 *.suo
