@@ -95,21 +95,22 @@ cxxflags = ["-x", "c++"]
 # Functions to add a variant build. One variant build will build and run the
 # entire library and test suite in a given configuration.
 
-def AddBuild(variant_dir, cppflags, linkflags = []):
+def AddBuild(variant_dir, cppflags, linkflags = [], valgrind = True):
     env.SConscript("SConscript",
             variant_dir="build/" + variant_dir,
             src="../..",
             exports={
                 'env': env,
                 'CPPFLAGS': cppflags,
-                'LINKFLAGS': linkflags
+                'LINKFLAGS': linkflags,
+                'valgrind': valgrind
                 },
             duplicate=0)
 
-def AddBuilds(variant_dir, cppflags, linkflags = []):
-    AddBuild("debug-" + variant_dir, debugflags + cppflags, debugflags + linkflags)
+def AddBuilds(variant_dir, cppflags, linkflags = [], valgrind = True):
+    AddBuild("debug-" + variant_dir, debugflags + cppflags, debugflags + linkflags, valgrind)
     if ARGUMENTS.get('all'):
-        AddBuild("release-" + variant_dir, releaseflags + cppflags, releaseflags + linkflags)
+        AddBuild("release-" + variant_dir, releaseflags + cppflags, releaseflags + linkflags, valgrind)
 
 
 # The default build, everything in debug. This is the build used
@@ -175,3 +176,14 @@ if ARGUMENTS.get('all'):
     if conf.CheckFlags(["-m32"], ["-m32"]):
         AddBuilds("32",     allfeatures + allconfigs + cflags + ["-m32"], ["-m32"])
         AddBuilds("cxx32",  allfeatures + allconfigs + cxxflags + ["-std=c++98", "-m32"], ["-m32"])
+
+    # sanitize build tests
+    sanitizers = {
+        "stack-protector": ["-Wstack-protector", "-fstack-protector-all"],
+        "memory": ["-fsanitize=memory"],
+        "address": ["-fsanitize=address"],
+        "safestack": ["-fsanitize=safe-stack"],
+    }
+    for name, flags in sanitizers.items():
+        if conf.CheckFlags(flags, flags):
+            AddBuilds("sanitize-" + name, allfeatures + allconfigs + cflags + flags, flags, valgrind=False)
