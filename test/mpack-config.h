@@ -10,23 +10,37 @@
 #define MPACK_DEBUG 1
 #endif
 
-// Most options such as featureset and platform configuration
-// are specified by the SCons buildsystem. For other platforms,
-// we define the usual configuration here.
-#ifndef MPACK_SCONS
-    #define MPACK_READER 1
-    #define MPACK_WRITER 1
-    #define MPACK_EXPECT 1
-    #define MPACK_NODE 1
-
-    #define MPACK_STDLIB 1
-    #define MPACK_STDIO 1
+#ifdef MPACK_SCONS
+    // Most options such as featureset and platform configuration
+    // are specified by the SCons buildsystem. Any options that are
+    // unset on the command line are considered disabled.
+    #ifndef MPACK_READER
+    #define MPACK_READER 0
+    #endif
+    #ifndef MPACK_EXPECT
+    #define MPACK_EXPECT 0
+    #endif
+    #ifndef MPACK_NODE
+    #define MPACK_NODE 0
+    #endif
+    #ifndef MPACK_WRITER
+    #define MPACK_WRITER 0
+    #endif
+    #ifndef MPACK_STDLIB
+    #define MPACK_STDLIB 0
+    #endif
+    #ifndef MPACK_STDIO
+    #define MPACK_STDIO 0
+    #endif
+#else
+    // For other platforms, we currently only test in the default
+    // configuration, so we use the default for most settings.
     #define MPACK_MALLOC test_malloc
     #define MPACK_FREE test_free
 #endif
 
 // We replace the file i/o functions to simulate failures
-#if defined(MPACK_STDIO) && MPACK_STDIO
+#if MPACK_STDIO
 #include <stdio.h>
 #define fopen  test_fopen
 #define fclose test_fclose
