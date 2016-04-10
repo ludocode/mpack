@@ -885,6 +885,10 @@ static void test_write_generic(void) {
     // const char *
     TEST_SIMPLE_WRITE("\xc0", mpack_write(&writer, (const char *)NULL));
     TEST_SIMPLE_WRITE("\xa4""1337", mpack_write(&writer, (const char *)"1337"));
+
+    // string literals
+    TEST_SIMPLE_WRITE("\xa0", mpack_write(&writer, ""));
+    TEST_SIMPLE_WRITE("\xa4""1337", mpack_write(&writer, "1337"));
 }
 
 static void test_write_generic_kv(void) {
@@ -909,9 +913,11 @@ static void test_write_generic_kv(void) {
     TEST_SIMPLE_WRITE("\xa3""foo""\xcb\xc0\x09\x21\xfb\x53\xc8\xd4\xf1", mpack_write_kv(&writer, key, (double)-3.14159265));
     TEST_SIMPLE_WRITE("\xa3""foo""\xc2", mpack_write_kv(&writer, key, (bool)false));
 
-    // char *, const char *
+    // char *, const char *, literal
     TEST_SIMPLE_WRITE("\xa3""foo""\xa3""bar", mpack_write_kv(&writer, key, (char *)value));
     TEST_SIMPLE_WRITE("\xa3""foo""\xa3""bar", mpack_write_kv(&writer, key, (const char *)value));
+    TEST_SIMPLE_WRITE("\xa3""foo""\xa3""bar", mpack_write_kv(&writer, key, value));
+    TEST_SIMPLE_WRITE("\xa3""foo""\xa3""bar", mpack_write_kv(&writer, key, "bar"));
 }
 
 #endif

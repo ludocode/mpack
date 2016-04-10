@@ -808,7 +808,7 @@ MPACK_HEADER_END
  * types when passed uncast, so be careful when using them.
  */
 #define mpack_write(writer, value) \
-    _Generic((value),                               \
+    _Generic(((void)0, value),                      \
               int8_t: mpack_write_i8,               \
              int16_t: mpack_write_i16,              \
              int32_t: mpack_write_i32,              \
