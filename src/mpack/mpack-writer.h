@@ -108,6 +108,9 @@ typedef void (*mpack_writer_teardown_t)(mpack_writer_t* writer);
 /** @cond */
 
 struct mpack_writer_t {
+    #if MPACK_COMPATIBILITY
+    mpack_version_t version;          /* Version of the MessagePack spec to write */
+    #endif
     mpack_writer_flush_t flush;       /* Function to write bytes to the output stream */
     mpack_writer_error_t error_fn;    /* Function to call on error */
     mpack_writer_teardown_t teardown; /* Function to teardown the context on destroy */
@@ -266,9 +269,23 @@ mpack_error_t mpack_writer_destroy(mpack_writer_t* writer);
  */
 
 /**
- * @name Callbacks
+ * @name Configuration
  * @{
  */
+
+#if MPACK_COMPATIBILITY
+/**
+ * Sets the version of the MessagePack spec that will be generated.
+ *
+ * This can be used to interface with older libraries that do not support
+ * the newest MessagePack features (such as the @c str8 type.)
+ *
+ * This requires @ref MPACK_COMPATIBILITY.
+ */
+MPACK_INLINE void mpack_writer_set_version(mpack_writer_t* writer, mpack_version_t version) {
+    writer->version = version;
+}
+#endif
 
 /**
  * Sets the custom pointer to pass to the writer callbacks, such as flush

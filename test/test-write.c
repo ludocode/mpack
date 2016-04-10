@@ -24,6 +24,8 @@
 
 #if MPACK_WRITER
 
+static const char* quick_brown_fox = "The quick brown fox jumps over a lazy dog.";
+
 mpack_error_t test_write_error = mpack_ok;
 
 void test_write_error_handler(mpack_writer_t* writer, mpack_error_t error) {
@@ -1002,10 +1004,67 @@ static void test_misc(void) {
     char shortbuf[10];
     mpack_writer_t writer;
     mpack_writer_init(&writer, shortbuf, sizeof(shortbuf));
-    mpack_write_cstr(&writer, "The quick brown fox jumps over the lazy dog.");
+    mpack_write_cstr(&writer, quick_brown_fox);
     TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_too_big);
 
 }
+
+#if MPACK_COMPATIBILITY
+static void test_write_compatibility() {
+    char buf[4096];
+    mpack_writer_t writer;
+
+    // test str and bin behavior under all versions
+
+    static const mpack_version_t versions[] = {
+        mpack_version_v4,
+        mpack_version_v5,
+        mpack_version_current,
+    };
+
+    for (size_t i = 0; i < sizeof(versions) / sizeof(versions[0]); ++i) {
+        mpack_version_t version = versions[i];
+        mpack_writer_init(&writer, buf, sizeof(buf));
+        mpack_writer_set_version(&writer, version);
+
+        mpack_start_array(&writer, 2);
+        mpack_write_cstr(&writer, quick_brown_fox);
+        mpack_write_bin(&writer, quick_brown_fox, (uint32_t)strlen(quick_brown_fox));
+        mpack_finish_array(&writer);
+
+        size_t size = mpack_writer_buffer_used(&writer);
+        TEST_WRITER_DESTROY_NOERROR(&writer);
+
+        if (version == mpack_version_v4) {
+            if (size != 1 + 6 + 2 * strlen(quick_brown_fox)) {
+                TEST_TRUE(false, "incorrect length!");
+            } else {
+                TEST_TRUE(memcmp("\x92", buf, 1) == 0);
+                TEST_TRUE(memcmp("\xda\x00\x2a", buf + 1, 3) == 0);
+                TEST_TRUE(memcmp(quick_brown_fox, buf + 1 + 3, strlen(quick_brown_fox)) == 0);
+                TEST_TRUE(memcmp("\xda\x00\x2a", buf + 1 + 3 + strlen(quick_brown_fox), 3) == 0);
+                TEST_TRUE(memcmp(quick_brown_fox, buf + 1 + 3 + 3 + strlen(quick_brown_fox), strlen(quick_brown_fox)) == 0);
+            }
+        } else {
+            if (size != 1 + 4 + 2 * strlen(quick_brown_fox)) {
+                TEST_TRUE(false, "incorrect length!");
+            } else {
+                TEST_TRUE(memcmp("\x92", buf, 1) == 0);
+                TEST_TRUE(memcmp("\xd9\x2a", buf + 1, 2) == 0);
+                TEST_TRUE(memcmp(quick_brown_fox, buf + 1 + 2, strlen(quick_brown_fox)) == 0);
+                TEST_TRUE(memcmp("\xc4\x2a", buf + 1 + 2 + strlen(quick_brown_fox), 2) == 0);
+                TEST_TRUE(memcmp(quick_brown_fox, buf + 1 + 2 + 2 + strlen(quick_brown_fox), strlen(quick_brown_fox)) == 0);
+            }
+        }
+    }
+
+    // test ext break in v4 mode
+    mpack_writer_init(&writer, buf, sizeof(buf));
+    mpack_writer_set_version(&writer, mpack_version_v4);
+    TEST_BREAK(((void)mpack_start_ext(&writer, 1, 1), true));
+    TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_bug);
+}
+#endif
 
 void test_writes() {
     /*
@@ -1027,6 +1086,10 @@ void test_writes() {
     #endif
     test_write_simple_misc();
     test_write_utf8();
+
+    #if MPACK_COMPATIBILITY
+    test_write_compatibility();
+    #endif
 
     #ifdef MPACK_MALLOC
     test_write_tag_tracking();

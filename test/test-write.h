@@ -39,23 +39,27 @@ void test_write_error_handler(mpack_writer_t* writer, mpack_error_t error);
 
 
 // tears down a writer, ensuring it didn't fail
-#define TEST_WRITER_DESTROY_NOERROR(writer) \
-    TEST_TRUE(mpack_writer_destroy(writer) == mpack_ok, \
-            "writer is in error state %i", (int)mpack_writer_error(writer)); \
+#define TEST_WRITER_DESTROY_NOERROR(writer) do {\
+    mpack_error_t error = mpack_writer_destroy(writer); \
+    TEST_TRUE(error == mpack_ok, "writer is in error state %i (%s)", \
+            (int)error, mpack_error_to_string(error)); \
+} while (0)
 
 // tears down a writer, ensuring the given error occurred
 #define TEST_WRITER_DESTROY_ERROR(writer, error) do { \
     mpack_error_t expected = (error); \
     mpack_error_t actual = mpack_writer_destroy(writer); \
-    TEST_TRUE(actual == expected, "writer is in error state %i instead of %i", \
-            (int)actual, (int)expected); \
+    TEST_TRUE(actual == expected, "writer is in error state %i (%s) instead of %i (%s)", \
+            (int)actual, mpack_error_to_string(actual), \
+            (int)expected, mpack_error_to_string(expected)); \
 } while (0)
 
 // performs an operation on a writer, ensuring no error occurs
 #define TEST_WRITE_NOERROR(writer, write_expr) do { \
     (write_expr); \
-    TEST_TRUE(mpack_writer_error(writer) == mpack_ok, \
-            "writer is in error state %i", (int)mpack_writer_error(writer)); \
+    mpack_error_t error = mpack_writer_error(writer); \
+    TEST_TRUE(error == mpack_ok, "writer is in error state %i (%s)", \
+            (int)error, mpack_error_to_string(error)); \
 } while (0)
 
 #define TEST_DESTROY_MATCH_IMPL(expect, size) do { \

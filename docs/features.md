@@ -30,7 +30,7 @@ Feedback is welcome! Please let me know if any entries in the table are incorrec
 | Tree stream parser                  |     | ✓   |     |
 | Asynchronous tree stream parser     |     | ✓   |     |
 | Support for new (2.0) spec          | ✓   | ✓   | ✓   |
-| Compatible with older (1.0) spec    |     | ✓   | ✓   |
+| Compatible with older (1.0) spec    | ✓   | ✓   | ✓   |
 | UTF-8 verification                  | ✓   |     |     |
 
 Most of the features above are optional when supported and can be configured in all libraries. In particular, UTF-8 verification is optional with MPack; compound size tracking is optional and disabled in release by default with MPack; and 1.0 (v4) spec compatibility is optional with CMP (v5/2.0 is the recommended and default usage.)

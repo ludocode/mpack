@@ -12,6 +12,10 @@ Breaking Changes:
 
 - The mpack configuration `mpack-config.h` file is now optional, and requires `MPACK_HAS_CONFIG` in order to be included. This means you must define `MPACK_HAS_CONFIG` when upgrading or your config file will be ignored! (It is recommended to delete your config file and use the defaults.)
 
+New Features:
+
+- The writer now supports a v4 compatibility mode. Call `mpack_writer_set_version(writer, mpack_version_v4);` to encode without using the `raw8` and `bin` types.
+
 Changes:
 
 - The reader's skip function is no longer ignored under `MPACK_OPTIMIZE_FOR_SIZE`.

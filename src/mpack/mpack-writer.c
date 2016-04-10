@@ -53,6 +53,9 @@ void mpack_writer_track_bytes(mpack_writer_t* writer, size_t count) {
 #endif
 
 static void mpack_writer_clear(mpack_writer_t* writer) {
+    #if MPACK_COMPATIBILITY
+    writer->version = mpack_version_current;
+    #endif
     writer->flush = NULL;
     writer->error_fn = NULL;
     writer->teardown = NULL;
@@ -569,15 +572,15 @@ MPACK_STATIC_INLINE void mpack_encode_fixstr(char* p, uint8_t count) {
 }
 
 MPACK_STATIC_INLINE void mpack_encode_str8(char* p, uint8_t count) {
-    // TODO: str8 had no counterpart in MessagePack 1.0; there was only
-    // fixraw, raw16 and raw32. This should not be used in compatibility mode.
     mpack_assert(count > 31);
     mpack_store_u8(p, 0xd9);
     mpack_store_u8(p + 1, count);
 }
 
 MPACK_STATIC_INLINE void mpack_encode_str16(char* p, uint16_t count) {
-    mpack_assert(count > UINT8_MAX);
+    // we might be encoding a raw in compatibility mode, so we
+    // allow count to be in the range [32, UINT8_MAX].
+    mpack_assert(count > 31);
     mpack_store_u8(p, 0xda);
     mpack_store_u16(p + 1, count);
 }
@@ -864,26 +867,35 @@ void mpack_start_map(mpack_writer_t* writer, uint32_t count) {
     mpack_writer_track_push(writer, mpack_type_map, count);
 }
 
-void mpack_start_str(mpack_writer_t* writer, uint32_t count) {
-    mpack_writer_track_element(writer);
-
+static void mpack_start_str_notrack(mpack_writer_t* writer, uint32_t count) {
     if (count <= 31) {
         MPACK_WRITE_ENCODED(mpack_encode_fixstr, MPACK_TAG_SIZE_FIXSTR, (uint8_t)count);
-    } else if (count <= UINT8_MAX) {
-        // TODO: str8 had no counterpart in MessagePack 1.0; there was only
-        // fixraw, raw16 and raw32. This should not be used in compatibility mode.
+
+    // str8 is only supported in v5 or later.
+    } else if (count <= UINT8_MAX
+            #if MPACK_COMPATIBILITY
+            && writer->version >= mpack_version_v5
+            #endif
+            ) {
         MPACK_WRITE_ENCODED(mpack_encode_str8, MPACK_TAG_SIZE_STR8, (uint8_t)count);
+
     } else if (count <= UINT16_MAX) {
         MPACK_WRITE_ENCODED(mpack_encode_str16, MPACK_TAG_SIZE_STR16, (uint16_t)count);
     } else {
         MPACK_WRITE_ENCODED(mpack_encode_str32, MPACK_TAG_SIZE_STR32, (uint32_t)count);
     }
-
-    mpack_writer_track_push(writer, mpack_type_str, count);
 }
 
-void mpack_start_bin(mpack_writer_t* writer, uint32_t count) {
-    mpack_writer_track_element(writer);
+static void mpack_start_bin_notrack(mpack_writer_t* writer, uint32_t count) {
+    #if MPACK_COMPATIBILITY
+    // In the v4 spec, there was only the raw type for any kind of
+    // variable-length data. In v4 mode, we support the bin functions,
+    // but we produce an old-style raw.
+    if (writer->version <= mpack_version_v4) {
+        mpack_start_str_notrack(writer, count);
+        return;
+    }
+    #endif
 
     if (count <= UINT8_MAX) {
         MPACK_WRITE_ENCODED(mpack_encode_bin8, MPACK_TAG_SIZE_BIN8, (uint8_t)count);
@@ -892,11 +904,29 @@ void mpack_start_bin(mpack_writer_t* writer, uint32_t count) {
     } else {
         MPACK_WRITE_ENCODED(mpack_encode_bin32, MPACK_TAG_SIZE_BIN32, (uint32_t)count);
     }
+}
 
+void mpack_start_str(mpack_writer_t* writer, uint32_t count) {
+    mpack_writer_track_element(writer);
+    mpack_start_str_notrack(writer, count);
+    mpack_writer_track_push(writer, mpack_type_str, count);
+}
+
+void mpack_start_bin(mpack_writer_t* writer, uint32_t count) {
+    mpack_writer_track_element(writer);
+    mpack_start_bin_notrack(writer, count);
     mpack_writer_track_push(writer, mpack_type_bin, count);
 }
 
 void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count) {
+    #if MPACK_COMPATIBILITY
+    if (writer->version <= mpack_version_v4) {
+        mpack_break("Ext types require spec version v5 or later. This writer is in v%i mode.", (int)writer->version);
+        mpack_writer_flag_error(writer, mpack_error_bug);
+        return;
+    }
+    #endif
+
     mpack_writer_track_element(writer);
 
     if (count == 1) {

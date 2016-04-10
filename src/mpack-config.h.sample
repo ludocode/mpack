@@ -70,6 +70,20 @@
 #endif
 
 /**
+ * @def MPACK_COMPATIBILITY
+ *
+ * Enables compatibility features for reading and writing older
+ * versions of MessagePack.
+ *
+ * This is on by default if it is not defined. It can be disabled to
+ * minimize library size on embedded devices. If disabled, the behaviour
+ * is equivalent to using the default version, @ref mpack_version_current.
+ */
+#ifndef MPACK_COMPATIBILITY
+#define MPACK_COMPATIBILITY 1
+#endif
+
+/**
  * @}
  */
 

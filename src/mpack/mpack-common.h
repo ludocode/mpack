@@ -105,6 +105,36 @@ MPACK_HEADER_START
 
 
 
+#if MPACK_COMPATIBILITY
+/**
+ * Versions of the MessagePack format.
+ *
+ * A reader, writer, or tree can be configured to serialize in an older
+ * version of the MessagePack spec. This is necessary to interface with
+ * older MessagePack libraries that do not support new MessagePack features.
+ *
+ * This requires @ref MPACK_COMPATIBILITY.
+ */
+typedef enum mpack_version_t {
+
+    /**
+     * Version 1.0/v4, supporting only the @c raw type without @c str8.
+     */
+    mpack_version_v4 = 4,
+
+    /**
+     * Version 2.0/v5, supporting the @c str8, @c bin and @c ext types.
+     */
+    mpack_version_v5 = 5,
+
+    /**
+     * The most recent supported version of MessagePack. This is the default.
+     */
+    mpack_version_current = mpack_version_v5,
+
+} mpack_version_t;
+#endif
+
 /**
  * Error states for MPack objects.
  *

@@ -148,6 +148,7 @@ if ARGUMENTS.get('all'):
     AddBuilds("reader", ["-DMPACK_READER=1"] + allconfigs + cflags)
     AddBuilds("expect", ["-DMPACK_READER=1", "-DMPACK_EXPECT=1"] + allconfigs + cflags)
     AddBuilds("node", ["-DMPACK_NODE=1"] + allconfigs + cflags)
+    AddBuilds("nocompat", ["-DMPACK_COMPATIBILITY=0"] + allfeatures + allconfigs + cflags)
 
     # no i/o
     AddBuilds("noio-writer", ["-DMPACK_WRITER=1"] + noioconfigs + cflags)
