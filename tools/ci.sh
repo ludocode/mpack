@@ -21,12 +21,12 @@ elif [[ "$CC" == "gcc" ]] && [[ "$STANDARD" == "1" ]]; then
     scons gcov=1 all=1 || exit $?
     tools/gcov.sh || exit $?
     pip install --user cpp-coveralls urllib3[secure] || exit $?
-    coveralls --no-gcov --include src || exit $?
 
-    # Note to self: if the coveralls submission is failing with:
+    # Coveralls submission continues to experience random failures:
     #    {u'message': u"Couldn't find a repository matching this job.", u'error': True}
-    # Try logging in/out of coveralls to refresh OAuth token.
-    #    https://github.com/lemurheavy/coveralls-public/issues/632#issuecomment-148815369
+    # For now we'll just ignore it if it fails.
+    coveralls --no-gcov --include src #|| exit $?
+    true
 
 else
     scons all=1 || exit $?
