@@ -35,8 +35,15 @@
 #else
     // For other platforms, we currently only test in the default
     // configuration, so we use the default for most settings.
+
+    // We define our own allocators to test allocations.
     #define MPACK_MALLOC test_malloc
     #define MPACK_FREE test_free
+
+    // We need MPACK_STDIO defined before test-system.h to override
+    // stdio functions.
+    #define MPACK_STDLIB 1
+    #define MPACK_STDIO 1
 #endif
 
 // We replace the file i/o functions to simulate failures
