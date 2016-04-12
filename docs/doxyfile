@@ -9,10 +9,11 @@ PROJECT_NUMBER = develop
 
 INPUT = \
     build/docs/README.temp.md \
-    build/docs/mpack-config.h \
     docs/expect.md \
     docs/features.md \
     docs/protocol.md \
+    src/mpack-config.h.sample \
+    src/mpack/mpack-platform.h \
     src/mpack/mpack-common.h \
     src/mpack/mpack-reader.h \
     src/mpack/mpack-writer.h \
@@ -32,19 +33,22 @@ PREDEFINED = \
     \
     inline= \
     MPACK_INLINE= \
-    \
     MPACK_HEADER_START= \
     MPACK_HEADER_END= \
     \
-    MPACK_HAS_GENERIC=1
+    MPACK_HAS_GENERIC=1 \
+    MPACK_HAS_CONFIG=1 \
+    MPACK_DOXYGEN=1 \
 
 MARKDOWN_SUPPORT = YES
 JAVADOC_AUTOBRIEF = YES
 ALWAYS_DETAILED_SEC = YES
 SORT_BRIEF_DOCS = YES
 
+EXTENSION_MAPPING = sample=C
+INCLUDE_PATH = src
+
 SEARCH_INCLUDES = YES
-INCLUDE_PATH = build/docs
 MACRO_EXPANSION = YES
 OPTIMIZE_OUTPUT_FOR_C = YES
 INLINE_SIMPLE_STRUCTS = YES

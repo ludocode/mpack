@@ -8,9 +8,6 @@ cat README.md | \
     sed '/^## Build Status/d' \
     > build/docs/README.temp.md
 
-# Copy mpack config to source folder so doxygen can find it
-cp src/mpack-config.h.sample build/docs/mpack-config.h
-
 # Generate docs with correct version number
 (
     cat docs/doxyfile

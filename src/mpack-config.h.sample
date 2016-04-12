@@ -1,21 +1,29 @@
 
+/** @file */
+
 /**
- * @file mpack-config.h
  * @defgroup config Configuration Options
  *
- * Defines the MPack configuration options.
+ * Defines the MPack configuration options. You can configure MPack by
+ * pre-defining any of the below options in your build system or project
+ * settings.
  *
  * Custom configuration of MPack is not usually necessary. In almost all
- * cases you can ignore this file and use the defaults.
+ * cases you can ignore this and use the defaults.
  *
- * To use a configuration file, define MPACK_HAS_CONFIG=1 in your build
- * system or project settings. You can then copy this file to
- * @c mpack-config.h, or create a blank file and set only the options
- * you want. The below settings are the defaults if they are not set
- * by your configuration file.
+ * If you'd like to use a file for configuration instead, define
+ * @ref MPACK_HAS_CONFIG to 1 in your build system or project settings.
+ * You can then copy @c mpack-config.h.sample to @c mpack-config.h, or
+ * create a blank file and set only the options you want. The below
+ * settings are the defaults if they are not set by your configuration
+ * file.
  *
- * You can also configure MPack by pre-defining any of the below options
- * in your build system or project settings.
+ * @warning The value of all configuration options must be the same in
+ * all translation units of your project, as well as mpack.c itself. These
+ * configuration options affect the layout of structs, among other things,
+ * which cannot be different in source files that are linked together.
+ *
+ * @{
  */
 
 
@@ -72,6 +80,15 @@
  */
 
 /**
+ * @def MPACK_HAS_CONFIG
+ *
+ * Enables the use of an @c mpack-config.h configuration file for MPack.
+ * This file must be in the same folder as @c mpack.h, or it must be
+ * available from your project's include paths.
+ */
+// This goes in your project settings.
+
+/**
  * @def MPACK_STDLIB
  *
  * Enables the use of C stdlib. This allows the library to use malloc
@@ -109,7 +126,7 @@
  * debugging functions. If this macro is undefined, the allocation helpers
  * will not be compiled.
  *
- * The default is malloc() if @ref MPACK_STDLIB is enabled.
+ * The default is @c malloc() if @ref MPACK_STDLIB is enabled.
  */
 /**
  * @def MPACK_FREE
@@ -118,7 +135,7 @@
  * for automatically allocating data the correct size. If this macro is
  * undefined, the allocation helpers will not be compiled.
  *
- * The default is free() if @ref MPACK_MALLOC has not been customized and
+ * The default is @c free() if @ref MPACK_MALLOC has not been customized and
  * @ref MPACK_STDLIB is enabled.
  */
 /**
@@ -127,7 +144,7 @@
  * Defines the realloc function used by MPack. It is used by growable
  * buffers to resize more efficiently.
  *
- * The default is realloc() if @ref MPACK_MALLOC has not been customized and
+ * The default is @c realloc() if @ref MPACK_MALLOC has not been customized and
  * @ref MPACK_STDLIB is enabled.
  *
  * This is optional, even when @ref MPACK_MALLOC is used. If @ref MPACK_MALLOC is
@@ -146,7 +163,7 @@
 
 
 /**
- * @name Debugging options
+ * @name Debugging Options
  */
 
 /**
@@ -154,12 +171,8 @@
  *
  * Enables debug features. You may want to wrap this around your
  * own debug preprocs. By default, this is enabled if @c DEBUG or @c _DEBUG
- * are defined.
- *
- * Note that @ref MPACK_DEBUG cannot be defined differently for different
- * source files because it affects layout of structs defined in header
- * files. Your entire project must be compiled with the same value of
- * @ref MPACK_DEBUG. (This is why @c NDEBUG is not used.)
+ * are defined. (@c NDEBUG is not used since it is allowed to have
+ * different values in different translation units.)
  */
 #if !defined(MPACK_DEBUG) && (defined(DEBUG) || defined(_DEBUG))
 #define MPACK_DEBUG 1
@@ -199,7 +212,7 @@
  * Enables compound type size tracking for readers. This ensures that the
  * correct number of elements or bytes are read from a compound type.
  *
- * This is enabled by default in debug builds (provided a malloc() is
+ * This is enabled by default in debug builds (provided a @c malloc() is
  * available.)
  */
 #if !defined(MPACK_READ_TRACKING) && \
@@ -220,7 +233,7 @@
  * number of elements or bytes in a compound type. With tracking enabled,
  * MPack will catch such errors and break on the offending line of code.
  *
- * This is enabled by default in debug builds (provided a malloc() is
+ * This is enabled by default in debug builds (provided a @c malloc() is
  * available.)
  */
 #if !defined(MPACK_WRITE_TRACKING) && \
@@ -236,7 +249,7 @@
 
 
 /**
- * @name Miscellaneous
+ * @name Miscellaneous Options
  * @{
  */
 

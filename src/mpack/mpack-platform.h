@@ -46,7 +46,9 @@
 
 /* Include the custom config file if enabled */
 
-#if defined(MPACK_HAS_CONFIG) && MPACK_HAS_CONFIG
+#ifdef MPACK_DOXYGEN
+#define MPACK_HAS_CONFIG 1
+#elif defined(MPACK_HAS_CONFIG) && MPACK_HAS_CONFIG
 #include "mpack-config.h"
 #endif
 
