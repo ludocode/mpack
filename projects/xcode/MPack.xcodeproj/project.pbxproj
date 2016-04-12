@@ -303,6 +303,10 @@
 		012C2DB31AD450E10034C7BE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"MPACK_HAS_CONFIG=1",
+					"$(inherited)",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../test $(SRCROOT)/../../src";
 			};
@@ -311,6 +315,10 @@
 		012C2DB41AD450E10034C7BE /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"MPACK_HAS_CONFIG=1",
+					"$(inherited)",
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				USER_HEADER_SEARCH_PATHS = "$(SRCROOT)/../../test $(SRCROOT)/../../src";
 			};
