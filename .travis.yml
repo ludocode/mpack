@@ -5,6 +5,12 @@ addons:
     packages:
       - clang
       - valgrind
+      # these packages are needed for urllib3[secure] for SNI support
+      # (they may not be installed on all Travis build nodes)
+      - build-essential
+      - python-dev
+      - libffi-dev
+      - libssl-dev
 
 script: tools/ci.sh
 

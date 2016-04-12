@@ -20,7 +20,7 @@ elif [[ "$CC" == "gcc" ]] && [[ "$STANDARD" == "1" ]]; then
     # GCC non-amalgamated build.
     scons gcov=1 all=1 || exit $?
     tools/gcov.sh || exit $?
-    pip install --user cpp-coveralls || exit $?
+    pip install --user cpp-coveralls urllib3[secure] || exit $?
     coveralls --no-gcov --include src || exit $?
 
 else
