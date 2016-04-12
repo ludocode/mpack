@@ -46,7 +46,7 @@ void mpack_assert_fail_format(const char* format, ...) {
     vsnprintf(buffer, sizeof(buffer), format, args);
     va_end(args);
     buffer[sizeof(buffer) - 1] = 0;
-    mpack_assert_fail(buffer);
+    mpack_assert_fail_wrapper(buffer);
 }
 
 void mpack_break_hit_format(const char* format, ...) {
@@ -67,6 +67,13 @@ void mpack_assert_fail(const char* message) {
     #if MPACK_STDIO
     fprintf(stderr, "%s\n", message);
     #endif
+}
+#endif
+
+// We split the assert failure from the wrapper so that a
+// custom assert function can return.
+void mpack_assert_fail_wrapper(const char* message) {
+    mpack_assert_fail(message);
 
     #if !MPACK_NO_BUILTINS
     #if defined(__GNUC__) || defined(__clang__)
@@ -84,7 +91,6 @@ void mpack_assert_fail(const char* message) {
 
     MPACK_UNREACHABLE;
 }
-#endif
 
 #if !MPACK_CUSTOM_BREAK
 
@@ -98,7 +104,7 @@ void mpack_assert_fail(const char* message) {
 
 #if MPACK_CUSTOM_ASSERT
 void mpack_break_hit(const char* message) {
-    mpack_assert_fail(message);
+    mpack_assert_fail_wrapper(message);
 }
 #else
 void mpack_break_hit(const char* message) {

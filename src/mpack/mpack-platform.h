@@ -556,14 +556,42 @@ MPACK_HEADER_START
  */
 
 #if MPACK_DEBUG
-    MPACK_NORETURN(void mpack_assert_fail(const char* message));
+
+    /**
+     * @addtogroup config
+     * @{
+     */
+    /**
+     * @name Debug Functions
+     */
+    /**
+     * Implement this and define @ref MPACK_CUSTOM_ASSERT to use a custom
+     * assertion function.
+     *
+     * This function should not return. If it does, MPack will @c abort().
+     *
+     * If you use C++, make sure you include @c mpack.h where you define
+     * this to get the correct linkage (or define it <code>extern "C"</code>.)
+     *
+     * Asserts are only used when @ref MPACK_DEBUG is enabled, and can be
+     * triggered by bugs in MPack or bugs due to incorrect usage of MPack.
+     */
+    void mpack_assert_fail(const char* message);
+    /**
+     * @}
+     */
+    /**
+     * @}
+     */
+
+    MPACK_NORETURN(void mpack_assert_fail_wrapper(const char* message));
     #if MPACK_STDIO
         MPACK_NORETURN(void mpack_assert_fail_format(const char* format, ...));
         #define mpack_assert_fail_at(line, file, expr, ...) \
                 mpack_assert_fail_format("mpack assertion failed at " file ":" #line "\n" expr "\n" __VA_ARGS__)
     #else
         #define mpack_assert_fail_at(line, file, ...) \
-                mpack_assert_fail("mpack assertion failed at " file ":" #line )
+                mpack_assert_fail_wrapper("mpack assertion failed at " file ":" #line )
     #endif
 
     #define mpack_assert_fail_pos(line, file, expr, ...) mpack_assert_fail_at(line, file, expr, __VA_ARGS__)
