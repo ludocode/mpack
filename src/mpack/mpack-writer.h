@@ -772,23 +772,10 @@ MPACK_INLINE void mpack_finish_type(mpack_writer_t* writer, mpack_type_t type) {
  * @}
  */
 
-/**
- * @}
- */
-
-#endif
-
-MPACK_HEADER_END
-
-#if MPACK_WRITER && MPACK_HAS_GENERIC
+#if MPACK_WRITER && MPACK_HAS_GENERIC && !defined(__cplusplus)
 
 /**
- * @addtogroup writer
- * @{
- */
-
-/**
- * @name Core Writer Functions
+ * @name Type-Generic Writers
  * @{
  */
 
@@ -800,8 +787,8 @@ MPACK_HEADER_END
  * The compiler will dispatch to an appropriate write function based
  * on the type of the @a value parameter.
  *
- * @note This requires C11 `_Generic` support, or C++. This is implemented
- * as a set of inline overloads in C++ mode if `_Generic` is not supported.
+ * @note This requires C11 `_Generic` support. (A set of inline overloads
+ * are used in C++ to provide the same functionality.)
  *
  * @warning In C11, the indentifiers `true`, `false` and `NULL` are
  * all of type `int`, not `bool` or `void*`! They will emit unexpected
@@ -829,9 +816,12 @@ MPACK_HEADER_END
  *
  * Type-generic writer for key-value pairs of null-terminated string
  * keys and primitive values.
- * a cstr string.
  *
  * @warning @a writer may be evaluated multiple times.
+ *
+ * @warning In C11, the indentifiers `true`, `false` and `NULL` are
+ * all of type `int`, not `bool` or `void*`! They will emit unexpected
+ * types when passed uncast, so be careful when using them.
  *
  * @param writer The writer.
  * @param key A null-terminated C string.
@@ -846,12 +836,29 @@ MPACK_HEADER_END
  * @}
  */
 
+#endif
+
 /**
  * @}
  */
-#elif defined(__cplusplus)
 
-/* C++ generic write for primitive values */
+#endif
+
+MPACK_HEADER_END
+
+#if defined(__cplusplus) || defined(MPACK_DOXYGEN)
+
+/*
+ * C++ generic writers for primitive values
+ *
+ * These currently sit outside of MPACK_HEADER_END because it defines
+ * extern "C". They'll be moved to a C++-specific header soon.
+ */
+
+#ifdef MPACK_DOXYGEN
+#undef mpack_write
+#undef mpack_write_kv
+#endif
 
 MPACK_INLINE void mpack_write(mpack_writer_t* writer, int8_t value) {
     mpack_write_i8(writer, value);
