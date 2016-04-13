@@ -19,18 +19,19 @@ The MPack featureset can also be customized at compile-time to set which feature
 MPack is beta software under development.
 
 [travis-home]: https://travis-ci.org/
-[travis-badge]: https://travis-ci.org/ludocode/mpack.svg?branch=develop
 [travis-mpack]: https://travis-ci.org/ludocode/mpack/branches
 [appveyor-home]: https://ci.appveyor.com/
-[appveyor-badge]: https://ci.appveyor.com/api/projects/status/tux06aefpqq83k30/branch/develop?svg=true
-[appveyor-mpack]: https://ci.appveyor.com/project/ludocode/mpack/branch/develop
+[appveyor-mpack-master]: https://ci.appveyor.com/project/ludocode/mpack/branch/master
+[appveyor-mpack-develop]: https://ci.appveyor.com/project/ludocode/mpack/branch/develop
 [coveralls-home]: https://coveralls.io/
-[coveralls-badge]: https://coveralls.io/repos/ludocode/mpack/badge.svg?branch=develop&service=github
-[coveralls-mpack]: https://coveralls.io/github/ludocode/mpack?branch=develop
+[coveralls-mpack-master]: https://coveralls.io/github/ludocode/mpack?branch=master
+[coveralls-mpack-develop]: https://coveralls.io/github/ludocode/mpack?branch=develop
 
-| [Travis-CI][travis-home] | [AppVeyor][appveyor-home] | [Coveralls.io][coveralls-home] |
-| :-------: | :----------: | :----------: |
-| [![Build Status][travis-badge]][travis-mpack] | [![Build status][appveyor-badge]][appveyor-mpack] | [![Coverage Status][coveralls-badge]][coveralls-mpack] |
+<!-- we use some deprecated HTML attributes here to get these stupid badges to line up properly -->
+| Branch    | [Travis-CI][travis-home] | [AppVeyor][appveyor-home] | [Coveralls.io][coveralls-home] |
+| :-------: | :-------: | :----------: | :----------: |
+| _master_  | [<img src="https://travis-ci.org/ludocode/mpack.svg?branch=master" alt="Build Status" align="top" vspace="4">][travis-mpack] | [<img src="https://ci.appveyor.com/api/projects/status/tux06aefpqq83k30/branch/master?svg=true" alt="Build Status" align="top" vspace="4">][appveyor-mpack-master] | [<img src="https://coveralls.io/repos/ludocode/mpack/badge.svg?branch=master&service=github" alt="Build Status" align="top" vspace="4">][coveralls-mpack-master] |
+| _develop_  | [<img src="https://travis-ci.org/ludocode/mpack.svg?branch=develop" alt="Build Status" align="top" vspace="4">][travis-mpack] | [<img src="https://ci.appveyor.com/api/projects/status/tux06aefpqq83k30/branch/develop?svg=true" alt="Build Status" align="top" vspace="4">][appveyor-mpack-develop] | [<img src="https://coveralls.io/repos/ludocode/mpack/badge.svg?branch=develop&service=github" alt="Build Status" align="top" vspace="4">][coveralls-mpack-develop] |
 
 ## The Node Reader API
 
