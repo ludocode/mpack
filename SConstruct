@@ -1,12 +1,14 @@
 import platform, os
 
-def CheckFlags(context, cppflags, linkflags = [], message = None):
+emptytest = "int main(void){return 0;}\n"
+
+def CheckFlags(context, cppflags, linkflags = [], message = None, testcode = emptytest, testformat = '.c'):
     if message == None:
         message = " ".join(cppflags + ((cppflags != linkflags) and linkflags or []))
     context.Message("Checking for " + message + " support... ")
 
     env.Prepend(CPPFLAGS = cppflags, LINKFLAGS = linkflags)
-    result = context.TryLink("int main(void){return 0;}\n", '.c')
+    result = context.TryLink(testcode, testformat)
     env.Replace(CPPFLAGS = env["CPPFLAGS"][len(cppflags):], LINKFLAGS = env["LINKFLAGS"][len(linkflags):])
 
     context.Result(result)
@@ -104,7 +106,7 @@ def AddBuild(variant_dir, cppflags, linkflags = [], valgrind = True):
                 'env': env,
                 'CPPFLAGS': cppflags,
                 'LINKFLAGS': linkflags,
-                'valgrind': valgrind
+                'valgrind': valgrind,
                 },
             duplicate=0)
 
@@ -114,8 +116,8 @@ def AddBuilds(variant_dir, cppflags, linkflags = [], valgrind = True):
         AddBuild("release-" + variant_dir, releaseflags + cppflags, releaseflags + linkflags, valgrind)
 
 
-# The default build, everything in debug. This is the build used
-# for code coverage measurement and static analysis.
+# The default build, everything in debug. This is also the build
+# used for code coverage measurement and static analysis.
 AddBuild("debug", allfeatures + allconfigs + debugflags + cflags + gcovflags, gcovflags)
 
 
@@ -128,6 +130,7 @@ if ARGUMENTS.get('more') or ARGUMENTS.get('all'):
     AddBuild("debug-size", ["-DMPACK_OPTIMIZE_FOR_SIZE=1"] + debugflags + allfeatures + allconfigs + cflags)
     if conf.CheckFlags(cxxflags + ["-std=c++11"], [], "-std=c++11"):
         AddBuilds("cxx11", allfeatures + allconfigs + cxxflags + ["-std=c++11"])
+
 
 # Run "scons all=1" to run all builds. This is what the CI runs.
 if ARGUMENTS.get('all'):

@@ -1,9 +1,14 @@
+
+# Note: match-leak-kinds is currently commented out because older
+# versions of valgrind don't support it (like the one on Travis-CI.)
+
+# C++ GCC 5.1 reachable objects
+# https://bugs.kde.org/show_bug.cgi?id=345307
+# https://gcc.gnu.org/bugzilla/show_bug.cgi?id=65434
 {
-   # https://bugs.kde.org/show_bug.cgi?id=345307
-   # https://gcc.gnu.org/bugzilla/show_bug.cgi?id=65434
    GCC-STL-pool-reachable
    Memcheck:Leak
-   match-leak-kinds: reachable
+   #match-leak-kinds: reachable
    fun:malloc
    fun:pool
    fun:__static_initialization_and_destruction_0

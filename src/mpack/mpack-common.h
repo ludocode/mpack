@@ -135,10 +135,10 @@ const char* mpack_error_to_string(mpack_error_t error);
 typedef enum mpack_type_t {
     mpack_type_nil = 1, /**< A null value. */
     mpack_type_bool,    /**< A boolean (true or false.) */
-    mpack_type_float,   /**< A 32-bit IEEE 754 floating point number. */
-    mpack_type_double,  /**< A 64-bit IEEE 754 floating point number. */
     mpack_type_int,     /**< A 64-bit signed integer. */
     mpack_type_uint,    /**< A 64-bit unsigned integer. */
+    mpack_type_float,   /**< A 32-bit IEEE 754 floating point number. */
+    mpack_type_double,  /**< A 64-bit IEEE 754 floating point number. */
     mpack_type_str,     /**< A string. */
     mpack_type_bin,     /**< A chunk of binary data. */
     mpack_type_ext,     /**< A typed MessagePack extension object containing a chunk of binary data. */

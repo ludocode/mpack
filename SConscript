@@ -23,10 +23,10 @@ prog = env.Program("mpack-test", srcs,
 
 if valgrind and platform.machine() in ["i386", "x86_64"]:
     valgrind = "valgrind --leak-check=full --error-exitcode=1 "
+    valgrind += "--suppressions=tools/valgrind-suppressions "
     # travis version of valgrind is too old, doesn't support leak kinds
     if "TRAVIS" not in env["ENV"]:
-        valgrind = valgrind + "--show-leak-kinds=all --errors-for-leak-kinds=all "
-        valgrind = valgrind + "--suppressions=tools/valgrind-suppressions "
+        valgrind += "--show-leak-kinds=all --errors-for-leak-kinds=all "
 else:
     valgrind = ""
 
