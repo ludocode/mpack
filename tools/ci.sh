@@ -2,7 +2,21 @@
 # Used to run the test suite under continuous integration. Handles the
 # special compiler type "scan-build", which runs the full debug build
 # under scan-build; otherwise all variants are built. Also handles
-# building the amalgamated package and running code coverage.
+# building the amalgamated package, running code coverage, and building
+# the Xcode project.
+
+if [ "$(uname -s)" == "Darwin" ]; then
+    unset CC
+    unset CXX
+    cd projects/xcode
+    xcodebuild build -configuration Debug || exit $?
+    xcodebuild build -configuration Release || exit $?
+    echo "Running Debug..."
+    ( cd ../.. ; projects/xcode/build/Debug/MPack ) || exit $?
+    echo "Running Release..."
+    ( cd ../.. ; projects/xcode/build/Release/MPack ) || exit $?
+    exit 0
+fi
 
 if [[ "$AMALGAMATED" == "1" ]]; then
     tools/amalgamate.sh || exit $?

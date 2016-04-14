@@ -22,3 +22,9 @@ compiler:
 env:
   - AMALGAMATED=1
   - STANDARD=1
+
+matrix:
+  include:
+    - os: osx
+      compiler: xcodebuild
+      env: ""
