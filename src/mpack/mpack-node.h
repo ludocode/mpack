@@ -149,10 +149,17 @@ struct mpack_tree_t {
     mpack_node_data_t nil_node; /* a nil node to be returned in case of error */
     mpack_error_t error;
 
-    size_t node_count;
-    size_t size;
+    const char* data;
+    size_t length; // length of data
+
+    size_t node_count; // total node count of tree
+    size_t size; // size in bytes of tree (usually matches length, but not if tree has trailing data)
 
     mpack_node_data_t* root;
+    bool parsed;
+
+    mpack_node_data_t* initial_page; // initial page of nodes
+    size_t initial_page_count;
 
     #ifdef MPACK_MALLOC
     mpack_tree_page_t* next;
@@ -187,10 +194,12 @@ MPACK_INLINE mpack_node_t mpack_tree_nil_node(mpack_tree_t* tree) {
 
 #ifdef MPACK_MALLOC
 /**
- * Initializes a tree by parsing the given data buffer. The tree must be destroyed
- * with mpack_tree_destroy(), even if parsing fails.
+ * Initializes a tree parser with the given data buffer. The tree will
+ * allocate pages of nodes as needed, and will free them when destroyed.
  *
- * The tree will allocate pages of nodes as needed, and free them when destroyed.
+ * Configure the tree if desired, then call mpack_tree_parse() to parse it.
+ *
+ * The tree must be destroyed with mpack_tree_destroy().
  *
  * Any string or blob data types reference the original data, so the data
  * pointer must remain valid until after the tree is destroyed.
@@ -199,15 +208,18 @@ void mpack_tree_init(mpack_tree_t* tree, const char* data, size_t length);
 #endif
 
 /**
- * Initializes a tree by parsing the given data buffer, using the given
+ * Initializes a tree parser with the given data buffer, using the given
  * node data pool to store the results.
+ *
+ * Configure the tree if desired, then call mpack_tree_parse() to parse it.
  *
  * If the data does not fit in the pool, mpack_error_too_big will be flagged
  * on the tree.
  *
  * The tree must be destroyed with mpack_tree_destroy(), even if parsing fails.
  */
-void mpack_tree_init_pool(mpack_tree_t* tree, const char* data, size_t length, mpack_node_data_t* node_pool, size_t node_pool_count);
+void mpack_tree_init_pool(mpack_tree_t* tree, const char* data, size_t length,
+        mpack_node_data_t* node_pool, size_t node_pool_count);
 
 /**
  * Initializes an MPack tree directly into an error state. Use this if you
@@ -217,11 +229,11 @@ void mpack_tree_init_error(mpack_tree_t* tree, mpack_error_t error);
 
 #if MPACK_STDIO
 /**
- * Initializes a tree by reading and parsing the given file. The tree must be
+ * Initializes a tree to parse the given file. The tree must be
  * destroyed with mpack_tree_destroy(), even if parsing fails.
  *
- * The file is opened, loaded fully into memory, and closed before this call
- * returns.
+ * The file is opened, loaded fully into memory, and closed during the
+ * call to mpack_tree_parse().
  *
  * @param tree The tree to initialize
  * @param filename The filename passed to fopen() to read the file
@@ -231,8 +243,22 @@ void mpack_tree_init_file(mpack_tree_t* tree, const char* filename, size_t max_b
 #endif
 
 /**
+ * Parses a MessagePack message.
+ *
+ * This should (currently) only be called once.
+ *
+ * If successful, the root node will be available under
+ * @ref mpack_tree_root(). If not, an appropriate error will
+ * be flagged.
+ */
+void mpack_tree_parse(mpack_tree_t* tree);
+
+/**
  * Returns the root node of the tree, if the tree is not in an error state.
  * Returns a nil node otherwise.
+ *
+ * @warning You must call mpack_tree_parse() before calling this. If
+ * @ref mpack_tree_parse() was never called, the tree will assert.
  */
 mpack_node_t mpack_tree_root(mpack_tree_t* tree);
 

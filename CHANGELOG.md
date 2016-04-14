@@ -8,6 +8,8 @@ A number of breaking API changes will be made as we approach a 1.0 release. Plea
 
 Breaking Changes:
 
+- The Tree API now separates tree initialization from parsing. After calling one of the `mpack_tree_init()` functions, you must explicitly call `mpack_tree_parse()` before accessing any nodes. This allows configuring the tree before parsing.
+
 - The mpack configuration `mpack-config.h` file is now optional, and requires `MPACK_HAS_CONFIG` in order to be included. This means you must define `MPACK_HAS_CONFIG` when upgrading or your config file will be ignored! (It is recommended to delete your config file and use the defaults.)
 
 Changes:

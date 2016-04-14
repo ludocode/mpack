@@ -277,6 +277,7 @@ static void test_node_print(void) {
     // miscellaneous node print tests
     FILE* out = fopen(test_filename, "wb");
     mpack_tree_init(&tree, "\xca\x00\x00\x00\x00", 5); // float
+    mpack_tree_parse(&tree);
     mpack_node_print_file(mpack_tree_root(&tree), out);
     mpack_tree_destroy(&tree);
     fclose(out);
@@ -285,6 +286,7 @@ static void test_node_print(void) {
     // dump MessagePack to debug file
 
     mpack_tree_init_file(&tree, TEST_PATH "test-file.mp", 0);
+    mpack_tree_parse(&tree);
 
     out = fopen(test_filename, "wb");
     mpack_node_print_file(mpack_tree_root(&tree), out);
@@ -528,6 +530,7 @@ static void test_file_node(void) {
 
     // test successful parse
     mpack_tree_init_file(&tree, test_filename, 0);
+    mpack_tree_parse(&tree);
     TEST_TRUE(mpack_tree_error(&tree) == mpack_ok, "file tree parsing failed: %s",
             mpack_error_to_string(mpack_tree_error(&tree)));
 
@@ -627,6 +630,7 @@ static bool test_file_node_failure(void) {
     } while (0)
 
     mpack_tree_init_file(&tree, test_filename, 0);
+    mpack_tree_parse(&tree);
     if (mpack_tree_error(&tree) == mpack_error_memory || mpack_tree_error(&tree) == mpack_error_io) {
         mpack_tree_destroy(&tree);
         return false;

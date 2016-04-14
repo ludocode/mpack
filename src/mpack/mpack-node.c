@@ -31,11 +31,11 @@
  * Tree Parsing
  */
 
+#ifdef MPACK_MALLOC
+
 // fix up the alloc size to make sure it exactly fits the
 // maximum number of nodes it can contain (the allocator will
 // waste it back anyway, but we round it down just in case)
-
-#ifdef MPACK_MALLOC
 
 #define MPACK_NODES_PER_PAGE \
     ((MPACK_NODE_PAGE_SIZE - sizeof(mpack_tree_page_t)) / sizeof(mpack_node_data_t) + 1)
@@ -664,29 +664,37 @@ static void mpack_tree_parse_elements(mpack_tree_parser_t* parser) {
     }
 }
 
-static void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length,
-        mpack_node_data_t* initial_nodes, size_t initial_nodes_count)
-{
-    mpack_log("starting parse\n");
-
-    if (length == 0) {
-        mpack_tree_flag_error(tree, mpack_error_invalid);
+void mpack_tree_parse(mpack_tree_t* tree) {
+    if (mpack_tree_error(tree) != mpack_ok)
         return;
-    }
-    if (initial_nodes_count == 0) {
-        mpack_break("initial page has no nodes!");
+
+    // We don't yet support parsing multiple messages. This
+    // will hopefully be implemented soon!
+    if (tree->parsed) {
+        mpack_break("tree already parsed!");
         mpack_tree_flag_error(tree, mpack_error_bug);
         return;
     }
-    tree->root = initial_nodes;
+
+    // We can set the parse flag now. If parsing fails, we'll
+    // flag an error.
+    tree->parsed = true;
+
+    mpack_log("starting parse\n");
+
+    if (tree->length == 0) {
+        mpack_tree_flag_error(tree, mpack_error_invalid);
+        return;
+    }
+    tree->root = tree->initial_page;
 
     // Setup parser
     mpack_tree_parser_t parser;
     mpack_memset(&parser, 0, sizeof(parser));
     parser.tree = tree;
-    parser.data = data;
-    parser.nodes = initial_nodes + 1;
-    parser.nodes_left = initial_nodes_count - 1;
+    parser.data = tree->data;
+    parser.nodes = tree->initial_page + 1;
+    parser.nodes_left = tree->initial_page_count - 1;
 
     // We read nodes in a loop instead of recursively for maximum
     // performance. The stack holds the amount of children left to
@@ -704,7 +712,7 @@ static void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length
     mpack_level_t stack_local[MPACK_NODE_STACK_LOCAL_DEPTH]; // no VLAs in VS 2013
     parser.depth = MPACK_NODE_STACK_LOCAL_DEPTH;
     parser.stack = stack_local;
-    parser.possible_nodes_left = length;
+    parser.possible_nodes_left = tree->length;
     #undef MPACK_NODE_STACK_LOCAL_DEPTH
 
     // configure the root node
@@ -724,7 +732,7 @@ static void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length
     // now that there are no longer any nodes to read, possible_nodes_left
     // is the number of bytes left in the data.
     if (mpack_tree_error(tree) == mpack_ok)
-        tree->size = length - parser.possible_nodes_left;
+        tree->size = tree->length - parser.possible_nodes_left;
     mpack_log("parsed tree of %i bytes, %i bytes left\n", (int)tree->size, (int)parser.possible_nodes_left);
     mpack_log("%i nodes in final page\n", (int)parser.nodes_left);
 }
@@ -736,7 +744,21 @@ static void mpack_tree_parse(mpack_tree_t* tree, const char* data, size_t length
  */
 
 mpack_node_t mpack_tree_root(mpack_tree_t* tree) {
-    return mpack_node(tree, (mpack_tree_error(tree) != mpack_ok) ? &tree->nil_node : tree->root);
+    if (mpack_tree_error(tree) != mpack_ok)
+        return mpack_tree_nil_node(tree);
+
+    // We check that mpack_tree_parse() was called at least once, and
+    // assert if not. This is to facilitation the transition to requiring
+    // a call to mpack_tree_parse(), since it used to be automatic on
+    // initialization.
+    if (!tree->parsed) {
+        mpack_break("Tree has not been parsed! You must call mpack_tree_parse()"
+                " after initialization before accessing the root node.");
+        mpack_tree_flag_error(tree, mpack_error_bug);
+        return mpack_tree_nil_node(tree);
+    }
+
+    return mpack_node(tree, tree->root);
 }
 
 static void mpack_tree_init_clear(mpack_tree_t* tree) {
@@ -754,6 +776,9 @@ void mpack_tree_init(mpack_tree_t* tree, const char* data, size_t length) {
     MPACK_STATIC_ASSERT(MPACK_PAGE_ALLOC_SIZE <= MPACK_NODE_PAGE_SIZE,
             "incorrect page rounding?");
 
+    tree->data = data;
+    tree->length = length;
+
     // allocate first page
     mpack_tree_page_t* page = (mpack_tree_page_t*)MPACK_MALLOC(MPACK_PAGE_ALLOC_SIZE);
     mpack_log("allocated initial page %p of size %i count %i\n",
@@ -765,10 +790,11 @@ void mpack_tree_init(mpack_tree_t* tree, const char* data, size_t length) {
     page->next = NULL;
     tree->next = page;
 
+    tree->initial_page = page->nodes;
+    tree->initial_page_count = MPACK_NODES_PER_PAGE;
+
     mpack_log("===========================\n");
     mpack_log("initializing tree with data of size %i\n", (int)length);
-
-    mpack_tree_parse(tree, data, length, page->nodes, MPACK_NODES_PER_PAGE);
 }
 #endif
 
@@ -780,10 +806,19 @@ void mpack_tree_init_pool(mpack_tree_t* tree, const char* data, size_t length,
     tree->next = NULL;
     #endif
 
+    if (node_pool_count == 0) {
+        mpack_break("initial page has no nodes!");
+        mpack_tree_flag_error(tree, mpack_error_bug);
+        return;
+    }
+
+    tree->data = data;
+    tree->length = length;
+    tree->initial_page = node_pool;
+    tree->initial_page_count = node_pool_count;
+
     mpack_log("===========================\n");
     mpack_log("initializing tree with data of size %i and pool of count %i\n", (int)length, (int)node_pool_count);
-
-    mpack_tree_parse(tree, data, length, node_pool, node_pool_count);
 }
 
 void mpack_tree_init_error(mpack_tree_t* tree, mpack_error_t error) {

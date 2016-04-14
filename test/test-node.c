@@ -42,6 +42,7 @@ static void test_example_node() {
     // non-simple tests use paging unless malloc is unavailable.
     mpack_node_data_t pool[128];
     mpack_tree_init_pool(&tree, test, sizeof(test) - 1, pool, sizeof(pool) / sizeof(*pool));
+    mpack_tree_parse(&tree);
     TEST_TRUE(mpack_tree_error(&tree) == mpack_ok);
 
     mpack_node_t map = mpack_tree_root(&tree);
@@ -407,6 +408,7 @@ static void test_node_read_misc() {
     // test missing space for cstr null-terminator
     mpack_tree_t tree;
     mpack_tree_init_pool(&tree, "\xa0", 1, pool, sizeof(pool) / sizeof(*pool));
+    mpack_tree_parse(&tree);
     #if MPACK_DEBUG
     char buf[1];
     TEST_ASSERT(mpack_node_copy_cstr(mpack_tree_root(&tree), buf, 0));
@@ -421,6 +423,7 @@ static void test_node_read_misc() {
     // test pool too small
     mpack_node_data_t small_pool[1];
     mpack_tree_init_pool(&tree, "\x91\xc0", 2, small_pool, 1);
+    mpack_tree_parse(&tree);
     TEST_TREE_DESTROY_ERROR(&tree, mpack_error_too_big);
     TEST_BREAK((mpack_tree_init_pool(&tree, "\xc0", 1, small_pool, 0), true));
     TEST_TREE_DESTROY_ERROR(&tree, mpack_error_bug);
@@ -537,6 +540,7 @@ static void test_node_read_possible() {
     size_t allocation_count = test_malloc_total_count();
     mpack_tree_t tree;
     mpack_tree_init(&tree, attack, strlen(attack));
+    mpack_tree_parse(&tree);
     allocation_count = test_malloc_total_count() - allocation_count;
     TEST_TRUE(allocation_count <= 2, "too many allocations! %i calls to malloc()", (int)allocation_count);
     TEST_TREE_DESTROY_ERROR(&tree, mpack_error_invalid);
@@ -763,6 +767,7 @@ static void test_node_read_array() {
     static const char test[] = "\x93\x90\x91\xc3\x92\xc3\xc3";
     mpack_tree_t tree;
     TEST_TREE_INIT(&tree, test, sizeof(test) - 1);
+    mpack_tree_parse(&tree);
     mpack_node_t root = mpack_tree_root(&tree);
 
     TEST_TRUE(mpack_type_array == mpack_node_type(root));
@@ -795,6 +800,7 @@ static void test_node_read_map() {
     static const char test[] = "\x82\x80\x81\x01\x02\x81\x03\x04\xc3";
     mpack_tree_t tree;
     TEST_TREE_INIT(&tree, test, sizeof(test) - 1);
+    mpack_tree_parse(&tree);
     mpack_node_t root = mpack_tree_root(&tree);
 
     TEST_TRUE(mpack_type_map == mpack_node_type(root));
@@ -909,6 +915,7 @@ static void test_node_read_data(void) {
     static const char test[] = "\x93\xa5""alice\xc4\x03""bob\xd6\x07""carl";
     mpack_tree_t tree;
     TEST_TREE_INIT(&tree, test, sizeof(test) - 1);
+    mpack_tree_parse(&tree);
     mpack_node_t root = mpack_tree_root(&tree);
 
     mpack_node_t alice = mpack_node_array_at(root, 0);
@@ -961,6 +968,7 @@ static void test_node_read_deep_stack(void) {
 
     mpack_tree_t tree;
     TEST_TREE_INIT(&tree, buf, (size_t)(p - (uint8_t*)buf));
+    mpack_tree_parse(&tree);
 
     #ifdef MPACK_MALLOC
     mpack_node_t node = mpack_tree_root(&tree);

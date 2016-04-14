@@ -52,6 +52,7 @@ void test_tree_error_handler(mpack_tree_t* tree, mpack_error_t error);
     mpack_tree_t tree; \
     mpack_tree_init_pool(&tree, data, sizeof(data) - 1, pool, sizeof(pool) / sizeof(*pool)); \
     mpack_tree_set_error_handler(&tree, test_tree_error_handler); \
+    mpack_tree_parse(&tree); \
     mpack_node_t node = mpack_tree_root(&tree); \
     TEST_TRUE((read_expr), "simple tree test did not pass: " #read_expr); \
     TEST_TREE_DESTROY_NOERROR(&tree); \
@@ -75,6 +76,7 @@ mpack_tree_init_pool((tree), (data), (data_size), pool, sizeof(pool) / sizeof(*p
     if (mpack_tree_error(&tree) != mpack_ok) \
         test_tree_error_handler(&tree, error); \
     mpack_tree_set_error_handler(&tree, test_tree_error_handler); \
+    mpack_tree_parse(&tree); \
     mpack_node_t node = mpack_tree_root(&tree); \
     TEST_TRUE((read_expr), "simple read error test did not pass: " #read_expr); \
     TEST_TREE_DESTROY_ERROR(&tree, (error)); \
@@ -95,6 +97,7 @@ mpack_tree_init_pool((tree), (data), (data_size), pool, sizeof(pool) / sizeof(*p
     volatile mpack_tree_t v_tree; \
     mpack_tree_t* tree = (mpack_tree_t*)(uintptr_t)&v_tree; \
     mpack_tree_init_pool(tree, data, sizeof(data) - 1, pool, sizeof(pool) / sizeof(*pool)); \
+    mpack_tree_parse(tree); \
     mpack_node_t node = mpack_tree_root(tree); \
     TEST_ASSERT(read_expr); \
     mpack_tree_destroy(tree); \
@@ -114,6 +117,7 @@ mpack_tree_init_pool((tree), (data), (data_size), pool, sizeof(pool) / sizeof(*p
 #define TEST_SIMPLE_TREE_READ_BREAK(data, read_expr) do { \
     mpack_tree_t tree; \
     mpack_tree_init_pool(&tree, data, sizeof(data) - 1, pool, sizeof(pool) / sizeof(*pool)); \
+    mpack_tree_parse(&tree); \
     mpack_node_t node = mpack_tree_root(&tree); \
     TEST_BREAK(read_expr); \
     TEST_TREE_DESTROY_ERROR(&tree, mpack_error_bug); \
