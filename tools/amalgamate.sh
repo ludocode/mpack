@@ -12,7 +12,8 @@ HEADERS="\
     mpack/mpack-writer.h \
     mpack/mpack-reader.h \
     mpack/mpack-expect.h \
-    mpack/mpack-node.h"
+    mpack/mpack-node.h \
+    "
 
 SOURCES="\
     mpack/mpack-platform.c \
@@ -20,13 +21,25 @@ SOURCES="\
     mpack/mpack-writer.c \
     mpack/mpack-reader.c \
     mpack/mpack-expect.c \
-    mpack/mpack-node.c"
+    mpack/mpack-node.c \
+    "
 
 TOOLS="\
     tools/clean.sh \
     tools/gcov.sh \
     tools/scan-build.sh \
-    tools/valgrind-suppressions"
+    tools/valgrind-suppressions \
+    "
+
+FILES="\
+    test \
+    SConscript \
+    SConstruct \
+    LICENSE \
+    AUTHORS \
+    README.md \
+    CHANGELOG.md \
+    "
 
 # add top license and comment
 rm -rf build/amalgamation
@@ -69,8 +82,7 @@ for f in $SOURCES; do
 done
 
 # assemble package contents
-CONTENTS="test SConscript SConstruct LICENSE AUTHORS README.md"
-cp -ar $CONTENTS build/amalgamation
+cp -ar $FILES build/amalgamation
 mkdir -p build/amalgamation/projects/{vs,xcode/MPack.xcodeproj}
 cp projects/vs/mpack.{sln,vcxproj,vcxproj.filters} build/amalgamation/projects/vs
 cp projects/xcode/MPack.xcodeproj/project.pbxproj build/amalgamation/projects/xcode/MPack.xcodeproj
