@@ -231,14 +231,10 @@ bool mpack_reader_ensure_straddle(mpack_reader_t* reader, size_t count) {
     mpack_assert(count != 0, "cannot ensure zero bytes!");
     mpack_assert(reader->error == mpack_ok, "reader cannot be in an error state!");
 
-    if (count <= reader->left) {
-        mpack_assert(0,
-                "big ensure requested for %i bytes, but there are %i bytes "
-                "left in buffer. call mpack_reader_ensure() instead",
-                (int)count, (int)reader->left);
-        mpack_reader_flag_error(reader, mpack_error_bug);
-        return false;
-    }
+    mpack_assert(count > reader->left,
+            "straddling ensure requested for %i bytes, but there are %i bytes "
+            "left in buffer. call mpack_reader_ensure() instead",
+            (int)count, (int)reader->left);
 
     // we'll need a fill function to get more data. if there's no
     // fill function, the buffer should contain an entire MessagePack
@@ -249,12 +245,19 @@ bool mpack_reader_ensure_straddle(mpack_reader_t* reader, size_t count) {
         return false;
     }
 
-    mpack_assert(count <= reader->size, "cannot ensure byte count %i larger than buffer size %i",
-            (int)count, (int)reader->size);
+    // we need enough space in the buffer. if the buffer is not
+    // big enough, we return mpack_error_too_big (since this is
+    // for an in-place read larger than the buffer size.)
+    if (count > reader->size) {
+        mpack_reader_flag_error(reader, mpack_error_too_big);
+        return false;
+    }
 
     // re-fill as much as possible
     mpack_partial_fill(reader);
 
+    // if we still were not able to read enough data, we consider it
+    // an I/O error.
     if (reader->left < count) {
         mpack_reader_flag_error(reader, mpack_error_io);
         return false;
@@ -522,41 +525,6 @@ char* mpack_read_bytes_alloc_impl(mpack_reader_t* reader, size_t count, bool nul
 }
 #endif
 
-// internal inplace reader for when it straddles the end of the buffer
-static const char* mpack_read_bytes_inplace_big(mpack_reader_t* reader, size_t count) {
-
-    // we should only arrive here from inplace straddle; this should already be checked
-    mpack_assert(mpack_reader_error(reader) == mpack_ok, "already in error state? %s",
-            mpack_error_to_string(mpack_reader_error(reader)));
-    mpack_assert(reader->left < count, "already enough bytes in buffer: %i left, %i count", (int)reader->left, (int)count);
-
-    // we'll need a fill function to get more data. if there's no
-    // fill function, the buffer should contain an entire MessagePack
-    // object, so we raise mpack_error_invalid instead of mpack_error_io
-    // on truncated data.
-    if (reader->fill == NULL) {
-        mpack_reader_flag_error(reader, mpack_error_invalid);
-        return NULL;
-    }
-
-    // make sure the buffer is big enough to actually fit the data
-    if (count > reader->size) {
-        mpack_reader_flag_error(reader, mpack_error_too_big);
-        return NULL;
-    }
-
-    // re-fill as much as possible
-    mpack_partial_fill(reader);
-
-    if (reader->left < count) {
-        mpack_reader_flag_error(reader, mpack_error_io);
-        return NULL;
-    }
-    reader->pos += count;
-    reader->left -= count;
-    return reader->buffer;
-}
-
 // read inplace without tracking (since there are different
 // tracking modes for different inplace readers)
 static const char* mpack_read_bytes_inplace_notrack(mpack_reader_t* reader, size_t count) {
@@ -570,7 +538,12 @@ static const char* mpack_read_bytes_inplace_notrack(mpack_reader_t* reader, size
         return reader->buffer + reader->pos - count;
     }
 
-    return mpack_read_bytes_inplace_big(reader, count);
+    if (!mpack_reader_ensure(reader, count))
+        return NULL;
+
+    reader->pos += count;
+    reader->left -= count;
+    return reader->buffer + reader->pos - count;
 }
 
 const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count) {
@@ -590,8 +563,6 @@ const char* mpack_read_utf8_inplace(mpack_reader_t* reader, size_t count) {
     return str;
 }
 
-// Decodes a tag from a byte buffer. The size of the bytes buffer
-// must be at least MPACK_MINIMUM_TAG_SIZE.
 static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
     mpack_assert(reader->error == mpack_ok, "reader cannot be in an error state!");
 

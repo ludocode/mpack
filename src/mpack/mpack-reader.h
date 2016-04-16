@@ -765,17 +765,13 @@ MPACK_INLINE void mpack_print(const char* data, size_t len) {
 
 bool mpack_reader_ensure_straddle(mpack_reader_t* reader, size_t count);
 
-// Ensures there are at least count bytes left in the buffer. This will
-// flag an error if there is not enough data, and will assert if there
-// is a fill function and count is larger than the buffer size. Returns
-// true if there are enough bytes, false otherwise. Error handling must
-// be done separately! The reader cannot be in an error state when this
-// is called.
+/*
+ * Ensures there are at least @c count bytes left in the
+ * data, raising an error and returning false if more
+ * data cannot be made available.
+ */
 MPACK_INLINE bool mpack_reader_ensure(mpack_reader_t* reader, size_t count) {
     mpack_assert(count != 0, "cannot ensure zero bytes!");
-    mpack_assert(count <= MPACK_READER_MINIMUM_BUFFER_SIZE,
-            "cannot ensure %i bytes, this is more than the minimum buffer size %i!", count,
-            (int)count, (int)MPACK_READER_MINIMUM_BUFFER_SIZE);
     mpack_assert(reader->error == mpack_ok, "reader cannot be in an error state!");
 
     if (count <= reader->left)
