@@ -97,12 +97,7 @@ void mpack_reader_set_fill(mpack_reader_t* reader, mpack_reader_fill_t fill) {
 
 void mpack_reader_set_skip(mpack_reader_t* reader, mpack_reader_skip_t skip) {
     mpack_assert(reader->size != 0, "cannot use skip function without a writeable buffer!");
-    #if MPACK_OPTIMIZE_FOR_SIZE
-    MPACK_UNUSED(reader);
-    MPACK_UNUSED(skip);
-    #else
     reader->skip = skip;
-    #endif
 }
 
 #if MPACK_STDIO
@@ -110,7 +105,6 @@ static size_t mpack_file_reader_fill(mpack_reader_t* reader, char* buffer, size_
     return fread((void*)buffer, 1, count, (FILE*)reader->context);
 }
 
-#if !MPACK_OPTIMIZE_FOR_SIZE
 static void mpack_file_reader_skip(mpack_reader_t* reader, size_t count) {
     if (mpack_reader_error(reader) != mpack_ok)
         return;
@@ -132,7 +126,6 @@ static void mpack_file_reader_skip(mpack_reader_t* reader, size_t count) {
     // If the stream is not seekable, fall back to the fill function.
     mpack_reader_skip_using_fill(reader, count);
 }
-#endif
 
 static void mpack_file_reader_teardown(mpack_reader_t* reader) {
     FILE* file = (FILE*)reader->context;
@@ -170,9 +163,7 @@ void mpack_reader_init_file(mpack_reader_t* reader, const char* filename) {
     mpack_reader_init(reader, buffer, capacity, 0);
     mpack_reader_set_context(reader, file);
     mpack_reader_set_fill(reader, mpack_file_reader_fill);
-    #if !MPACK_OPTIMIZE_FOR_SIZE
     mpack_reader_set_skip(reader, mpack_file_reader_skip);
-    #endif
     mpack_reader_set_teardown(reader, mpack_file_reader_teardown);
 }
 #endif
@@ -388,7 +379,6 @@ void mpack_skip_bytes(mpack_reader_t* reader, size_t count) {
     reader->pos += reader->left;
     reader->left = 0;
 
-    #if !MPACK_OPTIMIZE_FOR_SIZE
     // use the skip function if we've got one, and if we're trying
     // to skip a lot of data. if we only need to skip some tiny
     // fraction of the buffer size, it's probably better to just
@@ -398,7 +388,6 @@ void mpack_skip_bytes(mpack_reader_t* reader, size_t count) {
         reader->skip(reader, count);
         return;
     }
-    #endif
 
     mpack_reader_skip_using_fill(reader, count);
 }

@@ -125,11 +125,6 @@ struct mpack_reader_t {
     mpack_reader_fill_t fill;         /* Function to read bytes into the buffer */
     mpack_reader_error_t error_fn;    /* Function to call on error */
     mpack_reader_teardown_t teardown; /* Function to teardown the context on destroy */
-
-    // The skip function may be unused, but we don't preproc it
-    // out on MPACK_OPTIMIZE_FOR_SIZE in case calling code is compiled
-    // with different optimization options. MPACK_OPTIMIZE_FOR_SIZE
-    // should never be used in header files.
     mpack_reader_skip_t skip;         /* Function to skip bytes from the source */
 
     char* buffer;       /* Byte buffer */
