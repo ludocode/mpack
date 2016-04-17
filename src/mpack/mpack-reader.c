@@ -33,6 +33,7 @@ void mpack_reader_init(mpack_reader_t* reader, char* buffer, size_t size, size_t
     mpack_memset(reader, 0, sizeof(*reader));
     reader->buffer = buffer;
     reader->size = size;
+    reader->data = buffer;
     reader->left = count;
 
     #if MPACK_READ_TRACKING
@@ -55,17 +56,8 @@ void mpack_reader_init_data(mpack_reader_t* reader, const char* data, size_t cou
     mpack_assert(data != NULL, "data is NULL");
 
     mpack_memset(reader, 0, sizeof(*reader));
+    reader->data = data;
     reader->left = count;
-
-    // unfortunately we have to cast away the const to store the buffer,
-    // but we won't be modifying it because there's no fill function.
-    // the buffer size is left at 0 to ensure no fill function can be
-    // set or used (see mpack_reader_set_fill().)
-    #ifdef __cplusplus
-    reader->buffer = const_cast<char*>(data);
-    #else
-    reader->buffer = (char*)(uintptr_t)data;
-    #endif
 
     #if MPACK_READ_TRACKING
     mpack_reader_flag_if_error(reader, mpack_track_init(&reader->track));
@@ -141,6 +133,8 @@ static void mpack_file_reader_teardown(mpack_reader_t* reader) {
     reader->buffer = NULL;
     reader->size = 0;
     reader->fill = NULL;
+    reader->skip = NULL;
+    reader->teardown = NULL;
 }
 
 void mpack_reader_init_file(mpack_reader_t* reader, const char* filename) {
@@ -192,7 +186,7 @@ size_t mpack_reader_remaining(mpack_reader_t* reader, const char** data) {
     #endif
 
     if (data)
-        *data = reader->buffer + reader->pos;
+        *data = reader->data;
     return reader->left;
 }
 
@@ -217,14 +211,6 @@ static size_t mpack_fill(mpack_reader_t* reader, char* p, size_t count) {
         return 0;
 
     return ret;
-}
-
-// Fills the buffer when there is already some data in the buffer. The
-// existing data is moved to the start of the buffer.
-static void mpack_partial_fill(mpack_reader_t* reader) {
-    mpack_memmove(reader->buffer, reader->buffer + reader->pos, reader->left);
-    reader->pos = 0;
-    reader->left += mpack_fill(reader, reader->buffer + reader->left, reader->size - reader->left);
 }
 
 bool mpack_reader_ensure_straddle(mpack_reader_t* reader, size_t count) {
@@ -253,8 +239,11 @@ bool mpack_reader_ensure_straddle(mpack_reader_t* reader, size_t count) {
         return false;
     }
 
-    // re-fill as much as possible
-    mpack_partial_fill(reader);
+    // move the existing data to the start of the buffer, and
+    // re-fill it as much as possible
+    mpack_memmove(reader->buffer, reader->data, reader->left);
+    reader->data = reader->buffer;
+    reader->left += mpack_fill(reader, reader->buffer + reader->left, reader->size - reader->left);
 
     // if we still were not able to read enough data, we consider it
     // an I/O error.
@@ -313,10 +302,9 @@ void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count) {
     // flush what's left of the buffer
     if (reader->left > 0) {
         mpack_log("flushing %i bytes remaining in buffer\n", (int)reader->left);
-        mpack_memcpy(p, reader->buffer + reader->pos, reader->left);
+        mpack_memcpy(p, reader->data, reader->left);
         count -= reader->left;
         p += reader->left;
-        reader->pos += reader->left;
         reader->left = 0;
     }
 
@@ -336,7 +324,7 @@ void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count) {
     }
 
     // fill the buffer
-    reader->pos = 0;
+    reader->data = reader->buffer;
     reader->left = mpack_fill(reader, reader->buffer, reader->size);
     mpack_log("filled %i bytes into buffer\n", (int)reader->left);
     if (reader->left < count) {
@@ -346,9 +334,9 @@ void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count) {
     }
 
     // serve the remainder
-    mpack_log("serving %i remaining bytes from %p to %p\n", (int)count, reader->buffer+reader->pos,p);
-    mpack_memcpy(p, reader->buffer + reader->pos, count);
-    reader->pos += count;
+    mpack_log("serving %i remaining bytes from %p to %p\n", (int)count, reader->data, p);
+    mpack_memcpy(p, reader->data, count);
+    reader->data += count;
     reader->left -= count;
 }
 
@@ -362,7 +350,7 @@ void mpack_skip_bytes(mpack_reader_t* reader, size_t count) {
     if (reader->left >= count) {
         mpack_log("skipping %i bytes still in buffer\n", (int)count);
         reader->left -= count;
-        reader->pos += count;
+        reader->data += count;
         return;
     }
 
@@ -379,7 +367,6 @@ void mpack_skip_bytes(mpack_reader_t* reader, size_t count) {
     // discard whatever's left in the buffer
     mpack_log("discarding %i bytes still in buffer\n", (int)reader->left);
     count -= reader->left;
-    reader->pos += reader->left;
     reader->left = 0;
 
     // use the skip function if we've got one, and if we're trying
@@ -412,14 +399,14 @@ static void mpack_reader_skip_using_fill(mpack_reader_t* reader, size_t count) {
     }
 
     // fill the buffer as much as possible
-    reader->pos = 0;
+    reader->data = reader->buffer;
     reader->left = mpack_fill(reader, reader->buffer, reader->size);
     if (reader->left < count) {
         mpack_reader_flag_error(reader, mpack_error_io);
         return;
     }
     mpack_log("filled %i bytes into buffer; discarding %i bytes\n", (int)reader->left, (int)count);
-    reader->pos += count;
+    reader->data += count;
     reader->left -= count;
 }
 
@@ -533,17 +520,17 @@ static const char* mpack_read_bytes_inplace_notrack(mpack_reader_t* reader, size
 
     // if we have enough bytes already in the buffer, we can return it directly.
     if (reader->left >= count) {
-        reader->pos += count;
+        reader->data += count;
         reader->left -= count;
-        return reader->buffer + reader->pos - count;
+        return reader->data - count;
     }
 
     if (!mpack_reader_ensure(reader, count))
         return NULL;
 
-    reader->pos += count;
+    reader->data += count;
     reader->left -= count;
-    return reader->buffer + reader->pos - count;
+    return reader->data - count;
 }
 
 const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count) {
@@ -568,7 +555,7 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
 
     if (!mpack_reader_ensure(reader, 1))
         return 0;
-    uint8_t type = mpack_load_u8(reader->buffer + reader->pos);
+    uint8_t type = mpack_load_u8(reader->data);
 
     // unfortunately, by far the fastest way to parse a tag is to switch
     // on the first byte, and to explicitly list every possible byte. so for
@@ -692,7 +679,7 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_BIN8))
                 return 0;
             tag->type = mpack_type_bin;
-            tag->v.l = mpack_load_u8(reader->buffer + reader->pos + 1);
+            tag->v.l = mpack_load_u8(reader->data + 1);
             return MPACK_TAG_SIZE_BIN8;
 
         // bin16
@@ -700,7 +687,7 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_BIN16))
                 return 0;
             tag->type = mpack_type_bin;
-            tag->v.l = mpack_load_u16(reader->buffer + reader->pos + 1);
+            tag->v.l = mpack_load_u16(reader->data + 1);
             return MPACK_TAG_SIZE_BIN16;
 
         // bin32
@@ -708,7 +695,7 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_BIN32))
                 return 0;
             tag->type = mpack_type_bin;
-            tag->v.l = mpack_load_u32(reader->buffer + reader->pos + 1);
+            tag->v.l = mpack_load_u32(reader->data + 1);
             return MPACK_TAG_SIZE_BIN32;
 
         // ext8
@@ -716,8 +703,8 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_EXT8))
                 return 0;
             tag->type = mpack_type_ext;
-            tag->v.l = mpack_load_u8(reader->buffer + reader->pos + 1);
-            tag->exttype = mpack_load_i8(reader->buffer + reader->pos + 2);
+            tag->v.l = mpack_load_u8(reader->data + 1);
+            tag->exttype = mpack_load_i8(reader->data + 2);
             return MPACK_TAG_SIZE_EXT8;
 
         // ext16
@@ -725,8 +712,8 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_EXT16))
                 return 0;
             tag->type = mpack_type_ext;
-            tag->v.l = mpack_load_u16(reader->buffer + reader->pos + 1);
-            tag->exttype = mpack_load_i8(reader->buffer + reader->pos + 3);
+            tag->v.l = mpack_load_u16(reader->data + 1);
+            tag->exttype = mpack_load_i8(reader->data + 3);
             return MPACK_TAG_SIZE_EXT16;
 
         // ext32
@@ -734,8 +721,8 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_EXT32))
                 return 0;
             tag->type = mpack_type_ext;
-            tag->v.l = mpack_load_u32(reader->buffer + reader->pos + 1);
-            tag->exttype = mpack_load_i8(reader->buffer + reader->pos + 5);
+            tag->v.l = mpack_load_u32(reader->data + 1);
+            tag->exttype = mpack_load_i8(reader->data + 5);
             return MPACK_TAG_SIZE_EXT32;
 
         // float
@@ -743,7 +730,7 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_FLOAT))
                 return 0;
             tag->type = mpack_type_float;
-            tag->v.f = mpack_load_float(reader->buffer + reader->pos + 1);
+            tag->v.f = mpack_load_float(reader->data + 1);
             return MPACK_TAG_SIZE_FLOAT;
 
         // double
@@ -751,7 +738,7 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_DOUBLE))
                 return 0;
             tag->type = mpack_type_double;
-            tag->v.d = mpack_load_double(reader->buffer + reader->pos + 1);
+            tag->v.d = mpack_load_double(reader->data + 1);
             return MPACK_TAG_SIZE_DOUBLE;
 
         // uint8
@@ -759,7 +746,7 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_U8))
                 return 0;
             tag->type = mpack_type_uint;
-            tag->v.u = mpack_load_u8(reader->buffer + reader->pos + 1);
+            tag->v.u = mpack_load_u8(reader->data + 1);
             return MPACK_TAG_SIZE_U8;
 
         // uint16
@@ -767,7 +754,7 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_U16))
                 return 0;
             tag->type = mpack_type_uint;
-            tag->v.u = mpack_load_u16(reader->buffer + reader->pos + 1);
+            tag->v.u = mpack_load_u16(reader->data + 1);
             return MPACK_TAG_SIZE_U16;
 
         // uint32
@@ -775,7 +762,7 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_U32))
                 return 0;
             tag->type = mpack_type_uint;
-            tag->v.u = mpack_load_u32(reader->buffer + reader->pos + 1);
+            tag->v.u = mpack_load_u32(reader->data + 1);
             return MPACK_TAG_SIZE_U32;
 
         // uint64
@@ -783,7 +770,7 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_U64))
                 return 0;
             tag->type = mpack_type_uint;
-            tag->v.u = mpack_load_u64(reader->buffer + reader->pos + 1);
+            tag->v.u = mpack_load_u64(reader->data + 1);
             return MPACK_TAG_SIZE_U64;
 
         // int8
@@ -791,7 +778,7 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_I8))
                 return 0;
             tag->type = mpack_type_int;
-            tag->v.i = mpack_load_i8(reader->buffer + reader->pos + 1);
+            tag->v.i = mpack_load_i8(reader->data + 1);
             return MPACK_TAG_SIZE_I8;
 
         // int16
@@ -799,7 +786,7 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_I16))
                 return 0;
             tag->type = mpack_type_int;
-            tag->v.i = mpack_load_i16(reader->buffer + reader->pos + 1);
+            tag->v.i = mpack_load_i16(reader->data + 1);
             return MPACK_TAG_SIZE_I16;
 
         // int32
@@ -807,7 +794,7 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_I32))
                 return 0;
             tag->type = mpack_type_int;
-            tag->v.i = mpack_load_i32(reader->buffer + reader->pos + 1);
+            tag->v.i = mpack_load_i32(reader->data + 1);
             return MPACK_TAG_SIZE_I32;
 
         // int64
@@ -815,7 +802,7 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_I64))
                 return 0;
             tag->type = mpack_type_int;
-            tag->v.i = mpack_load_i64(reader->buffer + reader->pos + 1);
+            tag->v.i = mpack_load_i64(reader->data + 1);
             return MPACK_TAG_SIZE_I64;
 
         // fixext1
@@ -824,7 +811,7 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
                 return 0;
             tag->type = mpack_type_ext;
             tag->v.l = 1;
-            tag->exttype = mpack_load_i8(reader->buffer + reader->pos + 1);
+            tag->exttype = mpack_load_i8(reader->data + 1);
             return MPACK_TAG_SIZE_FIXEXT1;
 
         // fixext2
@@ -833,7 +820,7 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
                 return 0;
             tag->type = mpack_type_ext;
             tag->v.l = 2;
-            tag->exttype = mpack_load_i8(reader->buffer + reader->pos + 1);
+            tag->exttype = mpack_load_i8(reader->data + 1);
             return MPACK_TAG_SIZE_FIXEXT2;
 
         // fixext4
@@ -842,7 +829,7 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
                 return 0;
             tag->type = mpack_type_ext;
             tag->v.l = 4;
-            tag->exttype = mpack_load_i8(reader->buffer + reader->pos + 1);
+            tag->exttype = mpack_load_i8(reader->data + 1);
             return 2;
 
         // fixext8
@@ -851,7 +838,7 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
                 return 0;
             tag->type = mpack_type_ext;
             tag->v.l = 8;
-            tag->exttype = mpack_load_i8(reader->buffer + reader->pos + 1);
+            tag->exttype = mpack_load_i8(reader->data + 1);
             return MPACK_TAG_SIZE_FIXEXT8;
 
         // fixext16
@@ -860,7 +847,7 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
                 return 0;
             tag->type = mpack_type_ext;
             tag->v.l = 16;
-            tag->exttype = mpack_load_i8(reader->buffer + reader->pos + 1);
+            tag->exttype = mpack_load_i8(reader->data + 1);
             return MPACK_TAG_SIZE_FIXEXT16;
 
         // str8
@@ -868,7 +855,7 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_STR8))
                 return 0;
             tag->type = mpack_type_str;
-            tag->v.l = mpack_load_u8(reader->buffer + reader->pos + 1);
+            tag->v.l = mpack_load_u8(reader->data + 1);
             return MPACK_TAG_SIZE_STR8;
 
         // str16
@@ -876,7 +863,7 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_STR16))
                 return 0;
             tag->type = mpack_type_str;
-            tag->v.l = mpack_load_u16(reader->buffer + reader->pos + 1);
+            tag->v.l = mpack_load_u16(reader->data + 1);
             return MPACK_TAG_SIZE_STR16;
 
         // str32
@@ -884,7 +871,7 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_STR32))
                 return 0;
             tag->type = mpack_type_str;
-            tag->v.l = mpack_load_u32(reader->buffer + reader->pos + 1);
+            tag->v.l = mpack_load_u32(reader->data + 1);
             return MPACK_TAG_SIZE_STR32;
 
         // array16
@@ -892,7 +879,7 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_ARRAY16))
                 return 0;
             tag->type = mpack_type_array;
-            tag->v.n = mpack_load_u16(reader->buffer + reader->pos + 1);
+            tag->v.n = mpack_load_u16(reader->data + 1);
             return MPACK_TAG_SIZE_ARRAY16;
 
         // array32
@@ -900,7 +887,7 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_ARRAY32))
                 return 0;
             tag->type = mpack_type_array;
-            tag->v.n = mpack_load_u32(reader->buffer + reader->pos + 1);
+            tag->v.n = mpack_load_u32(reader->data + 1);
             return MPACK_TAG_SIZE_ARRAY32;
 
         // map16
@@ -908,7 +895,7 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_MAP16))
                 return 0;
             tag->type = mpack_type_map;
-            tag->v.n = mpack_load_u16(reader->buffer + reader->pos + 1);
+            tag->v.n = mpack_load_u16(reader->data + 1);
             return MPACK_TAG_SIZE_MAP16;
 
         // map32
@@ -916,7 +903,7 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_MAP32))
                 return 0;
             tag->type = mpack_type_map;
-            tag->v.n = mpack_load_u32(reader->buffer + reader->pos + 1);
+            tag->v.n = mpack_load_u32(reader->data + 1);
             return MPACK_TAG_SIZE_MAP32;
 
         // reserved
@@ -974,11 +961,8 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
     }
     #endif
 
-    // the tag is guaranteed to have been read out of
-    // the buffer, so we advance past it
-    reader->pos += count;
+    reader->data += count;
     reader->left -= count;
-
     return tag;
 }
 

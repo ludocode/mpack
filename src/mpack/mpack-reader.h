@@ -127,10 +127,12 @@ struct mpack_reader_t {
     mpack_reader_teardown_t teardown; /* Function to teardown the context on destroy */
     mpack_reader_skip_t skip;         /* Function to skip bytes from the source */
 
-    char* buffer;       /* Byte buffer */
-    size_t size;        /* Size of the buffer, or zero if it's const */
-    size_t left;        /* How many bytes are left in the buffer */
-    size_t pos;         /* Position within the buffer */
+    char* buffer;       /* Writeable byte buffer */
+    size_t size;        /* Size of the buffer */
+
+    const char* data;   /* Available data */
+    size_t left;        /* How many bytes are left in the available data */
+
     mpack_error_t error;  /* Error state */
 
     #if MPACK_READ_TRACKING
@@ -789,8 +791,8 @@ MPACK_INLINE void mpack_read_native(mpack_reader_t* reader, char* p, size_t coun
     if (count > reader->left) {
         mpack_read_native_big(reader, p, count);
     } else {
-        mpack_memcpy(p, reader->buffer + reader->pos, count);
-        reader->pos += count;
+        mpack_memcpy(p, reader->data, count);
+        reader->data += count;
         reader->left -= count;
     }
 }

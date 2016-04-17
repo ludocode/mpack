@@ -34,8 +34,8 @@ MPACK_STATIC_INLINE uint8_t mpack_expect_native_u8(mpack_reader_t* reader) {
     uint8_t type;
     if (!mpack_reader_ensure(reader, sizeof(type)))
         return 0;
-    type = mpack_load_u8(reader->buffer + reader->pos);
-    reader->pos += sizeof(type);
+    type = mpack_load_u8(reader->data);
+    reader->data += sizeof(type);
     reader->left -= sizeof(type);
     return type;
 }
@@ -47,8 +47,8 @@ MPACK_STATIC_INLINE uint16_t mpack_expect_native_u16(mpack_reader_t* reader) {
     uint16_t type;
     if (!mpack_reader_ensure(reader, sizeof(type)))
         return 0;
-    type = mpack_load_u16(reader->buffer + reader->pos);
-    reader->pos += sizeof(type);
+    type = mpack_load_u16(reader->data);
+    reader->data += sizeof(type);
     reader->left -= sizeof(type);
     return type;
 }
@@ -59,8 +59,8 @@ MPACK_STATIC_INLINE uint32_t mpack_expect_native_u32(mpack_reader_t* reader) {
     uint32_t type;
     if (!mpack_reader_ensure(reader, sizeof(type)))
         return 0;
-    type = mpack_load_u32(reader->buffer + reader->pos);
-    reader->pos += sizeof(type);
+    type = mpack_load_u32(reader->data);
+    reader->data += sizeof(type);
     reader->left -= sizeof(type);
     return type;
 }
