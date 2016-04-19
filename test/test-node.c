@@ -986,6 +986,91 @@ static void test_node_read_deep_stack(void) {
     #endif
 }
 
+static void test_node_multiple_simple(void) {
+    static const char test[] = "\x00\xa5""hello\xd1\x80\x00\xc0";
+    mpack_tree_t tree;
+
+    mpack_node_data_t pool[1];
+    mpack_tree_init_pool(&tree, test, sizeof(test) - 1, pool, sizeof(pool) / sizeof(*pool));
+
+    mpack_tree_parse(&tree);
+    TEST_TRUE(0u == mpack_node_uint(mpack_tree_root(&tree)));
+    TEST_TRUE(mpack_tree_error(&tree) == mpack_ok);
+
+    mpack_tree_parse(&tree);
+    char cstr[10];
+    mpack_node_copy_cstr(mpack_tree_root(&tree), cstr, sizeof(cstr));
+    TEST_TRUE(strcmp(cstr, "hello") == 0);
+    TEST_TRUE(mpack_tree_error(&tree) == mpack_ok);
+
+    mpack_tree_parse(&tree);
+    TEST_TRUE(INT16_MIN == mpack_node_i16(mpack_tree_root(&tree)));
+    TEST_TRUE(mpack_tree_error(&tree) == mpack_ok);
+
+    mpack_tree_parse(&tree);
+    mpack_node_nil(mpack_tree_root(&tree));
+    TEST_TRUE(mpack_tree_error(&tree) == mpack_ok);
+
+    TEST_TREE_DESTROY_NOERROR(&tree);
+}
+
+#ifdef MPACK_MALLOC
+static bool test_node_multiple_allocs(void) {
+    static const char test[] =
+        "\x82\xa4""true\xc3\xa5""false\xc2"
+        "\x9a\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a" // larger than config page size
+        "\x93\xff\xfe\xfd";
+
+    mpack_tree_t tree;
+    mpack_tree_init(&tree, test, sizeof(test) - 1);
+
+    // we're testing memory errors! other errors are bad.
+    mpack_tree_parse(&tree);
+    if (mpack_tree_error(&tree) == mpack_error_memory) {
+        mpack_tree_destroy(&tree);
+        return false;
+    }
+    TEST_TRUE(mpack_tree_error(&tree) == mpack_ok);
+
+    TEST_TRUE(false == mpack_node_bool(mpack_node_map_cstr(mpack_tree_root(&tree), "false")));
+    TEST_TRUE(mpack_tree_error(&tree) == mpack_ok);
+    TEST_TRUE(true == mpack_node_bool(mpack_node_map_cstr(mpack_tree_root(&tree), "true")));
+    TEST_TRUE(mpack_tree_error(&tree) == mpack_ok);
+
+    // second message...
+    mpack_tree_parse(&tree);
+    if (mpack_tree_error(&tree) == mpack_error_memory) {
+        mpack_tree_destroy(&tree);
+        return false;
+    }
+    TEST_TRUE(mpack_tree_error(&tree) == mpack_ok);
+
+    TEST_TRUE(10 == mpack_node_array_length(mpack_tree_root(&tree)));
+    for (size_t i = 0; i < 10; ++i)
+        TEST_TRUE(i + 1 == mpack_node_uint(mpack_node_array_at(mpack_tree_root(&tree), i)));
+    TEST_TRUE(mpack_tree_error(&tree) == mpack_ok);
+
+    // third message...
+    mpack_tree_parse(&tree);
+    if (mpack_tree_error(&tree) == mpack_error_memory) {
+        mpack_tree_destroy(&tree);
+        return false;
+    }
+    TEST_TRUE(mpack_tree_error(&tree) == mpack_ok);
+
+    TEST_TRUE(3 == mpack_node_array_length(mpack_tree_root(&tree)));
+    TEST_TRUE(mpack_tree_error(&tree) == mpack_ok);
+    TEST_TRUE(-1 == mpack_node_int(mpack_node_array_at(mpack_tree_root(&tree), 0)));
+    TEST_TRUE(-2 == mpack_node_int(mpack_node_array_at(mpack_tree_root(&tree), 1)));
+    TEST_TRUE(-3 == mpack_node_int(mpack_node_array_at(mpack_tree_root(&tree), 2)));
+    TEST_TRUE(mpack_tree_error(&tree) == mpack_ok);
+
+    // success!
+    mpack_tree_destroy(&tree);
+    return true;
+}
+#endif
+
 void test_node(void) {
     test_example_node();
 
@@ -1016,6 +1101,12 @@ void test_node(void) {
     test_node_read_compound_errors();
     test_node_read_data();
     test_node_read_deep_stack();
+
+    // message streams
+    test_node_multiple_simple();
+    #ifdef MPACK_MALLOC
+    test_system_fail_until_ok(&test_node_multiple_allocs);
+    #endif
 }
 
 #endif

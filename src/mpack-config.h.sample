@@ -302,13 +302,13 @@
 #endif
 
 /**
- * Size of an allocated node page in bytes.
+ * Minimum size of an allocated node page in bytes.
  *
  * The children for a given compound element must be contiguous, so
  * larger pages than this may be allocated as needed. (Safety checks
  * exist to prevent malicious data from causing too large allocations.)
  *
- * Nodes are 16 bytes on most common architectures (32-bit and 64-bit.)
+ * See @ref mpack_node_data_t for the size of nodes.
  *
  * Using as many nodes fit in one memory page seems to provide the
  * best performance, and has very little waste when parsing small

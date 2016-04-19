@@ -74,7 +74,7 @@ typedef struct mpack_tree_parser_t {
     // over bytes in the data.
     size_t possible_nodes_left;
 
-    mpack_node_data_t* nodes;
+    mpack_node_data_t* nodes; // next node in current page/pool
     size_t nodes_left; // nodes left in current page/pool
 
     size_t level;
@@ -301,6 +301,7 @@ static void mpack_tree_parse_bytes(mpack_tree_parser_t* parser, mpack_node_data_
 }
 
 static void mpack_tree_parse_node(mpack_tree_parser_t* parser, mpack_node_data_t* node) {
+    mpack_assert(node != NULL, "null node?");
 
     // read the type. we've already accounted for this byte in
     // possible_nodes_left, so we know it is in bounds and don't
@@ -664,21 +665,60 @@ static void mpack_tree_parse_elements(mpack_tree_parser_t* parser) {
     }
 }
 
+static void mpack_tree_cleanup(mpack_tree_t* tree) {
+    MPACK_UNUSED(tree);
+
+    #ifdef MPACK_MALLOC
+    mpack_tree_page_t* page = tree->next;
+    while (page != NULL) {
+        mpack_tree_page_t* next = page->next;
+        mpack_log("freeing page %p\n", page);
+        MPACK_FREE(page);
+        page = next;
+    }
+    tree->next = NULL;
+    #endif
+}
+
+static void mpack_tree_parser_setup(mpack_tree_parser_t* parser, mpack_tree_t* tree) {
+    mpack_memset(parser, 0, sizeof(*parser));
+    parser->tree = tree;
+    parser->data = tree->data;
+    parser->possible_nodes_left = tree->length;
+
+    #ifdef MPACK_MALLOC
+    if (tree->pool == NULL) {
+
+        // allocate first page
+        mpack_tree_page_t* page = (mpack_tree_page_t*)MPACK_MALLOC(MPACK_PAGE_ALLOC_SIZE);
+        mpack_log("allocated initial page %p of size %i count %i\n",
+                page, (int)MPACK_PAGE_ALLOC_SIZE, (int)MPACK_NODES_PER_PAGE);
+        if (page == NULL) {
+            tree->error = mpack_error_memory;
+            return;
+        }
+        page->next = NULL;
+        tree->next = page;
+
+        parser->nodes = page->nodes;
+        parser->nodes_left = MPACK_NODES_PER_PAGE;
+        tree->root = page->nodes;
+        return;
+    }
+    #endif
+
+    // otherwise use the provided pool
+    mpack_assert(tree->pool != NULL, "no pool provided?");
+    parser->nodes = tree->pool;
+    parser->nodes_left = tree->pool_count;
+}
+
 void mpack_tree_parse(mpack_tree_t* tree) {
     if (mpack_tree_error(tree) != mpack_ok)
         return;
-
-    // We don't yet support parsing multiple messages. This
-    // will hopefully be implemented soon!
-    if (tree->parsed) {
-        mpack_break("tree already parsed!");
-        mpack_tree_flag_error(tree, mpack_error_bug);
-        return;
-    }
-
-    // We can set the parse flag now. If parsing fails, we'll
-    // flag an error.
     tree->parsed = true;
+
+    mpack_tree_cleanup(tree);
 
     mpack_log("starting parse\n");
 
@@ -686,15 +726,19 @@ void mpack_tree_parse(mpack_tree_t* tree) {
         mpack_tree_flag_error(tree, mpack_error_invalid);
         return;
     }
-    tree->root = tree->initial_page;
 
-    // Setup parser
+    // setup parser
     mpack_tree_parser_t parser;
-    mpack_memset(&parser, 0, sizeof(parser));
-    parser.tree = tree;
-    parser.data = tree->data;
-    parser.nodes = tree->initial_page + 1;
-    parser.nodes_left = tree->initial_page_count - 1;
+    mpack_tree_parser_setup(&parser, tree);
+    if (mpack_tree_error(tree) != mpack_ok)
+        return;
+
+    // allocate the root node
+    tree->root = parser.nodes;
+    ++parser.nodes;
+    --parser.nodes_left;
+    --parser.possible_nodes_left;
+    tree->node_count = 1;
 
     // We read nodes in a loop instead of recursively for maximum
     // performance. The stack holds the amount of children left to
@@ -712,12 +756,7 @@ void mpack_tree_parse(mpack_tree_t* tree) {
     mpack_level_t stack_local[MPACK_NODE_STACK_LOCAL_DEPTH]; // no VLAs in VS 2013
     parser.depth = MPACK_NODE_STACK_LOCAL_DEPTH;
     parser.stack = stack_local;
-    parser.possible_nodes_left = tree->length;
     #undef MPACK_NODE_STACK_LOCAL_DEPTH
-
-    // configure the root node
-    --parser.possible_nodes_left;
-    tree->node_count = 1;
     parser.level = 0;
     parser.stack[0].child = tree->root;
     parser.stack[0].left = 1;
@@ -731,8 +770,14 @@ void mpack_tree_parse(mpack_tree_t* tree) {
 
     // now that there are no longer any nodes to read, possible_nodes_left
     // is the number of bytes left in the data.
-    if (mpack_tree_error(tree) == mpack_ok)
+    if (mpack_tree_error(tree) == mpack_ok) {
         tree->size = tree->length - parser.possible_nodes_left;
+
+        // advance past the parsed data
+        tree->data += tree->size;
+        tree->length -= tree->size;
+    }
+
     mpack_log("parsed tree of %i bytes, %i bytes left\n", (int)tree->size, (int)parser.possible_nodes_left);
     mpack_log("%i nodes in final page\n", (int)parser.nodes_left);
 }
@@ -778,20 +823,9 @@ void mpack_tree_init(mpack_tree_t* tree, const char* data, size_t length) {
 
     tree->data = data;
     tree->length = length;
-
-    // allocate first page
-    mpack_tree_page_t* page = (mpack_tree_page_t*)MPACK_MALLOC(MPACK_PAGE_ALLOC_SIZE);
-    mpack_log("allocated initial page %p of size %i count %i\n",
-            page, (int)MPACK_PAGE_ALLOC_SIZE, (int)MPACK_NODES_PER_PAGE);
-    if (page == NULL) {
-        tree->error = mpack_error_memory;
-        return;
-    }
-    page->next = NULL;
-    tree->next = page;
-
-    tree->initial_page = page->nodes;
-    tree->initial_page_count = MPACK_NODES_PER_PAGE;
+    tree->pool = NULL;
+    tree->pool_count = 0;
+    tree->next = NULL;
 
     mpack_log("===========================\n");
     mpack_log("initializing tree with data of size %i\n", (int)length);
@@ -814,8 +848,8 @@ void mpack_tree_init_pool(mpack_tree_t* tree, const char* data, size_t length,
 
     tree->data = data;
     tree->length = length;
-    tree->initial_page = node_pool;
-    tree->initial_page_count = node_pool_count;
+    tree->pool = node_pool;
+    tree->pool_count = node_pool_count;
 
     mpack_log("===========================\n");
     mpack_log("initializing tree with data of size %i and pool of count %i\n", (int)length, (int)node_pool_count);
@@ -936,15 +970,7 @@ void mpack_tree_init_file(mpack_tree_t* tree, const char* filename, size_t max_s
 #endif
 
 mpack_error_t mpack_tree_destroy(mpack_tree_t* tree) {
-    #ifdef MPACK_MALLOC
-    mpack_tree_page_t* page = tree->next;
-    while (page) {
-        mpack_tree_page_t* next = page->next;
-        mpack_log("freeing page %p\n", page);
-        MPACK_FREE(page);
-        page = next;
-    }
-    #endif
+    mpack_tree_cleanup(tree);
 
     if (tree->teardown)
         tree->teardown(tree);

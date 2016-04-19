@@ -62,6 +62,8 @@ typedef struct mpack_node_t mpack_node_t;
  *
  * You only need to use this if you intend to provide your own storage
  * for nodes instead of letting the tree allocate it.
+ *
+ * Nodes are 16 bytes on most common architectures (32-bit and 64-bit.)
  */
 typedef struct mpack_node_data_t mpack_node_data_t;
 
@@ -158,8 +160,8 @@ struct mpack_tree_t {
     mpack_node_data_t* root;
     bool parsed;
 
-    mpack_node_data_t* initial_page; // initial page of nodes
-    size_t initial_page_count;
+    mpack_node_data_t* pool; // pool, or NULL if no pool provided
+    size_t pool_count;
 
     #ifdef MPACK_MALLOC
     mpack_tree_page_t* next;
@@ -229,11 +231,11 @@ void mpack_tree_init_error(mpack_tree_t* tree, mpack_error_t error);
 
 #if MPACK_STDIO
 /**
- * Initializes a tree to parse the given file. The tree must be
- * destroyed with mpack_tree_destroy(), even if parsing fails.
+ * Initializes a tree to parse the given file. The tree must be destroyed with
+ * mpack_tree_destroy(), even if parsing fails.
  *
- * The file is opened, loaded fully into memory, and closed during the
- * call to mpack_tree_parse().
+ * The file is opened, loaded fully into memory, and closed before this call
+ * returns.
  *
  * @param tree The tree to initialize
  * @param filename The filename passed to fopen() to read the file
@@ -245,11 +247,12 @@ void mpack_tree_init_file(mpack_tree_t* tree, const char* filename, size_t max_b
 /**
  * Parses a MessagePack message.
  *
- * This should (currently) only be called once.
+ * If successful, the root node will be available under @ref mpack_tree_root().
+ * If not, an appropriate error will be flagged.
  *
- * If successful, the root node will be available under
- * @ref mpack_tree_root(). If not, an appropriate error will
- * be flagged.
+ * This can be called repeatedly to parse a series of messages from a data
+ * source. When this is called, all previous nodes from this tree and their
+ * contents (including the root node) are invalidated.
  */
 void mpack_tree_parse(mpack_tree_t* tree);
 
