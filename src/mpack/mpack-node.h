@@ -133,7 +133,7 @@ struct mpack_node_data_t {
         double   d; /* The value if the type is double. */
         int64_t  i; /* The value if the type is signed int. */
         uint64_t u; /* The value if the type is unsigned int. */
-        const char* bytes; /* The byte pointer for str, bin and ext */
+        size_t offset; /* The byte offset for str, bin and ext */
         mpack_node_data_t* children; /* The children for map or array */
     } value;
 };
@@ -754,6 +754,29 @@ MPACK_INLINE double mpack_node_double_strict(mpack_node_t node) {
  * @{
  */
 
+MPACK_INLINE const char* mpack_node_data_unchecked(mpack_node_t node) {
+    mpack_assert(mpack_node_error(node) == mpack_ok, "tree is in an error state!");
+
+    mpack_type_t type = node.data->type;
+    MPACK_UNUSED(type);
+    mpack_assert(type == mpack_type_str || type == mpack_type_bin || type == mpack_type_ext,
+            "node of type %i (%s) is not a data type!", type, mpack_type_to_string(type));
+
+    return node.tree->data + node.data->value.offset;
+}
+
+MPACK_INLINE int8_t mpack_node_exttype_unchecked(mpack_node_t node) {
+    mpack_assert(mpack_node_error(node) == mpack_ok, "tree is in an error state!");
+
+    mpack_type_t type = node.data->type;
+    MPACK_UNUSED(type);
+    mpack_assert(type == mpack_type_ext, "node of type %i (%s) is not an ext type!",
+            type, mpack_type_to_string(type));
+
+    // the exttype of an ext node is stored in the byte preceding the data
+    return (int8_t)*(mpack_node_data_unchecked(node) - 1);
+}
+
 /**
  * Checks that the given node contains a valid UTF-8 string.
  *
@@ -803,9 +826,8 @@ MPACK_INLINE int8_t mpack_node_exttype(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
-    // the exttype of an ext node is stored in the byte preceding the data
     if (node.data->type == mpack_type_ext)
-        return (int8_t)*(node.data->value.bytes - 1);
+        return mpack_node_exttype_unchecked(node);
 
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
@@ -865,7 +887,7 @@ MPACK_INLINE const char* mpack_node_str(mpack_node_t node) {
 
     mpack_type_t type = node.data->type;
     if (type == mpack_type_str)
-        return node.data->value.bytes;
+        return mpack_node_data_unchecked(node);
 
     mpack_node_flag_error(node, mpack_error_type);
     return NULL;
@@ -892,7 +914,7 @@ MPACK_INLINE const char* mpack_node_data(mpack_node_t node) {
 
     mpack_type_t type = node.data->type;
     if (type == mpack_type_str || type == mpack_type_bin || type == mpack_type_ext)
-        return node.data->value.bytes;
+        return mpack_node_data_unchecked(node);
 
     mpack_node_flag_error(node, mpack_error_type);
     return NULL;

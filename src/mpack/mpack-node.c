@@ -295,7 +295,7 @@ static void mpack_tree_parse_bytes(mpack_tree_parser_t* parser, mpack_node_data_
         mpack_tree_flag_error(parser->tree, mpack_error_invalid);
         return;
     }
-    node->value.bytes = parser->data;
+    node->value.offset = parser->data - parser->tree->data;
     parser->data += length;
     parser->possible_nodes_left -= length;
 }
@@ -727,6 +727,11 @@ void mpack_tree_parse(mpack_tree_t* tree) {
         return;
     }
 
+    // if we previously parsed a tree, advance past the parsed data
+    tree->data += tree->size;
+    tree->length -= tree->size;
+    tree->size = 0;
+
     // setup parser
     mpack_tree_parser_t parser;
     mpack_tree_parser_setup(&parser, tree);
@@ -770,13 +775,8 @@ void mpack_tree_parse(mpack_tree_t* tree) {
 
     // now that there are no longer any nodes to read, possible_nodes_left
     // is the number of bytes left in the data.
-    if (mpack_tree_error(tree) == mpack_ok) {
+    if (mpack_tree_error(tree) == mpack_ok)
         tree->size = tree->length - parser.possible_nodes_left;
-
-        // advance past the parsed data
-        tree->data += tree->size;
-        tree->length -= tree->size;
-    }
 
     mpack_log("parsed tree of %i bytes, %i bytes left\n", (int)tree->size, (int)parser.possible_nodes_left);
     mpack_log("%i nodes in final page\n", (int)parser.nodes_left);
@@ -1020,8 +1020,7 @@ mpack_tag_t mpack_node_tag(mpack_node_t node) {
 
         case mpack_type_ext:
             tag.v.l = node.data->len;
-            // the exttype of an ext node is stored in the byte preceding the data
-            tag.exttype = (int8_t)*(node.data->value.bytes - 1);
+            tag.exttype = mpack_node_exttype_unchecked(node);
             break;
 
         case mpack_type_array:   tag.v.n = node.data->len;  break;
@@ -1072,7 +1071,7 @@ static void mpack_node_print_element(mpack_node_t node, size_t depth, FILE* file
         case mpack_type_str:
             {
                 putc('"', file);
-                const char* bytes = mpack_node_data(node);
+                const char* bytes = mpack_node_data_unchecked(node);
                 for (size_t i = 0; i < data->len; ++i) {
                     char c = bytes[i];
                     switch (c) {
@@ -1140,7 +1139,7 @@ void mpack_node_check_utf8(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return;
     mpack_node_data_t* data = node.data;
-    if (data->type != mpack_type_str || !mpack_utf8_check(data->value.bytes, data->len))
+    if (data->type != mpack_type_str || !mpack_utf8_check(mpack_node_data_unchecked(node), data->len))
         mpack_node_flag_error(node, mpack_error_type);
 }
 
@@ -1148,7 +1147,7 @@ void mpack_node_check_utf8_cstr(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return;
     mpack_node_data_t* data = node.data;
-    if (data->type != mpack_type_str || !mpack_utf8_check_no_null(data->value.bytes, data->len))
+    if (data->type != mpack_type_str || !mpack_utf8_check_no_null(mpack_node_data_unchecked(node), data->len))
         mpack_node_flag_error(node, mpack_error_type);
 }
 
@@ -1169,7 +1168,7 @@ size_t mpack_node_copy_data(mpack_node_t node, char* buffer, size_t bufsize) {
         return 0;
     }
 
-    mpack_memcpy(buffer, node.data->value.bytes, node.data->len);
+    mpack_memcpy(buffer, mpack_node_data_unchecked(node), node.data->len);
     return (size_t)node.data->len;
 }
 
@@ -1190,12 +1189,12 @@ size_t mpack_node_copy_utf8(mpack_node_t node, char* buffer, size_t bufsize) {
         return 0;
     }
 
-    if (!mpack_utf8_check(node.data->value.bytes, node.data->len)) {
+    if (!mpack_utf8_check(mpack_node_data_unchecked(node), node.data->len)) {
         mpack_node_flag_error(node, mpack_error_type);
         return 0;
     }
 
-    mpack_memcpy(buffer, node.data->value.bytes, node.data->len);
+    mpack_memcpy(buffer, mpack_node_data_unchecked(node), node.data->len);
     return (size_t)node.data->len;
 }
 
@@ -1223,13 +1222,13 @@ void mpack_node_copy_cstr(mpack_node_t node, char* buffer, size_t bufsize) {
         return;
     }
 
-    if (!mpack_str_check_no_null(node.data->value.bytes, node.data->len)) {
+    if (!mpack_str_check_no_null(mpack_node_data_unchecked(node), node.data->len)) {
         buffer[0] = '\0';
         mpack_node_flag_error(node, mpack_error_type);
         return;
     }
 
-    mpack_memcpy(buffer, node.data->value.bytes, node.data->len);
+    mpack_memcpy(buffer, mpack_node_data_unchecked(node), node.data->len);
     buffer[node.data->len] = '\0';
 }
 
@@ -1257,13 +1256,13 @@ void mpack_node_copy_utf8_cstr(mpack_node_t node, char* buffer, size_t bufsize) 
         return;
     }
 
-    if (!mpack_utf8_check_no_null(node.data->value.bytes, node.data->len)) {
+    if (!mpack_utf8_check_no_null(mpack_node_data_unchecked(node), node.data->len)) {
         buffer[0] = '\0';
         mpack_node_flag_error(node, mpack_error_type);
         return;
     }
 
-    mpack_memcpy(buffer, node.data->value.bytes, node.data->len);
+    mpack_memcpy(buffer, mpack_node_data_unchecked(node), node.data->len);
     buffer[node.data->len] = '\0';
 }
 
@@ -1290,7 +1289,7 @@ char* mpack_node_data_alloc(mpack_node_t node, size_t maxlen) {
         return NULL;
     }
 
-    mpack_memcpy(ret, node.data->value.bytes, node.data->len);
+    mpack_memcpy(ret, mpack_node_data_unchecked(node), node.data->len);
     return ret;
 }
 
@@ -1315,7 +1314,7 @@ char* mpack_node_cstr_alloc(mpack_node_t node, size_t maxlen) {
         return NULL;
     }
 
-    if (!mpack_str_check_no_null(node.data->value.bytes, node.data->len)) {
+    if (!mpack_str_check_no_null(mpack_node_data_unchecked(node), node.data->len)) {
         mpack_node_flag_error(node, mpack_error_type);
         return NULL;
     }
@@ -1326,7 +1325,7 @@ char* mpack_node_cstr_alloc(mpack_node_t node, size_t maxlen) {
         return NULL;
     }
 
-    mpack_memcpy(ret, node.data->value.bytes, node.data->len);
+    mpack_memcpy(ret, mpack_node_data_unchecked(node), node.data->len);
     ret[node.data->len] = '\0';
     return ret;
 }
@@ -1352,7 +1351,7 @@ char* mpack_node_utf8_cstr_alloc(mpack_node_t node, size_t maxlen) {
         return NULL;
     }
 
-    if (!mpack_utf8_check_no_null(node.data->value.bytes, node.data->len)) {
+    if (!mpack_utf8_check_no_null(mpack_node_data_unchecked(node), node.data->len)) {
         mpack_node_flag_error(node, mpack_error_type);
         return NULL;
     }
@@ -1363,7 +1362,7 @@ char* mpack_node_utf8_cstr_alloc(mpack_node_t node, size_t maxlen) {
         return NULL;
     }
 
-    mpack_memcpy(ret, node.data->value.bytes, node.data->len);
+    mpack_memcpy(ret, mpack_node_data_unchecked(node), node.data->len);
     ret[node.data->len] = '\0';
     return ret;
 }
@@ -1447,12 +1446,14 @@ static mpack_node_data_t* mpack_node_map_str_impl(mpack_node_t node, const char*
         return NULL;
     }
 
+    mpack_tree_t* tree = node.tree;
     mpack_node_data_t* found = NULL;
 
     for (size_t i = 0; i < node.data->len; ++i) {
         mpack_node_data_t* key = mpack_node_child(node, i * 2);
 
-        if (key->type == mpack_type_str && key->len == length && mpack_memcmp(str, key->value.bytes, length) == 0) {
+        if (key->type == mpack_type_str && key->len == length &&
+                mpack_memcmp(str, mpack_node_data_unchecked(mpack_node(tree, key)), length) == 0) {
             if (found) {
                 mpack_node_flag_error(node, mpack_error_data);
                 return NULL;
