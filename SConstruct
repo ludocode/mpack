@@ -185,6 +185,7 @@ if ARGUMENTS.get('all'):
     # sanitize build tests
     sanitizers = {
         "stack-protector": ["-Wstack-protector", "-fstack-protector-all"],
+        "undefined": ["-fsanitize=undefined"],
         "memory": ["-fsanitize=memory"],
         "address": ["-fsanitize=address"],
         "safestack": ["-fsanitize=safe-stack"],
