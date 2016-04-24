@@ -32,6 +32,7 @@ Feedback is welcome! Please let me know if any entries in the table are incorrec
 | Support for new (2.0) spec          | ✓   | ✓   | ✓   |
 | Compatible with older (1.0) spec    | ✓   | ✓   | ✓   |
 | UTF-8 verification                  | ✓   |     |     |
+| Type-generic write helpers          | ✓   | ✓   |     |
 
 Most of the features above are optional when supported and can be configured in all libraries. In particular, UTF-8 verification is optional with MPack; compound size tracking is optional and disabled in release by default with MPack; and 1.0 (v4) spec compatibility is optional with CMP (v5/2.0 is the recommended and default usage.)
 
@@ -61,3 +62,4 @@ Most of the features above are optional when supported and can be configured in 
 
 *Compatible with older (1.0) spec* means the ability to produce messages compatible with parsers that only understand the old v4/1.0 version of MessagePack. A backwards-compatible encoder must at a minimum support writing an old-style raw without "str8", since there was no "raw8" type in old MessagePack.
 
+*Type-generic write helpers* means a generic write function or macro that can serialize based on the static type of the argument, in at least one of C11 or C++. (The reference [msgpack-c][msgpack-c] currently supports this only in C++ mode. MPack supports this both in C++ with templates and in C11 with `_Generic`.)
