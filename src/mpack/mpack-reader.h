@@ -38,6 +38,10 @@ MPACK_HEADER_START
 struct mpack_track_t;
 #endif
 
+// The denominator to determine whether a read is a small
+// fraction of the buffer size.
+#define MPACK_READER_SMALL_FRACTION_DENOMINATOR 32
+
 /**
  * @defgroup reader Core Reader API
  *
@@ -71,10 +75,19 @@ struct mpack_track_t;
 typedef struct mpack_reader_t mpack_reader_t;
 
 /**
- * The MPack reader's fill function. It should fill the buffer as
- * much as possible, returning the number of bytes put into the buffer.
+ * The MPack reader's fill function. It should fill the buffer with at
+ * least one byte and at most the given @c count, returning the number
+ * of bytes written to the buffer.
  *
- * In case of error, it should flag an appropriate error on the reader.
+ * In case of error, it should flag an appropriate error on the reader
+ * (usually @ref mpack_error_io), or simply return zero. If zero is
+ * returned, mpack_error_io is raised.
+ *
+ * @note When reading from a stream, you should only copy and return
+ * the bytes that are immediately available. It is always safe to return
+ * less than the requested count as long as some non-zero number of bytes
+ * are read; if more bytes are needed, the read function will simply be
+ * called again.
  */
 typedef size_t (*mpack_reader_fill_t)(mpack_reader_t* reader, char* buffer, size_t count);
 
@@ -640,7 +653,7 @@ const char* mpack_read_utf8_inplace(mpack_reader_t* reader, size_t count);
  * @see mpack_read_bytes_inplace()
  */
 MPACK_INLINE bool mpack_should_read_bytes_inplace(mpack_reader_t* reader, size_t count) {
-    return (reader->size == 0 || count <= reader->size / 32);
+    return (reader->size == 0 || count <= reader->size / MPACK_READER_SMALL_FRACTION_DENOMINATOR);
 }
 
 /**

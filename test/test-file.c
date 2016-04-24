@@ -340,76 +340,122 @@ static void test_file_expect_elements(mpack_reader_t* reader, mpack_tag_t tag) {
     mpack_done_type(reader, tag.type);
 }
 
-static void test_file_read(void) {
-    mpack_reader_t reader;
-    mpack_reader_init_file(&reader, test_filename);
-    TEST_TRUE(mpack_reader_error(&reader) == mpack_ok, "file open failed with %s",
-            mpack_error_to_string(mpack_reader_error(&reader)));
+static void test_file_read_contents(mpack_reader_t* reader) {
+    TEST_TRUE(mpack_reader_error(reader) == mpack_ok, "file open failed with %s",
+            mpack_error_to_string(mpack_reader_error(reader)));
 
-    TEST_TRUE(7 == mpack_expect_array(&reader));
+    TEST_TRUE(7 == mpack_expect_array(reader));
 
     // test matching a cstr larger than the buffer size
-    mpack_expect_cstr_match(&reader, lipsum);
+    mpack_expect_cstr_match(reader, lipsum);
+    TEST_TRUE(mpack_reader_error(reader) == mpack_ok, "failed to match huge string!");
 
-    TEST_TRUE(5 == mpack_expect_array(&reader));
-    test_file_expect_bytes(&reader, mpack_tag_str(0));
-    test_file_expect_bytes(&reader, mpack_tag_str(INT8_MAX));
-    test_file_expect_bytes(&reader, mpack_tag_str(UINT8_MAX));
-    test_file_expect_bytes(&reader, mpack_tag_str(UINT8_MAX + 1));
-    test_file_expect_bytes(&reader, mpack_tag_str(UINT16_MAX + 1));
-    mpack_done_array(&reader);
+    TEST_TRUE(5 == mpack_expect_array(reader));
+    test_file_expect_bytes(reader, mpack_tag_str(0));
+    test_file_expect_bytes(reader, mpack_tag_str(INT8_MAX));
+    test_file_expect_bytes(reader, mpack_tag_str(UINT8_MAX));
+    test_file_expect_bytes(reader, mpack_tag_str(UINT8_MAX + 1));
+    test_file_expect_bytes(reader, mpack_tag_str(UINT16_MAX + 1));
+    mpack_done_array(reader);
 
-    TEST_TRUE(5 == mpack_expect_array(&reader));
-    test_file_expect_bytes(&reader, mpack_tag_bin(0));
-    test_file_expect_bytes(&reader, mpack_tag_bin(INT8_MAX));
-    test_file_expect_bytes(&reader, mpack_tag_bin(UINT8_MAX));
-    test_file_expect_bytes(&reader, mpack_tag_bin(UINT8_MAX + 1));
-    test_file_expect_bytes(&reader, mpack_tag_bin(UINT16_MAX + 1));
-    mpack_done_array(&reader);
+    TEST_TRUE(5 == mpack_expect_array(reader));
+    test_file_expect_bytes(reader, mpack_tag_bin(0));
+    test_file_expect_bytes(reader, mpack_tag_bin(INT8_MAX));
+    test_file_expect_bytes(reader, mpack_tag_bin(UINT8_MAX));
+    test_file_expect_bytes(reader, mpack_tag_bin(UINT8_MAX + 1));
+    test_file_expect_bytes(reader, mpack_tag_bin(UINT16_MAX + 1));
+    mpack_done_array(reader);
 
-    TEST_TRUE(10 == mpack_expect_array(&reader));
-    test_file_expect_bytes(&reader, mpack_tag_ext(1, 0));
-    test_file_expect_bytes(&reader, mpack_tag_ext(1, 1));
-    test_file_expect_bytes(&reader, mpack_tag_ext(1, 2));
-    test_file_expect_bytes(&reader, mpack_tag_ext(1, 4));
-    test_file_expect_bytes(&reader, mpack_tag_ext(1, 8));
-    test_file_expect_bytes(&reader, mpack_tag_ext(1, 16));
-    test_file_expect_bytes(&reader, mpack_tag_ext(2, INT8_MAX));
-    test_file_expect_bytes(&reader, mpack_tag_ext(3, UINT8_MAX));
-    test_file_expect_bytes(&reader, mpack_tag_ext(4, UINT8_MAX + 1));
-    test_file_expect_bytes(&reader, mpack_tag_ext(5, UINT16_MAX + 1));
-    mpack_done_array(&reader);
+    TEST_TRUE(10 == mpack_expect_array(reader));
+    test_file_expect_bytes(reader, mpack_tag_ext(1, 0));
+    test_file_expect_bytes(reader, mpack_tag_ext(1, 1));
+    test_file_expect_bytes(reader, mpack_tag_ext(1, 2));
+    test_file_expect_bytes(reader, mpack_tag_ext(1, 4));
+    test_file_expect_bytes(reader, mpack_tag_ext(1, 8));
+    test_file_expect_bytes(reader, mpack_tag_ext(1, 16));
+    test_file_expect_bytes(reader, mpack_tag_ext(2, INT8_MAX));
+    test_file_expect_bytes(reader, mpack_tag_ext(3, UINT8_MAX));
+    test_file_expect_bytes(reader, mpack_tag_ext(4, UINT8_MAX + 1));
+    test_file_expect_bytes(reader, mpack_tag_ext(5, UINT16_MAX + 1));
+    mpack_done_array(reader);
 
-    TEST_TRUE(5 == mpack_expect_array(&reader));
-    test_file_expect_elements(&reader, mpack_tag_array(0));
-    test_file_expect_elements(&reader, mpack_tag_array(INT8_MAX));
-    test_file_expect_elements(&reader, mpack_tag_array(UINT8_MAX));
-    test_file_expect_elements(&reader, mpack_tag_array(UINT8_MAX + 1));
-    test_file_expect_elements(&reader, mpack_tag_array(UINT16_MAX + 1));
-    mpack_done_array(&reader);
+    TEST_TRUE(5 == mpack_expect_array(reader));
+    test_file_expect_elements(reader, mpack_tag_array(0));
+    test_file_expect_elements(reader, mpack_tag_array(INT8_MAX));
+    test_file_expect_elements(reader, mpack_tag_array(UINT8_MAX));
+    test_file_expect_elements(reader, mpack_tag_array(UINT8_MAX + 1));
+    test_file_expect_elements(reader, mpack_tag_array(UINT16_MAX + 1));
+    mpack_done_array(reader);
 
-    TEST_TRUE(5 == mpack_expect_array(&reader));
-    test_file_expect_elements(&reader, mpack_tag_map(0));
-    test_file_expect_elements(&reader, mpack_tag_map(INT8_MAX));
-    test_file_expect_elements(&reader, mpack_tag_map(UINT8_MAX));
-    test_file_expect_elements(&reader, mpack_tag_map(UINT8_MAX + 1));
-    test_file_expect_elements(&reader, mpack_tag_map(UINT16_MAX + 1));
-    mpack_done_array(&reader);
+    TEST_TRUE(5 == mpack_expect_array(reader));
+    test_file_expect_elements(reader, mpack_tag_map(0));
+    test_file_expect_elements(reader, mpack_tag_map(INT8_MAX));
+    test_file_expect_elements(reader, mpack_tag_map(UINT8_MAX));
+    test_file_expect_elements(reader, mpack_tag_map(UINT8_MAX + 1));
+    test_file_expect_elements(reader, mpack_tag_map(UINT16_MAX + 1));
+    mpack_done_array(reader);
 
     for (int i = 0; i < nesting_depth; ++i)
-        mpack_expect_array_match(&reader, 1);
-    mpack_expect_nil(&reader);
+        mpack_expect_array_match(reader, 1);
+    mpack_expect_nil(reader);
     for (int i = 0; i < nesting_depth; ++i)
-        mpack_done_array(&reader);
+        mpack_done_array(reader);
 
-    mpack_done_array(&reader);
+    mpack_done_array(reader);
+}
 
-    mpack_error_t error = mpack_reader_destroy(&reader);
-    TEST_TRUE(error == mpack_ok, "read failed with %s", mpack_error_to_string(error));
-
+static void test_file_read_missing(void) {
     // test missing file
+    mpack_reader_t reader;
     mpack_reader_init_file(&reader, "invalid-filename");
     TEST_READER_DESTROY_ERROR(&reader, mpack_error_io);
+}
+
+static void test_file_read_helper(void) {
+    // test reading with the default file reader
+    mpack_reader_t reader;
+    mpack_reader_init_file(&reader, test_filename);
+    test_file_read_contents(&reader);
+    TEST_READER_DESTROY_NOERROR(&reader);
+}
+
+typedef struct test_file_streaming_t {
+    FILE* file;
+    size_t read_size;
+} test_file_streaming_t;
+
+static size_t test_file_read_streaming_fill(mpack_reader_t* reader, char* buffer, size_t count) {
+    test_file_streaming_t* context = (test_file_streaming_t*)reader->context;
+    if (count > context->read_size)
+        count = context->read_size;
+    return fread((void*)buffer, 1, count, context->file);
+}
+
+static void test_file_read_streaming(void) {
+    // We test reading from a file using a streaming function
+    // that returns a small number of bytes each time (as though
+    // it is slowly receiving data through a socket.) This tests
+    // that the reader correctly handles streams, and that it
+    // can continue asking for data even when it needs more bytes
+    // than read by a single call to the fill function.
+
+    size_t sizes[] = {1, 2, 3, 5, 7, 11};
+    for (size_t i = 0; i < sizeof(sizes) / sizeof(*sizes); ++i) {
+
+        FILE* file = fopen(test_filename, "rb");
+        TEST_TRUE(file != NULL, "failed to open file! filename %s", test_filename);
+
+        test_file_streaming_t context = {file, sizes[i]};
+        mpack_reader_t reader;
+        char buffer[MPACK_READER_MINIMUM_BUFFER_SIZE];
+        mpack_reader_init(&reader, buffer, sizeof(buffer), 0);
+        mpack_reader_set_context(&reader, &context);
+        mpack_reader_set_fill(&reader, &test_file_read_streaming_fill);
+
+        test_file_read_contents(&reader);
+        TEST_READER_DESTROY_NOERROR(&reader);
+        fclose(file);
+    }
 }
 
 static bool test_file_expect_failure(void) {
@@ -713,7 +759,9 @@ void test_file(void) {
     test_file_discard();
     #endif
     #if MPACK_EXPECT
-    test_file_read();
+    test_file_read_missing();
+    test_file_read_helper();
+    test_file_read_streaming();
     #endif
     #if MPACK_NODE
     test_file_node();
