@@ -1057,6 +1057,66 @@ static void test_expect_key_uint() {
     #undef KEY_COUNT
 }
 
+typedef struct test_expect_stream_t {
+    char* data;
+    size_t left;
+    size_t read_size;
+} test_expect_stream_t;
+
+static size_t test_expect_stream_fill(mpack_reader_t* reader, char* buffer, size_t count) {
+    test_expect_stream_t* context = (test_expect_stream_t*)reader->context;
+    if (count > context->read_size)
+        count = context->read_size;
+    if (count > context->left)
+        count = context->left;
+    memcpy(buffer, context->data, count);
+    context->data += count;
+    context->left -= count;
+    return count;
+}
+
+static void test_expect_streaming() {
+    // We test reading from a stream of messages using a function
+    // that returns a small number of bytes each time (as though
+    // it is slowly receiving data through a socket.) This tests
+    // that the reader correctly handles streams, and that it
+    // can continue asking for data even when it needs more bytes
+    // than read by a single call to the fill function.
+
+    char data[] = "\x00\xd3\xff\xff\xff\xff\xff\xff\xff\xff\xc0\xa5"
+        "hello\x93\xc3\xa6""world!\xc2\xce\xff\xff\xff\xff";
+
+    size_t sizes[] = {1, 2, 3, 5, 7, 11};
+    for (size_t i = 0; i < sizeof(sizes) / sizeof(*sizes); ++i) {
+
+        test_expect_stream_t context = {data, sizeof(data) - 1, sizes[i]};
+        mpack_reader_t reader;
+        char buffer[MPACK_READER_MINIMUM_BUFFER_SIZE];
+        mpack_reader_init(&reader, buffer, sizeof(buffer), 0);
+        mpack_reader_set_context(&reader, &context);
+        mpack_reader_set_fill(&reader, &test_expect_stream_fill);
+
+        TEST_TRUE(mpack_expect_uint(&reader) == 0);
+        TEST_TRUE(mpack_reader_error(&reader) == mpack_ok);
+        TEST_TRUE(mpack_expect_i64(&reader) == -1);
+        mpack_expect_nil(&reader);
+        TEST_TRUE(mpack_reader_error(&reader) == mpack_ok);
+        mpack_expect_cstr_match(&reader, "hello");
+        TEST_TRUE(mpack_reader_error(&reader) == mpack_ok);
+
+        TEST_TRUE(mpack_expect_array(&reader) == 3);
+        TEST_TRUE(mpack_expect_bool(&reader) == true);
+        mpack_expect_cstr_match(&reader, "world!");
+        TEST_TRUE(mpack_reader_error(&reader) == mpack_ok);
+        mpack_expect_false(&reader);
+        TEST_TRUE(mpack_reader_error(&reader) == mpack_ok);
+        mpack_done_array(&reader);
+
+        TEST_TRUE(mpack_expect_u32(&reader) == UINT32_MAX);
+        TEST_READER_DESTROY_NOERROR(&reader);
+    }
+}
+
 void test_expect() {
     test_expect_example_read();
 
@@ -1095,6 +1155,7 @@ void test_expect() {
     test_expect_reals_range();
     test_expect_bad_type();
     test_expect_pre_error();
+    test_expect_streaming();
 }
 
 #endif
