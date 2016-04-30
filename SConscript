@@ -21,7 +21,7 @@ prog = env.Program("mpack-test", srcs,
 # whether it's available though because we want to force mpack developers
 # to install and use it if their architecture supports it.
 
-if valgrind and platform.machine() in ["i386", "x86_64"]:
+if valgrind and platform.system() == "Linux" and platform.machine() in ["i386", "x86_64"]:
     valgrind = "valgrind --leak-check=full --error-exitcode=1 "
     valgrind += "--suppressions=tools/valgrind-suppressions "
     # travis version of valgrind is too old, doesn't support leak kinds

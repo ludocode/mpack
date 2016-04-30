@@ -1,8 +1,14 @@
 import platform, os
 
-emptytest = "int main(void){return 0;}\n"
+simpletest = """
+int main(int argc, char** argv) {
+    // array dereference to test for the existence of
+    // sanitizer libs when using -fsanitize (libubsan)
+    return argv[argc - 1] == 0;
+}
+"""
 
-def CheckFlags(context, cppflags, linkflags = [], message = None, testcode = emptytest, testformat = '.c'):
+def CheckFlags(context, cppflags, linkflags = [], message = None, testcode = simpletest, testformat = '.c'):
     if message == None:
         message = " ".join(cppflags + ((cppflags != linkflags) and linkflags or []))
     context.Message("Checking for " + message + " support... ")

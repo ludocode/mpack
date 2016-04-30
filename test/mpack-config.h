@@ -49,6 +49,13 @@
 // We replace the file i/o functions to simulate failures
 #if MPACK_STDIO
 #include <stdio.h>
+#undef fopen
+#undef fclose
+#undef fread
+#undef fwrite
+#undef fseek
+#undef ftell
+#undef ferror
 #define fopen  test_fopen
 #define fclose test_fclose
 #define fread  test_fread
