@@ -302,6 +302,26 @@ MPACK_STATIC_INLINE void mpack_writer_flush_unchecked(mpack_writer_t* writer) {
     writer->flush(writer, writer->buffer, used);
 }
 
+void mpack_writer_flush_message(mpack_writer_t* writer) {
+    if (writer->error != mpack_ok)
+        return;
+
+    #if MPACK_WRITE_TRACKING
+    mpack_writer_flag_if_error(writer, mpack_track_check_empty(&writer->track));
+    if (writer->error != mpack_ok)
+        return;
+    #endif
+
+    if (writer->flush == NULL) {
+        mpack_break("cannot call mpack_writer_flush_message() without a flush function!");
+        mpack_writer_flag_error(writer, mpack_error_bug);
+        return;
+    }
+
+    if (writer->used > 0)
+        mpack_writer_flush_unchecked(writer);
+}
+
 // Ensures there are at least count bytes free in the buffer. This
 // will flag an error if the flush function fails to make enough
 // room in the buffer.

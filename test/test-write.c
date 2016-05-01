@@ -997,6 +997,73 @@ static void test_write_utf8(void) {
     TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8_cstr_or_nil(&writer, utf8_invalid), mpack_error_invalid);
 }
 
+typedef struct test_write_flush_t {
+    char* out;
+    size_t capacity;
+    size_t count;
+} test_write_flush_t;
+
+static void test_write_flush_callback(mpack_writer_t* writer, const char* buffer, size_t count) {
+    test_write_flush_t* flush = (test_write_flush_t*)writer->context;
+    if (count > flush->capacity - flush->count) {
+        mpack_writer_flag_error(writer, mpack_error_io);
+        return;
+    }
+    memcpy(flush->out + flush->count, buffer, count);
+    flush->count += count;
+}
+
+static void test_write_flush_message(void) {
+    char out[4096];
+    test_write_flush_t flush = {out, sizeof(out), 0};
+
+    mpack_writer_t writer;
+    mpack_writer_init_stack(&writer);
+    mpack_writer_set_context(&writer, &flush);
+    mpack_writer_set_flush(&writer, &test_write_flush_callback);
+
+    TEST_TRUE(flush.count == 0);
+    mpack_write_cstr(&writer, "hello world!");
+    TEST_TRUE(flush.count == 0);
+    mpack_writer_flush_message(&writer);
+    TEST_TRUE(flush.count == 13);
+
+    mpack_start_map(&writer, 2);
+    mpack_write_cstr(&writer, "a");
+    mpack_write_int(&writer, 3);
+    mpack_write_nil(&writer);
+    mpack_write_true(&writer);
+    mpack_finish_map(&writer);
+    TEST_TRUE(flush.count == 13);
+    mpack_writer_flush_message(&writer);
+    TEST_TRUE(flush.count == 19);
+
+    TEST_WRITER_DESTROY_NOERROR(&writer);
+
+    // test break due to open message (if tracking is enabled)
+    mpack_writer_init_stack(&writer);
+    mpack_writer_set_context(&writer, &flush);
+    mpack_writer_set_flush(&writer, &test_write_flush_callback);
+    mpack_start_map(&writer, 5);
+    #if MPACK_WRITE_TRACKING
+    TEST_BREAK((mpack_writer_flush_message(&writer), true));
+    TEST_TRUE(mpack_writer_error(&writer) == mpack_error_bug);
+    mpack_writer_flush_message(&writer); // no-op
+    TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_bug);
+    #else
+    mpack_writer_flush_message(&writer);
+    TEST_WRITER_DESTROY_NOERROR(&writer);
+    #endif
+
+    // test break due to lack of flush
+    mpack_writer_init_stack(&writer);
+    mpack_write_cstr(&writer, "hello world!");
+    TEST_BREAK((mpack_writer_flush_message(&writer), true));
+    TEST_TRUE(mpack_writer_error(&writer) == mpack_error_bug);
+    mpack_writer_flush_message(&writer); // no-op
+    TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_bug);
+}
+
 static void test_misc(void) {
 
     // writing too much data without a flush callback
@@ -1102,6 +1169,7 @@ void test_writes() {
     test_write_tracking();
     #endif
 
+    test_write_flush_message();
     test_misc();
 }
 

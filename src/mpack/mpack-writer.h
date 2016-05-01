@@ -252,8 +252,8 @@ void mpack_writer_init_file(mpack_writer_t* writer, const char* filename);
  * the final flush. It is safe to longjmp or throw out of this error handler,
  * but if you do, the writer will not be destroyed, and the teardown function
  * will not be called. You can still get the writer's error state, and you
- * must call mpack_writer_destroy again. (The second call is guaranteed not
- * to call your error handler again since the writer is already in an error
+ * must call @ref mpack_writer_destroy() again. (The second call is guaranteed
+ * not to call your error handler again since the writer is already in an error
  * state.)
  *
  * @see mpack_writer_set_error_handler
@@ -350,6 +350,26 @@ MPACK_INLINE void mpack_writer_set_teardown(mpack_writer_t* writer, mpack_writer
  * @name Core Writer Functions
  * @{
  */
+
+/**
+ * Flushes any buffered data to the underlying stream.
+ *
+ * If write tracking is enabled, this will break and flag @ref
+ * mpack_error_bug if the writer has any open compound types, ensuring
+ * that no compound types are still open. This prevents a "missing
+ * finish" bug from causing a never-ending message.
+ *
+ * If the writer is connected to a socket and you are keeping it open,
+ * you will want to call this after writing a message (or set of
+ * messages) so that the data is actually sent.
+ *
+ * It is not necessary to call this if you are not keeping the writer
+ * open afterwards. You can just call `mpack_writer_destroy()`, and it
+ * will flush before cleaning up.
+ *
+ * This will assert if no flush function is assigned to the writer.
+ */
+void mpack_writer_flush_message(mpack_writer_t* writer);
 
 /**
  * Returns the number of bytes currently stored in the buffer. This

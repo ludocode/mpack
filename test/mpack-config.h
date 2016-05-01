@@ -87,8 +87,8 @@
 
 // we use small buffer sizes to test flushing, growing, and malloc failures
 #define MPACK_TRACKING_INITIAL_CAPACITY 3
-#define MPACK_STACK_SIZE 7
-#define MPACK_BUFFER_SIZE 32
+#define MPACK_STACK_SIZE 33
+#define MPACK_BUFFER_SIZE 33
 #define MPACK_NODE_PAGE_SIZE 113
 
 #ifdef MPACK_MALLOC
