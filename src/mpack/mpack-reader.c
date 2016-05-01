@@ -397,7 +397,7 @@ static void mpack_reader_skip_using_fill(mpack_reader_t* reader, size_t count) {
     // fill and discard multiples of the buffer size
     while (count > reader->size) {
         mpack_log("filling and discarding buffer of %i bytes\n", (int)reader->size);
-        if (mpack_fill(reader, reader->buffer, reader->size) < reader->size) {
+        if (mpack_fill_range(reader, reader->buffer, reader->size, reader->size) < reader->size) {
             mpack_reader_flag_error(reader, mpack_error_io);
             return;
         }
@@ -406,7 +406,7 @@ static void mpack_reader_skip_using_fill(mpack_reader_t* reader, size_t count) {
 
     // fill the buffer as much as possible
     reader->data = reader->buffer;
-    reader->left = mpack_fill(reader, reader->buffer, reader->size);
+    reader->left = mpack_fill_range(reader, reader->buffer, count, reader->size);
     if (reader->left < count) {
         mpack_reader_flag_error(reader, mpack_error_io);
         return;
