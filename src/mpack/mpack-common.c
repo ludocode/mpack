@@ -39,6 +39,7 @@ const char* mpack_error_to_string(mpack_error_t error) {
         MPACK_ERROR_STRING_CASE(mpack_error_memory);
         MPACK_ERROR_STRING_CASE(mpack_error_bug);
         MPACK_ERROR_STRING_CASE(mpack_error_data);
+        MPACK_ERROR_STRING_CASE(mpack_error_eof);
         #undef MPACK_ERROR_STRING_CASE
         default: break;
     }

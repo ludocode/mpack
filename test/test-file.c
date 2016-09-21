@@ -532,6 +532,21 @@ static bool test_file_expect_failure(void) {
     return true;
 
 }
+
+static void test_file_read_eof(void) {
+    mpack_reader_t reader;
+    mpack_reader_init_file(&reader, test_filename);
+    TEST_TRUE(mpack_reader_error(&reader) == mpack_ok, "file open failed with %s",
+            mpack_error_to_string(mpack_reader_error(&reader)));
+
+    while (mpack_reader_error(&reader) != mpack_error_eof)
+        mpack_discard(&reader);
+
+    mpack_error_t error = mpack_reader_destroy(&reader);
+    TEST_TRUE(error == mpack_error_eof, "unexpected error state %i (%s)", (int)error,
+            mpack_error_to_string(error));
+}
+
 #endif
 
 #if MPACK_NODE
@@ -762,6 +777,7 @@ void test_file(void) {
     test_file_read_missing();
     test_file_read_helper();
     test_file_read_streaming();
+    test_file_read_eof();
     #endif
     #if MPACK_NODE
     test_file_node();

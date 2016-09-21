@@ -94,6 +94,10 @@ void mpack_reader_set_skip(mpack_reader_t* reader, mpack_reader_skip_t skip) {
 
 #if MPACK_STDIO
 static size_t mpack_file_reader_fill(mpack_reader_t* reader, char* buffer, size_t count) {
+    if (feof((FILE *)reader->context)) {
+       mpack_reader_flag_error(reader, mpack_error_eof);
+       return 0;
+    }
     return fread((void*)buffer, 1, count, (FILE*)reader->context);
 }
 

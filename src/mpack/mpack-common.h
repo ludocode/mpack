@@ -151,6 +151,7 @@ typedef enum mpack_error_t {
     mpack_error_memory,  /**< An allocation failure occurred. */
     mpack_error_bug,     /**< The MPack API was used incorrectly. (This will always assert in debug mode.) */
     mpack_error_data,    /**< The contained data is not valid. */
+    mpack_error_eof,     /**< The reader failed to read because of file or socket EOF */
 } mpack_error_t;
 
 /**
