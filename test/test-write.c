@@ -712,7 +712,7 @@ static bool test_write_deep_growth(void) {
         TEST_POSSIBLE_FAILURE();
     }
 
-    mpack_start_array(&writer, nums);
+    mpack_start_array(&writer, (uint32_t)nums);
     TEST_POSSIBLE_FAILURE();
     for (int i = 0; i < nums; ++i) {
         mpack_write_u64(&writer, UINT64_MAX);

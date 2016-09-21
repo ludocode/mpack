@@ -30,7 +30,7 @@ for x in os.environ.keys():
 
 env.Append(CPPFLAGS = [
     "-Wall", "-Wextra", "-Werror",
-    "-Wconversion", "-Wno-sign-conversion", "-Wundef",
+    "-Wconversion", "-Wundef",
     "-Wshadow", "-Wcast-qual",
     "-Isrc", "-Itest",
     "-DMPACK_SCONS=1",

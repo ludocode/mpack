@@ -95,7 +95,7 @@ static const char test_strings[] =
 // a semi-random list of buffer sizes we will test with. each buffer
 // test is run with each of these buffer sizes to test the fill and
 // flush functions.
-static const int test_buffer_sizes[] = {
+static const size_t test_buffer_sizes[] = {
     32, 33, 34, 35, 36, 37, 39, 43, 48, 51,
     52, 53, 57, 59, 64, 67, 89, 127, 128,
     129, 131, 160, 163, 191, 192, 193,

@@ -331,21 +331,21 @@ static void mpack_tree_parse_node(mpack_tree_parser_t* parser, mpack_node_data_t
         // fixmap
         case 0x8:
             node->type = mpack_type_map;
-            node->len = type & ~0xf0;
+            node->len = (uint32_t)(type & ~0xf0);
             mpack_tree_parse_children(parser, node);
             return;
 
         // fixarray
         case 0x9:
             node->type = mpack_type_array;
-            node->len = type & ~0xf0;
+            node->len = (uint32_t)(type & ~0xf0);
             mpack_tree_parse_children(parser, node);
             return;
 
         // fixstr
         case 0xa: case 0xb:
             node->type = mpack_type_str;
-            node->len = type & ~0xe0;
+            node->len = (uint32_t)(type & ~0xe0);
             mpack_tree_parse_bytes(parser, node);
             return;
 
@@ -392,7 +392,7 @@ static void mpack_tree_parse_node(mpack_tree_parser_t* parser, mpack_node_data_t
         case 0x80: case 0x81: case 0x82: case 0x83: case 0x84: case 0x85: case 0x86: case 0x87:
         case 0x88: case 0x89: case 0x8a: case 0x8b: case 0x8c: case 0x8d: case 0x8e: case 0x8f:
             node->type = mpack_type_map;
-            node->len = type & ~0xf0;
+            node->len = (uint32_t)(type & ~0xf0);
             mpack_tree_parse_children(parser, node);
             return;
 
@@ -400,7 +400,7 @@ static void mpack_tree_parse_node(mpack_tree_parser_t* parser, mpack_node_data_t
         case 0x90: case 0x91: case 0x92: case 0x93: case 0x94: case 0x95: case 0x96: case 0x97:
         case 0x98: case 0x99: case 0x9a: case 0x9b: case 0x9c: case 0x9d: case 0x9e: case 0x9f:
             node->type = mpack_type_array;
-            node->len = type & ~0xf0;
+            node->len = (uint32_t)(type & ~0xf0);
             mpack_tree_parse_children(parser, node);
             return;
 
@@ -410,7 +410,7 @@ static void mpack_tree_parse_node(mpack_tree_parser_t* parser, mpack_node_data_t
         case 0xb0: case 0xb1: case 0xb2: case 0xb3: case 0xb4: case 0xb5: case 0xb6: case 0xb7:
         case 0xb8: case 0xb9: case 0xba: case 0xbb: case 0xbc: case 0xbd: case 0xbe: case 0xbf:
             node->type = mpack_type_str;
-            node->len = type & ~0xe0;
+            node->len = (uint32_t)(type & ~0xe0);
             mpack_tree_parse_bytes(parser, node);
             return;
         #endif
@@ -847,7 +847,7 @@ static bool mpack_file_tree_read(mpack_tree_t* tree, mpack_file_tree_t* file_tre
     }
 
     // allocate data
-    file_tree->data = (char*)MPACK_MALLOC(size);
+    file_tree->data = (char*)MPACK_MALLOC((size_t)size);
     if (file_tree->data == NULL) {
         fclose(file);
         mpack_tree_init_error(tree, mpack_error_memory);
@@ -864,7 +864,7 @@ static bool mpack_file_tree_read(mpack_tree_t* tree, mpack_file_tree_t* file_tre
             MPACK_FREE(file_tree->data);
             return false;
         }
-        total += read;
+        total += (long)read;
     }
 
     fclose(file);
@@ -1061,8 +1061,8 @@ static void mpack_node_print_element(mpack_node_t node, size_t depth, FILE* file
 
 void mpack_node_print_file(mpack_node_t node, FILE* file) {
     mpack_assert(file != NULL, "file is NULL");
-    int depth = 2;
-    for (int i = 0; i < depth; ++i)
+    size_t depth = 2;
+    for (size_t i = 0; i < depth; ++i)
         fprintf(file, "    ");
     mpack_node_print_element(node, depth, file);
     putc('\n', file);

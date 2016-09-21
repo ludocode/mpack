@@ -65,7 +65,7 @@ void test_system_fail_until_ok(bool (*test)(void)) {
     #endif
 
     for (int i = 0; i < test_system_fail_until_max; ++i) {
-        test_system_fail_after(i, false);
+        test_system_fail_after((size_t)i, false);
         bool ok = test();
 
         #ifdef MPACK_MALLOC
@@ -75,7 +75,7 @@ void test_system_fail_until_ok(bool (*test)(void)) {
         TEST_TRUE(test_files_count() == 0, "test single failure leaked file on iteration %i!", i);
         #endif
 
-        test_system_fail_after(i, true);
+        test_system_fail_after((size_t)i, true);
         ok &= test();
 
         #ifdef MPACK_MALLOC
