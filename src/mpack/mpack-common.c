@@ -81,11 +81,11 @@ int mpack_tag_cmp(mpack_tag_t left, mpack_tag_t right) {
     // positive numbers may be stored as int; convert to uint
     if (left.type == mpack_type_int && left.v.i >= 0) {
         left.type = mpack_type_uint;
-        left.v.u = left.v.i;
+        left.v.u = (uint64_t)left.v.i;
     }
     if (right.type == mpack_type_int && right.v.i >= 0) {
         right.type = mpack_type_uint;
-        right.v.u = right.v.i;
+        right.v.u = (uint64_t)right.v.i;
     }
 
     if (left.type != right.type)

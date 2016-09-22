@@ -50,7 +50,7 @@ static char* test_file_fetch(const char* filename, size_t* out_size) {
         fclose(file);
         return (char*)MPACK_MALLOC(1);
     }
-    char* data = (char*)MPACK_MALLOC(size);
+    char* data = (char*)MPACK_MALLOC((size_t)size);
 
     // read the file
     long total = 0;
@@ -62,7 +62,7 @@ static char* test_file_fetch(const char* filename, size_t* out_size) {
             MPACK_FREE(data);
             return NULL;
         }
-        total += count;
+        total += (long)count;
     }
 
     fclose(file);
@@ -174,7 +174,7 @@ static void test_file_write(void) {
 
     int count = UINT16_MAX / 20;
     mpack_writer_init_file(&writer, "/dev/full");
-    mpack_start_array(&writer, count);
+    mpack_start_array(&writer, (uint32_t)count);
     for (int i = 0; i < count; ++i)
         mpack_write_cstr(&writer, quick_brown_fox);
     mpack_finish_array(&writer);

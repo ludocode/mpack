@@ -30,7 +30,7 @@ for x in os.environ.keys():
 
 env.Append(CPPFLAGS = [
     "-Wall", "-Wextra", "-Werror",
-    "-Wconversion", "-Wno-sign-conversion", "-Wundef",
+    "-Wconversion", "-Wundef",
     "-Wshadow", "-Wcast-qual",
     "-Isrc", "-Itest",
     "-DMPACK_SCONS=1",
@@ -44,7 +44,7 @@ env.Append(LINKFLAGS = [
 
 AddFlagIfSupported("-Wmissing-variable-declarations")
 AddFlagIfSupported("-Wstrict-aliasing=1")
-AddFlagIfSupported("-Wno-float-conversion")
+AddFlagIfSupported("-Wfloat-conversion")
 AddFlagIfSupported("-Wmisleading-indentation")
 
 
