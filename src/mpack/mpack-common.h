@@ -287,7 +287,7 @@ MPACK_INLINE mpack_tag_t mpack_tag_array(int32_t count) {
     mpack_tag_t ret;
     mpack_memset(&ret, 0, sizeof(ret));
     ret.type = mpack_type_array;
-    ret.v.n = count;
+    ret.v.n = (uint32_t)count;
     return ret;
 }
 
@@ -296,7 +296,7 @@ MPACK_INLINE mpack_tag_t mpack_tag_map(int32_t count) {
     mpack_tag_t ret;
     mpack_memset(&ret, 0, sizeof(ret));
     ret.type = mpack_type_map;
-    ret.v.n = count;
+    ret.v.n = (uint32_t)count;
     return ret;
 }
 
@@ -305,7 +305,7 @@ MPACK_INLINE mpack_tag_t mpack_tag_str(int32_t length) {
     mpack_tag_t ret;
     mpack_memset(&ret, 0, sizeof(ret));
     ret.type = mpack_type_str;
-    ret.v.l = length;
+    ret.v.l = (uint32_t)length;
     return ret;
 }
 
@@ -314,7 +314,7 @@ MPACK_INLINE mpack_tag_t mpack_tag_bin(int32_t length) {
     mpack_tag_t ret;
     mpack_memset(&ret, 0, sizeof(ret));
     ret.type = mpack_type_bin;
-    ret.v.l = length;
+    ret.v.l = (uint32_t)length;
     return ret;
 }
 
@@ -324,7 +324,7 @@ MPACK_INLINE mpack_tag_t mpack_tag_ext(int8_t exttype, int32_t length) {
     mpack_memset(&ret, 0, sizeof(ret));
     ret.type = mpack_type_ext;
     ret.exttype = exttype;
-    ret.v.l = length;
+    ret.v.l = (uint32_t)length;
     return ret;
 }
 

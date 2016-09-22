@@ -589,19 +589,19 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
         // fixmap
         case 0x8:
             tag->type = mpack_type_map;
-            tag->v.n = type & ~0xf0;
+            tag->v.n = (uint32_t)(type & ~0xf0);
             return 1;
 
         // fixarray
         case 0x9:
             tag->type = mpack_type_array;
-            tag->v.n = type & ~0xf0;
+            tag->v.n = (uint32_t)(type & ~0xf0);
             return 1;
 
         // fixstr
         case 0xa: case 0xb:
             tag->type = mpack_type_str;
-            tag->v.l = type & ~0xe0;
+            tag->v.l = (uint32_t)(type & ~0xe0);
             return 1;
 
         // not one of the common infix types
@@ -649,14 +649,14 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
         case 0x80: case 0x81: case 0x82: case 0x83: case 0x84: case 0x85: case 0x86: case 0x87:
         case 0x88: case 0x89: case 0x8a: case 0x8b: case 0x8c: case 0x8d: case 0x8e: case 0x8f:
             tag->type = mpack_type_map;
-            tag->v.n = type & ~0xf0;
+            tag->v.n = (uint32_t)(type & ~0xf0);
             return 1;
 
         // fixarray
         case 0x90: case 0x91: case 0x92: case 0x93: case 0x94: case 0x95: case 0x96: case 0x97:
         case 0x98: case 0x99: case 0x9a: case 0x9b: case 0x9c: case 0x9d: case 0x9e: case 0x9f:
             tag->type = mpack_type_array;
-            tag->v.n = type & ~0xf0;
+            tag->v.n = (uint32_t)(type & ~0xf0);
             return 1;
 
         // fixstr
@@ -665,7 +665,7 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
         case 0xb0: case 0xb1: case 0xb2: case 0xb3: case 0xb4: case 0xb5: case 0xb6: case 0xb7:
         case 0xb8: case 0xb9: case 0xba: case 0xbb: case 0xbc: case 0xbd: case 0xbe: case 0xbf:
             tag->type = mpack_type_str;
-            tag->v.l = type & ~0xe0;
+            tag->v.l = (uint32_t)(type & ~0xe0);
             return 1;
         #endif
 
@@ -1143,8 +1143,8 @@ void mpack_print_file(const char* data, size_t len, FILE* file) {
     mpack_reader_t reader;
     mpack_reader_init_data(&reader, data, len);
 
-    int depth = 2;
-    for (int i = 0; i < depth; ++i)
+    size_t depth = 2;
+    for (size_t i = 0; i < depth; ++i)
         fprintf(file, "    ");
     mpack_print_element(&reader, depth, file);
     putc('\n', file);
