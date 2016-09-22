@@ -44,7 +44,7 @@ env.Append(LINKFLAGS = [
 
 AddFlagIfSupported("-Wmissing-variable-declarations")
 AddFlagIfSupported("-Wstrict-aliasing=1")
-AddFlagIfSupported("-Wno-float-conversion")
+AddFlagIfSupported("-Wfloat-conversion")
 AddFlagIfSupported("-Wmisleading-indentation")
 
 

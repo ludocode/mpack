@@ -636,19 +636,19 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
         // fixmap
         case 0x8:
             tag->type = mpack_type_map;
-            tag->v.n = type & ~0xf0;
+            tag->v.n = (uint32_t)(type & ~0xf0);
             return 1;
 
         // fixarray
         case 0x9:
             tag->type = mpack_type_array;
-            tag->v.n = type & ~0xf0;
+            tag->v.n = (uint32_t)(type & ~0xf0);
             return 1;
 
         // fixstr
         case 0xa: case 0xb:
             tag->type = mpack_type_str;
-            tag->v.l = type & ~0xe0;
+            tag->v.l = (uint32_t)(type & ~0xe0);
             return 1;
 
         // not one of the common infix types
