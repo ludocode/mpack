@@ -419,6 +419,33 @@ static void test_file_read_helper(void) {
     TEST_READER_DESTROY_NOERROR(&reader);
 }
 
+static void test_file_read_helper_std_owned(void) {
+    // test reading from a libc FILE, giving ownership
+    FILE* file = fopen(test_filename, "rb");
+    TEST_TRUE(file != NULL, "failed to open file! filename %s", test_filename);
+
+    mpack_reader_t reader;
+    mpack_reader_init_stdfile(&reader, file, true);
+    test_file_read_contents(&reader);
+    TEST_READER_DESTROY_NOERROR(&reader);
+
+    // the test harness will ensure no file is leaked
+}
+
+static void test_file_read_helper_std_unowned(void) {
+    // test reading from a libc FILE, retaining ownership
+    FILE* file = fopen(test_filename, "rb");
+    TEST_TRUE(file != NULL, "failed to open file! filename %s", test_filename);
+
+    mpack_reader_t reader;
+    mpack_reader_init_stdfile(&reader, file, false);
+    test_file_read_contents(&reader);
+    TEST_READER_DESTROY_NOERROR(&reader);
+
+    // we retained ownership, so we close it ourselves
+    fclose(file);
+}
+
 typedef struct test_file_streaming_t {
     FILE* file;
     size_t read_size;
@@ -776,6 +803,8 @@ void test_file(void) {
     #if MPACK_EXPECT
     test_file_read_missing();
     test_file_read_helper();
+    test_file_read_helper_std_owned();
+    test_file_read_helper_std_unowned();
     test_file_read_streaming();
     test_file_read_eof();
     #endif
