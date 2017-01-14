@@ -26,5 +26,5 @@ env:
 matrix:
   include:
     - os: osx
-      compiler: xcodebuild
-      env: ""
+      compiler: clang
+      env: "OSX=1"
