@@ -1,5 +1,8 @@
 language: c
 
+dist: trusty
+sudo: false
+
 addons:
   apt:
     packages:

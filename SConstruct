@@ -194,10 +194,12 @@ if ARGUMENTS.get('all'):
     sanitizers = {
         "stack-protector": ["-Wstack-protector", "-fstack-protector-all"],
         "undefined": ["-fsanitize=undefined"],
-        "memory": ["-fsanitize=memory"],
         "address": ["-fsanitize=address"],
         "safestack": ["-fsanitize=safe-stack"],
     }
+    # memory sanitizer isn't working on the version of Clang on Travis-CI's Trusty container right now
+    if not ("CC" in os.environ and os.environ["CC"] == "clang" and "TRAVIS" in os.environ):
+        sanitizers["memory"] = ["-fsanitize=memory"]
     for name, flags in sanitizers.items():
         if conf.CheckFlags(flags, flags):
             AddBuilds("sanitize-" + name, allfeatures + allconfigs + cflags + flags, flags, valgrind=False)
