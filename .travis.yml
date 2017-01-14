@@ -1,5 +1,8 @@
 language: c
 
+dist: trusty
+sudo: false
+
 addons:
   apt:
     packages:
@@ -26,5 +29,5 @@ env:
 matrix:
   include:
     - os: osx
-      compiler: xcodebuild
-      env: ""
+      compiler: clang
+      env: "OSX=1"

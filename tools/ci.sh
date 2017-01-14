@@ -9,11 +9,12 @@ if [ "$(uname -s)" == "Darwin" ]; then
     unset CC
     unset CXX
     cd projects/xcode
+    xcodebuild -version
     xcodebuild build -configuration Debug || exit $?
     xcodebuild build -configuration Release || exit $?
-    echo "Running Debug..."
+    echo "Running Debug unit tests..."
     ( cd ../.. ; projects/xcode/build/Debug/MPack ) || exit $?
-    echo "Running Release..."
+    echo "Running Release unit tests..."
     ( cd ../.. ; projects/xcode/build/Release/MPack ) || exit $?
     exit 0
 fi

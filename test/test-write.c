@@ -942,15 +942,15 @@ static void test_write_utf8(void) {
     const char utf8_wobbly[]          = " \xED\xA0\x81 ";
 
     // all non-UTF-8 writers should write these strings without error
-    TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_null, sizeof(utf8_null)-1));
-    TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_valid, sizeof(utf8_valid)-1));
-    TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_trimmed, sizeof(utf8_trimmed)-1));
-    TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_invalid, sizeof(utf8_invalid)-1));
-    TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_invalid_trimmed, sizeof(utf8_invalid_trimmed)-1));
-    TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_truncated, sizeof(utf8_truncated)-1));
-    TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_modified, sizeof(utf8_modified)-1));
-    TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_cesu8, sizeof(utf8_cesu8)-1));
-    TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_wobbly, sizeof(utf8_wobbly)-1));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_null, (uint32_t)sizeof(utf8_null)-1));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_valid, (uint32_t)sizeof(utf8_valid)-1));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_trimmed, (uint32_t)sizeof(utf8_trimmed)-1));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_invalid, (uint32_t)sizeof(utf8_invalid)-1));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_invalid_trimmed, (uint32_t)sizeof(utf8_invalid_trimmed)-1));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_truncated, (uint32_t)sizeof(utf8_truncated)-1));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_modified, (uint32_t)sizeof(utf8_modified)-1));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_cesu8, (uint32_t)sizeof(utf8_cesu8)-1));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_wobbly, (uint32_t)sizeof(utf8_wobbly)-1));
 
     // as should the non-UTF-8 cstr writers
     // (the utf8_null test here is writing up to the null-terminator which
@@ -970,15 +970,15 @@ static void test_write_utf8(void) {
     // NUL is valid in UTF-8, so we allow it by the non-cstr API. (If you're
     // using it to write, you should also using some non-cstr API to
     // read, so the NUL will be safely handled.)
-    TEST_SIMPLE_WRITE_NOERROR(mpack_write_utf8(&writer, utf8_null, sizeof(utf8_null)-1));
-    TEST_SIMPLE_WRITE_NOERROR(mpack_write_utf8(&writer, utf8_valid, sizeof(utf8_valid)-1));
-    TEST_SIMPLE_WRITE_NOERROR(mpack_write_utf8(&writer, utf8_trimmed, sizeof(utf8_trimmed)-1));
-    TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8(&writer, utf8_invalid, sizeof(utf8_invalid)-1), mpack_error_invalid);
-    TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8(&writer, utf8_invalid_trimmed, sizeof(utf8_invalid_trimmed)-1), mpack_error_invalid);
-    TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8(&writer, utf8_truncated, sizeof(utf8_truncated)-1), mpack_error_invalid);
-    TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8(&writer, utf8_modified, sizeof(utf8_modified)-1), mpack_error_invalid);
-    TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8(&writer, utf8_cesu8, sizeof(utf8_cesu8)-1), mpack_error_invalid);
-    TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8(&writer, utf8_wobbly, sizeof(utf8_wobbly)-1), mpack_error_invalid);
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_utf8(&writer, utf8_null, (uint32_t)sizeof(utf8_null)-1));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_utf8(&writer, utf8_valid, (uint32_t)sizeof(utf8_valid)-1));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_utf8(&writer, utf8_trimmed, (uint32_t)sizeof(utf8_trimmed)-1));
+    TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8(&writer, utf8_invalid, (uint32_t)sizeof(utf8_invalid)-1), mpack_error_invalid);
+    TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8(&writer, utf8_invalid_trimmed, (uint32_t)sizeof(utf8_invalid_trimmed)-1), mpack_error_invalid);
+    TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8(&writer, utf8_truncated, (uint32_t)sizeof(utf8_truncated)-1), mpack_error_invalid);
+    TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8(&writer, utf8_modified, (uint32_t)sizeof(utf8_modified)-1), mpack_error_invalid);
+    TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8(&writer, utf8_cesu8, (uint32_t)sizeof(utf8_cesu8)-1), mpack_error_invalid);
+    TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8(&writer, utf8_wobbly, (uint32_t)sizeof(utf8_wobbly)-1), mpack_error_invalid);
 
     // test UTF-8 cstr writers
     TEST_SIMPLE_WRITE_NOERROR(mpack_write_utf8_cstr(&writer, utf8_null)); // again, up to null-terminator, which is valid...

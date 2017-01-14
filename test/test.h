@@ -54,13 +54,19 @@
 #include "mpack/mpack.h"
 
 #if !MPACK_FINITE_MATH
-#ifdef WIN32
-#include <float.h>
-#define isnanf _isnan
-#endif
-#ifdef __APPLE__
-#define isnanf isnan
-#endif
+    #if defined(WIN32)
+        #include <float.h>
+        #define isnanf _isnan
+    #elif defined(__APPLE__)
+        #define isnanf isnan
+    #elif defined(__GNUC__) || defined(__clang__)
+        // On some versions of GCC/Ubuntu (e.g. 4.8.4 on Ubuntu 14.4),
+        // isnan() incorrectly causes double->float warnings even when
+        // called on a double
+        //     https://gcc.gnu.org/bugzilla/show_bug.cgi?id=61501
+        #undef isnan
+        #define isnan(x) __builtin_isnan(x)
+    #endif
 #endif
 
 extern mpack_tag_t (*fn_mpack_tag_nil)(void);

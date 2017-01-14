@@ -183,19 +183,23 @@ if ARGUMENTS.get('all'):
     if conf.CheckFlags(cxxflags + ["-std=gnu++11"], [], "-std=gnu++11"):
         AddBuilds("gnuxx11", allfeatures + allconfigs + cxxflags + ["-std=gnu++11"]) # Clang supports _Generic in gnu++11 mode
 
-    # 32-bit build
+    # 32-bit builds
     if conf.CheckFlags(["-m32"], ["-m32"]):
-        AddBuilds("32",     allfeatures + allconfigs + cflags + ["-m32"], ["-m32"])
-        AddBuilds("cxx32",  allfeatures + allconfigs + cxxflags + ["-std=c++98", "-m32"], ["-m32"])
+        AddBuilds("32bit",     allfeatures + allconfigs + cflags + ["-m32"], ["-m32"])
+        AddBuilds("cxx-32bit",  allfeatures + allconfigs + cxxflags + ["-std=c++98", "-m32"], ["-m32"])
+    if conf.CheckFlags(cxxflags + ["-std=c++11", "-m32"], ["-m32"], "-std=c++11"):
+        AddBuilds("cxx11-32bit", allfeatures + allconfigs + cxxflags + ["-std=c++11", "-m32"], ["-m32"])
 
     # sanitize build tests
     sanitizers = {
         "stack-protector": ["-Wstack-protector", "-fstack-protector-all"],
         "undefined": ["-fsanitize=undefined"],
-        "memory": ["-fsanitize=memory"],
         "address": ["-fsanitize=address"],
         "safestack": ["-fsanitize=safe-stack"],
     }
+    # memory sanitizer isn't working on the version of Clang on Travis-CI's Trusty container right now
+    if not ("CC" in os.environ and os.environ["CC"] == "clang" and "TRAVIS" in os.environ):
+        sanitizers["memory"] = ["-fsanitize=memory"]
     for name, flags in sanitizers.items():
         if conf.CheckFlags(flags, flags):
             AddBuilds("sanitize-" + name, allfeatures + allconfigs + cflags + flags, flags, valgrind=False)
