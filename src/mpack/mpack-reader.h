@@ -194,7 +194,16 @@ void mpack_reader_init_data(mpack_reader_t* reader, const char* data, size_t cou
  *
  * The file will be automatically opened and closed by the reader.
  */
-void mpack_reader_init_file(mpack_reader_t* reader, const char* filename);
+void mpack_reader_init_filename(mpack_reader_t* reader, const char* filename);
+
+/**
+ * Deprecated.
+ *
+ * \deprecated Renamed to mpack_reader_init_filename().
+ */
+MPACK_INLINE void mpack_reader_init_file(mpack_reader_t* reader, const char* filename) {
+    return mpack_reader_init_filename(reader, filename);
+}
 
 /**
  * Initializes an MPack reader that reads from a libc FILE. This can be used to

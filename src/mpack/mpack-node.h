@@ -241,7 +241,16 @@ void mpack_tree_init_error(mpack_tree_t* tree, mpack_error_t error);
  * @param filename The filename passed to fopen() to read the file
  * @param max_bytes The maximum size of file to load, or 0 for unlimited size.
  */
-void mpack_tree_init_file(mpack_tree_t* tree, const char* filename, size_t max_bytes);
+void mpack_tree_init_filename(mpack_tree_t* tree, const char* filename, size_t max_bytes);
+
+/**
+ * Deprecated.
+ *
+ * \deprecated Renamed to mpack_tree_init_filename().
+ */
+MPACK_INLINE void mpack_tree_init_file(mpack_tree_t* tree, const char* filename, size_t max_bytes) {
+    return mpack_tree_init_filename(tree, filename, max_bytes);
+}
 
 /**
  * Initializes a tree to parse the given libc FILE. This can be used to

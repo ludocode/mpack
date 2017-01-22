@@ -212,7 +212,16 @@ void mpack_writer_init_error(mpack_writer_t* writer, mpack_error_t error);
  * @throws mpack_error_memory if allocation fails
  * @throws mpack_error_io if the file cannot be opened
  */
-void mpack_writer_init_file(mpack_writer_t* writer, const char* filename);
+void mpack_writer_init_filename(mpack_writer_t* writer, const char* filename);
+
+/**
+ * Deprecated.
+ *
+ * \deprecated Renamed to mpack_writer_init_filename().
+ */
+MPACK_INLINE void mpack_writer_init_file(mpack_writer_t* writer, const char* filename) {
+    return mpack_writer_init_filename(writer, filename);
+}
 
 /**
  * Initializes an MPack writer that writes to a libc FILE. This can be used to

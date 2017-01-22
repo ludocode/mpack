@@ -970,7 +970,7 @@ void mpack_tree_init_stdfile(mpack_tree_t* tree, FILE* stdfile, size_t max_bytes
         fclose(stdfile);
 }
 
-void mpack_tree_init_file(mpack_tree_t* tree, const char* filename, size_t max_bytes) {
+void mpack_tree_init_filename(mpack_tree_t* tree, const char* filename, size_t max_bytes) {
     if (!mpack_tree_file_check_max_bytes(tree, max_bytes))
         return;
 

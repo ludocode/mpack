@@ -157,19 +157,19 @@ static void test_file_write_failures(void) {
 
     // test invalid filename
     (void)mkdir(test_dir, 0700);
-    mpack_writer_init_file(&writer, test_dir);
+    mpack_writer_init_filename(&writer, test_dir);
     TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_io);
 
     // test close and flush failure
     // (if we write more than libc's internal FILE buffer size, fwrite()
     // fails, otherwise fclose() fails. we test both here.)
 
-    mpack_writer_init_file(&writer, "/dev/full");
+    mpack_writer_init_filename(&writer, "/dev/full");
     mpack_write_cstr(&writer, quick_brown_fox);
     TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_io);
 
     int count = UINT16_MAX / 20;
-    mpack_writer_init_file(&writer, "/dev/full");
+    mpack_writer_init_filename(&writer, "/dev/full");
     mpack_start_array(&writer, (uint32_t)count);
     for (int i = 0; i < count; ++i)
         mpack_write_cstr(&writer, quick_brown_fox);
@@ -179,7 +179,7 @@ static void test_file_write_failures(void) {
 
 static void test_file_write(void) {
     mpack_writer_t writer;
-    mpack_writer_init_file(&writer, test_filename);
+    mpack_writer_init_file(&writer, test_filename); // test the deprecated function
     TEST_TRUE(mpack_writer_error(&writer) == mpack_ok, "file open failed with %s",
             mpack_error_to_string(mpack_writer_error(&writer)));
 
@@ -222,7 +222,7 @@ static bool test_file_write_failure(void) {
     // allocator modes.
 
     mpack_writer_t writer;
-    mpack_writer_init_file(&writer, test_filename);
+    mpack_writer_init_filename(&writer, test_filename);
 
     mpack_start_array(&writer, 2);
     mpack_start_array(&writer, 6);
@@ -318,7 +318,7 @@ static void test_node_print(void) {
 
     // dump MessagePack to debug file
 
-    mpack_tree_init_file(&tree, TEST_PATH "test-file.mp", 0);
+    mpack_tree_init_filename(&tree, TEST_PATH "test-file.mp", 0);
     mpack_tree_parse(&tree);
 
     out = fopen(test_filename, "wb");
@@ -333,11 +333,11 @@ static void test_node_print(void) {
 #if MPACK_READER
 static void test_file_discard(void) {
     mpack_reader_t reader;
-    mpack_reader_init_file(&reader, test_filename);
+    mpack_reader_init_filename(&reader, test_filename);
     mpack_discard(&reader);
     TEST_READER_DESTROY_NOERROR(&reader);
 
-    mpack_reader_init_file(&reader, test_filename);
+    mpack_reader_init_filename(&reader, test_filename);
     reader.skip = NULL; // disable the skip callback to test skipping without it
     mpack_discard(&reader);
     TEST_READER_DESTROY_NOERROR(&reader);
@@ -440,14 +440,14 @@ static void test_file_read_contents(mpack_reader_t* reader) {
 static void test_file_read_missing(void) {
     // test missing file
     mpack_reader_t reader;
-    mpack_reader_init_file(&reader, "invalid-filename");
+    mpack_reader_init_filename(&reader, "invalid-filename");
     TEST_READER_DESTROY_ERROR(&reader, mpack_error_io);
 }
 
 static void test_file_read_helper(void) {
     // test reading with the default file reader
     mpack_reader_t reader;
-    mpack_reader_init_file(&reader, test_filename);
+    mpack_reader_init_file(&reader, test_filename); // test the deprecated function
     test_file_read_contents(&reader);
     TEST_READER_DESTROY_NOERROR(&reader);
 }
@@ -533,7 +533,7 @@ static bool test_file_expect_failure(void) {
         } \
     } while (0)
 
-    mpack_reader_init_file(&reader, test_filename);
+    mpack_reader_init_filename(&reader, test_filename);
     mpack_expect_array_match(&reader, 2);
 
     uint32_t count;
@@ -595,7 +595,7 @@ static bool test_file_expect_failure(void) {
 
 static void test_file_read_eof(void) {
     mpack_reader_t reader;
-    mpack_reader_init_file(&reader, test_filename);
+    mpack_reader_init_filename(&reader, test_filename);
     TEST_TRUE(mpack_reader_error(&reader) == mpack_ok, "file open failed with %s",
             mpack_error_to_string(mpack_reader_error(&reader)));
 
@@ -714,27 +714,27 @@ static void test_file_node(void) {
     mpack_tree_t tree;
 
     // test maximum size
-    mpack_tree_init_file(&tree, test_filename, 100);
+    mpack_tree_init_filename(&tree, test_filename, 100);
     TEST_TREE_DESTROY_ERROR(&tree, mpack_error_too_big);
 
     // test blank file
-    mpack_tree_init_file(&tree, test_blank_filename, 0);
+    mpack_tree_init_filename(&tree, test_blank_filename, 0);
     TEST_TREE_DESTROY_ERROR(&tree, mpack_error_invalid);
 
     // test successful parse from filename
-    mpack_tree_init_file(&tree, test_filename, 0);
+    mpack_tree_init_file(&tree, test_filename, 0); // test the deprecated function
     test_file_tree_successful_parse(&tree);
 
     // test file size out of bounds
     #if MPACK_DEBUG
     if (sizeof(size_t) >= sizeof(long)) {
-        TEST_BREAK((mpack_tree_init_file(&tree, "invalid-filename", ((size_t)LONG_MAX) + 1), true));
+        TEST_BREAK((mpack_tree_init_filename(&tree, "invalid-filename", ((size_t)LONG_MAX) + 1), true));
         TEST_TREE_DESTROY_ERROR(&tree, mpack_error_bug);
     }
     #endif
 
     // test missing file
-    mpack_tree_init_file(&tree, "invalid-filename", 0);
+    mpack_tree_init_filename(&tree, "invalid-filename", 0);
     TEST_TREE_DESTROY_ERROR(&tree, mpack_error_io);
 
     // test successful parse from FILE with auto-close
@@ -768,7 +768,7 @@ static bool test_file_node_failure(void) {
         } \
     } while (0)
 
-    mpack_tree_init_file(&tree, test_filename, 0);
+    mpack_tree_init_filename(&tree, test_filename, 0);
     mpack_tree_parse(&tree);
     if (mpack_tree_error(&tree) == mpack_error_memory || mpack_tree_error(&tree) == mpack_error_io) {
         mpack_tree_destroy(&tree);

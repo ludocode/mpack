@@ -284,7 +284,7 @@ void mpack_writer_init_stdfile(mpack_writer_t* writer, FILE* file, bool close_wh
             mpack_file_writer_teardown);
 }
 
-void mpack_writer_init_file(mpack_writer_t* writer, const char* filename) {
+void mpack_writer_init_filename(mpack_writer_t* writer, const char* filename) {
     mpack_assert(filename != NULL, "filename is NULL");
 
     FILE* file = fopen(filename, "wb");

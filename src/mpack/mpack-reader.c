@@ -167,7 +167,7 @@ void mpack_reader_init_stdfile(mpack_reader_t* reader, FILE* file, bool close_wh
             mpack_file_reader_teardown);
 }
 
-void mpack_reader_init_file(mpack_reader_t* reader, const char* filename) {
+void mpack_reader_init_filename(mpack_reader_t* reader, const char* filename) {
     mpack_assert(filename != NULL, "filename is NULL");
 
     FILE* file = fopen(filename, "rb");
