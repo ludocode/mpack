@@ -246,40 +246,54 @@ static void mpack_file_writer_flush(mpack_writer_t* writer, const char* buffer, 
 }
 
 static void mpack_file_writer_teardown(mpack_writer_t* writer) {
+    MPACK_FREE(writer->buffer);
+    writer->buffer = NULL;
+    writer->context = NULL;
+}
+
+static void mpack_file_writer_teardown_close(mpack_writer_t* writer) {
     FILE* file = (FILE*)writer->context;
 
     if (file) {
         int ret = fclose(file);
-        writer->context = NULL;
         if (ret != 0)
             mpack_writer_flag_error(writer, mpack_error_io);
     }
 
-    MPACK_FREE(writer->buffer);
-    writer->buffer = NULL;
+    mpack_file_writer_teardown(writer);
 }
 
-void mpack_writer_init_file(mpack_writer_t* writer, const char* filename) {
-    mpack_assert(filename != NULL, "filename is NULL");
+void mpack_writer_init_stdfile(mpack_writer_t* writer, FILE* file, bool close_when_done) {
+    mpack_assert(file != NULL, "file is NULL");
 
     size_t capacity = MPACK_BUFFER_SIZE;
     char* buffer = (char*)MPACK_MALLOC(capacity);
     if (buffer == NULL) {
         mpack_writer_init_error(writer, mpack_error_memory);
-        return;
-    }
-
-    FILE* file = fopen(filename, "wb");
-    if (file == NULL) {
-        MPACK_FREE(buffer);
-        mpack_writer_init_error(writer, mpack_error_io);
+        if (close_when_done) {
+            fclose(file);
+        }
         return;
     }
 
     mpack_writer_init(writer, buffer, capacity);
     mpack_writer_set_context(writer, file);
     mpack_writer_set_flush(writer, mpack_file_writer_flush);
-    mpack_writer_set_teardown(writer, mpack_file_writer_teardown);
+    mpack_writer_set_teardown(writer, close_when_done ?
+            mpack_file_writer_teardown_close :
+            mpack_file_writer_teardown);
+}
+
+void mpack_writer_init_file(mpack_writer_t* writer, const char* filename) {
+    mpack_assert(filename != NULL, "filename is NULL");
+
+    FILE* file = fopen(filename, "wb");
+    if (file == NULL) {
+        mpack_writer_init_error(writer, mpack_error_io);
+        return;
+    }
+
+    mpack_writer_init_stdfile(writer, file, true);
 }
 #endif
 

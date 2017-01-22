@@ -191,8 +191,26 @@ void mpack_reader_init_data(mpack_reader_t* reader, const char* data, size_t cou
 #if MPACK_STDIO
 /**
  * Initializes an MPack reader that reads from a file.
+ *
+ * The file will be automatically opened and closed by the reader.
  */
 void mpack_reader_init_file(mpack_reader_t* reader, const char* filename);
+
+/**
+ * Initializes an MPack reader that reads from a libc FILE. This can be used to
+ * read from stdin, or from a file opened separately.
+ *
+ * @param reader The MPack reader.
+ * @param stdfile The FILE.
+ * @param close_when_done If true, fclose() will be called on the FILE when it
+ *         is no longer needed. If false, the file will not be closed when
+ *         reading is done.
+ *
+ * @warning The reader is buffered. It will read data in advance of parsing it,
+ * and it may read more data than it parsed. See mpack_reader_remaining() to
+ * access the extra data.
+ */
+void mpack_reader_init_stdfile(mpack_reader_t* reader, FILE* stdfile, bool close_when_done);
 #endif
 
 /**

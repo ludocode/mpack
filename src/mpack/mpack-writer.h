@@ -213,6 +213,23 @@ void mpack_writer_init_error(mpack_writer_t* writer, mpack_error_t error);
  * @throws mpack_error_io if the file cannot be opened
  */
 void mpack_writer_init_file(mpack_writer_t* writer, const char* filename);
+
+/**
+ * Initializes an MPack writer that writes to a libc FILE. This can be used to
+ * write to stdout or stderr, or to a file opened separately.
+ *
+ * @param writer The MPack writer.
+ * @param stdfile The FILE.
+ * @param close_when_done If true, fclose() will be called on the FILE when it
+ *         is no longer needed. If false, the file will not be flushed or
+ *         closed when writing is done.
+ *
+ * @note The writer is buffered. If you want to write other data to the FILE in
+ *         between messages, you must flush it first.
+ *
+ * @see mpack_writer_flush_message
+ */
+void mpack_writer_init_stdfile(mpack_writer_t* writer, FILE* stdfile, bool close_when_done);
 #endif
 
 /** @cond */

@@ -242,6 +242,28 @@ void mpack_tree_init_error(mpack_tree_t* tree, mpack_error_t error);
  * @param max_bytes The maximum size of file to load, or 0 for unlimited size.
  */
 void mpack_tree_init_file(mpack_tree_t* tree, const char* filename, size_t max_bytes);
+
+/**
+ * Initializes a tree to parse the given libc FILE. This can be used to
+ * read from stdin, or from a file opened separately.
+ *
+ * The tree must be destroyed with mpack_tree_destroy(), even if parsing fails.
+ *
+ * The FILE is fully loaded fully into memory (and closed if requested) before
+ * this call returns.
+ *
+ * @param tree The tree to initialize.
+ * @param stdfile The FILE.
+ * @param max_bytes The maximum size of file to load, or 0 for unlimited size.
+ * @param close_when_done If true, fclose() will be called on the FILE when it
+ *         is no longer needed. If false, the file will not be closed when
+ *         reading is done.
+ *
+ * @warning The tree will read all data in the FILE before parsing it. If this
+ *          is used on stdin, the parser will block until it is closed, even if
+ *          a complete message has been written to it!
+ */
+void mpack_tree_init_stdfile(mpack_tree_t* tree, FILE* stdfile, size_t max_bytes, bool close_when_done);
 #endif
 
 /**

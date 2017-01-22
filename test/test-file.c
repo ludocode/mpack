@@ -90,74 +90,70 @@ static void test_file_write_elements(mpack_writer_t* writer, mpack_tag_t tag) {
     mpack_finish_type(writer, tag.type);
 }
 
-static void test_file_write(void) {
-    mpack_writer_t writer;
-    mpack_writer_init_file(&writer, test_filename);
-    TEST_TRUE(mpack_writer_error(&writer) == mpack_ok, "file open failed with %s",
-            mpack_error_to_string(mpack_writer_error(&writer)));
-
-    mpack_start_array(&writer, 7);
+static void test_file_write_contents(mpack_writer_t* writer) {
+    mpack_start_array(writer, 7);
 
     // write lipsum to test a large fill/seek
-    mpack_write_cstr(&writer, lipsum);
+    mpack_write_cstr(writer, lipsum);
 
     // test compound types of various sizes
-    mpack_start_array(&writer, 5);
-    test_file_write_bytes(&writer, mpack_tag_str(0));
-    test_file_write_bytes(&writer, mpack_tag_str(INT8_MAX));
-    test_file_write_bytes(&writer, mpack_tag_str(UINT8_MAX));
-    test_file_write_bytes(&writer, mpack_tag_str(UINT8_MAX + 1));
-    test_file_write_bytes(&writer, mpack_tag_str(UINT16_MAX + 1));
-    mpack_finish_array(&writer);
+    mpack_start_array(writer, 5);
+    test_file_write_bytes(writer, mpack_tag_str(0));
+    test_file_write_bytes(writer, mpack_tag_str(INT8_MAX));
+    test_file_write_bytes(writer, mpack_tag_str(UINT8_MAX));
+    test_file_write_bytes(writer, mpack_tag_str(UINT8_MAX + 1));
+    test_file_write_bytes(writer, mpack_tag_str(UINT16_MAX + 1));
+    mpack_finish_array(writer);
 
-    mpack_start_array(&writer, 5);
-    test_file_write_bytes(&writer, mpack_tag_bin(0));
-    test_file_write_bytes(&writer, mpack_tag_bin(INT8_MAX));
-    test_file_write_bytes(&writer, mpack_tag_bin(UINT8_MAX));
-    test_file_write_bytes(&writer, mpack_tag_bin(UINT8_MAX + 1));
-    test_file_write_bytes(&writer, mpack_tag_bin(UINT16_MAX + 1));
-    mpack_finish_array(&writer);
+    mpack_start_array(writer, 5);
+    test_file_write_bytes(writer, mpack_tag_bin(0));
+    test_file_write_bytes(writer, mpack_tag_bin(INT8_MAX));
+    test_file_write_bytes(writer, mpack_tag_bin(UINT8_MAX));
+    test_file_write_bytes(writer, mpack_tag_bin(UINT8_MAX + 1));
+    test_file_write_bytes(writer, mpack_tag_bin(UINT16_MAX + 1));
+    mpack_finish_array(writer);
 
-    mpack_start_array(&writer, 10);
-    test_file_write_bytes(&writer, mpack_tag_ext(1, 0));
-    test_file_write_bytes(&writer, mpack_tag_ext(1, 1));
-    test_file_write_bytes(&writer, mpack_tag_ext(1, 2));
-    test_file_write_bytes(&writer, mpack_tag_ext(1, 4));
-    test_file_write_bytes(&writer, mpack_tag_ext(1, 8));
-    test_file_write_bytes(&writer, mpack_tag_ext(1, 16));
-    test_file_write_bytes(&writer, mpack_tag_ext(2, INT8_MAX));
-    test_file_write_bytes(&writer, mpack_tag_ext(3, UINT8_MAX));
-    test_file_write_bytes(&writer, mpack_tag_ext(4, UINT8_MAX + 1));
-    test_file_write_bytes(&writer, mpack_tag_ext(5, UINT16_MAX + 1));
-    mpack_finish_array(&writer);
+    mpack_start_array(writer, 10);
+    test_file_write_bytes(writer, mpack_tag_ext(1, 0));
+    test_file_write_bytes(writer, mpack_tag_ext(1, 1));
+    test_file_write_bytes(writer, mpack_tag_ext(1, 2));
+    test_file_write_bytes(writer, mpack_tag_ext(1, 4));
+    test_file_write_bytes(writer, mpack_tag_ext(1, 8));
+    test_file_write_bytes(writer, mpack_tag_ext(1, 16));
+    test_file_write_bytes(writer, mpack_tag_ext(2, INT8_MAX));
+    test_file_write_bytes(writer, mpack_tag_ext(3, UINT8_MAX));
+    test_file_write_bytes(writer, mpack_tag_ext(4, UINT8_MAX + 1));
+    test_file_write_bytes(writer, mpack_tag_ext(5, UINT16_MAX + 1));
+    mpack_finish_array(writer);
 
-    mpack_start_array(&writer, 5);
-    test_file_write_elements(&writer, mpack_tag_array(0));
-    test_file_write_elements(&writer, mpack_tag_array(INT8_MAX));
-    test_file_write_elements(&writer, mpack_tag_array(UINT8_MAX));
-    test_file_write_elements(&writer, mpack_tag_array(UINT8_MAX + 1));
-    test_file_write_elements(&writer, mpack_tag_array(UINT16_MAX + 1));
-    mpack_finish_array(&writer);
+    mpack_start_array(writer, 5);
+    test_file_write_elements(writer, mpack_tag_array(0));
+    test_file_write_elements(writer, mpack_tag_array(INT8_MAX));
+    test_file_write_elements(writer, mpack_tag_array(UINT8_MAX));
+    test_file_write_elements(writer, mpack_tag_array(UINT8_MAX + 1));
+    test_file_write_elements(writer, mpack_tag_array(UINT16_MAX + 1));
+    mpack_finish_array(writer);
 
-    mpack_start_array(&writer, 5);
-    test_file_write_elements(&writer, mpack_tag_map(0));
-    test_file_write_elements(&writer, mpack_tag_map(INT8_MAX));
-    test_file_write_elements(&writer, mpack_tag_map(UINT8_MAX));
-    test_file_write_elements(&writer, mpack_tag_map(UINT8_MAX + 1));
-    test_file_write_elements(&writer, mpack_tag_map(UINT16_MAX + 1));
-    mpack_finish_array(&writer);
+    mpack_start_array(writer, 5);
+    test_file_write_elements(writer, mpack_tag_map(0));
+    test_file_write_elements(writer, mpack_tag_map(INT8_MAX));
+    test_file_write_elements(writer, mpack_tag_map(UINT8_MAX));
+    test_file_write_elements(writer, mpack_tag_map(UINT8_MAX + 1));
+    test_file_write_elements(writer, mpack_tag_map(UINT16_MAX + 1));
+    mpack_finish_array(writer);
 
     // test deep nesting
     for (int i = 0; i < nesting_depth; ++i)
-        mpack_start_array(&writer, 1);
-    mpack_write_nil(&writer);
+        mpack_start_array(writer, 1);
+    mpack_write_nil(writer);
     for (int i = 0; i < nesting_depth; ++i)
-        mpack_finish_array(&writer);
+        mpack_finish_array(writer);
 
-    mpack_finish_array(&writer);
+    mpack_finish_array(writer);
+}
 
-    mpack_error_t error = mpack_writer_destroy(&writer);
-    TEST_TRUE(error == mpack_ok, "write failed with %s", mpack_error_to_string(error));
+static void test_file_write_failures(void) {
+    mpack_writer_t writer;
 
     // test invalid filename
     (void)mkdir(test_dir, 0700);
@@ -179,6 +175,43 @@ static void test_file_write(void) {
         mpack_write_cstr(&writer, quick_brown_fox);
     mpack_finish_array(&writer);
     TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_io);
+}
+
+static void test_file_write(void) {
+    mpack_writer_t writer;
+    mpack_writer_init_file(&writer, test_filename);
+    TEST_TRUE(mpack_writer_error(&writer) == mpack_ok, "file open failed with %s",
+            mpack_error_to_string(mpack_writer_error(&writer)));
+
+    test_file_write_contents(&writer);
+    TEST_WRITER_DESTROY_NOERROR(&writer);
+}
+
+static void test_file_write_helper_std_owned(void) {
+    // test writing to a libc FILE, giving ownership
+    FILE* file = test_fopen(test_filename, "wb");
+    TEST_TRUE(file != NULL, "failed to open file for writing! filename %s", test_filename);
+
+    mpack_writer_t writer;
+    mpack_writer_init_stdfile(&writer, file, true);
+    test_file_write_contents(&writer);
+    TEST_WRITER_DESTROY_NOERROR(&writer);
+
+    // the test harness will ensure no file is leaked
+}
+
+static void test_file_write_helper_std_unowned(void) {
+    // test writing to a libc FILE, retaining ownership
+    FILE* file = test_fopen(test_filename, "wb");
+    TEST_TRUE(file != NULL, "failed to open file for writing! filename %s", test_filename);
+
+    mpack_writer_t writer;
+    mpack_writer_init_stdfile(&writer, file, false);
+    test_file_write_contents(&writer);
+    TEST_WRITER_DESTROY_NOERROR(&writer);
+
+    // we retained ownership, so we close it ourselves
+    test_fclose(file);
 }
 
 static bool test_file_write_failure(void) {
@@ -419,6 +452,33 @@ static void test_file_read_helper(void) {
     TEST_READER_DESTROY_NOERROR(&reader);
 }
 
+static void test_file_read_helper_std_owned(void) {
+    // test reading from a libc FILE, giving ownership
+    FILE* file = test_fopen(test_filename, "rb");
+    TEST_TRUE(file != NULL, "failed to open file! filename %s", test_filename);
+
+    mpack_reader_t reader;
+    mpack_reader_init_stdfile(&reader, file, true);
+    test_file_read_contents(&reader);
+    TEST_READER_DESTROY_NOERROR(&reader);
+
+    // the test harness will ensure no file is leaked
+}
+
+static void test_file_read_helper_std_unowned(void) {
+    // test reading from a libc FILE, retaining ownership
+    FILE* file = test_fopen(test_filename, "rb");
+    TEST_TRUE(file != NULL, "failed to open file! filename %s", test_filename);
+
+    mpack_reader_t reader;
+    mpack_reader_init_stdfile(&reader, file, false);
+    test_file_read_contents(&reader);
+    TEST_READER_DESTROY_NOERROR(&reader);
+
+    // we retained ownership, so we close it ourselves
+    test_fclose(file);
+}
+
 typedef struct test_file_streaming_t {
     FILE* file;
     size_t read_size;
@@ -578,24 +638,7 @@ static void test_file_node_elements(mpack_node_t node, mpack_tag_t tag) {
     }
 }
 
-static void test_file_node(void) {
-    mpack_tree_t tree;
-
-    // test maximum size
-    mpack_tree_init_file(&tree, test_filename, 100);
-    TEST_TREE_DESTROY_ERROR(&tree, mpack_error_too_big);
-
-    // test blank file
-    mpack_tree_init_file(&tree, test_blank_filename, 0);
-    TEST_TREE_DESTROY_ERROR(&tree, mpack_error_invalid);
-
-    // test successful parse
-    mpack_tree_init_file(&tree, test_filename, 0);
-    mpack_tree_parse(&tree);
-    TEST_TRUE(mpack_tree_error(&tree) == mpack_ok, "file tree parsing failed: %s",
-            mpack_error_to_string(mpack_tree_error(&tree)));
-
-    mpack_node_t root = mpack_tree_root(&tree);
+static void test_file_node_contents(mpack_node_t root) {
     TEST_TRUE(mpack_node_array_length(root) == 7);
 
     mpack_node_t lipsum_node = mpack_node_array_at(root, 0);
@@ -656,9 +699,31 @@ static void test_file_node(void) {
         node = mpack_node_array_at(node, 0);
     TEST_TRUE(mpack_ok == mpack_node_error(node));
     mpack_node_nil(node);
+}
 
-    mpack_error_t error = mpack_tree_destroy(&tree);
+static void test_file_tree_successful_parse(mpack_tree_t* tree) {
+    mpack_tree_parse(tree);
+    TEST_TRUE(mpack_tree_error(tree) == mpack_ok, "file tree parsing failed: %s",
+            mpack_error_to_string(mpack_tree_error(tree)));
+    test_file_node_contents(mpack_tree_root(tree));
+    mpack_error_t error = mpack_tree_destroy(tree);
     TEST_TRUE(error == mpack_ok, "file tree failed with error %s", mpack_error_to_string(error));
+}
+
+static void test_file_node(void) {
+    mpack_tree_t tree;
+
+    // test maximum size
+    mpack_tree_init_file(&tree, test_filename, 100);
+    TEST_TREE_DESTROY_ERROR(&tree, mpack_error_too_big);
+
+    // test blank file
+    mpack_tree_init_file(&tree, test_blank_filename, 0);
+    TEST_TREE_DESTROY_ERROR(&tree, mpack_error_invalid);
+
+    // test successful parse from filename
+    mpack_tree_init_file(&tree, test_filename, 0);
+    test_file_tree_successful_parse(&tree);
 
     // test file size out of bounds
     #if MPACK_DEBUG
@@ -671,6 +736,19 @@ static void test_file_node(void) {
     // test missing file
     mpack_tree_init_file(&tree, "invalid-filename", 0);
     TEST_TREE_DESTROY_ERROR(&tree, mpack_error_io);
+
+    // test successful parse from FILE with auto-close
+    FILE* file = test_fopen(test_filename, "rb");
+    TEST_TRUE(file != NULL);
+    mpack_tree_init_stdfile(&tree, file, 0, true);
+    test_file_tree_successful_parse(&tree);
+
+    // test successful parse from FILE with no-close
+    file = test_fopen(test_filename, "rb");
+    TEST_TRUE(file != NULL);
+    mpack_tree_init_stdfile(&tree, file, 0, false);
+    test_file_tree_successful_parse(&tree);
+    test_fclose(file);
 }
 
 static bool test_file_node_failure(void) {
@@ -768,7 +846,12 @@ void test_file(void) {
     test_node_print();
     #endif
 
+    #if MPACK_WRITER
+    test_file_write_failures();
+    test_file_write_helper_std_owned();
+    test_file_write_helper_std_unowned();
     test_file_write();
+    #endif
 
     #if MPACK_READER
     test_file_discard();
@@ -776,6 +859,8 @@ void test_file(void) {
     #if MPACK_EXPECT
     test_file_read_missing();
     test_file_read_helper();
+    test_file_read_helper_std_owned();
+    test_file_read_helper_std_unowned();
     test_file_read_streaming();
     test_file_read_eof();
     #endif
@@ -783,7 +868,9 @@ void test_file(void) {
     test_file_node();
     #endif
 
+    #if MPACK_WRITER
     test_system_fail_until_ok(&test_file_write_failure);
+    #endif
     #if MPACK_EXPECT
     test_system_fail_until_ok(&test_file_expect_failure);
     #endif

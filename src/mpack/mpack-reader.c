@@ -124,37 +124,37 @@ static void mpack_file_reader_skip(mpack_reader_t* reader, size_t count) {
 }
 
 static void mpack_file_reader_teardown(mpack_reader_t* reader) {
-    FILE* file = (FILE*)reader->context;
-
-    if (file) {
-        int ret = fclose(file);
-        reader->context = NULL;
-        if (ret != 0)
-            mpack_reader_flag_error(reader, mpack_error_io);
-    }
-
     MPACK_FREE(reader->buffer);
     reader->buffer = NULL;
+    reader->context = NULL;
     reader->size = 0;
     reader->fill = NULL;
     reader->skip = NULL;
     reader->teardown = NULL;
 }
 
-void mpack_reader_init_file(mpack_reader_t* reader, const char* filename) {
-    mpack_assert(filename != NULL, "filename is NULL");
+static void mpack_file_reader_teardown_close(mpack_reader_t* reader) {
+    FILE* file = (FILE*)reader->context;
+
+    if (file) {
+        int ret = fclose(file);
+        if (ret != 0)
+            mpack_reader_flag_error(reader, mpack_error_io);
+    }
+
+    mpack_file_reader_teardown(reader);
+}
+
+void mpack_reader_init_stdfile(mpack_reader_t* reader, FILE* file, bool close_when_done) {
+    mpack_assert(file != NULL, "file is NULL");
 
     size_t capacity = MPACK_BUFFER_SIZE;
     char* buffer = (char*)MPACK_MALLOC(capacity);
     if (buffer == NULL) {
         mpack_reader_init_error(reader, mpack_error_memory);
-        return;
-    }
-
-    FILE* file = fopen(filename, "rb");
-    if (file == NULL) {
-        MPACK_FREE(buffer);
-        mpack_reader_init_error(reader, mpack_error_io);
+        if (close_when_done) {
+            fclose(file);
+        }
         return;
     }
 
@@ -162,7 +162,21 @@ void mpack_reader_init_file(mpack_reader_t* reader, const char* filename) {
     mpack_reader_set_context(reader, file);
     mpack_reader_set_fill(reader, mpack_file_reader_fill);
     mpack_reader_set_skip(reader, mpack_file_reader_skip);
-    mpack_reader_set_teardown(reader, mpack_file_reader_teardown);
+    mpack_reader_set_teardown(reader, close_when_done ?
+            mpack_file_reader_teardown_close :
+            mpack_file_reader_teardown);
+}
+
+void mpack_reader_init_file(mpack_reader_t* reader, const char* filename) {
+    mpack_assert(filename != NULL, "filename is NULL");
+
+    FILE* file = fopen(filename, "rb");
+    if (file == NULL) {
+        mpack_reader_init_error(reader, mpack_error_io);
+        return;
+    }
+
+    mpack_reader_init_stdfile(reader, file, true);
 }
 #endif
 
