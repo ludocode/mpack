@@ -876,14 +876,7 @@ static void mpack_file_tree_teardown(mpack_tree_t* tree) {
     MPACK_FREE(file_tree);
 }
 
-static bool mpack_file_tree_read(mpack_tree_t* tree, mpack_file_tree_t* file_tree, const char* filename, size_t max_size) {
-
-    // open the file
-    FILE* file = fopen(filename, "rb");
-    if (!file) {
-        mpack_tree_init_error(tree, mpack_error_io);
-        return false;
-    }
+static bool mpack_file_tree_read(mpack_tree_t* tree, mpack_file_tree_t* file_tree, FILE* file, size_t max_bytes) {
 
     // get the file size
     errno = 0;
@@ -897,20 +890,17 @@ static bool mpack_file_tree_read(mpack_tree_t* tree, mpack_file_tree_t* file_tre
 
     // check for errors
     if (error != 0 || size < 0) {
-        fclose(file);
         mpack_tree_init_error(tree, mpack_error_io);
         return false;
     }
     if (size == 0) {
-        fclose(file);
         mpack_tree_init_error(tree, mpack_error_invalid);
         return false;
     }
 
-    // make sure the size is less than max_size
+    // make sure the size is less than max_bytes
     // (this mess exists to safely convert between long and size_t regardless of their widths)
-    if (max_size != 0 && (((uint64_t)LONG_MAX > (uint64_t)SIZE_MAX && size > (long)SIZE_MAX) || (size_t)size > max_size)) {
-        fclose(file);
+    if (max_bytes != 0 && (((uint64_t)LONG_MAX > (uint64_t)SIZE_MAX && size > (long)SIZE_MAX) || (size_t)size > max_bytes)) {
         mpack_tree_init_error(tree, mpack_error_too_big);
         return false;
     }
@@ -918,7 +908,6 @@ static bool mpack_file_tree_read(mpack_tree_t* tree, mpack_file_tree_t* file_tre
     // allocate data
     file_tree->data = (char*)MPACK_MALLOC((size_t)size);
     if (file_tree->data == NULL) {
-        fclose(file);
         mpack_tree_init_error(tree, mpack_error_memory);
         return false;
     }
@@ -928,7 +917,6 @@ static bool mpack_file_tree_read(mpack_tree_t* tree, mpack_file_tree_t* file_tre
     while (total < size) {
         size_t read = fread(file_tree->data + total, 1, (size_t)(size - total), file);
         if (read <= 0) {
-            fclose(file);
             mpack_tree_init_error(tree, mpack_error_io);
             MPACK_FREE(file_tree->data);
             return false;
@@ -936,19 +924,23 @@ static bool mpack_file_tree_read(mpack_tree_t* tree, mpack_file_tree_t* file_tre
         total += (long)read;
     }
 
-    fclose(file);
     file_tree->size = (size_t)size;
     return true;
 }
 
-void mpack_tree_init_file(mpack_tree_t* tree, const char* filename, size_t max_size) {
+static bool mpack_tree_file_check_max_bytes(mpack_tree_t* tree, size_t max_bytes) {
 
     // the C STDIO family of file functions use long (e.g. ftell)
-    if (max_size > LONG_MAX) {
-        mpack_break("max_size of %" PRIu64 " is invalid, maximum is LONG_MAX", (uint64_t)max_size);
+    if (max_bytes > LONG_MAX) {
+        mpack_break("max_bytes of %" PRIu64 " is invalid, maximum is LONG_MAX", (uint64_t)max_bytes);
         mpack_tree_init_error(tree, mpack_error_bug);
-        return;
+        return false;
     }
+
+    return true;
+}
+
+static void mpack_tree_init_stdfile_noclose(mpack_tree_t* tree, FILE* stdfile, size_t max_bytes) {
 
     // allocate file tree
     mpack_file_tree_t* file_tree = (mpack_file_tree_t*) MPACK_MALLOC(sizeof(mpack_file_tree_t));
@@ -958,7 +950,7 @@ void mpack_tree_init_file(mpack_tree_t* tree, const char* filename, size_t max_s
     }
 
     // read all data
-    if (!mpack_file_tree_read(tree, file_tree, filename, max_size)) {
+    if (!mpack_file_tree_read(tree, file_tree, stdfile, max_bytes)) {
         MPACK_FREE(file_tree);
         return;
     }
@@ -966,6 +958,30 @@ void mpack_tree_init_file(mpack_tree_t* tree, const char* filename, size_t max_s
     mpack_tree_init(tree, file_tree->data, file_tree->size);
     mpack_tree_set_context(tree, file_tree);
     mpack_tree_set_teardown(tree, mpack_file_tree_teardown);
+}
+
+void mpack_tree_init_stdfile(mpack_tree_t* tree, FILE* stdfile, size_t max_bytes, bool close_when_done) {
+    if (!mpack_tree_file_check_max_bytes(tree, max_bytes))
+        return;
+
+    mpack_tree_init_stdfile_noclose(tree, stdfile, max_bytes);
+
+    if (close_when_done)
+        fclose(stdfile);
+}
+
+void mpack_tree_init_file(mpack_tree_t* tree, const char* filename, size_t max_bytes) {
+    if (!mpack_tree_file_check_max_bytes(tree, max_bytes))
+        return;
+
+    // open the file
+    FILE* file = fopen(filename, "rb");
+    if (!file) {
+        mpack_tree_init_error(tree, mpack_error_io);
+        return;
+    }
+
+    mpack_tree_init_stdfile(tree, file, max_bytes, true);
 }
 #endif
 

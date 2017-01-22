@@ -189,7 +189,7 @@ static void test_file_write(void) {
 
 static void test_file_write_helper_std_owned(void) {
     // test writing to a libc FILE, giving ownership
-    FILE* file = fopen(test_filename, "wb");
+    FILE* file = test_fopen(test_filename, "wb");
     TEST_TRUE(file != NULL, "failed to open file for writing! filename %s", test_filename);
 
     mpack_writer_t writer;
@@ -202,7 +202,7 @@ static void test_file_write_helper_std_owned(void) {
 
 static void test_file_write_helper_std_unowned(void) {
     // test writing to a libc FILE, retaining ownership
-    FILE* file = fopen(test_filename, "wb");
+    FILE* file = test_fopen(test_filename, "wb");
     TEST_TRUE(file != NULL, "failed to open file for writing! filename %s", test_filename);
 
     mpack_writer_t writer;
@@ -211,7 +211,7 @@ static void test_file_write_helper_std_unowned(void) {
     TEST_WRITER_DESTROY_NOERROR(&writer);
 
     // we retained ownership, so we close it ourselves
-    fclose(file);
+    test_fclose(file);
 }
 
 static bool test_file_write_failure(void) {
@@ -454,7 +454,7 @@ static void test_file_read_helper(void) {
 
 static void test_file_read_helper_std_owned(void) {
     // test reading from a libc FILE, giving ownership
-    FILE* file = fopen(test_filename, "rb");
+    FILE* file = test_fopen(test_filename, "rb");
     TEST_TRUE(file != NULL, "failed to open file! filename %s", test_filename);
 
     mpack_reader_t reader;
@@ -467,7 +467,7 @@ static void test_file_read_helper_std_owned(void) {
 
 static void test_file_read_helper_std_unowned(void) {
     // test reading from a libc FILE, retaining ownership
-    FILE* file = fopen(test_filename, "rb");
+    FILE* file = test_fopen(test_filename, "rb");
     TEST_TRUE(file != NULL, "failed to open file! filename %s", test_filename);
 
     mpack_reader_t reader;
@@ -476,7 +476,7 @@ static void test_file_read_helper_std_unowned(void) {
     TEST_READER_DESTROY_NOERROR(&reader);
 
     // we retained ownership, so we close it ourselves
-    fclose(file);
+    test_fclose(file);
 }
 
 typedef struct test_file_streaming_t {
@@ -638,24 +638,7 @@ static void test_file_node_elements(mpack_node_t node, mpack_tag_t tag) {
     }
 }
 
-static void test_file_node(void) {
-    mpack_tree_t tree;
-
-    // test maximum size
-    mpack_tree_init_file(&tree, test_filename, 100);
-    TEST_TREE_DESTROY_ERROR(&tree, mpack_error_too_big);
-
-    // test blank file
-    mpack_tree_init_file(&tree, test_blank_filename, 0);
-    TEST_TREE_DESTROY_ERROR(&tree, mpack_error_invalid);
-
-    // test successful parse
-    mpack_tree_init_file(&tree, test_filename, 0);
-    mpack_tree_parse(&tree);
-    TEST_TRUE(mpack_tree_error(&tree) == mpack_ok, "file tree parsing failed: %s",
-            mpack_error_to_string(mpack_tree_error(&tree)));
-
-    mpack_node_t root = mpack_tree_root(&tree);
+static void test_file_node_contents(mpack_node_t root) {
     TEST_TRUE(mpack_node_array_length(root) == 7);
 
     mpack_node_t lipsum_node = mpack_node_array_at(root, 0);
@@ -716,9 +699,31 @@ static void test_file_node(void) {
         node = mpack_node_array_at(node, 0);
     TEST_TRUE(mpack_ok == mpack_node_error(node));
     mpack_node_nil(node);
+}
 
-    mpack_error_t error = mpack_tree_destroy(&tree);
+static void test_file_tree_successful_parse(mpack_tree_t* tree) {
+    mpack_tree_parse(tree);
+    TEST_TRUE(mpack_tree_error(tree) == mpack_ok, "file tree parsing failed: %s",
+            mpack_error_to_string(mpack_tree_error(tree)));
+    test_file_node_contents(mpack_tree_root(tree));
+    mpack_error_t error = mpack_tree_destroy(tree);
     TEST_TRUE(error == mpack_ok, "file tree failed with error %s", mpack_error_to_string(error));
+}
+
+static void test_file_node(void) {
+    mpack_tree_t tree;
+
+    // test maximum size
+    mpack_tree_init_file(&tree, test_filename, 100);
+    TEST_TREE_DESTROY_ERROR(&tree, mpack_error_too_big);
+
+    // test blank file
+    mpack_tree_init_file(&tree, test_blank_filename, 0);
+    TEST_TREE_DESTROY_ERROR(&tree, mpack_error_invalid);
+
+    // test successful parse from filename
+    mpack_tree_init_file(&tree, test_filename, 0);
+    test_file_tree_successful_parse(&tree);
 
     // test file size out of bounds
     #if MPACK_DEBUG
@@ -731,6 +736,19 @@ static void test_file_node(void) {
     // test missing file
     mpack_tree_init_file(&tree, "invalid-filename", 0);
     TEST_TREE_DESTROY_ERROR(&tree, mpack_error_io);
+
+    // test successful parse from FILE with auto-close
+    FILE* file = test_fopen(test_filename, "rb");
+    TEST_TRUE(file != NULL);
+    mpack_tree_init_stdfile(&tree, file, 0, true);
+    test_file_tree_successful_parse(&tree);
+
+    // test successful parse from FILE with no-close
+    file = test_fopen(test_filename, "rb");
+    TEST_TRUE(file != NULL);
+    mpack_tree_init_stdfile(&tree, file, 0, false);
+    test_file_tree_successful_parse(&tree);
+    test_fclose(file);
 }
 
 static bool test_file_node_failure(void) {

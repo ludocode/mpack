@@ -203,8 +203,8 @@ void mpack_reader_init_file(mpack_reader_t* reader, const char* filename);
  * @param reader The MPack reader.
  * @param stdfile The FILE.
  * @param close_when_done If true, fclose() will be called on the FILE when it
- *         is no longer needed. If false, the file will not be flushed or
- *         closed when reading is done.
+ *         is no longer needed. If false, the file will not be closed when
+ *         reading is done.
  *
  * @warning The reader is buffered. It will read data in advance of parsing it,
  * and it may read more data than it parsed. See mpack_reader_remaining() to
