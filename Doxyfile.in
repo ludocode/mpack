@@ -1,0 +1,49 @@
+# Doxyfile 1.8.3.1
+
+PROJECT_NAME = "MPack"
+PROJECT_BRIEF = "A C encoding/decoding library for the MessagePack serialization format."
+
+# This is the only place where the version number is defined.
+# The packaging script pulls the version number from here.
+PROJECT_NUMBER = @MPACK_MAJOR@.@MPACK_MINOR@-dev
+WARN_LOGFILE = @MPACK_DOC_DIR@/warnings.log
+
+INPUT = \
+    @CMAKE_SOURCE_DIR@/README.md \
+    @MPACK_SRC_DIR@/mpack-platform.h \
+    @MPACK_SRC_DIR@/mpack-common.h \
+    @MPACK_SRC_DIR@/mpack-reader.h \
+    @MPACK_SRC_DIR@/mpack-writer.h \
+    @MPACK_SRC_DIR@/mpack-expect.h \
+    @MPACK_SRC_DIR@/mpack-node.h \
+    @MPACK_SRC_DIR@/mpack.h
+
+USE_MDFILE_AS_MAINPAGE = README.md
+HTML_OUTPUT = @MPACK_DOC_DIR@
+GENERATE_LATEX = no
+STRIP_FROM_PATH = . ./src
+
+PREDEFINED = \
+    MPACK_READER=1 \
+    MPACK_WRITER=1 \
+    MPACK_EXPECT=1 \
+    MPACK_NODE=1 \
+    MPACK_STDLIB=1 \
+    MPACK_STDIO=1 \
+    MPACK_SETJMP=1 \
+    MPACK_TRACKING=1 \
+    MPACK_MALLOC=malloc \
+    MPACK_DEBUG=1
+
+MARKDOWN_SUPPORT = YES
+JAVADOC_AUTOBRIEF = YES
+ALWAYS_DETAILED_SEC = YES
+SORT_BRIEF_DOCS = YES
+
+OPTIMIZE_OUTPUT_FOR_C = YES
+INLINE_SIMPLE_STRUCTS = YES
+TYPEDEF_HIDES_STRUCT = YES
+HIDE_UNDOC_MEMBERS = YES
+EXTRACT_STATIC = YES
+
+QUIET = YES
