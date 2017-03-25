@@ -992,6 +992,38 @@ void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count) {
 
 void mpack_write_str(mpack_writer_t* writer, const char* data, uint32_t count) {
     mpack_assert(data != NULL, "data for string of length %i is NULL", (int)count);
+
+    #if !MPACK_OPTIMIZE_FOR_SIZE
+    // We add a couple shortcuts here for short strings. In most cases the tag
+    // and string will already fit in the buffer.
+
+    size_t left = mpack_writer_buffer_left(writer);
+
+    if (count <= 31 && count + MPACK_TAG_SIZE_FIXSTR <= left) {
+        mpack_writer_track_element(writer);
+        char* MPACK_RESTRICT p = writer->buffer + writer->used;
+        mpack_encode_fixstr(p, (uint8_t)count);
+        mpack_memcpy(p + MPACK_TAG_SIZE_FIXSTR, data, count);
+        writer->used += count + MPACK_TAG_SIZE_FIXSTR;
+        return;
+    }
+
+    if (count <= UINT8_MAX && count + MPACK_TAG_SIZE_STR8 <= left
+            #if MPACK_COMPATIBILITY
+            && writer->version >= mpack_version_v5
+            #endif
+            ) {
+        mpack_writer_track_element(writer);
+        char* MPACK_RESTRICT p = writer->buffer + writer->used;
+        mpack_encode_str8(p, (uint8_t)count);
+        mpack_memcpy(p + MPACK_TAG_SIZE_STR8, data, count);
+        writer->used += count + MPACK_TAG_SIZE_STR8;
+        return;
+    }
+    #endif
+
+    // If the string is long or doesn't fit in the buffer (or if we want
+    // maximum space savings) we fall back to writing in pieces.
     mpack_start_str(writer, count);
     mpack_write_bytes(writer, data, count);
     mpack_finish_str(writer);
