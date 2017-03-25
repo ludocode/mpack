@@ -199,12 +199,14 @@ typedef struct mpack_tag_t {
     /** The value for non-compound types. */
     union
     {
-        bool     b; /**< The value if the type is bool. */
-        float    f; /**< The value if the type is float. */
-        double   d; /**< The value if the type is double. */
-        int64_t  i; /**< The value if the type is signed int. */
         uint64_t u; /**< The value if the type is unsigned int. */
-        uint32_t l; /**< The number of bytes if the type is str, bin or ext. */
+        int64_t  i; /**< The value if the type is signed int. */
+        double   d; /**< The value if the type is double. */
+        float    f; /**< The value if the type is float. */
+        bool     b; /**< The value if the type is bool. */
+
+        /** The number of bytes if the type is str, bin or ext. */
+        uint32_t l;
 
         /** The element count if the type is an array, or the number of
             key/value pairs if the type is map. */
@@ -212,18 +214,18 @@ typedef struct mpack_tag_t {
     } v;
 } mpack_tag_t;
 
+#define MPACK_TAG_ZERO {(mpack_type_t)0, 0, {0}}
+
 /** Generates a nil tag. */
 MPACK_INLINE mpack_tag_t mpack_tag_nil(void) {
-    mpack_tag_t ret;
-    mpack_memset(&ret, 0, sizeof(ret));
+    mpack_tag_t ret = MPACK_TAG_ZERO;
     ret.type = mpack_type_nil;
     return ret;
 }
 
 /** Generates a bool tag. */
 MPACK_INLINE mpack_tag_t mpack_tag_bool(bool value) {
-    mpack_tag_t ret;
-    mpack_memset(&ret, 0, sizeof(ret));
+    mpack_tag_t ret = MPACK_TAG_ZERO;
     ret.type = mpack_type_bool;
     ret.v.b = value;
     return ret;
@@ -231,8 +233,7 @@ MPACK_INLINE mpack_tag_t mpack_tag_bool(bool value) {
 
 /** Generates a bool tag with value true. */
 MPACK_INLINE mpack_tag_t mpack_tag_true(void) {
-    mpack_tag_t ret;
-    mpack_memset(&ret, 0, sizeof(ret));
+    mpack_tag_t ret = MPACK_TAG_ZERO;
     ret.type = mpack_type_bool;
     ret.v.b = true;
     return ret;
@@ -240,8 +241,7 @@ MPACK_INLINE mpack_tag_t mpack_tag_true(void) {
 
 /** Generates a bool tag with value false. */
 MPACK_INLINE mpack_tag_t mpack_tag_false(void) {
-    mpack_tag_t ret;
-    mpack_memset(&ret, 0, sizeof(ret));
+    mpack_tag_t ret = MPACK_TAG_ZERO;
     ret.type = mpack_type_bool;
     ret.v.b = false;
     return ret;
@@ -249,8 +249,7 @@ MPACK_INLINE mpack_tag_t mpack_tag_false(void) {
 
 /** Generates a signed int tag. */
 MPACK_INLINE mpack_tag_t mpack_tag_int(int64_t value) {
-    mpack_tag_t ret;
-    mpack_memset(&ret, 0, sizeof(ret));
+    mpack_tag_t ret = MPACK_TAG_ZERO;
     ret.type = mpack_type_int;
     ret.v.i = value;
     return ret;
@@ -258,8 +257,7 @@ MPACK_INLINE mpack_tag_t mpack_tag_int(int64_t value) {
 
 /** Generates an unsigned int tag. */
 MPACK_INLINE mpack_tag_t mpack_tag_uint(uint64_t value) {
-    mpack_tag_t ret;
-    mpack_memset(&ret, 0, sizeof(ret));
+    mpack_tag_t ret = MPACK_TAG_ZERO;
     ret.type = mpack_type_uint;
     ret.v.u = value;
     return ret;
@@ -267,8 +265,7 @@ MPACK_INLINE mpack_tag_t mpack_tag_uint(uint64_t value) {
 
 /** Generates a float tag. */
 MPACK_INLINE mpack_tag_t mpack_tag_float(float value) {
-    mpack_tag_t ret;
-    mpack_memset(&ret, 0, sizeof(ret));
+    mpack_tag_t ret = MPACK_TAG_ZERO;
     ret.type = mpack_type_float;
     ret.v.f = value;
     return ret;
@@ -276,8 +273,7 @@ MPACK_INLINE mpack_tag_t mpack_tag_float(float value) {
 
 /** Generates a double tag. */
 MPACK_INLINE mpack_tag_t mpack_tag_double(double value) {
-    mpack_tag_t ret;
-    mpack_memset(&ret, 0, sizeof(ret));
+    mpack_tag_t ret = MPACK_TAG_ZERO;
     ret.type = mpack_type_double;
     ret.v.d = value;
     return ret;
@@ -285,8 +281,7 @@ MPACK_INLINE mpack_tag_t mpack_tag_double(double value) {
 
 /** Generates an array tag. */
 MPACK_INLINE mpack_tag_t mpack_tag_array(int32_t count) {
-    mpack_tag_t ret;
-    mpack_memset(&ret, 0, sizeof(ret));
+    mpack_tag_t ret = MPACK_TAG_ZERO;
     ret.type = mpack_type_array;
     ret.v.n = (uint32_t)count;
     return ret;
@@ -294,8 +289,7 @@ MPACK_INLINE mpack_tag_t mpack_tag_array(int32_t count) {
 
 /** Generates a map tag. */
 MPACK_INLINE mpack_tag_t mpack_tag_map(int32_t count) {
-    mpack_tag_t ret;
-    mpack_memset(&ret, 0, sizeof(ret));
+    mpack_tag_t ret = MPACK_TAG_ZERO;
     ret.type = mpack_type_map;
     ret.v.n = (uint32_t)count;
     return ret;
@@ -303,8 +297,7 @@ MPACK_INLINE mpack_tag_t mpack_tag_map(int32_t count) {
 
 /** Generates a str tag. */
 MPACK_INLINE mpack_tag_t mpack_tag_str(int32_t length) {
-    mpack_tag_t ret;
-    mpack_memset(&ret, 0, sizeof(ret));
+    mpack_tag_t ret = MPACK_TAG_ZERO;
     ret.type = mpack_type_str;
     ret.v.l = (uint32_t)length;
     return ret;
@@ -312,8 +305,7 @@ MPACK_INLINE mpack_tag_t mpack_tag_str(int32_t length) {
 
 /** Generates a bin tag. */
 MPACK_INLINE mpack_tag_t mpack_tag_bin(int32_t length) {
-    mpack_tag_t ret;
-    mpack_memset(&ret, 0, sizeof(ret));
+    mpack_tag_t ret = MPACK_TAG_ZERO;
     ret.type = mpack_type_bin;
     ret.v.l = (uint32_t)length;
     return ret;
@@ -321,8 +313,7 @@ MPACK_INLINE mpack_tag_t mpack_tag_bin(int32_t length) {
 
 /** Generates an ext tag. */
 MPACK_INLINE mpack_tag_t mpack_tag_ext(int8_t exttype, int32_t length) {
-    mpack_tag_t ret;
-    mpack_memset(&ret, 0, sizeof(ret));
+    mpack_tag_t ret = MPACK_TAG_ZERO;
     ret.type = mpack_type_ext;
     ret.exttype = exttype;
     ret.v.l = (uint32_t)length;

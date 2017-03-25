@@ -1019,8 +1019,7 @@ mpack_tag_t mpack_node_tag(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return mpack_tag_nil();
 
-    mpack_tag_t tag;
-    mpack_memset(&tag, 0, sizeof(tag));
+    mpack_tag_t tag = MPACK_TAG_ZERO;
 
     tag.type = node.data->type;
     switch (node.data->type) {

@@ -958,8 +958,7 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
     if (mpack_reader_track_element(reader) != mpack_ok)
         return mpack_tag_nil();
 
-    mpack_tag_t tag;
-    mpack_memset(&tag, 0, sizeof(tag));
+    mpack_tag_t tag = MPACK_TAG_ZERO;
     size_t count = mpack_parse_tag(reader, &tag);
     if (count == 0)
         return mpack_tag_nil();
@@ -1000,8 +999,7 @@ mpack_tag_t mpack_peek_tag(mpack_reader_t* reader) {
     if (mpack_reader_track_peek_element(reader) != mpack_ok)
         return mpack_tag_nil();
 
-    mpack_tag_t tag;
-    mpack_memset(&tag, 0, sizeof(tag));
+    mpack_tag_t tag = MPACK_TAG_ZERO;
     if (mpack_parse_tag(reader, &tag) == 0)
         return mpack_tag_nil();
     return tag;
