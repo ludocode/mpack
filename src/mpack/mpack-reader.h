@@ -143,8 +143,8 @@ struct mpack_reader_t {
     char* buffer;       /* Writeable byte buffer */
     size_t size;        /* Size of the buffer */
 
-    const char* data;   /* Available data */
-    size_t left;        /* How many bytes are left in the available data */
+    const char* data;   /* Current data pointer (in the buffer, if it is used) */
+    const char* end;    /* The end of available data (in the buffer, if it is used) */
 
     mpack_error_t error;  /* Error state */
 
@@ -816,7 +816,7 @@ MPACK_INLINE bool mpack_reader_ensure(mpack_reader_t* reader, size_t count) {
     mpack_assert(count != 0, "cannot ensure zero bytes!");
     mpack_assert(reader->error == mpack_ok, "reader cannot be in an error state!");
 
-    if (count <= reader->left)
+    if (count <= (size_t)(reader->end - reader->data))
         return true;
     return mpack_reader_ensure_straddle(reader, count);
 }
@@ -828,12 +828,11 @@ void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count);
 MPACK_INLINE void mpack_read_native(mpack_reader_t* reader, char* p, size_t count) {
     mpack_assert(count == 0 || p != NULL, "data pointer for %i bytes is NULL", (int)count);
 
-    if (count > reader->left) {
+    if (count > (size_t)(reader->end - reader->data)) {
         mpack_read_native_big(reader, p, count);
     } else {
         mpack_memcpy(p, reader->data, count);
         reader->data += count;
-        reader->left -= count;
     }
 }
 

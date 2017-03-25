@@ -34,7 +34,7 @@ void mpack_reader_init(mpack_reader_t* reader, char* buffer, size_t size, size_t
     reader->buffer = buffer;
     reader->size = size;
     reader->data = buffer;
-    reader->left = count;
+    reader->end = buffer + count;
 
     #if MPACK_READ_TRACKING
     mpack_reader_flag_if_error(reader, mpack_track_init(&reader->track));
@@ -57,7 +57,7 @@ void mpack_reader_init_data(mpack_reader_t* reader, const char* data, size_t cou
 
     mpack_memset(reader, 0, sizeof(*reader));
     reader->data = data;
-    reader->left = count;
+    reader->end = data + count;
 
     #if MPACK_READ_TRACKING
     mpack_reader_flag_if_error(reader, mpack_track_init(&reader->track));
@@ -205,7 +205,7 @@ size_t mpack_reader_remaining(mpack_reader_t* reader, const char** data) {
 
     if (data)
         *data = reader->data;
-    return reader->left;
+    return (size_t)(reader->end - reader->data);
 }
 
 void mpack_reader_flag_error(mpack_reader_t* reader, mpack_error_t error) {
@@ -213,7 +213,7 @@ void mpack_reader_flag_error(mpack_reader_t* reader, mpack_error_t error) {
 
     if (reader->error == mpack_ok) {
         reader->error = error;
-        reader->left = 0;
+        reader->end = reader->data;
         if (reader->error_fn)
             reader->error_fn(reader, error);
     }
@@ -256,10 +256,10 @@ bool mpack_reader_ensure_straddle(mpack_reader_t* reader, size_t count) {
     mpack_assert(count != 0, "cannot ensure zero bytes!");
     mpack_assert(reader->error == mpack_ok, "reader cannot be in an error state!");
 
-    mpack_assert(count > reader->left,
+    mpack_assert(count > (size_t)(reader->end - reader->data),
             "straddling ensure requested for %i bytes, but there are %i bytes "
             "left in buffer. call mpack_reader_ensure() instead",
-            (int)count, (int)reader->left);
+            (int)count, (int)(reader->end - reader->data));
 
     // we'll need a fill function to get more data. if there's no
     // fill function, the buffer should contain an entire MessagePack
@@ -279,16 +279,18 @@ bool mpack_reader_ensure_straddle(mpack_reader_t* reader, size_t count) {
     }
 
     // move the existing data to the start of the buffer
-    mpack_memmove(reader->buffer, reader->data, reader->left);
+    size_t left = (size_t)(reader->end - reader->data);
+    mpack_memmove(reader->buffer, reader->data, left);
+    reader->end -= reader->data - reader->buffer;
     reader->data = reader->buffer;
 
     // read at least the necessary number of bytes, accepting up to the
     // buffer size
-    size_t read = mpack_fill_range(reader, reader->buffer + reader->left,
-            count - reader->left, reader->size - reader->left);
+    size_t read = mpack_fill_range(reader, reader->buffer + left,
+            count - left, reader->size - left);
     if (mpack_reader_error(reader) != mpack_ok)
         return false;
-    reader->left += read;
+    reader->end += read;
     return true;
 }
 
@@ -302,14 +304,15 @@ void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count) {
         return;
     }
 
+    size_t left = (size_t)(reader->end - reader->data);
     mpack_log("big read for %i bytes into %p, %i left in buffer, buffer size %i\n",
-            (int)count, p, (int)reader->left, (int)reader->size);
+            (int)count, p, (int)left, (int)reader->size);
 
-    if (count <= reader->left) {
+    if (count <= left) {
         mpack_assert(0,
                 "big read requested for %i bytes, but there are %i bytes "
                 "left in buffer. call mpack_read_native() instead",
-                (int)count, (int)reader->left);
+                (int)count, (int)left);
         mpack_reader_flag_error(reader, mpack_error_bug);
         mpack_memset(p, 0, count);
         return;
@@ -337,13 +340,12 @@ void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count) {
     }
 
     // flush what's left of the buffer
-    if (reader->left > 0) {
-        mpack_log("flushing %i bytes remaining in buffer\n", (int)reader->left);
-        mpack_memcpy(p, reader->data, reader->left);
-        count -= reader->left;
-        p += reader->left;
-        reader->data += reader->left;
-        reader->left = 0;
+    if (left > 0) {
+        mpack_log("flushing %i bytes remaining in buffer\n", (int)left);
+        mpack_memcpy(p, reader->data, left);
+        count -= left;
+        p += left;
+        reader->data += left;
     }
 
     // if the remaining data needed is some small fraction of the
@@ -355,11 +357,11 @@ void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count) {
             return;
         mpack_memcpy(p, reader->buffer, count);
         reader->data = reader->buffer + count;
-        reader->left = read - count;
+        reader->end = reader->buffer + read;
 
     // otherwise we read the remaining data directly into the target.
     } else {
-        mpack_log("reading %i additional bytes\n", (int)reader->left);
+        mpack_log("reading %i additional bytes\n", (int)count);
         mpack_fill_range(reader, p, count, count);
     }
 }
@@ -371,9 +373,9 @@ void mpack_skip_bytes(mpack_reader_t* reader, size_t count) {
     mpack_reader_track_bytes(reader, count);
 
     // check if we have enough in the buffer already
-    if (reader->left >= count) {
+    size_t left = (size_t)(reader->end - reader->data);
+    if (left >= count) {
         mpack_log("skipping %i bytes still in buffer\n", (int)count);
-        reader->left -= count;
         reader->data += count;
         return;
     }
@@ -389,9 +391,9 @@ void mpack_skip_bytes(mpack_reader_t* reader, size_t count) {
     }
 
     // discard whatever's left in the buffer
-    mpack_log("discarding %i bytes still in buffer\n", (int)reader->left);
-    count -= reader->left;
-    reader->left = 0;
+    mpack_log("discarding %i bytes still in buffer\n", (int)left);
+    count -= left;
+    reader->data = reader->end;
 
     // use the skip function if we've got one, and if we're trying
     // to skip a lot of data. if we only need to skip some tiny
@@ -408,7 +410,7 @@ void mpack_skip_bytes(mpack_reader_t* reader, size_t count) {
 
 static void mpack_reader_skip_using_fill(mpack_reader_t* reader, size_t count) {
     mpack_assert(reader->fill != NULL, "missing fill function!");
-    mpack_assert(reader->left == 0, "there are bytes left in the buffer!");
+    mpack_assert(reader->data == reader->end, "there are bytes left in the buffer!");
     mpack_assert(reader->error == mpack_ok, "should not have called this in an error state (%i)", reader->error);
     mpack_log("skip using fill for %i bytes\n", (int)count);
 
@@ -424,14 +426,14 @@ static void mpack_reader_skip_using_fill(mpack_reader_t* reader, size_t count) {
 
     // fill the buffer as much as possible
     reader->data = reader->buffer;
-    reader->left = mpack_fill_range(reader, reader->buffer, count, reader->size);
-    if (reader->left < count) {
+    size_t read = mpack_fill_range(reader, reader->buffer, count, reader->size);
+    if (read < count) {
         mpack_reader_flag_error(reader, mpack_error_io);
         return;
     }
-    mpack_log("filled %i bytes into buffer; discarding %i bytes\n", (int)reader->left, (int)count);
+    reader->end = reader->data + read;
+    mpack_log("filled %i bytes into buffer; discarding %i bytes\n", (int)read, (int)count);
     reader->data += count;
-    reader->left -= count;
 }
 
 void mpack_read_bytes(mpack_reader_t* reader, char* p, size_t count) {
@@ -543,18 +545,18 @@ static const char* mpack_read_bytes_inplace_notrack(mpack_reader_t* reader, size
         return NULL;
 
     // if we have enough bytes already in the buffer, we can return it directly.
-    if (reader->left >= count) {
+    if ((size_t)(reader->end - reader->data) >= count) {
+        const char* bytes = reader->data;
         reader->data += count;
-        reader->left -= count;
-        return reader->data - count;
+        return bytes;
     }
 
     if (!mpack_reader_ensure(reader, count))
         return NULL;
 
+    const char* bytes = reader->data;
     reader->data += count;
-    reader->left -= count;
-    return reader->data - count;
+    return bytes;
 }
 
 const char* mpack_read_bytes_inplace(mpack_reader_t* reader, size_t count) {
@@ -986,7 +988,6 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
     #endif
 
     reader->data += count;
-    reader->left -= count;
     return tag;
 }
 
