@@ -220,7 +220,7 @@ void mpack_writer_init_filename(mpack_writer_t* writer, const char* filename);
  * \deprecated Renamed to mpack_writer_init_filename().
  */
 MPACK_INLINE void mpack_writer_init_file(mpack_writer_t* writer, const char* filename) {
-    return mpack_writer_init_filename(writer, filename);
+    mpack_writer_init_filename(writer, filename);
 }
 
 /**

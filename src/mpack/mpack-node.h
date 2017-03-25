@@ -249,7 +249,7 @@ void mpack_tree_init_filename(mpack_tree_t* tree, const char* filename, size_t m
  * \deprecated Renamed to mpack_tree_init_filename().
  */
 MPACK_INLINE void mpack_tree_init_file(mpack_tree_t* tree, const char* filename, size_t max_bytes) {
-    return mpack_tree_init_filename(tree, filename, max_bytes);
+    mpack_tree_init_filename(tree, filename, max_bytes);
 }
 
 /**

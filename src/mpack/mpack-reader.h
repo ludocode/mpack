@@ -202,7 +202,7 @@ void mpack_reader_init_filename(mpack_reader_t* reader, const char* filename);
  * \deprecated Renamed to mpack_reader_init_filename().
  */
 MPACK_INLINE void mpack_reader_init_file(mpack_reader_t* reader, const char* filename) {
-    return mpack_reader_init_filename(reader, filename);
+    mpack_reader_init_filename(reader, filename);
 }
 
 /**
