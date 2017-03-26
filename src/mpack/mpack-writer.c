@@ -113,6 +113,13 @@ typedef struct mpack_growable_writer_t {
     size_t* target_size;
 } mpack_growable_writer_t;
 
+static char* mpack_writer_get_reserved(mpack_writer_t* writer) {
+    // This is in a separate function in order to avoid false strict aliasing
+    // warnings. We aren't actually violating strict aliasing (the reserved
+    // space is only ever dereferenced as an mpack_growable_writer_t.)
+    return (char*)writer->reserved;
+}
+
 static void mpack_growable_writer_flush(mpack_writer_t* writer, const char* data, size_t count) {
 
     // This is an intrusive flush function which modifies the writer's buffer
@@ -173,7 +180,7 @@ static void mpack_growable_writer_flush(mpack_writer_t* writer, const char* data
 }
 
 static void mpack_growable_writer_teardown(mpack_writer_t* writer) {
-    mpack_growable_writer_t* growable_writer = (mpack_growable_writer_t*)writer->context;
+    mpack_growable_writer_t* growable_writer = (mpack_growable_writer_t*)mpack_writer_get_reserved(writer);
 
     if (mpack_writer_error(writer) == mpack_ok) {
 
@@ -202,13 +209,6 @@ static void mpack_growable_writer_teardown(mpack_writer_t* writer) {
     writer->context = NULL;
 }
 
-static char* mpack_writer_get_reserved(mpack_writer_t* writer) {
-    // This is in a separate function in order to avoid false strict aliasing
-    // warnings. We aren't actually violating strict aliasing (the reserved
-    // space is only ever dereferenced as an mpack_growable_writer_t.)
-    return (char*)writer->reserved;
-}
-
 void mpack_writer_init_growable(mpack_writer_t* writer, char** target_data, size_t* target_size) {
     mpack_assert(target_data != NULL, "cannot initialize writer without a destination for the data");
     mpack_assert(target_size != NULL, "cannot initialize writer without a destination for the size");
@@ -231,7 +231,6 @@ void mpack_writer_init_growable(mpack_writer_t* writer, char** target_data, size
     }
 
     mpack_writer_init(writer, buffer, capacity);
-    mpack_writer_set_context(writer, growable_writer);
     mpack_writer_set_flush(writer, mpack_growable_writer_flush);
     mpack_writer_set_teardown(writer, mpack_growable_writer_teardown);
 }
