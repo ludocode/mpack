@@ -278,6 +278,28 @@ MPACK_HEADER_START
 
 
 
+/*
+ * Prevent inlining
+ *
+ * When a function is only used once, it is almost always inlined
+ * automatically. This can cause poor instruction cache usage because a
+ * function that should rarely be called (such as buffer exhaustion handling)
+ * will get inlined into the middle of a hot code path.
+ */
+
+#if !MPACK_NO_BUILTINS
+    #if defined(_MSC_VER)
+        #define MPACK_NOINLINE __declspec(noinline)
+    #elif defined(__GNUC__) || defined(__clang__)
+        #define MPACK_NOINLINE __attribute__((noinline))
+    #endif
+#endif
+#ifndef MPACK_NOINLINE
+    #define MPACK_NOINLINE /* nothing */
+#endif
+
+
+
 /* Some compiler-specific keywords and builtins */
 
 #if !MPACK_NO_BUILTINS
@@ -305,6 +327,34 @@ MPACK_HEADER_START
 #endif
 #ifndef MPACK_NORETURN
 #define MPACK_NORETURN(fn) fn
+#endif
+
+
+
+/*
+ * Likely/unlikely
+ *
+ * These should only really be used when a branch is taken (or not taken) less
+ * than 1/1000th of the time. Buffer flush checks when writing very small
+ * elements are a good example.
+ */
+
+#if !MPACK_NO_BUILTINS
+    #if defined(__GNUC__) || defined(__clang__)
+        #ifndef MPACK_LIKELY
+            #define MPACK_LIKELY(x) __builtin_expect((x),1)
+        #endif
+        #ifndef MPACK_UNLIKELY
+            #define MPACK_UNLIKELY(x) __builtin_expect((x),0)
+        #endif
+    #endif
+#endif
+
+#ifndef MPACK_LIKELY
+    #define MPACK_LIKELY(x) (x)
+#endif
+#ifndef MPACK_UNLIKELY
+    #define MPACK_UNLIKELY(x) (x)
 #endif
 
 

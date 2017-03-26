@@ -340,7 +340,7 @@ void mpack_writer_flush_message(mpack_writer_t* writer) {
 // Ensures there are at least count bytes free in the buffer. This
 // will flag an error if the flush function fails to make enough
 // room in the buffer.
-static bool mpack_writer_ensure(mpack_writer_t* writer, size_t count) {
+MPACK_NOINLINE static bool mpack_writer_ensure(mpack_writer_t* writer, size_t count) {
     mpack_assert(count != 0, "cannot ensure zero bytes!");
     mpack_assert(count <= MPACK_WRITER_MINIMUM_BUFFER_SIZE,
             "cannot ensure %i bytes, this is more than the minimum buffer size %i!",
@@ -374,7 +374,7 @@ static bool mpack_writer_ensure(mpack_writer_t* writer, size_t count) {
 // does not fit in the buffer (i.e. it straddles the edge of the
 // buffer.) If there is a flush function, it is guaranteed to be
 // called; otherwise mpack_error_too_big is raised.
-static void mpack_write_native_straddle(mpack_writer_t* writer, const char* p, size_t count) {
+MPACK_NOINLINE static void mpack_write_native_straddle(mpack_writer_t* writer, const char* p, size_t count) {
     mpack_assert(count == 0 || p != NULL, "data pointer for %i bytes is NULL", (int)count);
 
     if (mpack_writer_error(writer) != mpack_ok)
@@ -469,7 +469,7 @@ void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t value) {
 
 MPACK_STATIC_INLINE void mpack_write_byte_element(mpack_writer_t* writer, char value) {
     mpack_writer_track_element(writer);
-    if (mpack_writer_buffer_left(writer) >= 1 || mpack_writer_ensure(writer, 1))
+    if (MPACK_LIKELY(mpack_writer_buffer_left(writer) >= 1) || mpack_writer_ensure(writer, 1))
         writer->buffer[writer->used++] = value;
 }
 
@@ -699,7 +699,7 @@ MPACK_STATIC_INLINE void mpack_encode_ext32(char* p, int8_t exttype, uint32_t co
 // directly into the buffer. If mpack_writer_ensure() fails
 // it will flag an error so we don't have to do anything.
 #define MPACK_WRITE_ENCODED(encode_fn, size, ...) do {                                    \
-    if (mpack_writer_buffer_left(writer) >= size || mpack_writer_ensure(writer, size)) {  \
+    if (MPACK_LIKELY(mpack_writer_buffer_left(writer) >= size) || mpack_writer_ensure(writer, size)) {  \
         encode_fn(writer->buffer + writer->used, __VA_ARGS__);                            \
         writer->used += size;                                                             \
     }                                                                                     \
@@ -1006,7 +1006,7 @@ void mpack_write_str(mpack_writer_t* writer, const char* data, uint32_t count) {
         // The minimum buffer size when using a flush function is guaranteed to
         // fit the largest possible fixstr.
         size_t size = count + MPACK_TAG_SIZE_FIXSTR;
-        if (mpack_writer_buffer_left(writer) >= size || mpack_writer_ensure(writer, size)) {
+        if (MPACK_LIKELY(mpack_writer_buffer_left(writer) >= size) || mpack_writer_ensure(writer, size)) {
             char* MPACK_RESTRICT p = writer->buffer + writer->used;
             mpack_encode_fixstr(p, (uint8_t)count);
             mpack_memcpy(p + MPACK_TAG_SIZE_FIXSTR, data, count);
