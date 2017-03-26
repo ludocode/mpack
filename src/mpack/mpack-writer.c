@@ -96,6 +96,8 @@ void mpack_writer_init_error(mpack_writer_t* writer, mpack_error_t error) {
 void mpack_writer_set_flush(mpack_writer_t* writer, mpack_writer_flush_t flush) {
     MPACK_STATIC_ASSERT(MPACK_WRITER_MINIMUM_BUFFER_SIZE >= MPACK_MAXIMUM_TAG_SIZE,
             "minimum buffer size must fit any tag!");
+    MPACK_STATIC_ASSERT(31 + MPACK_TAG_SIZE_FIXSTR >= MPACK_WRITER_MINIMUM_BUFFER_SIZE,
+            "minimum buffer size must fit the largest possible fixstr!");
 
     if (writer->size < MPACK_WRITER_MINIMUM_BUFFER_SIZE) {
         mpack_break("buffer size is %i, but minimum buffer size for flush is %i",
@@ -992,40 +994,56 @@ void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count) {
 void mpack_write_str(mpack_writer_t* writer, const char* data, uint32_t count) {
     mpack_assert(data != NULL, "data for string of length %i is NULL", (int)count);
 
-    #if !MPACK_OPTIMIZE_FOR_SIZE
-    // We add a couple shortcuts here for short strings. In most cases the tag
-    // and string will already fit in the buffer.
+    #if MPACK_OPTIMIZE_FOR_SIZE
+    mpack_writer_track_element(writer);
+    mpack_start_str_notrack(writer, count);
+    mpack_write_native(writer, data, count);
+    #else
 
-    size_t left = mpack_writer_buffer_left(writer);
+    mpack_writer_track_element(writer);
 
-    if (count <= 31 && count + MPACK_TAG_SIZE_FIXSTR <= left) {
-        mpack_writer_track_element(writer);
-        char* MPACK_RESTRICT p = writer->buffer + writer->used;
-        mpack_encode_fixstr(p, (uint8_t)count);
-        mpack_memcpy(p + MPACK_TAG_SIZE_FIXSTR, data, count);
-        writer->used += count + MPACK_TAG_SIZE_FIXSTR;
+    if (count <= 31) {
+        // The minimum buffer size when using a flush function is guaranteed to
+        // fit the largest possible fixstr.
+        size_t size = count + MPACK_TAG_SIZE_FIXSTR;
+        if (mpack_writer_buffer_left(writer) >= size || mpack_writer_ensure(writer, size)) {
+            char* MPACK_RESTRICT p = writer->buffer + writer->used;
+            mpack_encode_fixstr(p, (uint8_t)count);
+            mpack_memcpy(p + MPACK_TAG_SIZE_FIXSTR, data, count);
+            writer->used += size;
+        }
         return;
     }
 
-    if (count <= UINT8_MAX && count + MPACK_TAG_SIZE_STR8 <= left
+    if (count <= UINT8_MAX
             #if MPACK_COMPATIBILITY
             && writer->version >= mpack_version_v5
             #endif
             ) {
-        mpack_writer_track_element(writer);
-        char* MPACK_RESTRICT p = writer->buffer + writer->used;
-        mpack_encode_str8(p, (uint8_t)count);
-        mpack_memcpy(p + MPACK_TAG_SIZE_STR8, data, count);
-        writer->used += count + MPACK_TAG_SIZE_STR8;
+        if (count + MPACK_TAG_SIZE_STR8 <= mpack_writer_buffer_left(writer)) {
+            char* MPACK_RESTRICT p = writer->buffer + writer->used;
+            mpack_encode_str8(p, (uint8_t)count);
+            mpack_memcpy(p + MPACK_TAG_SIZE_STR8, data, count);
+            writer->used += count + MPACK_TAG_SIZE_STR8;
+        } else {
+            MPACK_WRITE_ENCODED(mpack_encode_str8, MPACK_TAG_SIZE_STR8, (uint8_t)count);
+            mpack_write_native(writer, data, count);
+        }
         return;
     }
-    #endif
 
-    // If the string is long or doesn't fit in the buffer (or if we want
-    // maximum space savings) we fall back to writing in pieces.
-    mpack_start_str(writer, count);
-    mpack_write_bytes(writer, data, count);
-    mpack_finish_str(writer);
+    // str16 and str32 are likely to be a significant fraction of the buffer
+    // size, so we don't bother with a combined space check in order to
+    // minimize code size.
+    if (count <= UINT16_MAX) {
+        MPACK_WRITE_ENCODED(mpack_encode_str16, MPACK_TAG_SIZE_STR16, (uint16_t)count);
+        mpack_write_native(writer, data, count);
+    } else {
+        MPACK_WRITE_ENCODED(mpack_encode_str32, MPACK_TAG_SIZE_STR32, (uint32_t)count);
+        mpack_write_native(writer, data, count);
+    }
+
+    #endif
 }
 
 void mpack_write_bin(mpack_writer_t* writer, const char* data, uint32_t count) {
