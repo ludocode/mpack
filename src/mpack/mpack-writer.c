@@ -62,8 +62,8 @@ static void mpack_writer_clear(mpack_writer_t* writer) {
     writer->context = NULL;
 
     writer->buffer = NULL;
-    writer->size = 0;
-    writer->used = 0;
+    writer->current = NULL;
+    writer->end = NULL;
     writer->error = mpack_ok;
 
     #if MPACK_WRITE_TRACKING
@@ -75,7 +75,8 @@ void mpack_writer_init(mpack_writer_t* writer, char* buffer, size_t size) {
     mpack_assert(buffer != NULL, "cannot initialize writer with empty buffer");
     mpack_writer_clear(writer);
     writer->buffer = buffer;
-    writer->size = size;
+    writer->current = buffer;
+    writer->end = writer->buffer + size;
 
     #if MPACK_WRITE_TRACKING
     mpack_writer_flag_if_error(writer, mpack_track_init(&writer->track));
@@ -99,9 +100,9 @@ void mpack_writer_set_flush(mpack_writer_t* writer, mpack_writer_flush_t flush) 
     MPACK_STATIC_ASSERT(31 + MPACK_TAG_SIZE_FIXSTR >= MPACK_WRITER_MINIMUM_BUFFER_SIZE,
             "minimum buffer size must fit the largest possible fixstr!");
 
-    if (writer->size < MPACK_WRITER_MINIMUM_BUFFER_SIZE) {
+    if (mpack_writer_buffer_size(writer) < MPACK_WRITER_MINIMUM_BUFFER_SIZE) {
         mpack_break("buffer size is %i, but minimum buffer size for flush is %i",
-                (int)writer->size, MPACK_WRITER_MINIMUM_BUFFER_SIZE);
+                (int)mpack_writer_buffer_size(writer), MPACK_WRITER_MINIMUM_BUFFER_SIZE);
         mpack_writer_flag_error(writer, mpack_error_bug);
         return;
     }
@@ -140,45 +141,49 @@ static void mpack_growable_writer_flush(mpack_writer_t* writer, const char* data
     if (data == writer->buffer) {
 
         // teardown, do nothing
-        if (writer->used == count)
+        if (mpack_writer_buffer_used(writer) == count)
             return;
 
         // otherwise leave the data in the buffer and just grow
-        writer->used = count;
+        writer->current = writer->buffer + count;
         count = 0;
     }
 
-    mpack_log("flush size %i used %i data %p buffer %p\n",
-            (int)count, (int)writer->used, data, writer->buffer);
+    size_t used = mpack_writer_buffer_used(writer);
+    size_t size = mpack_writer_buffer_size(writer);
 
-    mpack_assert(data == writer->buffer || writer->used + count > writer->size,
+    mpack_log("flush size %i used %i data %p buffer %p\n",
+            (int)count, (int)used, data, writer->buffer);
+
+    mpack_assert(data == writer->buffer || used + count > size,
             "extra flush for %i but there is %i space left in the buffer! (%i/%i)",
-            (int)count, (int)writer->size - (int)writer->used, (int)writer->used, (int)writer->size);
+            (int)count, (int)mpack_writer_buffer_left(writer), (int)used, (int)size);
 
     // grow to fit the data
     // TODO: this really needs to correctly test for overflow
-    size_t new_size = writer->size * 2;
-    while (new_size < writer->used + count)
+    size_t new_size = size * 2;
+    while (new_size < used + count)
         new_size *= 2;
 
-    mpack_log("flush growing buffer size from %i to %i\n", (int)writer->size, (int)new_size);
+    mpack_log("flush growing buffer size from %i to %i\n", (int)size, (int)new_size);
 
     // grow the buffer
-    char* new_buffer = (char*)mpack_realloc(writer->buffer, writer->used, new_size);
+    char* new_buffer = (char*)mpack_realloc(writer->buffer, used, new_size);
     if (new_buffer == NULL) {
         mpack_writer_flag_error(writer, mpack_error_memory);
         return;
     }
+    writer->current = new_buffer + used;
     writer->buffer = new_buffer;
-    writer->size = new_size;
+    writer->end = writer->buffer + new_size;
 
     // append the extra data
     if (count > 0) {
-        mpack_memcpy(writer->buffer + writer->used, data, count);
-        writer->used += count;
+        mpack_memcpy(writer->current, data, count);
+        writer->current += count;
     }
 
-    mpack_log("new buffer %p, used %i\n", new_buffer, (int)writer->used);
+    mpack_log("new buffer %p, used %i\n", new_buffer, (int)mpack_writer_buffer_used(writer));
 }
 
 static void mpack_growable_writer_teardown(mpack_writer_t* writer) {
@@ -188,19 +193,20 @@ static void mpack_growable_writer_teardown(mpack_writer_t* writer) {
 
         // shrink the buffer to an appropriate size if the data is
         // much smaller than the buffer
-        if (writer->used < writer->size / 2) {
-            char* buffer = (char*)mpack_realloc(writer->buffer, writer->used, writer->used);
+        if (mpack_writer_buffer_used(writer) < mpack_writer_buffer_size(writer) / 2) {
+            size_t used = mpack_writer_buffer_used(writer);
+            char* buffer = (char*)mpack_realloc(writer->buffer, used, used);
             if (!buffer) {
                 MPACK_FREE(writer->buffer);
                 mpack_writer_flag_error(writer, mpack_error_memory);
                 return;
             }
             writer->buffer = buffer;
-            writer->size = writer->used;
+            writer->end = (writer->current = writer->buffer + used);
         }
 
         *growable_writer->target_data = writer->buffer;
-        *growable_writer->target_size = writer->used;
+        *growable_writer->target_size = mpack_writer_buffer_used(writer);
         writer->buffer = NULL;
 
     } else if (writer->buffer) {
@@ -312,8 +318,8 @@ MPACK_STATIC_INLINE void mpack_writer_flush_unchecked(mpack_writer_t* writer) {
     // This is a bit ugly; we reset used before calling flush so that
     // a flush function can distinguish between flushing the buffer
     // versus flushing external data. see mpack_growable_writer_flush()
-    size_t used = writer->used;
-    writer->used = 0;
+    size_t used = mpack_writer_buffer_used(writer);
+    writer->current = writer->buffer;
     writer->flush(writer, writer->buffer, used);
 }
 
@@ -333,7 +339,7 @@ void mpack_writer_flush_message(mpack_writer_t* writer) {
         return;
     }
 
-    if (writer->used > 0)
+    if (mpack_writer_buffer_used(writer) > 0)
         mpack_writer_flush_unchecked(writer);
 }
 
@@ -380,11 +386,11 @@ MPACK_NOINLINE static void mpack_write_native_straddle(mpack_writer_t* writer, c
     if (mpack_writer_error(writer) != mpack_ok)
         return;
     mpack_log("big write for %i bytes from %p, %i space left in buffer\n",
-            (int)count, p, (int)(writer->size - writer->used));
-    mpack_assert(count > writer->size - writer->used,
+            (int)count, p, (int)mpack_writer_buffer_left(writer));
+    mpack_assert(count > mpack_writer_buffer_left(writer),
             "big write requested for %i bytes, but there is %i available "
             "space in buffer. should have called mpack_write_native() instead",
-            (int)count, (int)(writer->size - writer->used));
+            (int)count, (int)(mpack_writer_buffer_left(writer)));
 
     // we'll need a flush function
     if (!writer->flush) {
@@ -402,13 +408,13 @@ MPACK_NOINLINE static void mpack_write_native_straddle(mpack_writer_t* writer, c
     // though they may have changed, and there may still be data in the buffer.
 
     // flush the extra data directly if it doesn't fit in the buffer
-    if (count > writer->size - writer->used) {
+    if (count > mpack_writer_buffer_left(writer)) {
         writer->flush(writer, p, count);
         if (mpack_writer_error(writer) != mpack_ok)
             return;
     } else {
-        mpack_memcpy(writer->buffer + writer->used, p, count);
-        writer->used += count;
+        mpack_memcpy(writer->current, p, count);
+        writer->current += count;
     }
 }
 
@@ -416,11 +422,11 @@ MPACK_NOINLINE static void mpack_write_native_straddle(mpack_writer_t* writer, c
 MPACK_STATIC_INLINE void mpack_write_native(mpack_writer_t* writer, const char* p, size_t count) {
     mpack_assert(count == 0 || p != NULL, "data pointer for %i bytes is NULL", (int)count);
 
-    if (writer->size - writer->used < count) {
+    if (mpack_writer_buffer_left(writer) < count) {
         mpack_write_native_straddle(writer, p, count);
     } else {
-        mpack_memcpy(writer->buffer + writer->used, p, count);
-        writer->used += count;
+        mpack_memcpy(writer->current, p, count);
+        writer->current += count;
     }
 }
 
@@ -432,8 +438,8 @@ mpack_error_t mpack_writer_destroy(mpack_writer_t* writer) {
     #endif
 
     // flush any outstanding data
-    if (mpack_writer_error(writer) == mpack_ok && writer->used != 0 && writer->flush != NULL) {
-        writer->flush(writer, writer->buffer, writer->used);
+    if (mpack_writer_error(writer) == mpack_ok && mpack_writer_buffer_used(writer) != 0 && writer->flush != NULL) {
+        writer->flush(writer, writer->buffer, mpack_writer_buffer_used(writer));
         writer->flush = NULL;
     }
 
@@ -470,7 +476,7 @@ void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t value) {
 MPACK_STATIC_INLINE void mpack_write_byte_element(mpack_writer_t* writer, char value) {
     mpack_writer_track_element(writer);
     if (MPACK_LIKELY(mpack_writer_buffer_left(writer) >= 1) || mpack_writer_ensure(writer, 1))
-        writer->buffer[writer->used++] = value;
+        *(writer->current++) = value;
 }
 
 void mpack_write_nil(mpack_writer_t* writer) {
@@ -698,11 +704,11 @@ MPACK_STATIC_INLINE void mpack_encode_ext32(char* p, int8_t exttype, uint32_t co
 // This is a macro wrapper to the encode functions to encode
 // directly into the buffer. If mpack_writer_ensure() fails
 // it will flag an error so we don't have to do anything.
-#define MPACK_WRITE_ENCODED(encode_fn, size, ...) do {                                    \
-    if (MPACK_LIKELY(mpack_writer_buffer_left(writer) >= size) || mpack_writer_ensure(writer, size)) {  \
-        encode_fn(writer->buffer + writer->used, __VA_ARGS__);                            \
-        writer->used += size;                                                             \
-    }                                                                                     \
+#define MPACK_WRITE_ENCODED(encode_fn, size, ...) do {                                                 \
+    if (MPACK_LIKELY(mpack_writer_buffer_left(writer) >= size) || mpack_writer_ensure(writer, size)) { \
+        encode_fn(writer->current, __VA_ARGS__);                                                       \
+        writer->current += size;                                                                       \
+    }                                                                                                  \
 } while (0)
 
 void mpack_write_u8(mpack_writer_t* writer, uint8_t value) {
@@ -1007,10 +1013,10 @@ void mpack_write_str(mpack_writer_t* writer, const char* data, uint32_t count) {
         // fit the largest possible fixstr.
         size_t size = count + MPACK_TAG_SIZE_FIXSTR;
         if (MPACK_LIKELY(mpack_writer_buffer_left(writer) >= size) || mpack_writer_ensure(writer, size)) {
-            char* MPACK_RESTRICT p = writer->buffer + writer->used;
+            char* MPACK_RESTRICT p = writer->current;
             mpack_encode_fixstr(p, (uint8_t)count);
             mpack_memcpy(p + MPACK_TAG_SIZE_FIXSTR, data, count);
-            writer->used += size;
+            writer->current += count + MPACK_TAG_SIZE_FIXSTR;
         }
         return;
     }
@@ -1021,10 +1027,10 @@ void mpack_write_str(mpack_writer_t* writer, const char* data, uint32_t count) {
             #endif
             ) {
         if (count + MPACK_TAG_SIZE_STR8 <= mpack_writer_buffer_left(writer)) {
-            char* MPACK_RESTRICT p = writer->buffer + writer->used;
+            char* MPACK_RESTRICT p = writer->current;
             mpack_encode_str8(p, (uint8_t)count);
             mpack_memcpy(p + MPACK_TAG_SIZE_STR8, data, count);
-            writer->used += count + MPACK_TAG_SIZE_STR8;
+            writer->current += count + MPACK_TAG_SIZE_STR8;
         } else {
             MPACK_WRITE_ENCODED(mpack_encode_str8, MPACK_TAG_SIZE_STR8, (uint8_t)count);
             mpack_write_native(writer, data, count);
