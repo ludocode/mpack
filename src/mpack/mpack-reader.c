@@ -219,40 +219,33 @@ void mpack_reader_flag_error(mpack_reader_t* reader, mpack_error_t error) {
     }
 }
 
-// A helper to call the reader fill function. This makes sure it's
-// implemented and guards against overflow in case it returns -1.
-static size_t mpack_fill(mpack_reader_t* reader, char* p, size_t count) {
-    mpack_assert(reader->fill != NULL, "mpack_fill() called with no fill function?");
-
-    size_t ret = reader->fill(reader, p, count);
-    if (ret == ((size_t)(-1)))
-        return 0;
-
-    return ret;
-}
-
 // Loops on the fill function, reading between the minimum and
 // maximum number of bytes and flagging an error if it fails.
-static size_t mpack_fill_range(mpack_reader_t* reader, char* p, size_t min_bytes, size_t max_bytes) {
+MPACK_NOINLINE static size_t mpack_fill_range(mpack_reader_t* reader, char* p, size_t min_bytes, size_t max_bytes) {
+    mpack_assert(reader->fill != NULL, "mpack_fill_range() called with no fill function?");
     mpack_assert(min_bytes > 0, "cannot fill zero bytes!");
     mpack_assert(max_bytes >= min_bytes, "min_bytes %i cannot be larger than max_bytes %i!",
             (int)min_bytes, (int)max_bytes);
 
     size_t count = 0;
     while (count < min_bytes) {
-        size_t read = mpack_fill(reader, p + count, max_bytes - count);
+        size_t read = reader->fill(reader, p + count, max_bytes - count);
+
+        // Reader fill functions can flag an error or return 0 on failure. We
+        // also guard against functions that -1 just in case.
         if (mpack_reader_error(reader) != mpack_ok)
             return 0;
-        if (read == 0) {
+        if (read == 0 || read == ((size_t)(-1))) {
             mpack_reader_flag_error(reader, mpack_error_io);
             return 0;
         }
+
         count += read;
     }
     return count;
 }
 
-bool mpack_reader_ensure_straddle(mpack_reader_t* reader, size_t count) {
+MPACK_NOINLINE bool mpack_reader_ensure_straddle(mpack_reader_t* reader, size_t count) {
     mpack_assert(count != 0, "cannot ensure zero bytes!");
     mpack_assert(reader->error == mpack_ok, "reader cannot be in an error state!");
 
@@ -296,7 +289,7 @@ bool mpack_reader_ensure_straddle(mpack_reader_t* reader, size_t count) {
 
 // Reads count bytes into p. Used when there are not enough bytes
 // left in the buffer to satisfy a read.
-void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count) {
+MPACK_NOINLINE void mpack_read_native_straddle(mpack_reader_t* reader, char* p, size_t count) {
     mpack_assert(count == 0 || p != NULL, "data pointer for %i bytes is NULL", (int)count);
 
     if (mpack_reader_error(reader) != mpack_ok) {
@@ -366,24 +359,12 @@ void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count) {
     }
 }
 
-void mpack_skip_bytes(mpack_reader_t* reader, size_t count) {
-    if (mpack_reader_error(reader) != mpack_ok)
-        return;
-    mpack_log("skip requested for %i bytes\n", (int)count);
-    mpack_reader_track_bytes(reader, count);
-
-    // check if we have enough in the buffer already
-    size_t left = (size_t)(reader->end - reader->data);
-    if (left >= count) {
-        mpack_log("skipping %i bytes still in buffer\n", (int)count);
-        reader->data += count;
-        return;
-    }
+MPACK_NOINLINE static void mpack_skip_bytes_straddle(mpack_reader_t* reader, size_t count) {
 
     // we'll need at least a fill function to skip more data. if there's
     // no fill function, the buffer should contain an entire MessagePack
     // object, so we raise mpack_error_invalid instead of mpack_error_io
-    // on truncated data. (see mpack_read_native_big())
+    // on truncated data. (see mpack_read_native_straddle())
     if (reader->fill == NULL) {
         mpack_log("reader has no fill function!\n");
         mpack_reader_flag_error(reader, mpack_error_invalid);
@@ -391,6 +372,7 @@ void mpack_skip_bytes(mpack_reader_t* reader, size_t count) {
     }
 
     // discard whatever's left in the buffer
+    size_t left = (size_t)(reader->end - reader->data);
     mpack_log("discarding %i bytes still in buffer\n", (int)left);
     count -= left;
     reader->data = reader->end;
@@ -408,7 +390,24 @@ void mpack_skip_bytes(mpack_reader_t* reader, size_t count) {
     mpack_reader_skip_using_fill(reader, count);
 }
 
-static void mpack_reader_skip_using_fill(mpack_reader_t* reader, size_t count) {
+void mpack_skip_bytes(mpack_reader_t* reader, size_t count) {
+    if (mpack_reader_error(reader) != mpack_ok)
+        return;
+    mpack_log("skip requested for %i bytes\n", (int)count);
+    mpack_reader_track_bytes(reader, count);
+
+    // check if we have enough in the buffer already
+    size_t left = (size_t)(reader->end - reader->data);
+    if (left >= count) {
+        mpack_log("skipping %i bytes still in buffer\n", (int)count);
+        reader->data += count;
+        return;
+    }
+
+    mpack_skip_bytes_straddle(reader, count);
+}
+
+MPACK_NOINLINE static void mpack_reader_skip_using_fill(mpack_reader_t* reader, size_t count) {
     mpack_assert(reader->fill != NULL, "missing fill function!");
     mpack_assert(reader->data == reader->end, "there are bytes left in the buffer!");
     mpack_assert(reader->error == mpack_ok, "should not have called this in an error state (%i)", reader->error);

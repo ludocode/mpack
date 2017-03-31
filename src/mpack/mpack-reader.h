@@ -821,15 +821,15 @@ MPACK_INLINE bool mpack_reader_ensure(mpack_reader_t* reader, size_t count) {
     return mpack_reader_ensure_straddle(reader, count);
 }
 
-void mpack_read_native_big(mpack_reader_t* reader, char* p, size_t count);
+void mpack_read_native_straddle(mpack_reader_t* reader, char* p, size_t count);
 
-// Reads count bytes into p, deferring to mpack_read_native_big() if more
+// Reads count bytes into p, deferring to mpack_read_native_straddle() if more
 // bytes are needed than are available in the buffer.
 MPACK_INLINE void mpack_read_native(mpack_reader_t* reader, char* p, size_t count) {
     mpack_assert(count == 0 || p != NULL, "data pointer for %i bytes is NULL", (int)count);
 
     if (count > (size_t)(reader->end - reader->data)) {
-        mpack_read_native_big(reader, p, count);
+        mpack_read_native_straddle(reader, p, count);
     } else {
         mpack_memcpy(p, reader->data, count);
         reader->data += count;
