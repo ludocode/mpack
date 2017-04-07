@@ -734,11 +734,19 @@ void* mpack_memset(void* s, int c, size_t n);
 size_t mpack_strlen(const char* s);
 #endif
 
+#if MPACK_STDIO
+    #if defined(WIN32)
+        #define mpack_snprintf _snprintf
+    #else
+        #define mpack_snprintf snprintf
+    #endif
+#endif
+
 
 
 /* Debug logging */
 #if 0
-    #define mpack_log(...) printf(__VA_ARGS__);
+    #define mpack_log(...) (printf(__VA_ARGS__), fflush(stdout))
 #else
     #define mpack_log(...) ((void)0)
 #endif

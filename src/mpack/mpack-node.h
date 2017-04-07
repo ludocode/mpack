@@ -102,6 +102,21 @@ typedef struct mpack_tree_t mpack_tree_t;
 typedef void (*mpack_tree_error_t)(mpack_tree_t* tree, mpack_error_t error);
 
 /**
+ * The MPack tree's read function. It should fill the buffer with as many bytes
+ * as are immediately available up to the given @c count, returning the number
+ * of bytes written to the buffer.
+ *
+ * In case of error, it should flag an appropriate error on the reader
+ * (usually @ref mpack_error_io.)
+ *
+ * @note You should only copy and return the bytes that are immediately
+ * available. It is always safe to return less than the requested count
+ * as long as some non-zero number of bytes are read; if more bytes are
+ * needed, the read function will simply be called again.
+ */
+typedef size_t (*mpack_tree_read_t)(mpack_tree_t* tree, char* buffer, size_t count);
+
+/**
  * A teardown function to be called when the tree is destroyed.
  */
 typedef void (*mpack_tree_teardown_t)(mpack_tree_t* tree);
@@ -133,7 +148,7 @@ struct mpack_node_data_t {
         double   d; /* The value if the type is double. */
         int64_t  i; /* The value if the type is signed int. */
         uint64_t u; /* The value if the type is unsigned int. */
-        const char* bytes; /* The byte pointer for str, bin and ext */
+        size_t offset; /* The byte offset for str, bin and ext */
         mpack_node_data_t* children; /* The children for map or array */
     } value;
 };
@@ -145,17 +160,26 @@ typedef struct mpack_tree_page_t {
 
 struct mpack_tree_t {
     mpack_tree_error_t error_fn;    /* Function to call on error */
+    mpack_tree_read_t read_fn;      /* Function to call to read more data */
     mpack_tree_teardown_t teardown; /* Function to teardown the context on destroy */
     void* context;                  /* Context for tree callbacks */
 
     mpack_node_data_t nil_node; /* a nil node to be returned in case of error */
     mpack_error_t error;
 
+    #ifdef MPACK_MALLOC
+    char* buffer;
+    size_t buffer_capacity;
+    #endif
+
     const char* data;
-    size_t length; // length of data
+    size_t data_length; // length of data (and content of buffer, if used)
 
     size_t node_count; // total node count of tree
     size_t size; // size in bytes of tree (usually matches length, but not if tree has trailing data)
+
+    size_t max_size;  // maximum message size
+    size_t max_nodes; // maximum nodes in a message
 
     mpack_node_data_t* root;
     bool parsed;
@@ -207,6 +231,28 @@ MPACK_INLINE mpack_node_t mpack_tree_nil_node(mpack_tree_t* tree) {
  * pointer must remain valid until after the tree is destroyed.
  */
 void mpack_tree_init(mpack_tree_t* tree, const char* data, size_t length);
+
+/**
+ * Initializes a tree parser from an unbounded stream, or a stream of
+ * unknown length.
+ *
+ * The parser can be used to read a single message from a stream of unknown
+ * length, or multiple messages from an unbounded stream, allowing it to
+ * be used for RPC communication.
+ *
+ * The stream will use a growable internal buffer to store the most recent
+ * message, as well as allocated pages of nodes for the parse tree.
+ *
+ * @param tree The tree parser
+ * @param read_fn The read function
+ * @param max_size The maximum size of a message in bytes
+ * @param max_size The maximum number of nodes to allocate. See @ref mpack_node_data_t
+ *     for the size of nodes.
+ *
+ * @see mpack_tree_read_t
+ */
+void mpack_tree_init_stream(mpack_tree_t* tree, mpack_tree_read_t read_fn, void* context,
+        size_t max_message_size, size_t max_message_nodes);
 #endif
 
 /**
@@ -785,6 +831,29 @@ MPACK_INLINE double mpack_node_double_strict(mpack_node_t node) {
  * @{
  */
 
+MPACK_INLINE const char* mpack_node_data_unchecked(mpack_node_t node) {
+    mpack_assert(mpack_node_error(node) == mpack_ok, "tree is in an error state!");
+
+    mpack_type_t type = node.data->type;
+    MPACK_UNUSED(type);
+    mpack_assert(type == mpack_type_str || type == mpack_type_bin || type == mpack_type_ext,
+            "node of type %i (%s) is not a data type!", type, mpack_type_to_string(type));
+
+    return node.tree->data + node.data->value.offset;
+}
+
+MPACK_INLINE int8_t mpack_node_exttype_unchecked(mpack_node_t node) {
+    mpack_assert(mpack_node_error(node) == mpack_ok, "tree is in an error state!");
+
+    mpack_type_t type = node.data->type;
+    MPACK_UNUSED(type);
+    mpack_assert(type == mpack_type_ext, "node of type %i (%s) is not an ext type!",
+            type, mpack_type_to_string(type));
+
+    // the exttype of an ext node is stored in the byte preceding the data
+    return (int8_t)*(mpack_node_data_unchecked(node) - 1);
+}
+
 /**
  * Checks that the given node contains a valid UTF-8 string.
  *
@@ -834,9 +903,8 @@ MPACK_INLINE int8_t mpack_node_exttype(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
-    // the exttype of an ext node is stored in the byte preceding the data
     if (node.data->type == mpack_type_ext)
-        return (int8_t)*(node.data->value.bytes - 1);
+        return mpack_node_exttype_unchecked(node);
 
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
@@ -896,7 +964,7 @@ MPACK_INLINE const char* mpack_node_str(mpack_node_t node) {
 
     mpack_type_t type = node.data->type;
     if (type == mpack_type_str)
-        return node.data->value.bytes;
+        return mpack_node_data_unchecked(node);
 
     mpack_node_flag_error(node, mpack_error_type);
     return NULL;
@@ -923,7 +991,7 @@ MPACK_INLINE const char* mpack_node_data(mpack_node_t node) {
 
     mpack_type_t type = node.data->type;
     if (type == mpack_type_str || type == mpack_type_bin || type == mpack_type_ext)
-        return node.data->value.bytes;
+        return mpack_node_data_unchecked(node);
 
     mpack_node_flag_error(node, mpack_error_type);
     return NULL;

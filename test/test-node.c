@@ -1015,14 +1015,44 @@ static void test_node_multiple_simple(void) {
 }
 
 #ifdef MPACK_MALLOC
-static bool test_node_multiple_allocs(void) {
+typedef struct test_node_stream_t {
+    size_t length;
+    const char* data;
+    size_t pos;
+    size_t step;
+} test_node_stream_t;
+
+static size_t test_node_stream_read(mpack_tree_t* tree, char* buffer, size_t count) {
+    test_node_stream_t* stream_context = (test_node_stream_t*)tree->context;
+
+    if (count > stream_context->step)
+        count = stream_context->step;
+    if (count + stream_context->pos > stream_context->length)
+        count = stream_context->length - stream_context->pos;
+
+    memcpy(buffer, stream_context->data + stream_context->pos, count);
+    stream_context->pos += count;
+    return count;
+}
+
+static bool test_node_multiple_allocs(bool stream, size_t stream_read_size) {
     static const char test[] =
         "\x82\xa4""true\xc3\xa5""false\xc2"
         "\x9a\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a" // larger than config page size
         "\x93\xff\xfe\xfd";
 
+    test_node_stream_t stream_context;
     mpack_tree_t tree;
-    mpack_tree_init(&tree, test, sizeof(test) - 1);
+
+    if (stream) {
+        stream_context.data = test;
+        stream_context.length = sizeof(test) - 1;
+        stream_context.pos = 0;
+        stream_context.step = stream_read_size;
+        mpack_tree_init_stream(&tree, &test_node_stream_read, &stream_context, 1000, 1000);
+    } else {
+        mpack_tree_init(&tree, test, sizeof(test) - 1);
+    }
 
     // we're testing memory errors! other errors are bad.
     mpack_tree_parse(&tree);
@@ -1069,6 +1099,26 @@ static bool test_node_multiple_allocs(void) {
     mpack_tree_destroy(&tree);
     return true;
 }
+
+static bool test_node_multiple_allocs_memory() {
+    return test_node_multiple_allocs(false, 0);
+}
+
+static bool test_node_multiple_allocs_stream1() {
+    return test_node_multiple_allocs(true, 1);
+}
+
+static bool test_node_multiple_allocs_stream2() {
+    return test_node_multiple_allocs(true, 2);
+}
+
+static bool test_node_multiple_allocs_stream3() {
+    return test_node_multiple_allocs(true, 3);
+}
+
+static bool test_node_multiple_allocs_stream4096() {
+    return test_node_multiple_allocs(true, 4096);
+}
 #endif
 
 void test_node(void) {
@@ -1105,7 +1155,11 @@ void test_node(void) {
     // message streams
     test_node_multiple_simple();
     #ifdef MPACK_MALLOC
-    test_system_fail_until_ok(&test_node_multiple_allocs);
+    test_system_fail_until_ok(&test_node_multiple_allocs_memory);
+    test_system_fail_until_ok(&test_node_multiple_allocs_stream1);
+    test_system_fail_until_ok(&test_node_multiple_allocs_stream2);
+    test_system_fail_until_ok(&test_node_multiple_allocs_stream3);
+    test_system_fail_until_ok(&test_node_multiple_allocs_stream4096);
     #endif
 }
 
