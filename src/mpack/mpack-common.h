@@ -364,6 +364,16 @@ MPACK_INLINE bool mpack_tag_equal(mpack_tag_t left, mpack_tag_t right) {
     return mpack_tag_cmp(left, right) == 0;
 }
 
+#if MPACK_DEBUG && MPACK_STDIO
+/**
+ * Generates a debug string description of the given tag into the given buffer.
+ *
+ * This is only available in debug mode, and only if stdio is available (since
+ * it uses snprintf().) It's strictly for debugging purposes.
+ */
+void mpack_tag_debug_describe(mpack_tag_t tag, char* buffer, size_t buffer_size);
+#endif
+
 /**
  * @}
  */

@@ -517,24 +517,7 @@ static void test_file_node_elements(mpack_node_t node, mpack_tag_t tag) {
     }
 }
 
-static void test_file_node(void) {
-    mpack_tree_t tree;
-
-    // test maximum size
-    mpack_tree_init_file(&tree, test_filename, 100);
-    TEST_TREE_DESTROY_ERROR(&tree, mpack_error_too_big);
-
-    // test blank file
-    mpack_tree_init_file(&tree, test_blank_filename, 0);
-    TEST_TREE_DESTROY_ERROR(&tree, mpack_error_invalid);
-
-    // test successful parse
-    mpack_tree_init_file(&tree, test_filename, 0);
-    mpack_tree_parse(&tree);
-    TEST_TRUE(mpack_tree_error(&tree) == mpack_ok, "file tree parsing failed: %s",
-            mpack_error_to_string(mpack_tree_error(&tree)));
-
-    mpack_node_t root = mpack_tree_root(&tree);
+static void test_file_node_contents(mpack_node_t root) {
     TEST_TRUE(mpack_node_array_length(root) == 7);
 
     mpack_node_t lipsum_node = mpack_node_array_at(root, 0);
@@ -595,9 +578,31 @@ static void test_file_node(void) {
         node = mpack_node_array_at(node, 0);
     TEST_TRUE(mpack_ok == mpack_node_error(node));
     mpack_node_nil(node);
+}
 
-    mpack_error_t error = mpack_tree_destroy(&tree);
+static void test_file_tree_successful_parse(mpack_tree_t* tree) {
+    mpack_tree_parse(tree);
+    TEST_TRUE(mpack_tree_error(tree) == mpack_ok, "file tree parsing failed: %s",
+            mpack_error_to_string(mpack_tree_error(tree)));
+    test_file_node_contents(mpack_tree_root(tree));
+    mpack_error_t error = mpack_tree_destroy(tree);
     TEST_TRUE(error == mpack_ok, "file tree failed with error %s", mpack_error_to_string(error));
+}
+
+static void test_file_node(void) {
+    mpack_tree_t tree;
+
+    // test maximum size
+    mpack_tree_init_file(&tree, test_filename, 100);
+    TEST_TREE_DESTROY_ERROR(&tree, mpack_error_too_big);
+
+    // test blank file
+    mpack_tree_init_file(&tree, test_blank_filename, 0);
+    TEST_TREE_DESTROY_ERROR(&tree, mpack_error_invalid);
+
+    // test successful parse from filename
+    mpack_tree_init_file(&tree, test_filename, 0); // test the deprecated function
+    test_file_tree_successful_parse(&tree);
 
     // test file size out of bounds
     #if MPACK_DEBUG
@@ -610,6 +615,77 @@ static void test_file_node(void) {
     // test missing file
     mpack_tree_init_file(&tree, "invalid-filename", 0);
     TEST_TREE_DESTROY_ERROR(&tree, mpack_error_io);
+}
+
+typedef struct test_file_stream_t {
+    size_t length;
+    char* data;
+    size_t pos;
+    size_t step;
+} test_file_stream_t;
+
+// The test stream reader loops over the data in the test file. It returns at
+// most the step size so we can test reading from very small to very large
+// chunks.
+static size_t test_file_stream_read(mpack_tree_t* tree, char* buffer, size_t count) {
+    test_file_stream_t* stream = (test_file_stream_t*)tree->context;
+
+    if (count > stream->step)
+        count = stream->step;
+
+    size_t left = count;
+    while (left > 0) {
+        size_t n = stream->length - stream->pos;
+        if (n > left)
+            n = left;
+
+        mpack_memcpy(buffer, stream->data + stream->pos, n);
+
+        buffer += n;
+        stream->pos += n;
+        left -= n;
+
+        if (stream->pos == stream->length)
+            stream->pos = 0;
+    }
+
+    return count;
+}
+
+static void test_file_node_stream() {
+    test_file_stream_t stream;
+    stream.data = test_file_fetch(test_filename, &stream.length);
+
+    size_t steps[] = {11, 23, 32, 127, 369, 4096, SIZE_MAX};
+
+    for (size_t i = 0; i < sizeof(steps) / sizeof(steps[0]); ++i) {
+        stream.pos = 0;
+        stream.step = steps[i];
+
+        // We use a max_size a bit larger than the file, that way some extra
+        // data is read from the next tree.
+        size_t max_size = stream.length * 4 / 3;
+
+        mpack_tree_t tree;
+        mpack_tree_init_stream(&tree, &test_file_stream_read, &stream, max_size, max_size);
+        TEST_TRUE(mpack_tree_error(&tree) == mpack_ok, "tree initialization failed: %s",
+                mpack_error_to_string(mpack_tree_error(&tree)));
+
+        // We try parsing the same tree a dozen times repeatedly with this step size.
+        for (int j = 0; j < 12; ++j) {
+            mpack_tree_parse(&tree);
+            TEST_TRUE(mpack_tree_error(&tree) == mpack_ok, "tree parsing failed: %s",
+                    mpack_error_to_string(mpack_tree_error(&tree)));
+            test_file_node_contents(mpack_tree_root(&tree));
+            TEST_TRUE(mpack_tree_error(&tree) == mpack_ok, "tree contents failed: %s",
+                    mpack_error_to_string(mpack_tree_error(&tree)));
+        }
+
+        mpack_error_t error = mpack_tree_destroy(&tree);
+        TEST_TRUE(error == mpack_ok, "tree stream failed with error %s", mpack_error_to_string(error));
+    }
+
+    MPACK_FREE(stream.data);
 }
 
 static bool test_file_node_failure(void) {
@@ -717,6 +793,7 @@ void test_file(void) {
     #endif
     #if MPACK_NODE
     test_file_node();
+    test_file_node_stream();
     #endif
 
     test_system_fail_until_ok(&test_file_write_failure);
