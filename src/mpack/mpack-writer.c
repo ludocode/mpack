@@ -195,7 +195,13 @@ static void mpack_growable_writer_teardown(mpack_writer_t* writer) {
         // much smaller than the buffer
         if (mpack_writer_buffer_used(writer) < mpack_writer_buffer_size(writer) / 2) {
             size_t used = mpack_writer_buffer_used(writer);
-            char* buffer = (char*)mpack_realloc(writer->buffer, used, used);
+
+            // We always return a non-null pointer that must be freed, even if
+            // nothing was written. malloc() and realloc() do not necessarily
+            // do this so we enforce it ourselves.
+            size_t size = (used != 0) ? used : 1;
+
+            char* buffer = (char*)mpack_realloc(writer->buffer, used, size);
             if (!buffer) {
                 MPACK_FREE(writer->buffer);
                 mpack_writer_flag_error(writer, mpack_error_memory);

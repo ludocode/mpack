@@ -332,6 +332,18 @@ static void test_write_simple_misc() {
     TEST_SIMPLE_WRITE("\xcb\xc0\x09\x21\xfb\x53\xc8\xd4\xf1", mpack_write_double(&writer, -3.14159265));
 
     TEST_SIMPLE_WRITE("\xde\xad\xbe\xef", mpack_write_object_bytes(&writer, "\xde\xad\xbe\xef", 4));
+
+    #ifdef MPACK_MALLOC
+    // test writing nothing
+    char* growable_buf;
+    size_t size;
+    mpack_writer_t writer;
+    mpack_writer_init_growable(&writer, &growable_buf, &size);
+    TEST_WRITER_DESTROY_NOERROR(&writer);
+    TEST_TRUE(size == 0);
+    TEST_TRUE(growable_buf != NULL);
+    MPACK_FREE(growable_buf);
+    #endif
 }
 
 #ifdef MPACK_MALLOC

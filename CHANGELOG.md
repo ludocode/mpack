@@ -26,6 +26,8 @@ Changes:
 
 - The reader's skip function is no longer ignored under `MPACK_OPTIMIZE_FOR_SIZE`.
 
+- Fixed an allocation bug when closing a growable writer without having written anything.
+
 
 Release Versions
 ================
