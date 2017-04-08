@@ -71,6 +71,8 @@
 
 extern mpack_tag_t (*fn_mpack_tag_nil)(void);
 
+extern const char* lipsum;
+
 #ifdef __cplusplus
 extern "C" {
 #endif

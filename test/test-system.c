@@ -164,6 +164,26 @@ void test_free(void* p) {
 
 
 
+#if defined(MPACK_STDLIB) && MPACK_STDLIB
+static bool test_system_mock_strlen_enabled = false;
+static size_t test_system_mock_strlen_value;
+
+void test_system_mock_strlen(size_t len) {
+    test_system_mock_strlen_enabled = true;
+    test_system_mock_strlen_value = len;
+}
+
+size_t test_strlen(const char* s) {
+    if (test_system_mock_strlen_enabled) {
+        test_system_mock_strlen_enabled = false;
+        return test_system_mock_strlen_value;
+    }
+    return strlen(s);
+}
+#endif
+
+
+
 #if MPACK_STDIO
 #undef fopen
 #undef fclose

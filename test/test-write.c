@@ -343,6 +343,17 @@ static void test_write_simple_misc() {
     TEST_TRUE(size == 0);
     TEST_TRUE(growable_buf != NULL);
     MPACK_FREE(growable_buf);
+
+    // test growing by many steps at once (the initial buffer size during tests
+    // is 32, and the lipsum string is >700 characters)
+    mpack_writer_init_growable(&writer, &growable_buf, &size);
+    mpack_write_cstr(&writer, lipsum);
+    TEST_WRITER_DESTROY_NOERROR(&writer);
+    TEST_TRUE(size == MPACK_TAG_SIZE_STR16 + strlen(lipsum));
+    TEST_TRUE(growable_buf[0] == '\xda');
+    TEST_TRUE(mpack_load_u16(growable_buf + 1) == strlen(lipsum));
+    TEST_TRUE(memcmp(growable_buf + MPACK_TAG_SIZE_STR16, lipsum, strlen(lipsum)) == 0);
+    MPACK_FREE(growable_buf);
     #endif
 }
 
@@ -780,6 +791,12 @@ static void test_write_tracking() {
     TEST_BREAK((mpack_finish_array(&writer), true));
     TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_bug);
 
+    // closing wrong type
+    mpack_writer_init(&writer, buf, sizeof(buf));
+    mpack_start_array(&writer, 0);
+    TEST_BREAK((mpack_finish_map(&writer), true));
+    TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_bug);
+
     // writing elements in a string
     mpack_writer_init(&writer, buf, sizeof(buf));
     mpack_start_str(&writer, 50);
@@ -1085,6 +1102,23 @@ static void test_misc(void) {
     mpack_writer_init(&writer, shortbuf, sizeof(shortbuf));
     mpack_write_cstr(&writer, quick_brown_fox);
     TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_too_big);
+
+    #if MPACK_STDLIB
+    // writing strings larger than 32 bits should fail
+    if (UINT32_MAX < SIZE_MAX) {
+        char single[1];
+
+        mpack_writer_init(&writer, single, SIZE_MAX);
+        test_system_mock_strlen((size_t)UINT32_MAX + (size_t)1);
+        mpack_write_cstr(&writer, quick_brown_fox);
+        TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_invalid);
+
+        mpack_writer_init(&writer, single, SIZE_MAX);
+        test_system_mock_strlen(SIZE_MAX);
+        mpack_write_utf8_cstr(&writer, quick_brown_fox);
+        TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_invalid);
+    }
+    #endif
 
 }
 

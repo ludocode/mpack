@@ -427,6 +427,11 @@ static void test_node_read_misc() {
     TEST_TREE_DESTROY_ERROR(&tree, mpack_error_too_big);
     TEST_BREAK((mpack_tree_init_pool(&tree, "\xc0", 1, small_pool, 0), true));
     TEST_TREE_DESTROY_ERROR(&tree, mpack_error_bug);
+
+    // test forgetting to parse
+    mpack_tree_init_pool(&tree, "\x91\xc0", 2, small_pool, 1);
+    TEST_BREAK((mpack_tree_root(&tree), true));
+    TEST_TREE_DESTROY_ERROR(&tree, mpack_error_bug);
 }
 
 static void test_node_read_floats() {
@@ -591,6 +596,7 @@ static void test_node_read_pre_error() {
     TEST_SIMPLE_TREE_READ_ERROR("", 0 == mpack_node_exttype(node), mpack_error_invalid);
     TEST_SIMPLE_TREE_READ_ERROR("", 0 == mpack_node_data_len(node), mpack_error_invalid);
     TEST_SIMPLE_TREE_READ_ERROR("", 0 == mpack_node_strlen(node), mpack_error_invalid);
+    TEST_SIMPLE_TREE_READ_ERROR("", NULL == mpack_node_str(node), mpack_error_invalid);
     TEST_SIMPLE_TREE_READ_ERROR("", NULL == mpack_node_data(node), mpack_error_invalid);
     TEST_SIMPLE_TREE_READ_ERROR("", 0 == mpack_node_copy_data(node, NULL, 0), mpack_error_invalid);
     buf[0] = 1;
@@ -885,6 +891,7 @@ static void test_node_read_compound_errors(void) {
     TEST_SIMPLE_TREE_READ_ERROR("\x00", 0 == mpack_node_exttype(node), mpack_error_type);
     TEST_SIMPLE_TREE_READ_ERROR("\x00", 0 == mpack_node_data_len(node), mpack_error_type);
     TEST_SIMPLE_TREE_READ_ERROR("\x00", 0 == mpack_node_strlen(node), mpack_error_type);
+    TEST_SIMPLE_TREE_READ_ERROR("\x00", NULL == mpack_node_str(node), mpack_error_type);
     TEST_SIMPLE_TREE_READ_ERROR("\x00", NULL == mpack_node_data(node), mpack_error_type);
     TEST_SIMPLE_TREE_READ_ERROR("\x00", 0 == mpack_node_copy_data(node, NULL, 0), mpack_error_type);
 

@@ -64,6 +64,14 @@ size_t test_malloc_total_count(void);
 #endif
 
 
+#if defined(MPACK_STDLIB) && MPACK_STDLIB
+// Causes the next call to strlen() to return the given value.
+void test_system_mock_strlen(size_t len);
+
+size_t test_strlen(const char* s);
+#endif
+
+
 #if defined(MPACK_STDIO) && MPACK_STDIO
 FILE* test_fopen(const char* path, const char* mode);
 int test_fclose(FILE* stream);

@@ -460,7 +460,6 @@ mpack_tag_t mpack_node_tag(mpack_node_t node);
  */
 void mpack_node_print_file(mpack_node_t node, FILE* file);
 
-#ifndef MPACK_GCOV
 /**
  * Converts a node to pseudo-JSON for debugging purposes
  * and pretty-prints it to stdout.
@@ -468,7 +467,6 @@ void mpack_node_print_file(mpack_node_t node, FILE* file);
 MPACK_INLINE void mpack_node_print(mpack_node_t node) {
     mpack_node_print_file(node, stdout);
 }
-#endif
 #endif
 
 /**

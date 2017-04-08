@@ -1011,12 +1011,9 @@ char* mpack_expect_utf8_cstr_alloc(mpack_reader_t* reader, size_t maxsize);
  * Remember that maps are unordered in JSON. Don't use this for map keys
  * unless the map has only a single key!
  */
-MPACK_INLINE void mpack_expect_cstr_match(mpack_reader_t* reader, const char* str) {
-    if (mpack_strlen(str) > UINT32_MAX) {
-        mpack_reader_flag_error(reader, mpack_error_type);
-        return;
-    }
-    mpack_expect_str_match(reader, str, mpack_strlen(str));
+MPACK_INLINE void mpack_expect_cstr_match(mpack_reader_t* reader, const char* cstr) {
+    mpack_assert(cstr != NULL, "cstr pointer is NULL");
+    mpack_expect_str_match(reader, cstr, mpack_strlen(cstr));
 }
 
 /**

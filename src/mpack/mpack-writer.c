@@ -1105,8 +1105,10 @@ void mpack_write_utf8(mpack_writer_t* writer, const char* str, uint32_t length) 
 void mpack_write_utf8_cstr(mpack_writer_t* writer, const char* cstr) {
     mpack_assert(cstr != NULL, "cstr pointer is NULL");
     size_t length = mpack_strlen(cstr);
-    if (length > UINT32_MAX)
+    if (length > UINT32_MAX) {
         mpack_writer_flag_error(writer, mpack_error_invalid);
+        return;
+    }
     mpack_write_utf8(writer, cstr, (uint32_t)length);
 }
 

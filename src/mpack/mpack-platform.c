@@ -73,7 +73,17 @@ void mpack_assert_fail(const char* message) {
 // We split the assert failure from the wrapper so that a
 // custom assert function can return.
 void mpack_assert_fail_wrapper(const char* message) {
+
+    #ifdef MPACK_GCOV
+    // gcov marks even __builtin_unreachable() as an uncovered line. this
+    // silences it.
+    (mpack_assert_fail(message), __builtin_unreachable());
+
+    #else
     mpack_assert_fail(message);
+
+    // mpack_assert_fail() is not supposed to return. in case it does, we
+    // abort. it is not safe to resume execution after this.
 
     #if !MPACK_NO_BUILTINS
     #if defined(__GNUC__) || defined(__clang__)
@@ -90,6 +100,7 @@ void mpack_assert_fail_wrapper(const char* message) {
     #endif
 
     MPACK_UNREACHABLE;
+    #endif
 }
 
 #if !MPACK_CUSTOM_BREAK

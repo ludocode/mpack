@@ -40,8 +40,8 @@
     #define MPACK_MALLOC test_malloc
     #define MPACK_FREE test_free
 
-    // We need MPACK_STDIO defined before test-system.h to override
-    // stdio functions.
+    // We need MPACK_STDLIB and MPACK_STDIO defined before test-system.h to
+    // override their functions.
     #define MPACK_STDLIB 1
     #define MPACK_STDIO 1
 #endif
@@ -63,6 +63,12 @@
 #define fseek  test_fseek
 #define ftell  test_ftell
 #define ferror test_ferror
+#endif
+
+// We replace strlen to simulate extremely large c-strings (only on stdlib
+// builds, so that non-stdlib builds test the mpack implementations)
+#if MPACK_STDLIB
+#define mpack_strlen test_strlen
 #endif
 
 // Tracking matches the default config, except the test suite

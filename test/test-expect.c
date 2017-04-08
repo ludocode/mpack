@@ -405,7 +405,8 @@ static void test_expect_int_match() {
     TEST_SIMPLE_READ("\xce\xff\xff\xff\xff", (mpack_expect_uint_match(&reader, 0xffffffff), true));
     TEST_SIMPLE_READ("\xcf\x00\x00\x00\x01\x00\x00\x00\x00", (mpack_expect_uint_match(&reader, 0x100000000), true));
     TEST_SIMPLE_READ("\xcf\xff\xff\xff\xff\xff\xff\xff\xff", (mpack_expect_uint_match(&reader, 0xffffffffffffffff), true));
-    TEST_SIMPLE_READ_ERROR("\xff", (mpack_expect_uint_match(&reader, 0), true), mpack_error_type);
+    TEST_SIMPLE_READ_ERROR("\xff", (mpack_expect_uint_match(&reader, 0), true), mpack_error_type); // signed, not a uint
+    TEST_SIMPLE_READ_ERROR("\x01", (mpack_expect_uint_match(&reader, 2), true), mpack_error_type); // successful uint, not a match
 
     TEST_SIMPLE_READ("\x00", (mpack_expect_int_match(&reader, 0), true));
     TEST_SIMPLE_READ("\x01", (mpack_expect_int_match(&reader, 1), true));
@@ -417,7 +418,9 @@ static void test_expect_int_match() {
     TEST_SIMPLE_READ("\xd2\x80\x00\x00\x00", (mpack_expect_int_match(&reader, INT32_MIN), true));
     TEST_SIMPLE_READ("\xd3\xff\xff\xff\xff\x7f\xff\xff\xff", (mpack_expect_int_match(&reader, (int64_t)INT32_MIN - 1), true));
     TEST_SIMPLE_READ("\xd3\x80\x00\x00\x00\x00\x00\x00\x00", (mpack_expect_int_match(&reader, INT64_MIN), true));
-    TEST_SIMPLE_READ_ERROR("\xc0", (mpack_expect_int_match(&reader, 0), true), mpack_error_type);
+    TEST_SIMPLE_READ_ERROR("\xc0", (mpack_expect_int_match(&reader, 0), true), mpack_error_type); // nil, not an int
+    TEST_SIMPLE_READ_ERROR("\x01", (mpack_expect_int_match(&reader, 2), true), mpack_error_type); // successful uint->int, not a match
+    TEST_SIMPLE_READ_ERROR("\xfe", (mpack_expect_int_match(&reader, -3), true), mpack_error_type); // successful int, not a match
 
 }
 
@@ -430,8 +433,10 @@ static void test_expect_misc() {
     TEST_SIMPLE_READ("\xc3", true == mpack_expect_bool(&reader));
     TEST_SIMPLE_READ("\xc2", (mpack_expect_false(&reader), true));
     TEST_SIMPLE_READ("\xc3", (mpack_expect_true(&reader), true));
-    TEST_SIMPLE_READ_ERROR("\xc0", (mpack_expect_false(&reader), true), mpack_error_type);
-    TEST_SIMPLE_READ_ERROR("\xc0", (mpack_expect_true(&reader), true), mpack_error_type);
+    TEST_SIMPLE_READ_ERROR("\xc3", (mpack_expect_false(&reader), true), mpack_error_type); // bool, wrong value
+    TEST_SIMPLE_READ_ERROR("\xc2", (mpack_expect_true(&reader), true), mpack_error_type); // bool, wrong value
+    TEST_SIMPLE_READ_ERROR("\xc0", (mpack_expect_false(&reader), true), mpack_error_type); // wrong type
+    TEST_SIMPLE_READ_ERROR("\xc0", (mpack_expect_true(&reader), true), mpack_error_type); // wrong type
 }
 
 #if MPACK_READ_TRACKING
@@ -673,6 +678,16 @@ static void test_expect_str() {
     TEST_SIMPLE_READ_ERROR("\xa3""azc", (mpack_expect_cstr_match(&reader, "abc"), true), mpack_error_type);
     TEST_SIMPLE_READ_ERROR("\xa3""abz", (mpack_expect_cstr_match(&reader, "abc"), true), mpack_error_type);
 
+    #if MPACK_STDLIB
+    // str/cstr match larger than 32 bits
+    if (UINT32_MAX < SIZE_MAX) {
+        test_system_mock_strlen((size_t)UINT32_MAX + (size_t)1);
+        TEST_SIMPLE_READ_ERROR("\xa3""abc", (mpack_expect_cstr_match(&reader, "abc"), true), mpack_error_type);
+        test_system_mock_strlen(SIZE_MAX);
+        TEST_SIMPLE_READ_ERROR("\xa3""abc", (mpack_expect_cstr_match(&reader, "abc"), true), mpack_error_type);
+    }
+    #endif
+
 
 
     // bin is never allowed to be read as str
@@ -808,6 +823,16 @@ static void test_expect_bin() {
         TEST_TRUE(memcmp(test, "test", 4) == 0);
         MPACK_FREE(test);
     }
+
+    // Unlimited max allocation size. Don't do this, or at least not with
+    // untrusted data!
+    TEST_SIMPLE_READ("\xc4\x04test", NULL != (test = mpack_expect_bin_alloc(&reader, SIZE_MAX, &length)));
+    if (test) {
+        TEST_TRUE(length == 4);
+        TEST_TRUE(memcmp(test, "test", 4) == 0);
+        MPACK_FREE(test);
+    }
+
     TEST_SIMPLE_READ_ERROR("\xc4\x04test", NULL == mpack_expect_bin_alloc(&reader, 3, &length), mpack_error_type);
     TEST_SIMPLE_READ_ERROR("\x01", NULL == mpack_expect_bin_alloc(&reader, 3, &length), mpack_error_type);
     #endif

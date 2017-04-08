@@ -672,7 +672,9 @@ MPACK_HEADER_START
     #define mpack_memcpy memcpy
     #define mpack_memmove memmove
     #define mpack_memset memset
-    #define mpack_strlen strlen
+    #ifndef mpack_strlen
+        #define mpack_strlen strlen
+    #endif
 
     #if defined(MPACK_UNIT_TESTS) && MPACK_INTERNAL && defined(__GNUC__)
         // make sure we don't use the stdlib directly during development

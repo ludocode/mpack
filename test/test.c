@@ -37,6 +37,8 @@ mpack_tag_t (*fn_mpack_tag_nil)(void) = &mpack_tag_nil;
 int passes;
 int tests;
 
+const char* lipsum = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed nec justo purus. Nunc finibus dolor id lorem sagittis, euismod efficitur arcu aliquam. Nullam a ante eget mi porttitor dignissim vitae at libero. Maecenas in justo massa. Mauris ultricies leo nisl, at ullamcorper erat maximus sit amet. Quisque pharetra sed ligula nec tristique. Mauris consectetur sapien lacus, et pharetra turpis rhoncus a. Sed in eleifend eros. Donec in libero lacus. Sed et finibus ipsum. Etiam eros leo, mollis eget molestie quis, rhoncus ac magna. Donec dolor risus, bibendum et scelerisque at, faucibus in mi. Interdum et malesuada fames ac ante ipsum primis in faucibus. Vestibulum convallis accumsan mollis.";
+
 #if MPACK_CUSTOM_ASSERT
 bool test_jmp_set = false;
 jmp_buf test_jmp_buf;
