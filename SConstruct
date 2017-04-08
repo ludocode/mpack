@@ -87,7 +87,13 @@ else:
 
 gcovflags = []
 if ARGUMENTS.get('gcov'):
-    gcovflags = ["-DMPACK_GCOV=1", "--coverage"]
+    gcovflags = [
+        "-DMPACK_GCOV=1",
+        "--coverage",
+        "-fno-inline",
+        "-fno-inline-small-functions",
+        "-fno-default-inline"
+    ]
 
 ltoflags = ["-O3", "-flto", "-fuse-linker-plugin", "-fno-fat-lto-objects"]
 

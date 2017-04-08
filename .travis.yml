@@ -8,12 +8,6 @@ addons:
     packages:
       - clang
       - valgrind
-      # these packages are needed for urllib3[secure] for SNI support
-      # (they may not be installed on all Travis build nodes)
-      - build-essential
-      - python-dev
-      - libffi-dev
-      - libssl-dev
 
 script: tools/ci.sh
 
@@ -28,6 +22,23 @@ env:
 
 matrix:
   include:
+
+    # osx build
     - os: osx
       compiler: clang
       env: "OSX=1"
+
+    # code coverage build
+    - os: linux
+      compiler: gcov
+      env: "STANDARD=1"
+      addons:
+        apt:
+          packages:
+            - valgrind
+            # these packages are needed for urllib3[secure] for SNI support for
+            # coveralls integration
+            - build-essential
+            - python-dev
+            - libffi-dev
+            - libssl-dev
