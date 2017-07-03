@@ -196,6 +196,12 @@ static void mpack_growable_writer_teardown(mpack_writer_t* writer) {
         if (mpack_writer_buffer_used(writer) < mpack_writer_buffer_size(writer) / 2) {
             size_t used = mpack_writer_buffer_used(writer);
 
+            // The user hasn't written anything -> its a bug
+            if(used == 0) {
+                mpack_writer_flag_error(writer, mpack_error_bug);
+                return;
+            }
+
             // We always return a non-null pointer that must be freed, even if
             // nothing was written. malloc() and realloc() do not necessarily
             // do this so we enforce it ourselves.
