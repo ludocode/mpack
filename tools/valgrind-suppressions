@@ -16,3 +16,22 @@
    fun:call_init.part.0
    fun:_dl_init
 }
+
+# musl libc supressions
+{
+   musl-free
+   Memcheck:Free
+   fun:free
+   obj:/lib/ld-musl-x86_64.so.1
+}
+{
+   musl-leak
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:calloc
+   fun:load_library
+   fun:load_preload
+   fun:__dls3
+   fun:__dls2
+   obj:/lib/ld-musl-x86_64.so.1
+}

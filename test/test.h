@@ -67,6 +67,9 @@
         #undef isnan
         #define isnan(x) __builtin_isnan(x)
     #endif
+    #if !defined(isnanf) && !defined(MPACK_ISNANF_IS_FUNC)
+        #define isnanf isnan
+    #endif
 #endif
 
 extern mpack_tag_t (*fn_mpack_tag_nil)(void);
