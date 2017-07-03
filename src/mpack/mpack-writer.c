@@ -203,7 +203,6 @@ static void mpack_growable_writer_teardown(mpack_writer_t* writer) {
 
             char* buffer = (char*)mpack_realloc(writer->buffer, used, size);
             if (!buffer) {
-                MPACK_FREE(writer->buffer);
                 mpack_writer_flag_error(writer, mpack_error_memory);
                 return;
             }
