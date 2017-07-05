@@ -49,6 +49,11 @@ env.Append(LINKFLAGS = [
     "-g",
     ])
 
+# Check if isnanf is a function
+
+if conf.CheckFunc('isnanf'):
+    conf.env.Append(CPPFLAGS= '-DMPACK_ISNANF_IS_FUNC')
+
 # Additional warning flags are passed in SConscript based on the language (C/C++)
 
 AddFlagIfSupported("-Wmissing-variable-declarations")
