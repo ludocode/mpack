@@ -46,7 +46,7 @@ bool compact = mpack_node_bool(mpack_node_map_cstr(root, "compact"));
 int schema = mpack_node_i32(mpack_node_map_cstr(root, "schema"));
 
 // clean up and check for errors
-if (mpack_tree_destroy(tree) != mpack_ok) {
+if (mpack_tree_destroy(&tree) != mpack_ok) {
     fprintf(stderr, "An error occurred decoding the data!\n");
     return;
 }
