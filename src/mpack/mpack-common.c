@@ -122,12 +122,12 @@ int mpack_tag_cmp(mpack_tag_t left, mpack_tag_t right) {
             return (left.v.l < right.v.l) ? -1 : 1;
 
         case mpack_type_ext:
-            if (left.exttype == right.exttype) {
-                if (left.v.l == right.v.l)
+            if (left.v.ext.exttype == right.v.ext.exttype) {
+                if (left.v.ext.length == right.v.ext.length)
                     return 0;
-                return (left.v.l < right.v.l) ? -1 : 1;
+                return (left.v.ext.length < right.v.ext.length) ? -1 : 1;
             }
-            return (int)left.exttype - (int)right.exttype;
+            return (int)left.v.ext.exttype - (int)right.v.ext.exttype;
 
         // floats should not normally be compared for equality. we compare
         // with memcmp() to silence compiler warnings, but this will return
@@ -184,7 +184,7 @@ void mpack_tag_debug_describe(mpack_tag_t tag, char* buffer, size_t buffer_size)
             mpack_snprintf(buffer, buffer_size, "bin of %u bytes", tag.v.l);
             break;
         case mpack_type_ext:
-            mpack_snprintf(buffer, buffer_size, "ext of type %i, %u bytes", tag.exttype, tag.v.l);
+            mpack_snprintf(buffer, buffer_size, "ext of type %i, %u bytes", tag.v.ext.exttype, tag.v.ext.length);
             break;
         case mpack_type_array:
             mpack_snprintf(buffer, buffer_size, "array of %u elements", tag.v.n);

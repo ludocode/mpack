@@ -728,8 +728,8 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_EXT8))
                 return 0;
             tag->type = mpack_type_ext;
-            tag->v.l = mpack_load_u8(reader->data + 1);
-            tag->exttype = mpack_load_i8(reader->data + 2);
+            tag->v.ext.length = mpack_load_u8(reader->data + 1);
+            tag->v.ext.exttype = mpack_load_i8(reader->data + 2);
             return MPACK_TAG_SIZE_EXT8;
 
         // ext16
@@ -737,8 +737,8 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_EXT16))
                 return 0;
             tag->type = mpack_type_ext;
-            tag->v.l = mpack_load_u16(reader->data + 1);
-            tag->exttype = mpack_load_i8(reader->data + 3);
+            tag->v.ext.length = mpack_load_u16(reader->data + 1);
+            tag->v.ext.exttype = mpack_load_i8(reader->data + 3);
             return MPACK_TAG_SIZE_EXT16;
 
         // ext32
@@ -746,8 +746,8 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_EXT32))
                 return 0;
             tag->type = mpack_type_ext;
-            tag->v.l = mpack_load_u32(reader->data + 1);
-            tag->exttype = mpack_load_i8(reader->data + 5);
+            tag->v.ext.length = mpack_load_u32(reader->data + 1);
+            tag->v.ext.exttype = mpack_load_i8(reader->data + 5);
             return MPACK_TAG_SIZE_EXT32;
 
         // float
@@ -835,8 +835,8 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_FIXEXT1))
                 return 0;
             tag->type = mpack_type_ext;
-            tag->v.l = 1;
-            tag->exttype = mpack_load_i8(reader->data + 1);
+            tag->v.ext.length = 1;
+            tag->v.ext.exttype = mpack_load_i8(reader->data + 1);
             return MPACK_TAG_SIZE_FIXEXT1;
 
         // fixext2
@@ -844,8 +844,8 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_FIXEXT2))
                 return 0;
             tag->type = mpack_type_ext;
-            tag->v.l = 2;
-            tag->exttype = mpack_load_i8(reader->data + 1);
+            tag->v.ext.length = 2;
+            tag->v.ext.exttype = mpack_load_i8(reader->data + 1);
             return MPACK_TAG_SIZE_FIXEXT2;
 
         // fixext4
@@ -853,8 +853,8 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_FIXEXT4))
                 return 0;
             tag->type = mpack_type_ext;
-            tag->v.l = 4;
-            tag->exttype = mpack_load_i8(reader->data + 1);
+            tag->v.ext.length = 4;
+            tag->v.ext.exttype = mpack_load_i8(reader->data + 1);
             return 2;
 
         // fixext8
@@ -862,8 +862,8 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_FIXEXT8))
                 return 0;
             tag->type = mpack_type_ext;
-            tag->v.l = 8;
-            tag->exttype = mpack_load_i8(reader->data + 1);
+            tag->v.ext.length = 8;
+            tag->v.ext.exttype = mpack_load_i8(reader->data + 1);
             return MPACK_TAG_SIZE_FIXEXT8;
 
         // fixext16
@@ -871,8 +871,8 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_FIXEXT16))
                 return 0;
             tag->type = mpack_type_ext;
-            tag->v.l = 16;
-            tag->exttype = mpack_load_i8(reader->data + 1);
+            tag->v.ext.length = 16;
+            tag->v.ext.exttype = mpack_load_i8(reader->data + 1);
             return MPACK_TAG_SIZE_FIXEXT16;
 
         // str8
@@ -972,8 +972,10 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
             break;
         case mpack_type_str:
         case mpack_type_bin:
-        case mpack_type_ext:
             track_error = mpack_track_push(&reader->track, tag.type, tag.v.n);
+            break;
+        case mpack_type_ext:
+            track_error = mpack_track_push(&reader->track, tag.type, tag.v.ext.length);
             break;
         default:
             break;
@@ -1018,7 +1020,7 @@ void mpack_discard(mpack_reader_t* reader) {
             mpack_done_bin(reader);
             break;
         case mpack_type_ext:
-            mpack_skip_bytes(reader, var.v.l);
+            mpack_skip_bytes(reader, var.v.ext.length);
             mpack_done_ext(reader);
             break;
         case mpack_type_array: {
@@ -1087,8 +1089,8 @@ static void mpack_print_element(mpack_reader_t* reader, size_t depth, FILE* file
             break;
 
         case mpack_type_ext:
-            fprintf(file, "<ext data of type %i and length %u>", val.exttype, val.v.l);
-            mpack_skip_bytes(reader, val.v.l);
+            fprintf(file, "<ext data of type %i and length %u>", val.v.ext.exttype, val.v.ext.length);
+            mpack_skip_bytes(reader, val.v.ext.length);
             mpack_done_ext(reader);
             break;
 

@@ -192,10 +192,6 @@ const char* mpack_type_to_string(mpack_type_t type);
  * stored separately.
  */
 typedef struct mpack_tag_t {
-    mpack_type_t type; /**< The type of value. */
-
-    int8_t exttype; /**< The extension type if the type is @ref mpack_type_ext. */
-
     /** The value for non-compound types. */
     union
     {
@@ -205,16 +201,27 @@ typedef struct mpack_tag_t {
         float    f; /**< The value if the type is float. */
         bool     b; /**< The value if the type is bool. */
 
-        /** The number of bytes if the type is str, bin or ext. */
+        /** The number of bytes if the type is a str or bin. */
         uint32_t l;
 
         /** The element count if the type is an array, or the number of
             key/value pairs if the type is map. */
         uint32_t n;
+
+        /**
+         * The extension data if the type is @ref mpack_type_ext.
+         */
+        struct {
+            int8_t exttype; /**< The extension type. */
+            uint32_t length; /**< The number of bytes. */
+        } ext;
     } v;
+
+    /** The type of value. */
+    mpack_type_t type;
 } mpack_tag_t;
 
-#define MPACK_TAG_ZERO {(mpack_type_t)0, 0, {0}}
+#define MPACK_TAG_ZERO {{0}, (mpack_type_t)0}
 
 /** Generates a nil tag. */
 MPACK_INLINE mpack_tag_t mpack_tag_nil(void) {
@@ -315,8 +322,8 @@ MPACK_INLINE mpack_tag_t mpack_tag_bin(int32_t length) {
 MPACK_INLINE mpack_tag_t mpack_tag_ext(int8_t exttype, int32_t length) {
     mpack_tag_t ret = MPACK_TAG_ZERO;
     ret.type = mpack_type_ext;
-    ret.exttype = exttype;
-    ret.v.l = (uint32_t)length;
+    ret.v.ext.exttype = exttype;
+    ret.v.ext.length = (uint32_t)length;
     return ret;
 }
 

@@ -1137,8 +1137,8 @@ mpack_tag_t mpack_node_tag(mpack_node_t node) {
         case mpack_type_bin:     tag.v.l = node.data->len;     break;
 
         case mpack_type_ext:
-            tag.v.l = node.data->len;
-            tag.exttype = mpack_node_exttype_unchecked(node);
+            tag.v.ext.length = node.data->len;
+            tag.v.ext.exttype = mpack_node_exttype_unchecked(node);
             break;
 
         case mpack_type_array:   tag.v.n = node.data->len;  break;
