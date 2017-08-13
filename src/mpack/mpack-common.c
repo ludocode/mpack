@@ -154,6 +154,55 @@ int mpack_tag_cmp(mpack_tag_t left, mpack_tag_t right) {
 }
 
 #if MPACK_DEBUG && MPACK_STDIO
+void mpack_tag_debug_pseudo_json(mpack_tag_t tag, char* buffer, size_t buffer_size) {
+    mpack_assert(buffer_size > 0, "buffer size cannot be zero!");
+    buffer[0] = 0;
+
+    switch (tag.type) {
+        case mpack_type_nil:
+            mpack_snprintf(buffer, buffer_size, "null");
+            break;
+        case mpack_type_bool:
+            mpack_snprintf(buffer, buffer_size, tag.v.b ? "true" : "false");
+            break;
+        case mpack_type_int:
+            mpack_snprintf(buffer, buffer_size, "%" PRIi64, tag.v.i);
+            break;
+        case mpack_type_uint:
+            mpack_snprintf(buffer, buffer_size, "%" PRIu64, tag.v.u);
+            break;
+        case mpack_type_float:
+            mpack_snprintf(buffer, buffer_size, "%f", tag.v.f);
+            break;
+        case mpack_type_double:
+            mpack_snprintf(buffer, buffer_size, "%f", tag.v.d);
+            break;
+        case mpack_type_str:
+            mpack_snprintf(buffer, buffer_size, "<string of %u bytes>", tag.v.l);
+            break;
+        case mpack_type_bin:
+            mpack_snprintf(buffer, buffer_size, "<binary data of length %u>", tag.v.l);
+            break;
+        case mpack_type_ext:
+            mpack_snprintf(buffer, buffer_size, "<ext data of type %i and length %u>",
+                    tag.v.ext.exttype, tag.v.ext.length);
+            break;
+        case mpack_type_array:
+            mpack_snprintf(buffer, buffer_size, "<array of %u elements>", tag.v.n);
+            break;
+        case mpack_type_map:
+            mpack_snprintf(buffer, buffer_size, "<map of %u key-value pairs>", tag.v.n);
+            break;
+        default:
+            mpack_snprintf(buffer, buffer_size, "<unknown!>");
+            break;
+    }
+
+    // We always null-terminate the buffer manually just in case the snprintf()
+    // function doesn't null-terminate when the string doesn't fit.
+    buffer[buffer_size - 1] = 0;
+}
+
 void mpack_tag_debug_describe(mpack_tag_t tag, char* buffer, size_t buffer_size) {
     mpack_assert(buffer_size > 0, "buffer size cannot be zero!");
     buffer[0] = 0;

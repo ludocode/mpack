@@ -1054,46 +1054,13 @@ void mpack_done_type(mpack_reader_t* reader, mpack_type_t type) {
 }
 #endif
 
-#if MPACK_STDIO
+#if MPACK_DEBUG && MPACK_STDIO
 static void mpack_print_element(mpack_reader_t* reader, size_t depth, FILE* file) {
     mpack_tag_t val = mpack_read_tag(reader);
     if (mpack_reader_error(reader) != mpack_ok)
         return;
+
     switch (val.type) {
-
-        case mpack_type_nil:
-            fprintf(file, "null");
-            break;
-        case mpack_type_bool:
-            fprintf(file, val.v.b ? "true" : "false");
-            break;
-
-        case mpack_type_float:
-            fprintf(file, "%f", val.v.f);
-            break;
-        case mpack_type_double:
-            fprintf(file, "%f", val.v.d);
-            break;
-
-        case mpack_type_int:
-            fprintf(file, "%" PRIi64, val.v.i);
-            break;
-        case mpack_type_uint:
-            fprintf(file, "%" PRIu64, val.v.u);
-            break;
-
-        case mpack_type_bin:
-            fprintf(file, "<binary data of length %u>", val.v.l);
-            mpack_skip_bytes(reader, val.v.l);
-            mpack_done_bin(reader);
-            break;
-
-        case mpack_type_ext:
-            fprintf(file, "<ext data of type %i and length %u>", val.v.ext.exttype, val.v.ext.length);
-            mpack_skip_bytes(reader, val.v.ext.length);
-            mpack_done_ext(reader);
-            break;
-
         case mpack_type_str:
             putc('"', file);
             for (size_t i = 0; i < val.v.l; ++i) {
@@ -1110,7 +1077,7 @@ static void mpack_print_element(mpack_reader_t* reader, size_t depth, FILE* file
             }
             putc('"', file);
             mpack_done_str(reader);
-            break;
+            return;
 
         case mpack_type_array:
             fprintf(file, "[\n");
@@ -1128,7 +1095,7 @@ static void mpack_print_element(mpack_reader_t* reader, size_t depth, FILE* file
                 fprintf(file, "    ");
             putc(']', file);
             mpack_done_array(reader);
-            break;
+            return;
 
         case mpack_type_map:
             fprintf(file, "{\n");
@@ -1150,8 +1117,28 @@ static void mpack_print_element(mpack_reader_t* reader, size_t depth, FILE* file
                 fprintf(file, "    ");
             putc('}', file);
             mpack_done_map(reader);
+            return;
+
+        // The above cases return so as not to print a pseudo-json value. The
+        // below cases break and print pseudo-json.
+
+        case mpack_type_bin:
+            mpack_skip_bytes(reader, val.v.l);
+            mpack_done_bin(reader);
+            break;
+
+        case mpack_type_ext:
+            mpack_skip_bytes(reader, val.v.ext.length);
+            mpack_done_ext(reader);
+            break;
+
+        default:
             break;
     }
+
+    char buf[256];
+    mpack_tag_debug_pseudo_json(val, buf, sizeof(buf));
+    fputs(buf, file);
 }
 
 void mpack_print_file(const char* data, size_t len, FILE* file) {
