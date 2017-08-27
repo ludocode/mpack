@@ -272,7 +272,7 @@ static void test_compare_print() {
     MPACK_FREE(actual_data);
 }
 
-#if MPACK_READER
+#if MPACK_READER && MPACK_DEBUG
 static void test_print(void) {
 
     // miscellaneous print tests
@@ -305,7 +305,7 @@ static void test_print(void) {
 }
 #endif
 
-#if MPACK_NODE
+#if MPACK_NODE && MPACK_DEBUG
 static void test_node_print(void) {
     mpack_tree_t tree;
 
@@ -918,10 +918,10 @@ void test_file(void) {
     FILE* blank = fopen(test_blank_filename, "wb");
     fclose(blank);
 
-    #if MPACK_READER
+    #if MPACK_READER && MPACK_DEBUG
     test_print();
     #endif
-    #if MPACK_NODE
+    #if MPACK_NODE && MPACK_DEBUG
     test_node_print();
     #endif
 
