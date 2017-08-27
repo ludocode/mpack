@@ -453,7 +453,7 @@ MPACK_INLINE mpack_error_t mpack_node_error(mpack_node_t node) {
  */
 mpack_tag_t mpack_node_tag(mpack_node_t node);
 
-#if MPACK_STDIO
+#if MPACK_DEBUG && MPACK_STDIO
 /**
  * Converts a node to pseudo-JSON for debugging purposes
  * and pretty-prints it to the given file.

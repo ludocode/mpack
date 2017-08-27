@@ -770,7 +770,7 @@ void mpack_discard(mpack_reader_t* reader);
  * @}
  */
 
-#if MPACK_STDIO
+#if MPACK_DEBUG && MPACK_STDIO
 /**
  * @name Debugging Functions
  * @{

@@ -1137,8 +1137,8 @@ mpack_tag_t mpack_node_tag(mpack_node_t node) {
         case mpack_type_bin:     tag.v.l = node.data->len;     break;
 
         case mpack_type_ext:
-            tag.v.l = node.data->len;
-            tag.exttype = mpack_node_exttype_unchecked(node);
+            tag.v.ext.length = node.data->len;
+            tag.v.ext.exttype = mpack_node_exttype_unchecked(node);
             break;
 
         case mpack_type_array:   tag.v.n = node.data->len;  break;
@@ -1151,41 +1151,10 @@ mpack_tag_t mpack_node_tag(mpack_node_t node) {
     return tag;
 }
 
-#if MPACK_STDIO
+#if MPACK_DEBUG && MPACK_STDIO
 static void mpack_node_print_element(mpack_node_t node, size_t depth, FILE* file) {
     mpack_node_data_t* data = node.data;
     switch (data->type) {
-
-        case mpack_type_nil:
-            fprintf(file, "null");
-            break;
-        case mpack_type_bool:
-            fprintf(file, data->value.b ? "true" : "false");
-            break;
-
-        case mpack_type_float:
-            fprintf(file, "%f", data->value.f);
-            break;
-        case mpack_type_double:
-            fprintf(file, "%f", data->value.d);
-            break;
-
-        case mpack_type_int:
-            fprintf(file, "%" PRIi64, data->value.i);
-            break;
-        case mpack_type_uint:
-            fprintf(file, "%" PRIu64, data->value.u);
-            break;
-
-        case mpack_type_bin:
-            fprintf(file, "<binary data of length %u>", data->len);
-            break;
-
-        case mpack_type_ext:
-            fprintf(file, "<ext data of type %i and length %u>",
-                    mpack_node_exttype(node), data->len);
-            break;
-
         case mpack_type_str:
             {
                 putc('"', file);
@@ -1233,6 +1202,15 @@ static void mpack_node_print_element(mpack_node_t node, size_t depth, FILE* file
             for (size_t i = 0; i < depth; ++i)
                 fprintf(file, "    ");
             putc('}', file);
+            break;
+
+        default:
+            {
+                char buf[256];
+                mpack_tag_t tag = mpack_node_tag(node);
+                mpack_tag_debug_pseudo_json(tag, buf, sizeof(buf));
+                fputs(buf, file);
+            }
             break;
     }
 }

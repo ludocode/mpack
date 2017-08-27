@@ -73,9 +73,10 @@ static void test_file_write_bytes(mpack_writer_t* writer, mpack_tag_t tag) {
     mpack_write_tag(writer, tag);
     char buf[1024];
     memset(buf, 0, sizeof(buf));
-    for (; tag.v.l > sizeof(buf); tag.v.l -= (uint32_t)sizeof(buf))
+    uint32_t left = (tag.type == mpack_type_ext) ? tag.v.ext.length : tag.v.l;
+    for (; left > sizeof(buf); left -= (uint32_t)sizeof(buf))
         mpack_write_bytes(writer, buf, sizeof(buf));
-    mpack_write_bytes(writer, buf, tag.v.l);
+    mpack_write_bytes(writer, buf, left);
     mpack_finish_type(writer, tag.type);
 }
 
@@ -271,7 +272,7 @@ static void test_compare_print() {
     MPACK_FREE(actual_data);
 }
 
-#if MPACK_READER
+#if MPACK_READER && MPACK_DEBUG
 static void test_print(void) {
 
     // miscellaneous print tests
@@ -304,7 +305,7 @@ static void test_print(void) {
 }
 #endif
 
-#if MPACK_NODE
+#if MPACK_NODE && MPACK_DEBUG
 static void test_node_print(void) {
     mpack_tree_t tree;
 
@@ -358,12 +359,13 @@ static void test_file_expect_bytes(mpack_reader_t* reader, mpack_tag_t tag) {
     char expected[1024];
     memset(expected, 0, sizeof(expected));
     char buf[sizeof(expected)];
-    while (tag.v.l > 0) {
-        uint32_t count = (tag.v.l < (uint32_t)sizeof(buf)) ? tag.v.l : (uint32_t)sizeof(buf);
+    uint32_t left = (tag.type == mpack_type_ext) ? tag.v.ext.length : tag.v.l;
+    while (left > 0) {
+        uint32_t count = (left < (uint32_t)sizeof(buf)) ? left : (uint32_t)sizeof(buf);
         mpack_read_bytes(reader, buf, count);
         TEST_TRUE(mpack_reader_error(reader) == mpack_ok, "got error %i (%s)", (int)mpack_reader_error(reader), mpack_error_to_string(mpack_reader_error(reader)));
         TEST_TRUE(memcmp(buf, expected, count) == 0, "data does not match!");
-        tag.v.l -= count;
+        left -= count;
     }
 
     mpack_done_type(reader, tag.type);
@@ -916,10 +918,10 @@ void test_file(void) {
     FILE* blank = fopen(test_blank_filename, "wb");
     fclose(blank);
 
-    #if MPACK_READER
+    #if MPACK_READER && MPACK_DEBUG
     test_print();
     #endif
-    #if MPACK_NODE
+    #if MPACK_NODE && MPACK_DEBUG
     test_node_print();
     #endif
 
