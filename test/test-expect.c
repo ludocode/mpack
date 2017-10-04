@@ -1142,6 +1142,48 @@ static void test_expect_streaming() {
     }
 }
 
+static bool test_timestamp_match(int64_t seconds, uint32_t nanoseconds, mpack_timestamp_t timestamp) {
+    TEST_TRUE(seconds == timestamp.seconds);
+    TEST_TRUE(nanoseconds == timestamp.nanoseconds);
+    return true;
+}
+
+static void test_expect_timestamp() {
+    TEST_SIMPLE_READ("\xd6\xff\x00\x00\x00\x00", 0 == mpack_expect_timestamp_truncate(&reader));
+    TEST_SIMPLE_READ("\xd6\xff\x00\x00\x01\x00", test_timestamp_match(256, 0, mpack_expect_timestamp(&reader)));
+    TEST_SIMPLE_READ("\xd6\xff\xfe\xdc\xba\x98", 4275878552u == mpack_expect_timestamp_truncate(&reader));
+    TEST_SIMPLE_READ("\xd6\xff\xff\xff\xff\xff", UINT32_MAX == mpack_expect_timestamp_truncate(&reader));
+
+    TEST_SIMPLE_READ("\xd7\xff\x00\x00\x00\x03\x00\x00\x00\x00",
+            INT64_C(12884901888) == mpack_expect_timestamp_truncate(&reader));
+    TEST_SIMPLE_READ("\xd7\xff\x00\x00\x00\x00\x00\x00\x00\x00",
+            test_timestamp_match(0, 0, mpack_expect_timestamp(&reader)));
+    TEST_SIMPLE_READ("\xd7\xff\xee\x6b\x27\xfc\x00\x00\x00\x00",
+            test_timestamp_match(0, MPACK_TIMESTAMP_NANOSECONDS_MAX, mpack_expect_timestamp(&reader)));
+    TEST_SIMPLE_READ("\xd7\xff\xee\x6b\x27\xff\xff\xff\xff\xff",
+            test_timestamp_match(INT64_C(17179869183), MPACK_TIMESTAMP_NANOSECONDS_MAX, mpack_expect_timestamp(&reader)));
+
+    TEST_SIMPLE_READ("\xc7\x0c\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01",
+            1 == mpack_expect_timestamp_truncate(&reader));
+    TEST_SIMPLE_READ("\xc7\x0c\xff\x3b\x9a\xc9\xff\x00\x00\x00\x00\x00\x00\x00\x00",
+            test_timestamp_match(0, MPACK_TIMESTAMP_NANOSECONDS_MAX, mpack_expect_timestamp(&reader)));
+    TEST_SIMPLE_READ("\xc7\x0c\xff\x00\x00\x00\x01\xff\xff\xff\xff\xff\xff\xff\xff",
+            test_timestamp_match(-1, 1, mpack_expect_timestamp(&reader)));
+    TEST_SIMPLE_READ("\xc7\x0c\xff\x3b\x9a\xc9\xff\x7f\xff\xff\xff\xff\xff\xff\xff",
+            test_timestamp_match(INT64_MAX, MPACK_TIMESTAMP_NANOSECONDS_MAX, mpack_expect_timestamp(&reader)));
+    TEST_SIMPLE_READ("\xc7\x0c\xff\x3b\x9a\xc9\xff\x80\x00\x00\x00\x00\x00\x00\x00",
+            test_timestamp_match(INT64_MIN, MPACK_TIMESTAMP_NANOSECONDS_MAX, mpack_expect_timestamp(&reader)));
+
+    TEST_SIMPLE_READ_ERROR("\xd7\xff\xff\xff\xff\xff\x00\x00\x00\x00",
+            (mpack_expect_timestamp(&reader), true), mpack_error_invalid);
+    TEST_SIMPLE_READ_ERROR("\xd7\xff\xee\x6b\x28\x00\xff\xff\xff\xff",
+            (mpack_expect_timestamp(&reader), true), mpack_error_invalid);
+    TEST_SIMPLE_READ_ERROR("\xc7\x0c\xff\x3b\x9a\xca\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+            (mpack_expect_timestamp(&reader), true), mpack_error_invalid);
+    TEST_SIMPLE_READ_ERROR("\xc7\x0c\xff\x40\x00\x00\x00\xff\xff\xff\xff\xff\xff\xff\xff",
+            (mpack_expect_timestamp(&reader), true), mpack_error_invalid);
+}
+
 void test_expect() {
     test_expect_example_read();
 
@@ -1181,6 +1223,7 @@ void test_expect() {
     test_expect_bad_type();
     test_expect_pre_error();
     test_expect_streaming();
+    test_expect_timestamp();
 }
 
 #endif

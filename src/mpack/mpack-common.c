@@ -90,7 +90,7 @@ int mpack_tag_cmp(mpack_tag_t left, mpack_tag_t right) {
     }
 
     if (left.type != right.type)
-        return (int)left.type - (int)right.type;
+        return ((int)left.type < (int)right.type) ? -1 : 1;
 
     switch (left.type) {
         case mpack_type_nil:
@@ -128,6 +128,15 @@ int mpack_tag_cmp(mpack_tag_t left, mpack_tag_t right) {
                 return (left.v.ext.length < right.v.ext.length) ? -1 : 1;
             }
             return (int)left.v.ext.exttype - (int)right.v.ext.exttype;
+
+        case mpack_type_timestamp:
+            if (left.v.timestamp.seconds == right.v.timestamp.seconds) {
+                if (left.v.timestamp.nanoseconds == right.v.timestamp.nanoseconds) {
+                    return 0;
+                }
+                return (left.v.timestamp.nanoseconds < right.v.timestamp.nanoseconds) ? -1 : 1;
+            }
+            return (left.v.timestamp.seconds < right.v.timestamp.seconds) ? -1 : 1;
 
         // floats should not normally be compared for equality. we compare
         // with memcmp() to silence compiler warnings, but this will return
@@ -177,6 +186,7 @@ void mpack_tag_debug_pseudo_json(mpack_tag_t tag, char* buffer, size_t buffer_si
         case mpack_type_double:
             mpack_snprintf(buffer, buffer_size, "%f", tag.v.d);
             break;
+
         case mpack_type_str:
             mpack_snprintf(buffer, buffer_size, "<string of %u bytes>", tag.v.l);
             break;
@@ -187,12 +197,27 @@ void mpack_tag_debug_pseudo_json(mpack_tag_t tag, char* buffer, size_t buffer_si
             mpack_snprintf(buffer, buffer_size, "<ext data of type %i and length %u>",
                     tag.v.ext.exttype, tag.v.ext.length);
             break;
+
         case mpack_type_array:
             mpack_snprintf(buffer, buffer_size, "<array of %u elements>", tag.v.n);
             break;
         case mpack_type_map:
             mpack_snprintf(buffer, buffer_size, "<map of %u key-value pairs>", tag.v.n);
             break;
+
+        case mpack_type_timestamp:
+            {
+                int64_t seconds = tag.v.timestamp.seconds;
+                uint32_t nanoseconds = tag.v.timestamp.nanoseconds;
+                if (nanoseconds == 0) {
+                    mpack_snprintf(buffer, buffer_size, "<timestamp %" PRIi64 ">", seconds);
+                } else {
+                    mpack_snprintf(buffer, buffer_size, "<timestamp %" PRIi64 ".%09u>",
+                            seconds, nanoseconds);
+                }
+            }
+            break;
+
         default:
             mpack_snprintf(buffer, buffer_size, "<unknown!>");
             break;
@@ -240,6 +265,18 @@ void mpack_tag_debug_describe(mpack_tag_t tag, char* buffer, size_t buffer_size)
             break;
         case mpack_type_map:
             mpack_snprintf(buffer, buffer_size, "map of %u key-value pairs", tag.v.n);
+            break;
+        case mpack_type_timestamp:
+            {
+                int64_t seconds = tag.v.timestamp.seconds;
+                uint32_t nanoseconds = tag.v.timestamp.nanoseconds;
+                if (nanoseconds == 0) {
+                    mpack_snprintf(buffer, buffer_size, "timestamp %" PRIi64 , seconds);
+                } else {
+                    mpack_snprintf(buffer, buffer_size, "timestamp %" PRIi64 ".%09u",
+                            seconds, nanoseconds);
+                }
+            }
             break;
         default:
             mpack_snprintf(buffer, buffer_size, "unknown!");

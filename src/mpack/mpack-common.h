@@ -98,10 +98,17 @@ MPACK_HEADER_START
 /**
  * @def MPACK_MAXIMUM_TAG_SIZE
  *
- * The maximum encoded size of a tag in bytes, as of the "new" MessagePack spec.
+ * The maximum encoded size of a tag in bytes.
  */
-#define MPACK_MAXIMUM_TAG_SIZE 9
+#define MPACK_MAXIMUM_TAG_SIZE MPACK_TAG_SIZE_TIMESTAMP12 // 15
 /** @endcond */
+
+/**
+ * @def MPACK_TIMESTAMP_NANOSECONDS_MAX
+ *
+ * The maximum value of nanoseconds for a timestamp.
+ */
+#define MPACK_TIMESTAMP_NANOSECONDS_MAX 999999999
 
 
 
@@ -123,7 +130,8 @@ typedef enum mpack_version_t {
     mpack_version_v4 = 4,
 
     /**
-     * Version 2.0/v5, supporting the @c str8, @c bin and @c ext types.
+     * Version 2.0/v5, supporting the @c str8, @c bin and @c ext types
+     * (including timestamp.)
      */
     mpack_version_v5 = 5,
 
@@ -164,17 +172,18 @@ const char* mpack_error_to_string(mpack_error_t error);
  * Defines the type of a MessagePack tag.
  */
 typedef enum mpack_type_t {
-    mpack_type_nil = 1, /**< A null value. */
-    mpack_type_bool,    /**< A boolean (true or false.) */
-    mpack_type_int,     /**< A 64-bit signed integer. */
-    mpack_type_uint,    /**< A 64-bit unsigned integer. */
-    mpack_type_float,   /**< A 32-bit IEEE 754 floating point number. */
-    mpack_type_double,  /**< A 64-bit IEEE 754 floating point number. */
-    mpack_type_str,     /**< A string. */
-    mpack_type_bin,     /**< A chunk of binary data. */
-    mpack_type_ext,     /**< A typed MessagePack extension object containing a chunk of binary data. */
-    mpack_type_array,   /**< An array of MessagePack objects. */
-    mpack_type_map,     /**< An ordered map of key/value pairs of MessagePack objects. */
+    mpack_type_nil = 1,   /**< A null value. */
+    mpack_type_bool,      /**< A boolean (true or false.) */
+    mpack_type_int,       /**< A 64-bit signed integer. */
+    mpack_type_uint,      /**< A 64-bit unsigned integer. */
+    mpack_type_float,     /**< A 32-bit IEEE 754 floating point number. */
+    mpack_type_double,    /**< A 64-bit IEEE 754 floating point number. */
+    mpack_type_str,       /**< A string. */
+    mpack_type_bin,       /**< A chunk of binary data. */
+    mpack_type_ext,       /**< A typed MessagePack extension object containing a chunk of binary data. */
+    mpack_type_array,     /**< An array of MessagePack objects. */
+    mpack_type_map,       /**< An ordered map of key/value pairs of MessagePack objects. */
+    mpack_type_timestamp, /**< A timestamp. */
 } mpack_type_t;
 
 /**
@@ -182,6 +191,14 @@ typedef enum mpack_type_t {
  * string when MPACK_DEBUG is not set.
  */
 const char* mpack_type_to_string(mpack_type_t type);
+
+/**
+ * A timestamp.
+ */
+typedef struct mpack_timestamp_t {
+    int64_t seconds; /*< The number of seconds (signed) since 1970-01-01T00:00:00Z. */
+    uint32_t nanoseconds; /*< The number of additional nanoseconds, between 0 and 999,999,999. */
+} mpack_timestamp_t;
 
 /**
  * An MPack tag is a MessagePack object header. It is a variant type representing
@@ -222,12 +239,38 @@ struct mpack_tag_t {
             int8_t exttype; /*< The extension type. */
             uint32_t length; /*< The number of bytes. */
         } ext;
+
+        /* The value if the type is @ref mpack_type_timestamp. */
+        mpack_timestamp_t timestamp;
     } v;
 
     /* The type of value. */
     mpack_type_t type;
 };
 /** @endcond */
+
+/**
+ * @name Other tag functions
+ * @{
+ */
+
+/** @cond */
+// Currently defined extension types
+#define MPACK_TIMESTAMP_EXTTYPE ((int8_t)(-1))
+/** @endcond */
+
+MPACK_INLINE void mpack_tag_assert_valid(mpack_tag_t* tag) {
+    mpack_assert(tag->type != mpack_type_ext || tag->v.ext.exttype != MPACK_TIMESTAMP_EXTTYPE,
+            "ext tag of exttype %i is reserved for timestamps.", MPACK_TIMESTAMP_EXTTYPE);
+    mpack_assert(tag->type != mpack_type_timestamp ||
+            tag->v.timestamp.nanoseconds <= MPACK_TIMESTAMP_NANOSECONDS_MAX,
+            "timestamp tag is not valid! %u nanoseconds is out of bounds",
+            tag->v.timestamp.nanoseconds);
+}
+
+/**
+ * @}
+ */
 
 /**
  * @name Tag Generators
@@ -342,6 +385,36 @@ MPACK_INLINE mpack_tag_t mpack_tag_make_ext(int8_t exttype, uint32_t length) {
     ret.type = mpack_type_ext;
     ret.v.ext.exttype = exttype;
     ret.v.ext.length = length;
+    mpack_tag_assert_valid(&ret);
+    return ret;
+}
+
+/** Generates a timestamp tag from a number of seconds and nanoseconds. */
+MPACK_INLINE mpack_tag_t mpack_tag_make_timestamp(int64_t seconds, uint32_t nanoseconds) {
+    mpack_tag_t ret = MPACK_TAG_ZERO;
+    ret.type = mpack_type_timestamp;
+    ret.v.timestamp.seconds = seconds;
+    ret.v.timestamp.nanoseconds = nanoseconds;
+    mpack_tag_assert_valid(&ret);
+    return ret;
+}
+
+/** Generates a timestamp tag from a number of seconds (with zero nanoseconds.) */
+MPACK_INLINE mpack_tag_t mpack_tag_make_timestamp_seconds(int64_t seconds) {
+    mpack_tag_t ret = MPACK_TAG_ZERO;
+    ret.type = mpack_type_timestamp;
+    ret.v.timestamp.seconds = seconds;
+    ret.v.timestamp.nanoseconds = 0;
+    mpack_tag_assert_valid(&ret);
+    return ret;
+}
+
+/** Generates a timestamp tag from an mpack_timestamp_t. */
+MPACK_INLINE mpack_tag_t mpack_tag_make_timestamp_struct(mpack_timestamp_t timestamp) {
+    mpack_tag_t ret = MPACK_TAG_ZERO;
+    ret.type = mpack_type_timestamp;
+    ret.v.timestamp = timestamp;
+    mpack_tag_assert_valid(&ret);
     return ret;
 }
 
@@ -483,7 +556,7 @@ MPACK_INLINE int8_t mpack_tag_ext_exttype(mpack_tag_t* tag) {
  */
 
 /**
- * @name other tag functions
+ * @name Other tag functions
  * @{
  */
 
@@ -820,6 +893,9 @@ MPACK_INLINE void mpack_store_double(char* p, double value) {
 #define MPACK_TAG_SIZE_EXT8     3
 #define MPACK_TAG_SIZE_EXT16    4
 #define MPACK_TAG_SIZE_EXT32    6
+#define MPACK_TAG_SIZE_TIMESTAMP4 (MPACK_TAG_SIZE_FIXEXT4 + 4)
+#define MPACK_TAG_SIZE_TIMESTAMP8 (MPACK_TAG_SIZE_FIXEXT8 + 8)
+#define MPACK_TAG_SIZE_TIMESTAMP12 (MPACK_TAG_SIZE_EXT8 + 12)
 
 /** @endcond */
 
