@@ -871,15 +871,15 @@ static void test_expect_ext() {
     TEST_SIMPLE_READ("\xc7\x01\x01\x00", 1 == mpack_expect_ext_buf(&reader, &type, buf, 4));
 
     TEST_SIMPLE_READ("\xc7\x00\x01", (mpack_expect_ext_size(&reader, &type, 0), mpack_done_ext(&reader), true));
-    /*TEST_SIMPLE_READ_ERROR("\xc4\x00", (mpack_expect_ext_size(&reader, 4), true), mpack_error_type);*/
-    /*TEST_SIMPLE_READ_CANCEL("\xc4\x04", (mpack_expect_ext_size(&reader, 4), true));*/
-    /*TEST_SIMPLE_READ_ERROR("\xc4\x05", (mpack_expect_ext_size(&reader, 4), true), mpack_error_type);*/
+    TEST_SIMPLE_READ_ERROR("\xc7\x00\x01", (mpack_expect_ext_size(&reader, &type, 4), true), mpack_error_type);
+    TEST_SIMPLE_READ_CANCEL("\xc7\x04\x01", (mpack_expect_ext_size(&reader, &type, 4), true));
+    TEST_SIMPLE_READ_ERROR("\xc7\x05\x01", (mpack_expect_ext_size(&reader, &type, 4), true), mpack_error_type);
 
-    /*#ifdef MPACK_MALLOC*/
-    /*size_t length;*/
+    #ifdef MPACK_MALLOC
+    size_t length;
     /*char* test = NULL;*/
 
-    /*TEST_SIMPLE_READ("\xc4\x00", (NULL == mpack_expect_ext_alloc(&reader, 0, &length)));*/
+    TEST_SIMPLE_READ("\xc7\x00\x01", (NULL == mpack_expect_ext_alloc(&reader, &type, 0, &length)));
     /*TEST_TRUE(length == 0);*/
     /*TEST_SIMPLE_READ("\xc4\x00", (NULL == mpack_expect_ext_alloc(&reader, 4, &length)));*/
     /*TEST_TRUE(length == 0);*/
@@ -901,7 +901,7 @@ static void test_expect_ext() {
 
     /*TEST_SIMPLE_READ_ERROR("\xc4\x04test", NULL == mpack_expect_ext_alloc(&reader, 3, &length), mpack_error_type);*/
     /*TEST_SIMPLE_READ_ERROR("\x01", NULL == mpack_expect_ext_alloc(&reader, 3, &length), mpack_error_type);*/
-    /*#endif*/
+    #endif
 }
 
 static void test_expect_arrays() {
