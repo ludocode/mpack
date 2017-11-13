@@ -877,30 +877,30 @@ static void test_expect_ext() {
 
     #ifdef MPACK_MALLOC
     size_t length;
-    /*char* test = NULL;*/
+    char* test = NULL;
 
     TEST_SIMPLE_READ("\xc7\x00\x01", (NULL == mpack_expect_ext_alloc(&reader, &type, 0, &length)));
-    /*TEST_TRUE(length == 0);*/
-    /*TEST_SIMPLE_READ("\xc4\x00", (NULL == mpack_expect_ext_alloc(&reader, 4, &length)));*/
-    /*TEST_TRUE(length == 0);*/
-    /*TEST_SIMPLE_READ("\xc4\x04test", NULL != (test = mpack_expect_ext_alloc(&reader, 4, &length)));*/
-    /*if (test) {*/
-        /*TEST_TRUE(length == 4);*/
-        /*TEST_TRUE(memcmp(test, "test", 4) == 0);*/
-        /*MPACK_FREE(test);*/
-    /*}*/
+    TEST_TRUE(length == 0);
+    TEST_SIMPLE_READ("\xc7\x00\x01", (NULL == mpack_expect_ext_alloc(&reader, &type, 4, &length)));
+    TEST_TRUE(length == 0);
+    TEST_SIMPLE_READ("\xc7\x04\x01test", NULL != (test = mpack_expect_ext_alloc(&reader, &type, 4, &length)));
+    if (test) {
+        TEST_TRUE(length == 4);
+        TEST_TRUE(memcmp(test, "test", 4) == 0);
+        MPACK_FREE(test);
+    }
 
-    /*// Unlimited max allocation size. Don't do this, or at least not with*/
-    /*// untrusted data!*/
-    /*TEST_SIMPLE_READ("\xc4\x04test", NULL != (test = mpack_expect_ext_alloc(&reader, SIZE_MAX, &length)));*/
-    /*if (test) {*/
-        /*TEST_TRUE(length == 4);*/
-        /*TEST_TRUE(memcmp(test, "test", 4) == 0);*/
-        /*MPACK_FREE(test);*/
-    /*}*/
+    // Unlimited max allocation size. Don't do this, or at least not with
+    // untrusted data!
+    TEST_SIMPLE_READ("\xc7\x04\x01test", NULL != (test = mpack_expect_ext_alloc(&reader, &type, SIZE_MAX, &length)));
+    if (test) {
+        TEST_TRUE(length == 4);
+        TEST_TRUE(memcmp(test, "test", 4) == 0);
+        MPACK_FREE(test);
+    }
 
-    /*TEST_SIMPLE_READ_ERROR("\xc4\x04test", NULL == mpack_expect_ext_alloc(&reader, 3, &length), mpack_error_type);*/
-    /*TEST_SIMPLE_READ_ERROR("\x01", NULL == mpack_expect_ext_alloc(&reader, 3, &length), mpack_error_type);*/
+    TEST_SIMPLE_READ_ERROR("\xc7\x04\x01test", NULL == mpack_expect_ext_alloc(&reader, &type, 3, &length), mpack_error_type);
+    /*TEST_SIMPLE_READ_ERROR("\x01", NULL == mpack_expect_ext_alloc(&reader, &type, 3, &length), mpack_error_type);*/
     #endif
 }
 
