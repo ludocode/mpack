@@ -900,6 +900,11 @@ static void test_expect_ext() {
     }
 
     TEST_SIMPLE_READ_ERROR("\xc7\x04\x01test", NULL == mpack_expect_ext_alloc(&reader, &type, 3, &length), mpack_error_type);
+    // This test currently fails. I cannot figure out why. The
+    // `mpack_expect_ext_alloc` function does raise an error, but the test
+    // fails. My guess is that it raises the wrong type of error. It is odd
+    // since the ext code is basically a copy of the bin code and a similar
+    // test passes without a problem.
     /*TEST_SIMPLE_READ_ERROR("\x01", NULL == mpack_expect_ext_alloc(&reader, &type, 3, &length), mpack_error_type);*/
     #endif
 }
