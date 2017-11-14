@@ -514,6 +514,32 @@ size_t mpack_expect_bin_buf(mpack_reader_t* reader, char* buf, size_t bufsize) {
     return binsize;
 }
 
+uint32_t mpack_expect_ext(mpack_reader_t* reader, int8_t* type) {
+    mpack_tag_t var = mpack_read_tag(reader);
+    if (var.type == mpack_type_ext)
+        *type = var.v.ext.exttype;
+        return var.v.ext.length;
+    mpack_reader_flag_error(reader, mpack_error_type);
+    return 0;
+}
+
+size_t mpack_expect_ext_buf(mpack_reader_t* reader, int8_t* type, char* buf, size_t bufsize) {
+    mpack_assert(buf != NULL, "buf cannot be NULL");
+
+    size_t extsize = mpack_expect_ext(reader, type);
+    if (mpack_reader_error(reader))
+        return 0;
+    if (extsize > bufsize) {
+        mpack_reader_flag_error(reader, mpack_error_too_big);
+        return 0;
+    }
+    mpack_read_bytes(reader, buf, extsize);
+    if (mpack_reader_error(reader))
+        return 0;
+    mpack_done_ext(reader);
+    return extsize;
+}
+
 void mpack_expect_cstr(mpack_reader_t* reader, char* buf, size_t bufsize) {
     uint32_t length = mpack_expect_str(reader);
     mpack_read_cstr(reader, buf, bufsize, length);
@@ -616,6 +642,24 @@ char* mpack_expect_bin_alloc(mpack_reader_t* reader, size_t maxsize, size_t* siz
     size_t length = mpack_expect_bin_max(reader, (uint32_t)maxsize);
     char* data = mpack_read_bytes_alloc(reader, length);
     mpack_done_bin(reader);
+
+    if (data)
+        *size = length;
+    return data;
+}
+#endif
+
+#ifdef MPACK_MALLOC
+char* mpack_expect_ext_alloc(mpack_reader_t* reader, int8_t* type, size_t maxsize, size_t* size) {
+    mpack_assert(size != NULL, "size cannot be NULL");
+    *size = 0;
+
+    if (maxsize > UINT32_MAX)
+        maxsize = UINT32_MAX;
+
+    size_t length = mpack_expect_ext_max(reader, type, (uint32_t)maxsize);
+    char* data = mpack_read_bytes_alloc(reader, length);
+    mpack_done_ext(reader);
 
     if (data)
         *size = length;

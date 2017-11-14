@@ -1087,6 +1087,71 @@ size_t mpack_expect_bin_buf(mpack_reader_t* reader, char* buf, size_t size);
 char* mpack_expect_bin_alloc(mpack_reader_t* reader, size_t maxsize, size_t* size);
 
 /**
+ * Reads the start of an extension blob, returning its size in bytes and
+ * placing the type (0-127) into @p type.
+ *
+ * The bytes follow and must be read separately with mpack_read_bytes()
+ * or mpack_read_bytes_inplace(). @ref mpack_done_ext() must be called
+ * once all bytes have been read.
+ *
+ * mpack_error_type is raised if the value is not an extension blob. The @p
+ * type value is unchanged if an error is raised.
+ */
+uint32_t mpack_expect_ext(mpack_reader_t* reader, int8_t* type);
+
+/**
+ * Reads the start of an extension blob, raising an error if its length is not
+ * at most the given number of bytes and placing the type (0-127) into @p type.
+ *
+ * The bytes follow and must be read separately with mpack_read_bytes()
+ * or mpack_read_bytes_inplace(). @ref mpack_done_ext() must be called
+ * once all bytes have been read.
+ *
+ * mpack_error_type is raised if the value is not an extension blob or if its
+ * length does not match. The @p type value is unchanged if an error is raised.
+ */
+MPACK_INLINE uint32_t mpack_expect_ext_max(mpack_reader_t* reader, int8_t* type, uint32_t maxsize) {
+    uint32_t length = mpack_expect_ext(reader, type);
+    if (length > maxsize) {
+        mpack_reader_flag_error(reader, mpack_error_type);
+        return 0;
+    }
+    return length;
+}
+
+/**
+ * Reads the start of an extension blob, raising an error if its length is not
+ * exactly the given number of bytes and placing the type (0-127) into @p type.
+ *
+ * The bytes follow and must be read separately with mpack_read_bytes()
+ * or mpack_read_bytes_inplace(). @ref mpack_done_ext() must be called
+ * once all bytes have been read.
+ *
+ * mpack_error_type is raised if the value is not an extension blob or if its
+ * length does not match. The @p type error is unchanged if an error is raised.
+ */
+MPACK_INLINE void mpack_expect_ext_size(mpack_reader_t* reader, int8_t* type, uint32_t count) {
+    if (mpack_expect_ext(reader, type) != count)
+        mpack_reader_flag_error(reader, mpack_error_type);
+}
+
+/**
+ * Reads an extension blob into the given buffer, returning its size in bytes
+ * and placing the type (0-127) into @p type.
+ *
+ * For compatibility, this will accept if the underlying type is string or
+ * binary (since in MessagePack 1.0, strings and binary data were combined
+ * under the "raw" type which became string in 1.1.)
+ */
+size_t mpack_expect_ext_buf(mpack_reader_t* reader, int8_t* type, char* buf, size_t size);
+
+/**
+ * Reads an extension blob with the given total maximum size, allocating
+ * storage for it, and placing the type (0-127) into @p type.
+ */
+char* mpack_expect_ext_alloc(mpack_reader_t* reader, int8_t* type, size_t maxsize, size_t* size);
+
+/**
  * @}
  */
 
