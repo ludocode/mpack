@@ -473,6 +473,10 @@ void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t value) {
         case mpack_type_array: mpack_start_array(writer, value.v.n); break;
         case mpack_type_map:   mpack_start_map(writer, value.v.n);   break;
 
+        case mpack_type_timestamp:
+            mpack_write_timestamp(writer, value.v.timestamp.seconds, value.v.timestamp.nanoseconds);
+            break;
+
         default:
             mpack_assert(0, "unrecognized type %i", (int)value.type);
             break;
@@ -701,6 +705,25 @@ MPACK_STATIC_INLINE void mpack_encode_ext32(char* p, int8_t exttype, uint32_t co
     mpack_store_i8(p + 5, exttype);
 }
 
+MPACK_STATIC_INLINE void mpack_encode_timestamp_4(char* p, uint32_t seconds) {
+    mpack_encode_fixext4(p, MPACK_TIMESTAMP_EXTTYPE);
+    mpack_store_u32(p + MPACK_TAG_SIZE_FIXEXT4, seconds);
+}
+
+MPACK_STATIC_INLINE void mpack_encode_timestamp_8(char* p, int64_t seconds, uint32_t nanoseconds) {
+    mpack_assert(nanoseconds <= MPACK_TIMESTAMP_NANOSECONDS_MAX);
+    mpack_encode_fixext8(p, MPACK_TIMESTAMP_EXTTYPE);
+    uint64_t encoded = ((uint64_t)nanoseconds << 34) | (uint64_t)seconds;
+    mpack_store_u64(p + MPACK_TAG_SIZE_FIXEXT8, encoded);
+}
+
+MPACK_STATIC_INLINE void mpack_encode_timestamp_12(char* p, int64_t seconds, uint32_t nanoseconds) {
+    mpack_assert(nanoseconds <= MPACK_TIMESTAMP_NANOSECONDS_MAX);
+    mpack_encode_ext8(p, MPACK_TIMESTAMP_EXTTYPE, 12);
+    mpack_store_u32(p + MPACK_TAG_SIZE_EXT8, nanoseconds);
+    mpack_store_i64(p + MPACK_TAG_SIZE_EXT8 + 4, seconds);
+}
+
 
 
 /*
@@ -881,9 +904,36 @@ void mpack_write_float(mpack_writer_t* writer, float value) {
     mpack_writer_track_element(writer);
     MPACK_WRITE_ENCODED(mpack_encode_float, MPACK_TAG_SIZE_FLOAT, value);
 }
+
 void mpack_write_double(mpack_writer_t* writer, double value) {
     mpack_writer_track_element(writer);
     MPACK_WRITE_ENCODED(mpack_encode_double, MPACK_TAG_SIZE_DOUBLE, value);
+}
+
+void mpack_write_timestamp(mpack_writer_t* writer, int64_t seconds, uint32_t nanoseconds) {
+    #if MPACK_COMPATIBILITY
+    if (writer->version <= mpack_version_v4) {
+        mpack_break("Timestamps require spec version v5 or later. This writer is in v%i mode.", (int)writer->version);
+        mpack_writer_flag_error(writer, mpack_error_bug);
+        return;
+    }
+    #endif
+
+    if (nanoseconds > MPACK_TIMESTAMP_NANOSECONDS_MAX) {
+        mpack_break("timestamp nanoseconds out of bounds: %u", nanoseconds);
+        mpack_writer_flag_error(writer, mpack_error_bug);
+        return;
+    }
+
+    mpack_writer_track_element(writer);
+
+    if (seconds < 0 || seconds >= (INT64_C(1) << 34)) {
+        MPACK_WRITE_ENCODED(mpack_encode_timestamp_12, MPACK_TAG_SIZE_TIMESTAMP12, seconds, nanoseconds);
+    } else if (seconds > UINT32_MAX || nanoseconds > 0) {
+        MPACK_WRITE_ENCODED(mpack_encode_timestamp_8, MPACK_TAG_SIZE_TIMESTAMP8, seconds, nanoseconds);
+    } else {
+        MPACK_WRITE_ENCODED(mpack_encode_timestamp_4, MPACK_TAG_SIZE_TIMESTAMP4, (uint32_t)seconds);
+    }
 }
 
 void mpack_start_array(mpack_writer_t* writer, uint32_t count) {

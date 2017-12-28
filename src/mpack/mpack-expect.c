@@ -300,6 +300,23 @@ void mpack_expect_false(mpack_reader_t* reader) {
         mpack_reader_flag_error(reader, mpack_error_type);
 }
 
+mpack_timestamp_t mpack_expect_timestamp(mpack_reader_t* reader) {
+    mpack_tag_t var = mpack_read_tag(reader);
+    if (var.type == mpack_type_timestamp)
+        return var.v.timestamp;
+    mpack_reader_flag_error(reader, mpack_error_type);
+    mpack_timestamp_t zero = {0, 0};
+    return zero;
+}
+
+int64_t mpack_expect_timestamp_truncate(mpack_reader_t* reader) {
+    mpack_tag_t var = mpack_read_tag(reader);
+    if (var.type == mpack_type_timestamp)
+        return var.v.timestamp.seconds;
+    mpack_reader_flag_error(reader, mpack_error_type);
+    return 0;
+}
+
 
 // Compound Types
 

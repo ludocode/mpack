@@ -542,6 +542,30 @@ void mpack_write_nil(mpack_writer_t* writer);
 void mpack_write_object_bytes(mpack_writer_t* writer, const char* data, size_t bytes);
 
 /**
+ * Writes a timestamp.
+ *
+ * @param seconds The (signed) number of seconds since 1970-01-01T00:00:00Z.
+ * @param nanoseconds The additional number of nanoseconds from 0 to 999,999,999 inclusive.
+ */
+void mpack_write_timestamp(mpack_writer_t* writer, int64_t seconds, uint32_t nanoseconds);
+
+/**
+ * Writes a timestamp with the given number of seconds (and zero nanoseconds).
+ *
+ * @param seconds The (signed) number of seconds since 1970-01-01T00:00:00Z.
+ */
+MPACK_INLINE void mpack_write_timestamp_seconds(mpack_writer_t* writer, int64_t seconds) {
+    mpack_write_timestamp(writer, seconds, 0);
+}
+
+/**
+ * Writes a timestamp.
+ */
+MPACK_INLINE void mpack_write_timestamp_struct(mpack_writer_t* writer, mpack_timestamp_t timestamp) {
+    mpack_write_timestamp(writer, timestamp.seconds, timestamp.nanoseconds);
+}
+
+/**
  * @}
  */
 

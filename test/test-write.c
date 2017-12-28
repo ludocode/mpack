@@ -357,6 +357,46 @@ static void test_write_simple_misc() {
     #endif
 }
 
+static void test_write_timestamp() {
+    char buf[4096];
+
+    TEST_SIMPLE_WRITE("\xd6\xff\x00\x00\x00\x00", mpack_write_timestamp_seconds(&writer, 0));
+    TEST_SIMPLE_WRITE("\xd6\xff\x00\x00\x01\x00", mpack_write_timestamp(&writer, 256, 0));
+    TEST_SIMPLE_WRITE("\xd6\xff\xfe\xdc\xba\x98", mpack_write_timestamp_seconds(&writer, 4275878552u));
+    TEST_SIMPLE_WRITE("\xd6\xff\xff\xff\xff\xff", mpack_write_timestamp(&writer, UINT32_MAX, 0));
+
+    TEST_SIMPLE_WRITE("\xd7\xff\x00\x00\x00\x03\x00\x00\x00\x00",
+            mpack_write_timestamp_seconds(&writer, INT64_C(12884901888)));
+    TEST_SIMPLE_WRITE("\xd7\xff\xee\x6b\x27\xfc\x00\x00\x00\x00",
+            mpack_write_timestamp(&writer, 0, MPACK_TIMESTAMP_NANOSECONDS_MAX));
+    TEST_SIMPLE_WRITE("\xd7\xff\xee\x6b\x27\xff\xff\xff\xff\xff",
+            mpack_write_timestamp(&writer, INT64_C(17179869183), MPACK_TIMESTAMP_NANOSECONDS_MAX));
+
+    TEST_SIMPLE_WRITE("\xc7\x0c\xff\x00\x00\x00\x01\xff\xff\xff\xff\xff\xff\xff\xff",
+            mpack_write_timestamp(&writer, -1, 1));
+    mpack_timestamp_t timestamp = {INT64_MAX, MPACK_TIMESTAMP_NANOSECONDS_MAX};
+    TEST_SIMPLE_WRITE("\xc7\x0c\xff\x3b\x9a\xc9\xff\x7f\xff\xff\xff\xff\xff\xff\xff",
+            mpack_write_timestamp_struct(&writer, timestamp));
+    TEST_SIMPLE_WRITE("\xc7\x0c\xff\x3b\x9a\xc9\xff\x80\x00\x00\x00\x00\x00\x00\x00",
+            mpack_write_timestamp(&writer, INT64_MIN, MPACK_TIMESTAMP_NANOSECONDS_MAX));
+
+    TEST_SIMPLE_WRITE("\xd7\xff\xee\x6b\x27\xff\xff\xff\xff\xff",
+            mpack_write_tag(&writer, mpack_tag_make_timestamp(INT64_C(17179869183), MPACK_TIMESTAMP_NANOSECONDS_MAX)));
+
+    mpack_writer_t writer;
+    mpack_writer_init(&writer, buf, sizeof(buf));
+    TEST_BREAK((mpack_write_timestamp(&writer, 0, 1000000000), true));
+    TEST_BREAK((mpack_write_timestamp(&writer, 0, UINT32_MAX), true));
+    TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_bug);
+
+    #if MPACK_COMPATIBILITY
+    mpack_writer_init(&writer, buf, sizeof(buf));
+    mpack_writer_set_version(&writer, mpack_version_v4);
+    TEST_BREAK((mpack_write_timestamp_seconds(&writer, 0), true));
+    TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_bug);
+    #endif
+}
+
 #ifdef MPACK_MALLOC
 static void test_write_tag_tracking() {
     char* buf;
@@ -1199,6 +1239,7 @@ void test_writes() {
     #endif
     test_write_simple_misc();
     test_write_utf8();
+    test_write_timestamp();
 
     #if MPACK_COMPATIBILITY
     test_write_compatibility();

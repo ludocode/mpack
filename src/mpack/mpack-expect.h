@@ -553,6 +553,15 @@ void mpack_expect_true(mpack_reader_t* reader);
  */
 void mpack_expect_false(mpack_reader_t* reader);
 
+/**
+ * Reads a timestamp.
+ */
+mpack_timestamp_t mpack_expect_timestamp(mpack_reader_t* reader);
+
+/**
+ * Reads a timestamp in seconds, truncating the nanoseconds (if any).
+ */
+int64_t mpack_expect_timestamp_truncate(mpack_reader_t* reader);
 
 /**
  * @}
