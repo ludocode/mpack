@@ -844,36 +844,64 @@ static void test_expect_ext() {
     int8_t type;
 
     TEST_SIMPLE_READ_CANCEL("\xd4\x01", 1 == mpack_expect_ext(&reader, &type));
-    TEST_SIMPLE_READ_CANCEL("\xd5\x01", 2 == mpack_expect_ext(&reader, &type));
-    TEST_SIMPLE_READ_CANCEL("\xd6\x01", 4 == mpack_expect_ext(&reader, &type));
-    TEST_SIMPLE_READ_CANCEL("\xd7\x01", 8 == mpack_expect_ext(&reader, &type));
-    TEST_SIMPLE_READ_CANCEL("\xd8\x01", 16 == mpack_expect_ext(&reader, &type));
-    TEST_SIMPLE_READ_CANCEL("\xc7\x80\x01", 128 == mpack_expect_ext(&reader, &type));
-    TEST_SIMPLE_READ_CANCEL("\xc8\x80\x80\x01", 0x8080 == mpack_expect_ext(&reader, &type));
-    TEST_SIMPLE_READ_CANCEL("\xc9\xff\xff\xff\xff\x01", 0xffffffff == mpack_expect_ext(&reader, &type));
+    TEST_TRUE(type == 1);
+    TEST_SIMPLE_READ_CANCEL("\xd5\x7f", 2 == mpack_expect_ext(&reader, &type));
+    TEST_TRUE(type == 127);
+    TEST_SIMPLE_READ_CANCEL("\xd6\xfe", 4 == mpack_expect_ext(&reader, &type));
+    TEST_TRUE(type == -2);
+    TEST_SIMPLE_READ_CANCEL("\xd7\x80", 8 == mpack_expect_ext(&reader, &type));
+    TEST_TRUE(type == -128);
+    TEST_SIMPLE_READ_CANCEL("\xd8\x02", 16 == mpack_expect_ext(&reader, &type));
+    TEST_TRUE(type == 2);
+    TEST_SIMPLE_READ_CANCEL("\xc7\x80\x03", 128 == mpack_expect_ext(&reader, &type));
+    TEST_TRUE(type == 3);
+    TEST_SIMPLE_READ_CANCEL("\xc8\x80\x80\x04", 0x8080 == mpack_expect_ext(&reader, &type));
+    TEST_TRUE(type == 4);
+    TEST_SIMPLE_READ_CANCEL("\xc9\xff\xff\xff\xff\x05", 0xffffffff == mpack_expect_ext(&reader, &type));
+    TEST_TRUE(type == 5);
 
     // TODO: test strict/compatibility modes. currently, we do not
     // support old MessagePack version compatibility; ext will not
     // accept str types.
+    // TODO In v4 mode calling any ext function should cause an assertion failure and raise mpack_error_bug.
     /*TEST_SIMPLE_READ_ERROR("\xbf", 0 == mpack_expect_ext(&reader, &type), mpack_error_type);*/
     /*TEST_SIMPLE_READ_ERROR("\xbf", 0 == mpack_expect_ext_buf(&reader, buf, sizeof(buf)), mpack_error_type);*/
 
     TEST_SIMPLE_READ("\xd4\x01\x00", 1 == mpack_expect_ext_buf(&reader, &type, buf, 1));
-    TEST_SIMPLE_READ("\xd5\x01te", 2 == mpack_expect_ext_buf(&reader, &type, buf, 2));
-    TEST_SIMPLE_READ("\xd6\x01test", 4 == mpack_expect_ext_buf(&reader, &type, buf, 4));
-    TEST_SIMPLE_READ("\xd7\x01testtest", 8 == mpack_expect_ext_buf(&reader, &type, buf, 8));
-    TEST_SIMPLE_READ("\xd8\x01testtesttesttest", 16 == mpack_expect_ext_buf(&reader, &type, buf, 16));
-    TEST_SIMPLE_READ("\xc7\x01\x01t", 1 == mpack_expect_ext_buf(&reader, &type, buf, 1));
-    TEST_SIMPLE_READ("\xc8\x00\x04\x01test", 4 == mpack_expect_ext_buf(&reader, &type, buf, 4));
-    TEST_SIMPLE_READ("\xc9\x00\x00\x00\x04\x01test", 4 == mpack_expect_ext_buf(&reader, &type, buf, 4));
-    TEST_SIMPLE_READ_ERROR("\xc7\x05\x01hello", 0 == mpack_expect_ext_buf(&reader, &type, buf, 4), mpack_error_too_big);
+    TEST_TRUE(type == 1);
+    TEST_SIMPLE_READ("\xd5\x7fte", 2 == mpack_expect_ext_buf(&reader, &type, buf, 2));
+    TEST_TRUE(type == 127);
+    TEST_SIMPLE_READ("\xd6\xfetest", 4 == mpack_expect_ext_buf(&reader, &type, buf, 4));
+    TEST_TRUE(type == -2);
+    TEST_SIMPLE_READ("\xd7\x80testtest", 8 == mpack_expect_ext_buf(&reader, &type, buf, 8));
+    TEST_TRUE(type == -128);
+    TEST_SIMPLE_READ("\xd8\x02testtesttesttest", 16 == mpack_expect_ext_buf(&reader, &type, buf, 16));
+    TEST_TRUE(type == 2);
+    TEST_SIMPLE_READ("\xc7\x01\x03t", 1 == mpack_expect_ext_buf(&reader, &type, buf, 1));
+    TEST_TRUE(type == 3);
+    TEST_SIMPLE_READ("\xc8\x00\x04\x04test", 4 == mpack_expect_ext_buf(&reader, &type, buf, 4));
+    TEST_TRUE(type == 4);
+    TEST_SIMPLE_READ("\xc9\x00\x00\x00\x04\x05test", 4 == mpack_expect_ext_buf(&reader, &type, buf, 4));
+    TEST_TRUE(type == 5);
+    TEST_SIMPLE_READ_ERROR("\xc7\x05\x06hello", 0 == mpack_expect_ext_buf(&reader, &type, buf, 4), mpack_error_too_big);
+    TEST_TRUE(type == 0);
     TEST_SIMPLE_READ_ERROR("\xc7\x08hello", 0 == mpack_expect_ext_buf(&reader, &type, buf, sizeof(buf)), mpack_error_invalid);
-    TEST_SIMPLE_READ("\xc7\x01\x01\x00", 1 == mpack_expect_ext_buf(&reader, &type, buf, 4));
+    TEST_TRUE(type == 0);
+    TEST_SIMPLE_READ("\xc7\x01\x06\x00", 1 == mpack_expect_ext_buf(&reader, &type, buf, 4));
+    TEST_TRUE(type == 6);
 
-    TEST_SIMPLE_READ("\xc7\x00\x01", (mpack_expect_ext_size(&reader, &type, 0), mpack_done_ext(&reader), true));
-    TEST_SIMPLE_READ_ERROR("\xc7\x00\x01", (mpack_expect_ext_size(&reader, &type, 4), true), mpack_error_type);
-    TEST_SIMPLE_READ_CANCEL("\xc7\x04\x01", (mpack_expect_ext_size(&reader, &type, 4), true));
-    TEST_SIMPLE_READ_ERROR("\xc7\x05\x01", (mpack_expect_ext_size(&reader, &type, 4), true), mpack_error_type);
+    TEST_SIMPLE_READ("\xc7\x00\x07", (mpack_expect_ext_size(&reader, &type, 0), mpack_done_ext(&reader), true));
+    TEST_TRUE(type == 7);
+    TEST_SIMPLE_READ_ERROR("\xc7\x00\x08", (mpack_expect_ext_size(&reader, &type, 4), true), mpack_error_type);
+    TEST_TRUE(type == 0);
+    TEST_SIMPLE_READ_CANCEL("\xc7\x04\x09", (mpack_expect_ext_size(&reader, &type, 4), true));
+    TEST_TRUE(type == 9);
+    TEST_SIMPLE_READ_ERROR("\xc7\x05\x10", (mpack_expect_ext_size(&reader, &type, 4), true), mpack_error_type);
+    TEST_TRUE(type == 0);
+
+    type = 1;
+    TEST_SIMPLE_READ_ERROR("\xc3", 0 == mpack_expect_ext(&reader, &type), mpack_error_type);
+    TEST_TRUE(type == 0);
 
     #ifdef MPACK_MALLOC
     size_t length;
