@@ -205,7 +205,12 @@ if ARGUMENTS.get('all'):
     sanitizers = {
         "stack-protector": ["-Wstack-protector", "-fstack-protector-all"],
         "undefined": ["-fsanitize=undefined"],
-        "address": ["-fsanitize=address"],
+        # ASAN is temporarily disabled because the containerized Travis-CI
+        # nodes no longer allow ptrace. We need to switch to our own docker
+        # image anyway to get newer compilers so we'll add the ptrace cap to it
+        # and re-enable this.
+        #     https://github.com/google/sanitizers/issues/764
+        #"address": ["-fsanitize=address"],
         "safestack": ["-fsanitize=safe-stack"],
     }
     # memory sanitizer isn't working on the version of Clang on Travis-CI's Trusty container right now
