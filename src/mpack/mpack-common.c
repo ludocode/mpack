@@ -66,6 +66,7 @@ const char* mpack_type_to_string(mpack_type_t type) {
         MPACK_TYPE_STRING_CASE(mpack_type_ext);
         MPACK_TYPE_STRING_CASE(mpack_type_array);
         MPACK_TYPE_STRING_CASE(mpack_type_map);
+        MPACK_TYPE_STRING_CASE(mpack_type_timestamp);
         #undef MPACK_TYPE_STRING_CASE
         default: break;
     }
