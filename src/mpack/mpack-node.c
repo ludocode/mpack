@@ -923,6 +923,7 @@ mpack_node_t mpack_tree_root(mpack_tree_t* tree) {
 static void mpack_tree_init_clear(mpack_tree_t* tree) {
     mpack_memset(tree, 0, sizeof(*tree));
     tree->nil_node.type = mpack_type_nil;
+    tree->missing_node.type = mpack_type_missing;
     tree->max_size = SIZE_MAX;
     tree->max_nodes = SIZE_MAX;
 }
@@ -1161,6 +1162,12 @@ mpack_tag_t mpack_node_tag(mpack_node_t node) {
 
     tag.type = node.data->type;
     switch (node.data->type) {
+        case mpack_type_missing:
+            // If a node is missing, I don't know if it makes sense to ask for
+            // a tag for it. We'll return a missing tag to match the missing
+            // node I guess, but attempting to use the tag for anything (like
+            // writing it for example) will flag mpack_error_bug.
+            break;
         case mpack_type_nil:                                            break;
         case mpack_type_bool:    tag.v.b = node.data->value.b;          break;
         case mpack_type_float:   tag.v.f = node.data->value.f;          break;
@@ -1665,8 +1672,11 @@ static mpack_node_t mpack_node_wrap_lookup(mpack_tree_t* tree, mpack_node_data_t
 }
 
 static mpack_node_t mpack_node_wrap_lookup_optional(mpack_tree_t* tree, mpack_node_data_t* data) {
-    if (!data)
+    if (!data) {
+        if (tree->error == mpack_ok)
+            return mpack_tree_missing_node(tree);
         return mpack_tree_nil_node(tree);
+    }
     return mpack_node(tree, data);
 }
 
@@ -1753,10 +1763,39 @@ size_t mpack_node_enum(mpack_node_t node, const char* strings[], size_t count) {
     return value;
 }
 
+mpack_type_t mpack_node_type(mpack_node_t node) {
+    if (mpack_node_error(node) != mpack_ok)
+        return mpack_type_nil;
+    return node.data->type;
+}
+
+bool mpack_node_is_nil(mpack_node_t node) {
+    if (mpack_node_error(node) != mpack_ok) {
+        // All nodes are treated as nil nodes when we are in error.
+        return true;
+    }
+    return node.data->type == mpack_type_nil;
+}
+
+bool mpack_node_is_missing(mpack_node_t node) {
+    if (mpack_node_error(node) != mpack_ok) {
+        // errors still return nil nodes, not missing nodes.
+        return false;
+    }
+    return node.data->type == mpack_type_missing;
+}
+
 void mpack_node_nil(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return;
     if (node.data->type != mpack_type_nil)
+        mpack_node_flag_error(node, mpack_error_type);
+}
+
+void mpack_node_missing(mpack_node_t node) {
+    if (mpack_node_error(node) != mpack_ok)
+        return;
+    if (node.data->type != mpack_type_missing)
         mpack_node_flag_error(node, mpack_error_type);
 }
 

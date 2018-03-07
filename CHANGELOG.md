@@ -28,6 +28,8 @@ New Features:
 
 - The stdio helpers now allow reading from a `FILE*`. `_init_file()` functions have been renamed to `_init_filename()`. The old names will continue to work for a few more versions.
 
+- The Node API now returns a node of "missing" type instead of "nil" type for optional map lookups. This allows the caller to tell the difference between a key having value nil and a missing key.
+
 Changes:
 
 - Timestamps (exttype -1) are no longer reported as ext types. If you were reading an ext of exttype -1 and parsing the timestamp from it manually, you will need to switch over to the new timestamp functions.

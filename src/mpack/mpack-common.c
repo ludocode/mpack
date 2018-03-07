@@ -41,7 +41,6 @@ const char* mpack_error_to_string(mpack_error_t error) {
         MPACK_ERROR_STRING_CASE(mpack_error_data);
         MPACK_ERROR_STRING_CASE(mpack_error_eof);
         #undef MPACK_ERROR_STRING_CASE
-        default: break;
     }
     mpack_assert(0, "unrecognized error %i", (int)error);
     return "(unknown mpack_error_t)";
@@ -55,6 +54,7 @@ const char* mpack_type_to_string(mpack_type_t type) {
     #if MPACK_STRINGS
     switch (type) {
         #define MPACK_TYPE_STRING_CASE(e) case e: return #e
+        MPACK_TYPE_STRING_CASE(mpack_type_missing);
         MPACK_TYPE_STRING_CASE(mpack_type_nil);
         MPACK_TYPE_STRING_CASE(mpack_type_bool);
         MPACK_TYPE_STRING_CASE(mpack_type_float);
@@ -68,7 +68,6 @@ const char* mpack_type_to_string(mpack_type_t type) {
         MPACK_TYPE_STRING_CASE(mpack_type_map);
         MPACK_TYPE_STRING_CASE(mpack_type_timestamp);
         #undef MPACK_TYPE_STRING_CASE
-        default: break;
     }
     mpack_assert(0, "unrecognized type %i", (int)type);
     return "(unknown mpack_type_t)";
@@ -94,6 +93,7 @@ int mpack_tag_cmp(mpack_tag_t left, mpack_tag_t right) {
         return ((int)left.type < (int)right.type) ? -1 : 1;
 
     switch (left.type) {
+        case mpack_type_missing: // fallthrough
         case mpack_type_nil:
             return 0;
 
@@ -154,9 +154,6 @@ int mpack_tag_cmp(mpack_tag_t left, mpack_tag_t right) {
             return mpack_memcmp(&left.v.f, &right.v.f, sizeof(left.v.f));
         case mpack_type_double:
             return mpack_memcmp(&left.v.d, &right.v.d, sizeof(left.v.d));
-
-        default:
-            break;
     }
     
     mpack_assert(0, "unrecognized type %i", (int)left.type);
@@ -164,47 +161,47 @@ int mpack_tag_cmp(mpack_tag_t left, mpack_tag_t right) {
 }
 
 #if MPACK_DEBUG && MPACK_STDIO
-void mpack_tag_debug_pseudo_json(mpack_tag_t tag, char* buffer, size_t buffer_size) {
-    mpack_assert(buffer_size > 0, "buffer size cannot be zero!");
-    buffer[0] = 0;
-
+static void mpack_tag_debug_pseudo_json_impl(mpack_tag_t tag, char* buffer, size_t buffer_size) {
     switch (tag.type) {
+        case mpack_type_missing:
+            mpack_snprintf(buffer, buffer_size, "<missing!>");
+            return;
         case mpack_type_nil:
             mpack_snprintf(buffer, buffer_size, "null");
-            break;
+            return;
         case mpack_type_bool:
             mpack_snprintf(buffer, buffer_size, tag.v.b ? "true" : "false");
-            break;
+            return;
         case mpack_type_int:
             mpack_snprintf(buffer, buffer_size, "%" PRIi64, tag.v.i);
-            break;
+            return;
         case mpack_type_uint:
             mpack_snprintf(buffer, buffer_size, "%" PRIu64, tag.v.u);
-            break;
+            return;
         case mpack_type_float:
             mpack_snprintf(buffer, buffer_size, "%f", tag.v.f);
-            break;
+            return;
         case mpack_type_double:
             mpack_snprintf(buffer, buffer_size, "%f", tag.v.d);
-            break;
+            return;
 
         case mpack_type_str:
             mpack_snprintf(buffer, buffer_size, "<string of %u bytes>", tag.v.l);
-            break;
+            return;
         case mpack_type_bin:
             mpack_snprintf(buffer, buffer_size, "<binary data of length %u>", tag.v.l);
-            break;
+            return;
         case mpack_type_ext:
             mpack_snprintf(buffer, buffer_size, "<ext data of type %i and length %u>",
                     tag.v.ext.exttype, tag.v.ext.length);
-            break;
+            return;
 
         case mpack_type_array:
             mpack_snprintf(buffer, buffer_size, "<array of %u elements>", tag.v.n);
-            break;
+            return;
         case mpack_type_map:
             mpack_snprintf(buffer, buffer_size, "<map of %u key-value pairs>", tag.v.n);
-            break;
+            return;
 
         case mpack_type_timestamp:
             {
@@ -217,56 +214,61 @@ void mpack_tag_debug_pseudo_json(mpack_tag_t tag, char* buffer, size_t buffer_si
                             seconds, nanoseconds);
                 }
             }
-            break;
-
-        default:
-            mpack_snprintf(buffer, buffer_size, "<unknown!>");
-            break;
+            return;
     }
+
+    mpack_snprintf(buffer, buffer_size, "<unknown!>");
+}
+
+void mpack_tag_debug_pseudo_json(mpack_tag_t tag, char* buffer, size_t buffer_size) {
+    mpack_assert(buffer_size > 0, "buffer size cannot be zero!");
+    buffer[0] = 0;
+
+    mpack_tag_debug_pseudo_json_impl(tag, buffer, buffer_size);
 
     // We always null-terminate the buffer manually just in case the snprintf()
     // function doesn't null-terminate when the string doesn't fit.
     buffer[buffer_size - 1] = 0;
 }
 
-void mpack_tag_debug_describe(mpack_tag_t tag, char* buffer, size_t buffer_size) {
-    mpack_assert(buffer_size > 0, "buffer size cannot be zero!");
-    buffer[0] = 0;
-
+static void mpack_tag_debug_describe_impl(mpack_tag_t tag, char* buffer, size_t buffer_size) {
     switch (tag.type) {
+        case mpack_type_missing:
+            mpack_snprintf(buffer, buffer_size, "missing");
+            return;
         case mpack_type_nil:
             mpack_snprintf(buffer, buffer_size, "nil");
-            break;
+            return;
         case mpack_type_bool:
             mpack_snprintf(buffer, buffer_size, tag.v.b ? "true" : "false");
-            break;
+            return;
         case mpack_type_int:
             mpack_snprintf(buffer, buffer_size, "int %" PRIi64, tag.v.i);
-            break;
+            return;
         case mpack_type_uint:
             mpack_snprintf(buffer, buffer_size, "uint %" PRIu64, tag.v.u);
-            break;
+            return;
         case mpack_type_float:
             mpack_snprintf(buffer, buffer_size, "float %f", tag.v.f);
-            break;
+            return;
         case mpack_type_double:
             mpack_snprintf(buffer, buffer_size, "double %f", tag.v.d);
-            break;
+            return;
         case mpack_type_str:
             mpack_snprintf(buffer, buffer_size, "str of %u bytes", tag.v.l);
-            break;
+            return;
         case mpack_type_bin:
             mpack_snprintf(buffer, buffer_size, "bin of %u bytes", tag.v.l);
-            break;
+            return;
         case mpack_type_ext:
             mpack_snprintf(buffer, buffer_size, "ext of type %i, %u bytes", tag.v.ext.exttype, tag.v.ext.length);
-            break;
+            return;
         case mpack_type_array:
             mpack_snprintf(buffer, buffer_size, "array of %u elements", tag.v.n);
-            break;
+            return;
         case mpack_type_map:
             mpack_snprintf(buffer, buffer_size, "map of %u key-value pairs", tag.v.n);
-            break;
+            return;
         case mpack_type_timestamp:
             {
                 int64_t seconds = tag.v.timestamp.seconds;
@@ -278,11 +280,17 @@ void mpack_tag_debug_describe(mpack_tag_t tag, char* buffer, size_t buffer_size)
                             seconds, nanoseconds);
                 }
             }
-            break;
-        default:
-            mpack_snprintf(buffer, buffer_size, "unknown!");
-            break;
+            return;
     }
+
+    mpack_snprintf(buffer, buffer_size, "unknown!");
+}
+
+void mpack_tag_debug_describe(mpack_tag_t tag, char* buffer, size_t buffer_size) {
+    mpack_assert(buffer_size > 0, "buffer size cannot be zero!");
+    buffer[0] = 0;
+
+    mpack_tag_debug_describe_impl(tag, buffer, buffer_size);
 
     // We always null-terminate the buffer manually just in case the snprintf()
     // function doesn't null-terminate when the string doesn't fit.
