@@ -1753,8 +1753,6 @@ size_t mpack_node_enum(mpack_node_t node, const char* strings[], size_t count) {
     return value;
 }
 
-#endif
-
 void mpack_node_nil(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return;
@@ -2121,3 +2119,5 @@ mpack_node_t mpack_node_map_key_at(mpack_node_t node, size_t index) {
 mpack_node_t mpack_node_map_value_at(mpack_node_t node, size_t index) {
     return mpack_node_map_at(node, index, 1);
 }
+
+#endif
