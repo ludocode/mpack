@@ -2053,6 +2053,28 @@ const char* mpack_node_data(mpack_node_t node) {
     return NULL;
 }
 
+const char* mpack_node_bin_data(mpack_node_t node) {
+    if (mpack_node_error(node) != mpack_ok)
+        return NULL;
+
+    if (node.data->type == mpack_type_bin)
+        return mpack_node_data_unchecked(node);
+
+    mpack_node_flag_error(node, mpack_error_type);
+    return NULL;
+}
+
+size_t mpack_node_bin_size(mpack_node_t node) {
+    if (mpack_node_error(node) != mpack_ok)
+        return 0;
+
+    if (node.data->type == mpack_type_bin)
+        return (size_t)node.data->len;
+
+    mpack_node_flag_error(node, mpack_error_type);
+    return 0;
+}
+
 size_t mpack_node_array_length(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;

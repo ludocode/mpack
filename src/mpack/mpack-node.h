@@ -693,9 +693,21 @@ void mpack_node_check_utf8_cstr(mpack_node_t node);
 int8_t mpack_node_exttype(mpack_node_t node);
 
 /**
+ * Returns the number of bytes in the given bin node.
+ *
+ * This returns zero if the tree is in an error state.
+ *
+ * If this node is not a bin, mpack_error_type is raised and zero is returned.
+ */
+size_t mpack_node_bin_size(mpack_node_t node);
+
+/**
  * Returns the length of the given str, bin or ext node.
  *
  * This returns zero if the tree is in an error state.
+ *
+ * If this node is not a str, bin or map, mpack_error_type is raised and zero
+ * is returned.
  */
 uint32_t mpack_node_data_len(mpack_node_t node);
 
@@ -704,6 +716,8 @@ uint32_t mpack_node_data_len(mpack_node_t node);
  * include any null-terminator.
  *
  * This returns zero if the tree is in an error state.
+ *
+ * If this node is not a str, mpack_error_type is raised and zero is returned.
  */
 size_t mpack_node_strlen(mpack_node_t node);
 
@@ -739,6 +753,16 @@ const char* mpack_node_str(mpack_node_t node);
  * @see mpack_node_utf8_cstr_alloc()
  */
 const char* mpack_node_data(mpack_node_t node);
+
+/**
+ * Returns a pointer to the data contained by this bin node.
+ *
+ * The pointer is valid as long as the data backing the tree is valid.
+ *
+ * If this node is not a bin, mpack_error_type is raised and @c NULL is
+ * returned.
+ */
+const char* mpack_node_bin_data(mpack_node_t node);
 
 /**
  * Copies the bytes contained by this node into the given buffer, returning the
