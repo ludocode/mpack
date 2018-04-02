@@ -69,43 +69,6 @@ MPACK_STATIC_INLINE int8_t mpack_node_exttype_unchecked(mpack_node_t node) {
 
 #endif
 
-typedef struct mpack_level_t {
-    mpack_node_data_t* child;
-    size_t left; // children left in level
-} mpack_level_t;
-
-typedef struct mpack_tree_parser_t {
-    mpack_tree_t* tree;
-
-    // We keep track of the number of "possible nodes" left in the data rather
-    // than the number of bytes.
-    //
-    // When a map or array is parsed, we ensure at least one byte for each child
-    // exists and subtract them right away. This ensures that if ever a map or
-    // array declares more elements than could possibly be contained in the data,
-    // we will error out immediately rather than allocating storage for them.
-    //
-    // For example malicious data that repeats 0xDE 0xFF 0xFF would otherwise
-    // cause us to run out of memory. With this, the parser can only allocate
-    // as many nodes as there are bytes in the data (plus the paging overhead,
-    // 12%.) An error will be flagged immediately if and when there isn't enough
-    // data left to fully read all children of all open compound types on the
-    // parsing stack.
-    //
-    // Once an entire message has been parsed (and there are no nodes left to
-    // parse whose bytes have been subtracted), this matches the number of left
-    // over bytes in the data.
-    size_t possible_nodes_left;
-
-    mpack_node_data_t* nodes; // next node in current page/pool
-    size_t nodes_left; // nodes left in current page/pool
-
-    size_t level;
-    size_t depth;
-    mpack_level_t* stack;
-    bool stack_owned;
-} mpack_tree_parser_t;
-
 #ifdef MPACK_MALLOC
 static bool mpack_tree_reserve_fill(mpack_tree_parser_t* parser, size_t bytes) {
     mpack_assert(bytes > parser->possible_nodes_left,
@@ -794,6 +757,8 @@ static void mpack_tree_parser_setup(mpack_tree_parser_t* parser, mpack_tree_t* t
     parser->possible_nodes_left = tree->data_length;
 
     #ifdef MPACK_MALLOC
+    parser->stack_owned = false;
+
     if (tree->pool == NULL) {
 
         // allocate first page
@@ -809,15 +774,23 @@ static void mpack_tree_parser_setup(mpack_tree_parser_t* parser, mpack_tree_t* t
 
         parser->nodes = page->nodes;
         parser->nodes_left = MPACK_NODES_PER_PAGE;
-        tree->root = page->nodes;
-        return;
     }
+    else
     #endif
+    {
+        // otherwise use the provided pool
+        mpack_assert(tree->pool != NULL, "no pool provided?");
+        parser->nodes = tree->pool;
+        parser->nodes_left = tree->pool_count;
+    }
 
-    // otherwise use the provided pool
-    mpack_assert(tree->pool != NULL, "no pool provided?");
-    parser->nodes = tree->pool;
-    parser->nodes_left = tree->pool_count;
+    tree->root = parser->nodes;
+
+    parser->stack = parser->stack_local;
+    parser->depth = sizeof(parser->stack_local) / sizeof(*parser->stack_local);
+    parser->level = 0;
+    parser->stack[0].child = tree->root;
+    parser->stack[0].left = 1;
 }
 
 void mpack_tree_parse(mpack_tree_t* tree) {
@@ -849,50 +822,33 @@ void mpack_tree_parse(mpack_tree_t* tree) {
     }
 
     // setup parser
-    mpack_tree_parser_t parser;
-    mpack_tree_parser_setup(&parser, tree);
+    mpack_tree_parser_t* parser = &tree->parser;
+    mpack_tree_parser_setup(parser, tree);
     if (mpack_tree_error(tree) != mpack_ok)
         return;
 
     // allocate the root node
-    if (!mpack_tree_reserve_bytes(&parser, sizeof(uint8_t)))
+    if (!mpack_tree_reserve_bytes(parser, sizeof(uint8_t)))
         return;
-    tree->root = parser.nodes;
-    ++parser.nodes;
-    --parser.nodes_left;
+    ++parser->nodes;
+    --parser->nodes_left;
     tree->node_count = 1;
 
     // We read nodes in a loop instead of recursively for maximum
     // performance. The stack holds the amount of children left to
     // read in each level of the tree.
-
-    // Even when we have a malloc() function, it's much faster to
-    // allocate the initial parsing stack on the call stack. We
-    // replace it with a heap allocation if we need to grow it.
-    #ifdef MPACK_MALLOC
-    #define MPACK_NODE_STACK_LOCAL_DEPTH MPACK_NODE_INITIAL_DEPTH
-    parser.stack_owned = false;
-    #else
-    #define MPACK_NODE_STACK_LOCAL_DEPTH MPACK_NODE_MAX_DEPTH_WITHOUT_MALLOC
-    #endif
-    mpack_level_t stack_local[MPACK_NODE_STACK_LOCAL_DEPTH]; // no VLAs in VS 2013
-    parser.depth = MPACK_NODE_STACK_LOCAL_DEPTH;
-    parser.stack = stack_local;
-    #undef MPACK_NODE_STACK_LOCAL_DEPTH
-    parser.level = 0;
-    parser.stack[0].child = tree->root;
-    parser.stack[0].left = 1;
-
-    mpack_tree_parse_elements(&parser);
+    mpack_tree_parse_elements(parser);
 
     #ifdef MPACK_MALLOC
-    if (parser.stack_owned)
-        MPACK_FREE(parser.stack);
+    if (parser->stack_owned) {
+        MPACK_FREE(parser->stack);
+        parser->stack_owned = false;
+    }
     #endif
 
     if (mpack_tree_error(tree) == mpack_ok) {
-        mpack_log("parsed tree of %i bytes, %i bytes left\n", (int)tree->size, (int)parser.possible_nodes_left);
-        mpack_log("%i nodes in final page\n", (int)parser.nodes_left);
+        mpack_log("parsed tree of %i bytes, %i bytes left\n", (int)tree->size, (int)parser->possible_nodes_left);
+        mpack_log("%i nodes in final page\n", (int)parser->nodes_left);
     }
 }
 

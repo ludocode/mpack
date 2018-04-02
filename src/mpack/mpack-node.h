@@ -158,6 +158,51 @@ typedef struct mpack_tree_page_t {
     mpack_node_data_t nodes[1]; // variable size
 } mpack_tree_page_t;
 
+typedef struct mpack_level_t {
+    mpack_node_data_t* child;
+    size_t left; // children left in level
+} mpack_level_t;
+
+typedef struct mpack_tree_parser_t {
+    mpack_tree_t* tree;
+
+    // We keep track of the number of "possible nodes" left in the data rather
+    // than the number of bytes.
+    //
+    // When a map or array is parsed, we ensure at least one byte for each child
+    // exists and subtract them right away. This ensures that if ever a map or
+    // array declares more elements than could possibly be contained in the data,
+    // we will error out immediately rather than allocating storage for them.
+    //
+    // For example malicious data that repeats 0xDE 0xFF 0xFF (start of a map
+    // with 65536 key-value pairs) would otherwise cause us to run out of
+    // memory. With this, the parser can allocate at most as many nodes as
+    // there are bytes in the data (plus the paging overhead, 12%.) An error
+    // will be flagged immediately if and when there isn't enough data left to
+    // fully read all children of all open compound types on the parsing stack.
+    //
+    // Once an entire message has been parsed (and there are no nodes left to
+    // parse whose bytes have been subtracted), this matches the number of left
+    // over bytes in the data.
+    size_t possible_nodes_left;
+
+    mpack_node_data_t* nodes; // next node in current page/pool
+    size_t nodes_left; // nodes left in current page/pool
+
+    size_t level;
+    size_t depth;
+
+    mpack_level_t* stack;
+
+    #ifdef MPACK_MALLOC
+    bool stack_owned;
+    #define MPACK_NODE_STACK_LOCAL_DEPTH MPACK_NODE_INITIAL_DEPTH
+    #else
+    #define MPACK_NODE_STACK_LOCAL_DEPTH MPACK_NODE_MAX_DEPTH_WITHOUT_MALLOC
+    #endif
+    mpack_level_t stack_local[MPACK_NODE_STACK_LOCAL_DEPTH];
+} mpack_tree_parser_t;
+
 struct mpack_tree_t {
     mpack_tree_error_t error_fn;    /* Function to call on error */
     mpack_tree_read_t read_fn;      /* Function to call to read more data */
@@ -181,8 +226,9 @@ struct mpack_tree_t {
     size_t max_size;  // maximum message size
     size_t max_nodes; // maximum nodes in a message
 
-    mpack_node_data_t* root;
+    mpack_tree_parser_t parser;
     bool parsed;
+    mpack_node_data_t* root;
 
     mpack_node_data_t* pool; // pool, or NULL if no pool provided
     size_t pool_count;
