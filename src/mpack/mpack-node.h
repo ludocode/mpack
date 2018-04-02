@@ -164,7 +164,6 @@ typedef struct mpack_level_t {
 } mpack_level_t;
 
 typedef struct mpack_tree_parser_t {
-    mpack_tree_t* tree;
 
     // We keep track of the number of "possible nodes" left in the data rather
     // than the number of bytes.
