@@ -195,6 +195,7 @@ typedef struct mpack_tree_parser_t {
     mpack_node_data_t* nodes; // next node in current page/pool
     size_t nodes_left; // nodes left in current page/pool
 
+    size_t current_node_reserved;
     size_t level;
 
     #ifdef MPACK_MALLOC
@@ -228,7 +229,6 @@ struct mpack_tree_t {
     const char* data;
     size_t data_length; // length of data (and content of buffer, if used)
 
-    size_t node_count; // total node count of tree
     size_t size; // size in bytes of tree (usually matches length, but not if tree has trailing data)
 
     size_t max_size;  // maximum message size
