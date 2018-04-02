@@ -216,6 +216,14 @@ MPACK_STATIC_INLINE double mpack_tree_double(mpack_tree_parser_t* parser) {
     return u.d;
 }
 
+MPACK_STATIC_INLINE size_t mpack_tree_parser_stack_capacity(mpack_tree_parser_t* parser) {
+    #ifdef MPACK_MALLOC
+    return parser->stack_capacity;
+    #else
+    return sizeof(parser->stack) / sizeof(parser->stack[0]);
+    #endif
+}
+
 static void mpack_tree_push_stack(mpack_tree_parser_t* parser, mpack_node_data_t* first_child, size_t total) {
 
     // No need to push empty containers
@@ -223,33 +231,33 @@ static void mpack_tree_push_stack(mpack_tree_parser_t* parser, mpack_node_data_t
         return;
 
     // Make sure we have enough room in the stack
-    if (parser->level + 1 == parser->depth) {
+    if (parser->level + 1 == mpack_tree_parser_stack_capacity(parser)) {
         #ifdef MPACK_MALLOC
-        size_t new_depth = parser->depth * 2;
-        mpack_log("growing stack to depth %i\n", (int)new_depth);
+        size_t new_capacity = parser->stack_capacity * 2;
+        mpack_log("growing parse stack to capacity %i\n", (int)new_capacity);
 
         // Replace the stack-allocated parsing stack
         if (!parser->stack_owned) {
-            mpack_level_t* new_stack = (mpack_level_t*)MPACK_MALLOC(sizeof(mpack_level_t) * new_depth);
+            mpack_level_t* new_stack = (mpack_level_t*)MPACK_MALLOC(sizeof(mpack_level_t) * new_capacity);
             if (!new_stack) {
                 mpack_tree_flag_error(parser->tree, mpack_error_memory);
                 return;
             }
-            mpack_memcpy(new_stack, parser->stack, sizeof(mpack_level_t) * parser->depth);
+            mpack_memcpy(new_stack, parser->stack, sizeof(mpack_level_t) * parser->stack_capacity);
             parser->stack = new_stack;
             parser->stack_owned = true;
 
         // Realloc the allocated parsing stack
         } else {
             mpack_level_t* new_stack = (mpack_level_t*)mpack_realloc(parser->stack,
-                    sizeof(mpack_level_t) * parser->depth, sizeof(mpack_level_t) * new_depth);
+                    sizeof(mpack_level_t) * parser->stack_capacity, sizeof(mpack_level_t) * new_capacity);
             if (!new_stack) {
                 mpack_tree_flag_error(parser->tree, mpack_error_memory);
                 return;
             }
             parser->stack = new_stack;
         }
-        parser->depth = new_depth;
+        parser->stack_capacity = new_capacity;
         #else
         mpack_tree_flag_error(parser->tree, mpack_error_too_big);
         return;
@@ -757,7 +765,9 @@ static void mpack_tree_parser_setup(mpack_tree_parser_t* parser, mpack_tree_t* t
     parser->possible_nodes_left = tree->data_length;
 
     #ifdef MPACK_MALLOC
+    parser->stack = parser->stack_local;
     parser->stack_owned = false;
+    parser->stack_capacity = sizeof(parser->stack_local) / sizeof(*parser->stack_local);
 
     if (tree->pool == NULL) {
 
@@ -786,8 +796,6 @@ static void mpack_tree_parser_setup(mpack_tree_parser_t* parser, mpack_tree_t* t
 
     tree->root = parser->nodes;
 
-    parser->stack = parser->stack_local;
-    parser->depth = sizeof(parser->stack_local) / sizeof(*parser->stack_local);
     parser->level = 0;
     parser->stack[0].child = tree->root;
     parser->stack[0].left = 1;

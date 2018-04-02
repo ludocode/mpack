@@ -190,17 +190,19 @@ typedef struct mpack_tree_parser_t {
     size_t nodes_left; // nodes left in current page/pool
 
     size_t level;
-    size_t depth;
-
-    mpack_level_t* stack;
 
     #ifdef MPACK_MALLOC
+    // It's much faster to allocate the initial parsing stack inline within the
+    // parser. We replace it with a heap allocation if we need to grow it.
+    mpack_level_t* stack;
+    size_t stack_capacity;
     bool stack_owned;
-    #define MPACK_NODE_STACK_LOCAL_DEPTH MPACK_NODE_INITIAL_DEPTH
+    mpack_level_t stack_local[MPACK_NODE_INITIAL_DEPTH];
     #else
-    #define MPACK_NODE_STACK_LOCAL_DEPTH MPACK_NODE_MAX_DEPTH_WITHOUT_MALLOC
+    // Without malloc(), we have to reserve a parsing stack the maximum allowed
+    // parsing depth.
+    mpack_level_t stack[MPACK_NODE_MAX_DEPTH_WITHOUT_MALLOC];
     #endif
-    mpack_level_t stack_local[MPACK_NODE_STACK_LOCAL_DEPTH];
 } mpack_tree_parser_t;
 
 struct mpack_tree_t {
