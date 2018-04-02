@@ -158,12 +158,19 @@ typedef struct mpack_tree_page_t {
     mpack_node_data_t nodes[1]; // variable size
 } mpack_tree_page_t;
 
+typedef enum mpack_tree_parse_state_t {
+    mpack_tree_parse_state_not_started,
+    mpack_tree_parse_state_in_progress,
+    mpack_tree_parse_state_parsed,
+} mpack_tree_parse_state_t;
+
 typedef struct mpack_level_t {
     mpack_node_data_t* child;
     size_t left; // children left in level
 } mpack_level_t;
 
 typedef struct mpack_tree_parser_t {
+    mpack_tree_parse_state_t state;
 
     // We keep track of the number of "possible nodes" left in the data rather
     // than the number of bytes.
@@ -228,7 +235,6 @@ struct mpack_tree_t {
     size_t max_nodes; // maximum nodes in a message
 
     mpack_tree_parser_t parser;
-    bool parsed;
     mpack_node_data_t* root;
 
     mpack_node_data_t* pool; // pool, or NULL if no pool provided
