@@ -165,6 +165,18 @@ static bool mpack_tree_reserve_fill(mpack_tree_t* tree) {
  */
 MPACK_STATIC_INLINE bool mpack_tree_reserve_bytes(mpack_tree_t* tree, size_t bytes) {
     mpack_assert(tree->parser.state == mpack_tree_parse_state_in_progress);
+
+    // We guard against overflow here. A compound type could declare more than
+    // UINT32_MAX contents which overflows SIZE_MAX on 32-bit platforms. We
+    // flag mpack_error_invalid instead of mpack_error_too_big since it's far
+    // more likely that the message is corrupt than that the data is valid but
+    // not parseable on this architecture (see test_read_node_possible() in
+    // test-node.c .)
+    if ((uint64_t)tree->parser.current_node_reserved + (uint64_t)bytes > (uint64_t)SIZE_MAX) {
+        mpack_tree_flag_error(tree, mpack_error_invalid);
+        return false;
+    }
+
     tree->parser.current_node_reserved += bytes;
 
     // Note that possible_nodes_left already accounts for reserved bytes for
@@ -286,6 +298,7 @@ static bool mpack_tree_parse_children(mpack_tree_t* tree, mpack_node_data_t* nod
         mpack_tree_page_t* page;
 
         if (total > MPACK_NODES_PER_PAGE || parser->nodes_left > MPACK_NODES_PER_PAGE / 8) {
+            // TODO: this should check for overflow
             page = (mpack_tree_page_t*)MPACK_MALLOC(
                     sizeof(mpack_tree_page_t) + sizeof(mpack_node_data_t) * (total - 1));
             if (page == NULL) {
@@ -709,18 +722,22 @@ static bool mpack_tree_parse_node_contents(mpack_tree_t* tree, mpack_node_data_t
         #if MPACK_OPTIMIZE_FOR_SIZE
         // any other bytes should have been handled by the infix switch
         default:
-            mpack_assert(0, "unreachable");
-            return false;
+            break;
         #endif
     }
+
+    mpack_assert(0, "unreachable");
+    return false;
 }
 
 static bool mpack_tree_parse_node(mpack_tree_t* tree, mpack_node_data_t* node) {
     mpack_log("parsing a node at position %i in level %i\n",
             (int)tree->size, (int)tree->parser.level);
 
-    if (!mpack_tree_parse_node_contents(tree, node))
+    if (!mpack_tree_parse_node_contents(tree, node)) {
+        mpack_log("node parsing returned false\n");
         return false;
+    }
 
     tree->parser.possible_nodes_left -= tree->parser.current_node_reserved;
 
@@ -745,9 +762,14 @@ static bool mpack_tree_parse_node(mpack_tree_t* tree, mpack_node_data_t* node) {
     return true;
 }
 
-static void mpack_tree_parse_elements(mpack_tree_t* tree) {
+/*
+ * We read nodes in a loop instead of recursively for maximum performance. The
+ * stack holds the amount of children left to read in each level of the tree.
+ * Parsing can pause and resume when more data becomes available.
+ */
+static bool mpack_tree_continue_parsing(mpack_tree_t* tree) {
     if (mpack_tree_error(tree) != mpack_ok)
-        return;
+        return false;
 
     mpack_tree_parser_t* parser = &tree->parser;
     mpack_assert(parser->state == mpack_tree_parse_state_in_progress);
@@ -760,16 +782,11 @@ static void mpack_tree_parse_elements(mpack_tree_t* tree) {
         --parser->stack[parser->level].left;
         ++parser->stack[parser->level].child;
 
-        if (!mpack_tree_parse_node(tree, node)) {
-            // We're parsing synchronously on a blocking fill function. If a
-            // node's data is not available, it's an error.
-            mpack_log("node data is unavailable. flagging error.\n");
-            mpack_tree_flag_error(tree, mpack_error_io);
-            break;
-        }
+        if (!mpack_tree_parse_node(tree, node))
+            return false;
 
-        if (mpack_tree_error(tree) != mpack_ok)
-            break;
+        mpack_assert(mpack_tree_error(tree) == mpack_ok,
+                "mpack_tree_parse_node() should have returned false due to error!");
 
         // pop empty stack levels, exiting the outer loop when the stack is empty.
         // (we could tail-optimize containers by pre-emptively popping empty
@@ -779,7 +796,7 @@ static void mpack_tree_parse_elements(mpack_tree_t* tree) {
         // it needs to be complete.)
         while (parser->stack[parser->level].left == 0) {
             if (parser->level == 0)
-                return;
+                return true;
             --parser->level;
         }
     }
@@ -809,9 +826,13 @@ static void mpack_tree_cleanup(mpack_tree_t* tree) {
 static bool mpack_tree_parse_start(mpack_tree_t* tree) {
     if (mpack_tree_error(tree) != mpack_ok)
         return false;
+
     mpack_tree_parser_t* parser = &tree->parser;
-    mpack_assert(parser->state == mpack_tree_parse_state_not_started,
+    mpack_assert(parser->state != mpack_tree_parse_state_in_progress,
             "previous parsing was not finished!");
+
+    if (parser->state == mpack_tree_parse_state_parsed)
+        mpack_tree_cleanup(tree);
 
     mpack_log("starting parse\n");
     tree->parser.state = mpack_tree_parse_state_in_progress;
@@ -822,7 +843,12 @@ static bool mpack_tree_parse_start(mpack_tree_t* tree) {
         #ifdef MPACK_MALLOC
         // if we're buffered, move the remaining data back to the
         // start of the buffer
-        // TODO: shrink buffer?
+        // TODO: This is not ideal performance-wise. We should only move data
+        // when we need to call the fill function.
+        // TODO: We could consider shrinking the buffer here, especially if we
+        // determine that the fill function is providing less than a quarter of
+        // the buffer size or if messages take up less than a quarter of the
+        // buffer size. Maybe this should be configurable.
         if (tree->buffer != NULL) {
             mpack_memmove(tree->buffer, tree->buffer + tree->size, tree->data_length - tree->size);
         }
@@ -890,28 +916,48 @@ void mpack_tree_parse(mpack_tree_t* tree) {
     if (mpack_tree_error(tree) != mpack_ok)
         return;
 
-    if (tree->parser.state == mpack_tree_parse_state_parsed) {
-        mpack_tree_cleanup(tree);
-        tree->parser.state = mpack_tree_parse_state_not_started;
-    }
-
-    if (tree->parser.state == mpack_tree_parse_state_not_started) {
+    if (tree->parser.state != mpack_tree_parse_state_in_progress) {
         if (!mpack_tree_parse_start(tree)) {
-            mpack_tree_flag_error(tree, mpack_error_io);
+            mpack_tree_flag_error(tree, (tree->read_fn == NULL) ?
+                    mpack_error_invalid : mpack_error_io);
             return;
         }
     }
 
-    // We read nodes in a loop instead of recursively for maximum
-    // performance. The stack holds the amount of children left to
-    // read in each level of the tree.
-    mpack_tree_parse_elements(tree);
+    if (!mpack_tree_continue_parsing(tree)) {
+        if (mpack_tree_error(tree) != mpack_ok)
+            return;
 
-    if (mpack_tree_error(tree) == mpack_ok) {
-        tree->parser.state = mpack_tree_parse_state_parsed;
-        mpack_log("parsed tree of %i bytes, %i bytes left\n", (int)tree->size, (int)tree->parser.possible_nodes_left);
-        mpack_log("%i nodes in final page\n", (int)tree->parser.nodes_left);
+        // We're parsing synchronously on a blocking fill function. If we
+        // didn't completely finish parsing the tree, it's an error.
+        mpack_log("tree parsing incomplete. flagging error.\n");
+        mpack_tree_flag_error(tree, (tree->read_fn == NULL) ?
+                mpack_error_invalid : mpack_error_io);
+        return;
     }
+
+    mpack_assert(mpack_tree_error(tree) == mpack_ok);
+    mpack_assert(tree->parser.level == 0);
+    tree->parser.state = mpack_tree_parse_state_parsed;
+    mpack_log("parsed tree of %i bytes, %i bytes left\n", (int)tree->size, (int)tree->parser.possible_nodes_left);
+    mpack_log("%i nodes in final page\n", (int)tree->parser.nodes_left);
+}
+
+bool mpack_tree_try_parse(mpack_tree_t* tree) {
+    if (mpack_tree_error(tree) != mpack_ok)
+        return false;
+
+    if (tree->parser.state != mpack_tree_parse_state_in_progress)
+        if (!mpack_tree_parse_start(tree))
+            return false;
+
+    if (!mpack_tree_continue_parsing(tree))
+        return false;
+
+    mpack_assert(mpack_tree_error(tree) == mpack_ok);
+    mpack_assert(tree->parser.level == 0);
+    tree->parser.state = mpack_tree_parse_state_parsed;
+    return true;
 }
 
 
@@ -924,13 +970,12 @@ mpack_node_t mpack_tree_root(mpack_tree_t* tree) {
     if (mpack_tree_error(tree) != mpack_ok)
         return mpack_tree_nil_node(tree);
 
-    // We check that mpack_tree_parse() was called at least once, and
-    // assert if not. This is to facilitate the transition to requiring
-    // a call to mpack_tree_parse(), since it used to be automatic on
-    // initialization.
+    // We check that a tree was parsed successfully and assert if not. You must
+    // call mpack_tree_parse() (or mpack_tree_try_parse() with a success
+    // result) in order to access the root node.
     if (tree->parser.state != mpack_tree_parse_state_parsed) {
-        mpack_break("Tree has not been parsed! You must call mpack_tree_parse()"
-                " after initialization before accessing the root node.");
+        mpack_break("Tree has not been parsed! "
+                "Did you call mpack_tree_parse() or mpack_tree_try_parse()?");
         mpack_tree_flag_error(tree, mpack_error_bug);
         return mpack_tree_nil_node(tree);
     }
