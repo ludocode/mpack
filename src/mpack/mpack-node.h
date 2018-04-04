@@ -455,17 +455,55 @@ mpack_tag_t mpack_node_tag(mpack_node_t node);
 
 #if MPACK_DEBUG && MPACK_STDIO
 /**
+ * Converts a node to a pseudo-JSON string for debugging purposes, placing the
+ * result in the given buffer with a null-terminator.
+ *
+ * If the buffer does not have enough space, the result will be truncated (but
+ * it is guaranteed to be null-terminated.)
+ *
+ * This is only available in debug mode, and only if stdio is available (since
+ * it uses snprintf().) It's strictly for debugging purposes.
+ */
+void mpack_node_print_buffer(mpack_node_t node, char* buffer, size_t buffer_size);
+
+/*
+ * Converts a node to pseudo-JSON for debugging purposes, calling the given
+ * callback as many times as is necessary to output the character data.
+ *
+ * No null-terminator or trailing newline will be written.
+ *
+ * This is only available in debug mode, and only if stdio is available (since
+ * it uses snprintf().) It's strictly for debugging purposes.
+ */
+void mpack_node_print_callback(mpack_node_t node, mpack_print_callback_t callback, void* context);
+
+/**
  * Converts a node to pseudo-JSON for debugging purposes
  * and pretty-prints it to the given file.
+ *
+ * This is only available in debug mode, and only if stdio is available (since
+ * it uses snprintf().) It's strictly for debugging purposes.
  */
 void mpack_node_print_file(mpack_node_t node, FILE* file);
 
 /**
  * Converts a node to pseudo-JSON for debugging purposes
  * and pretty-prints it to stdout.
+ *
+ * This is only available in debug mode, and only if stdio is available (since
+ * it uses snprintf().) It's strictly for debugging purposes.
+ */
+MPACK_INLINE void mpack_node_print_stdout(mpack_node_t node) {
+    mpack_node_print_file(node, stdout);
+}
+
+/**
+ * Deprecated.
+ *
+ * \deprecated Renamed to mpack_node_print_stdout().
  */
 MPACK_INLINE void mpack_node_print(mpack_node_t node) {
-    mpack_node_print_file(node, stdout);
+    mpack_node_print_stdout(node);
 }
 #endif
 

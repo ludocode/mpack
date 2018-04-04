@@ -70,7 +70,40 @@ static void test_reader_miscellaneous() {
     TEST_SIMPLE_READ_ERROR("\x81", (mpack_discard(&reader), true), mpack_error_invalid); // map
 }
 
+#if MPACK_DEBUG && MPACK_STDIO
+static void test_print_buffer() {
+    static const char test[] = "\x82\xA7""compact\xC3\xA6""schema\x00";
+
+    char buffer[1024];
+    mpack_print_buffer(test, sizeof(test) - 1, buffer, sizeof(buffer));
+
+    static const char* expected =
+        "{\n"
+        "    \"compact\": true,\n"
+        "    \"schema\": 0\n"
+        "}";
+    TEST_TRUE(buffer[strlen(expected)] == 0);
+    TEST_TRUE(0 == strcmp(buffer, expected));
+}
+
+static void test_print_buffer_bounds() {
+    static const char test[] = "\x82\xA7""compact\xC3\xA6""schema\x00";
+
+    char buffer[10];
+    mpack_print_buffer(test, sizeof(test) - 1, buffer, sizeof(buffer));
+
+    // string should be truncated with a null-terminator
+    static const char* expected = "{\n    \"co";
+    TEST_TRUE(buffer[strlen(expected)] == 0);
+    TEST_TRUE(0 == strcmp(buffer, expected));
+}
+#endif
+
 void test_reader() {
+    #if MPACK_DEBUG && MPACK_STDIO
+    test_print_buffer();
+    test_print_buffer_bounds();
+    #endif
     test_reader_should_inplace();
     test_reader_miscellaneous();
 }

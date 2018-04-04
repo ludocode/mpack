@@ -1191,56 +1191,56 @@ mpack_tag_t mpack_node_tag(mpack_node_t node) {
 }
 
 #if MPACK_DEBUG && MPACK_STDIO
-static void mpack_node_print_element(mpack_node_t node, size_t depth, FILE* file) {
+static void mpack_node_print_element(mpack_node_t node, mpack_print_t* print, size_t depth) {
     mpack_node_data_t* data = node.data;
     switch (data->type) {
         case mpack_type_str:
             {
-                putc('"', file);
+                mpack_print_append_cstr(print, "\"");
                 const char* bytes = mpack_node_data_unchecked(node);
                 for (size_t i = 0; i < data->len; ++i) {
                     char c = bytes[i];
                     switch (c) {
-                        case '\n': fprintf(file, "\\n"); break;
-                        case '\\': fprintf(file, "\\\\"); break;
-                        case '"': fprintf(file, "\\\""); break;
-                        default: putc(c, file); break;
+                        case '\n': mpack_print_append_cstr(print, "\\n"); break;
+                        case '\\': mpack_print_append_cstr(print, "\\\\"); break;
+                        case '"': mpack_print_append_cstr(print, "\\\""); break;
+                        default: mpack_print_append(print, &c, 1); break;
                     }
                 }
-                putc('"', file);
+                mpack_print_append_cstr(print, "\"");
             }
             break;
 
         case mpack_type_array:
-            fprintf(file, "[\n");
+            mpack_print_append_cstr(print, "[\n");
             for (size_t i = 0; i < data->len; ++i) {
                 for (size_t j = 0; j < depth + 1; ++j)
-                    fprintf(file, "    ");
-                mpack_node_print_element(mpack_node_array_at(node, i), depth + 1, file);
+                    mpack_print_append_cstr(print, "    ");
+                mpack_node_print_element(mpack_node_array_at(node, i), print, depth + 1);
                 if (i != data->len - 1)
-                    putc(',', file);
-                putc('\n', file);
+                    mpack_print_append_cstr(print, ",");
+                mpack_print_append_cstr(print, "\n");
             }
             for (size_t i = 0; i < depth; ++i)
-                fprintf(file, "    ");
-            putc(']', file);
+                mpack_print_append_cstr(print, "    ");
+            mpack_print_append_cstr(print, "]");
             break;
 
         case mpack_type_map:
-            fprintf(file, "{\n");
+            mpack_print_append_cstr(print, "{\n");
             for (size_t i = 0; i < data->len; ++i) {
                 for (size_t j = 0; j < depth + 1; ++j)
-                    fprintf(file, "    ");
-                mpack_node_print_element(mpack_node_map_key_at(node, i), depth + 1, file);
-                fprintf(file, ": ");
-                mpack_node_print_element(mpack_node_map_value_at(node, i), depth + 1, file);
+                    mpack_print_append_cstr(print, "    ");
+                mpack_node_print_element(mpack_node_map_key_at(node, i), print, depth + 1);
+                mpack_print_append_cstr(print, ": ");
+                mpack_node_print_element(mpack_node_map_value_at(node, i), print, depth + 1);
                 if (i != data->len - 1)
-                    putc(',', file);
-                putc('\n', file);
+                    mpack_print_append_cstr(print, ",");
+                mpack_print_append_cstr(print, "\n");
             }
             for (size_t i = 0; i < depth; ++i)
-                fprintf(file, "    ");
-            putc('}', file);
+                mpack_print_append_cstr(print, "    ");
+            mpack_print_append_cstr(print, "}");
             break;
 
         default:
@@ -1248,19 +1248,60 @@ static void mpack_node_print_element(mpack_node_t node, size_t depth, FILE* file
                 char buf[256];
                 mpack_tag_t tag = mpack_node_tag(node);
                 mpack_tag_debug_pseudo_json(tag, buf, sizeof(buf));
-                fputs(buf, file);
+                mpack_print_append_cstr(print, buf);
             }
             break;
     }
 }
 
+void mpack_node_print_buffer(mpack_node_t node, char* buffer, size_t buffer_size) {
+    if (buffer_size == 0) {
+        mpack_assert(false, "buffer size is zero!");
+        return;
+    }
+
+    mpack_print_t print;
+    mpack_memset(&print, 0, sizeof(print));
+    print.buffer = buffer;
+    print.size = buffer_size;
+    mpack_node_print_element(node, &print, 0);
+    mpack_print_append(&print, "",  1); // null-terminator
+    mpack_print_flush(&print);
+
+    // we always make sure there's a null-terminator at the end of the buffer
+    // in case we ran out of space.
+    print.buffer[print.size - 1] = '\0';
+}
+
+void mpack_node_print_callback(mpack_node_t node, mpack_print_callback_t callback, void* context) {
+    char buffer[1024];
+    mpack_print_t print;
+    mpack_memset(&print, 0, sizeof(print));
+    print.buffer = buffer;
+    print.size = sizeof(buffer);
+    print.callback = callback;
+    print.context = context;
+    mpack_node_print_element(node, &print, 0);
+    mpack_print_flush(&print);
+}
+
 void mpack_node_print_file(mpack_node_t node, FILE* file) {
     mpack_assert(file != NULL, "file is NULL");
+
+    char buffer[1024];
+    mpack_print_t print;
+    mpack_memset(&print, 0, sizeof(print));
+    print.buffer = buffer;
+    print.size = sizeof(buffer);
+    print.callback = &mpack_print_file_callback;
+    print.context = file;
+
     size_t depth = 2;
     for (size_t i = 0; i < depth; ++i)
-        fprintf(file, "    ");
-    mpack_node_print_element(node, depth, file);
-    putc('\n', file);
+        mpack_print_append_cstr(&print, "    ");
+    mpack_node_print_element(node, &print, depth);
+    mpack_print_append_cstr(&print, "\n");
+    mpack_print_flush(&print);
 }
 #endif
 

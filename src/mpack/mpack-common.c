@@ -579,3 +579,46 @@ bool mpack_str_check_no_null(const char* str, size_t bytes) {
     return true;
 }
 
+#if MPACK_DEBUG
+void mpack_print_append(mpack_print_t* print, const char* data, size_t count) {
+
+    // copy whatever fits into the buffer
+    size_t copy = print->size - print->count;
+    if (copy > count)
+        copy = count;
+    mpack_memcpy(print->buffer + print->count, data, copy);
+    print->count += copy;
+    data += copy;
+    count -= copy;
+
+    // if we don't need to flush or can't flush there's nothing else to do
+    if (count == 0 || print->callback == NULL)
+        return;
+
+    // flush the buffer
+    print->callback(print->context, print->buffer, print->count);
+
+    if (count > print->size / 2) {
+        // flush the rest of the data
+        print->count = 0;
+        print->callback(print->context, data, count);
+    } else {
+        // copy the rest of the data into the buffer
+        mpack_memcpy(print->buffer, data, count);
+        print->count = count;
+    }
+
+}
+
+void mpack_print_flush(mpack_print_t* print) {
+    if (print->count > 0 && print->callback != NULL) {
+        print->callback(print->context, print->buffer, print->count);
+        print->count = 0;
+    }
+}
+
+void mpack_print_file_callback(void* context, const char* data, size_t count) {
+    FILE* file = (FILE*)context;
+    fwrite(data, 1, count, file);
+}
+#endif

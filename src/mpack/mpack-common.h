@@ -612,6 +612,35 @@ void mpack_tag_debug_pseudo_json(mpack_tag_t tag, char* buffer, size_t buffer_si
  * it uses snprintf().) It's strictly for debugging purposes.
  */
 void mpack_tag_debug_describe(mpack_tag_t tag, char* buffer, size_t buffer_size);
+
+/**
+ * A callback function for printing pseudo-JSON for debugging purposes.
+ *
+ * @see mpack_node_print_callback
+ */
+typedef void (*mpack_print_callback_t)(void* context, const char* data, size_t count);
+
+/** @cond */
+
+// helpers for printing debug output
+// i feel a bit like i'm re-implementing a buffered writer again...
+typedef struct mpack_print_t {
+    char* buffer;
+    size_t size;
+    size_t count;
+    mpack_print_callback_t callback;
+    void* context;
+} mpack_print_t;
+
+void mpack_print_append(mpack_print_t* print, const char* data, size_t count);
+
+MPACK_INLINE void mpack_print_append_cstr(mpack_print_t* print, const char* cstr) {
+    mpack_print_append(print, cstr, mpack_strlen(cstr));
+}
+
+void mpack_print_flush(mpack_print_t* print);
+
+void mpack_print_file_callback(void* context, const char* data, size_t count);
 #endif
 
 /**

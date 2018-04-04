@@ -1042,67 +1042,67 @@ void mpack_done_type(mpack_reader_t* reader, mpack_type_t type) {
 #endif
 
 #if MPACK_DEBUG && MPACK_STDIO
-static void mpack_print_element(mpack_reader_t* reader, size_t depth, FILE* file) {
+static void mpack_print_element(mpack_reader_t* reader, mpack_print_t* print, size_t depth) {
     mpack_tag_t val = mpack_read_tag(reader);
     if (mpack_reader_error(reader) != mpack_ok)
         return;
 
     switch (val.type) {
         case mpack_type_str:
-            putc('"', file);
+            mpack_print_append_cstr(print, "\"");
             for (size_t i = 0; i < val.v.l; ++i) {
                 char c;
                 mpack_read_bytes(reader, &c, 1);
                 if (mpack_reader_error(reader) != mpack_ok)
                     return;
                 switch (c) {
-                    case '\n': fprintf(file, "\\n"); break;
-                    case '\\': fprintf(file, "\\\\"); break;
-                    case '"': fprintf(file, "\\\""); break;
-                    default: putc(c, file); break;
+                    case '\n': mpack_print_append_cstr(print, "\\n"); break;
+                    case '\\': mpack_print_append_cstr(print, "\\\\"); break;
+                    case '"': mpack_print_append_cstr(print, "\\\""); break;
+                    default: mpack_print_append(print, &c, 1); break;
                 }
             }
-            putc('"', file);
+            mpack_print_append_cstr(print, "\"");
             mpack_done_str(reader);
             return;
 
         case mpack_type_array:
-            fprintf(file, "[\n");
+            mpack_print_append_cstr(print, "[\n");
             for (size_t i = 0; i < val.v.n; ++i) {
                 for (size_t j = 0; j < depth + 1; ++j)
-                    fprintf(file, "    ");
-                mpack_print_element(reader, depth + 1, file);
+                    mpack_print_append_cstr(print, "    ");
+                mpack_print_element(reader, print, depth + 1);
                 if (mpack_reader_error(reader) != mpack_ok)
                     return;
                 if (i != val.v.n - 1)
-                    putc(',', file);
-                putc('\n', file);
+                    mpack_print_append_cstr(print, ",");
+                mpack_print_append_cstr(print, "\n");
             }
             for (size_t i = 0; i < depth; ++i)
-                fprintf(file, "    ");
-            putc(']', file);
+                mpack_print_append_cstr(print, "    ");
+            mpack_print_append_cstr(print, "]");
             mpack_done_array(reader);
             return;
 
         case mpack_type_map:
-            fprintf(file, "{\n");
+            mpack_print_append_cstr(print, "{\n");
             for (size_t i = 0; i < val.v.n; ++i) {
                 for (size_t j = 0; j < depth + 1; ++j)
-                    fprintf(file, "    ");
-                mpack_print_element(reader, depth + 1, file);
+                    mpack_print_append_cstr(print, "    ");
+                mpack_print_element(reader, print, depth + 1);
                 if (mpack_reader_error(reader) != mpack_ok)
                     return;
-                fprintf(file, ": ");
-                mpack_print_element(reader, depth + 1, file);
+                mpack_print_append_cstr(print, ": ");
+                mpack_print_element(reader, print, depth + 1);
                 if (mpack_reader_error(reader) != mpack_ok)
                     return;
                 if (i != val.v.n - 1)
-                    putc(',', file);
-                putc('\n', file);
+                    mpack_print_append_cstr(print, ",");
+                mpack_print_append_cstr(print, "\n");
             }
             for (size_t i = 0; i < depth; ++i)
-                fprintf(file, "    ");
-            putc('}', file);
+                mpack_print_append_cstr(print, "    ");
+            mpack_print_append_cstr(print, "}");
             mpack_done_map(reader);
             return;
 
@@ -1125,30 +1125,78 @@ static void mpack_print_element(mpack_reader_t* reader, size_t depth, FILE* file
 
     char buf[256];
     mpack_tag_debug_pseudo_json(val, buf, sizeof(buf));
-    fputs(buf, file);
+    mpack_print_append_cstr(print, buf);
+}
+
+static void mpack_print_data(const char* data, size_t len, mpack_print_t* print, size_t depth) {
+    mpack_reader_t reader;
+    mpack_reader_init_data(&reader, data, len);
+
+    for (size_t i = 0; i < depth; ++i)
+        mpack_print_append_cstr(print, "    ");
+    mpack_print_element(&reader, print, depth);
+
+    size_t remaining = mpack_reader_remaining(&reader, NULL);
+
+    char buf[256];
+    if (mpack_reader_destroy(&reader) != mpack_ok) {
+        snprintf(buf, sizeof(buf), "\n<mpack parsing error %s>", mpack_error_to_string(mpack_reader_error(&reader)));
+        buf[sizeof(buf) - 1] = '\0';
+        mpack_print_append_cstr(print, buf);
+    } else if (remaining > 0) {
+        snprintf(buf, sizeof(buf), "\n<%i extra bytes at end of mpack>", (int)remaining);
+        buf[sizeof(buf) - 1] = '\0';
+        mpack_print_append_cstr(print, buf);
+    }
+}
+
+void mpack_print_buffer(const char* data, size_t data_size, char* buffer, size_t buffer_size) {
+    if (buffer_size == 0) {
+        mpack_assert(false, "buffer size is zero!");
+        return;
+    }
+
+    mpack_print_t print;
+    mpack_memset(&print, 0, sizeof(print));
+    print.buffer = buffer;
+    print.size = buffer_size;
+    mpack_print_data(data, data_size, &print, 0);
+    mpack_print_append(&print, "",  1); // null-terminator
+    mpack_print_flush(&print);
+
+    // we always make sure there's a null-terminator at the end of the buffer
+    // in case we ran out of space.
+    print.buffer[print.size - 1] = '\0';
+}
+
+void mpack_print_callback(const char* data, size_t size, mpack_print_callback_t callback, void* context) {
+    char buffer[1024];
+    mpack_print_t print;
+    mpack_memset(&print, 0, sizeof(print));
+    print.buffer = buffer;
+    print.size = sizeof(buffer);
+    print.callback = callback;
+    print.context = context;
+    mpack_print_data(data, size, &print, 0);
+    mpack_print_flush(&print);
 }
 
 void mpack_print_file(const char* data, size_t len, FILE* file) {
     mpack_assert(data != NULL, "data is NULL");
     mpack_assert(file != NULL, "file is NULL");
 
-    mpack_reader_t reader;
-    mpack_reader_init_data(&reader, data, len);
+    char buffer[1024];
+    mpack_print_t print;
+    mpack_memset(&print, 0, sizeof(print));
+    print.buffer = buffer;
+    print.size = sizeof(buffer);
+    print.callback = &mpack_print_file_callback;
+    print.context = file;
 
-    size_t depth = 2;
-    for (size_t i = 0; i < depth; ++i)
-        fprintf(file, "    ");
-    mpack_print_element(&reader, depth, file);
-    putc('\n', file);
-
-    size_t remaining = mpack_reader_remaining(&reader, NULL);
-
-    if (mpack_reader_destroy(&reader) != mpack_ok)
-        fprintf(file, "<mpack parsing error %s>\n", mpack_error_to_string(mpack_reader_error(&reader)));
-    else if (remaining > 0)
-        fprintf(file, "<%i extra bytes at end of mpack>\n", (int)remaining);
+    mpack_print_data(data, len, &print, 2);
+    mpack_print_append_cstr(&print, "\n");
+    mpack_print_flush(&print);
 }
 #endif
 
 #endif
-

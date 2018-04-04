@@ -775,6 +775,28 @@ void mpack_discard(mpack_reader_t* reader);
  * @name Debugging Functions
  * @{
  */
+/**
+ * Converts a blob of MessagePack to a pseudo-JSON string for debugging
+ * purposes, placing the result in the given buffer with a null-terminator.
+ *
+ * If the buffer does not have enough space, the result will be truncated (but
+ * it is guaranteed to be null-terminated.)
+ *
+ * This is only available in debug mode, and only if stdio is available (since
+ * it uses snprintf().) It's strictly for debugging purposes.
+ */
+void mpack_print_buffer(const char* data, size_t data_size, char* buffer, size_t buffer_size);
+
+/*
+ * Converts a node to pseudo-JSON for debugging purposes, calling the given
+ * callback as many times as is necessary to output the character data.
+ *
+ * No null-terminator or trailing newline will be written.
+ *
+ * This is only available in debug mode, and only if stdio is available (since
+ * it uses snprintf().) It's strictly for debugging purposes.
+ */
+void mpack_print_callback(const char* data, size_t size, mpack_print_callback_t callback, void* context);
 
 /**
  * Converts a blob of MessagePack to pseudo-JSON for debugging purposes
@@ -786,8 +808,17 @@ void mpack_print_file(const char* data, size_t len, FILE* file);
  * Converts a blob of MessagePack to pseudo-JSON for debugging purposes
  * and pretty-prints it to stdout.
  */
-MPACK_INLINE void mpack_print(const char* data, size_t len) {
+MPACK_INLINE void mpack_print_stdout(const char* data, size_t len) {
     mpack_print_file(data, len, stdout);
+}
+
+/**
+ * Deprecated.
+ *
+ * \deprecated Renamed to mpack_print_stdout().
+ */
+MPACK_INLINE void mpack_print(const char* data, size_t len) {
+    mpack_print_stdout(data, len);
 }
 
 /**

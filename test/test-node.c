@@ -1197,7 +1197,55 @@ static bool test_node_multiple_allocs_stream4096() {
 }
 #endif
 
+#if MPACK_DEBUG && MPACK_STDIO
+static void test_node_print_buffer() {
+    static const char test[] = "\x82\xA7""compact\xC3\xA6""schema\x00";
+    mpack_tree_t tree;
+    mpack_tree_init(&tree, test, sizeof(test) - 1);
+
+    mpack_tree_parse(&tree);
+    TEST_TRUE(mpack_tree_error(&tree) == mpack_ok);
+    mpack_node_t root = mpack_tree_root(&tree);
+
+    char buffer[1024];
+    mpack_node_print_buffer(root, buffer, sizeof(buffer));
+
+    static const char* expected =
+        "{\n"
+        "    \"compact\": true,\n"
+        "    \"schema\": 0\n"
+        "}";
+    TEST_TRUE(buffer[strlen(expected)] == 0);
+    TEST_TRUE(0 == strcmp(buffer, expected));
+
+    TEST_TRUE(mpack_ok == mpack_tree_destroy(&tree));
+}
+
+static void test_node_print_buffer_bounds() {
+    static const char test[] = "\x82\xA7""compact\xC3\xA6""schema\x00";
+    mpack_tree_t tree;
+    mpack_tree_init(&tree, test, sizeof(test) - 1);
+
+    mpack_tree_parse(&tree);
+    TEST_TRUE(mpack_tree_error(&tree) == mpack_ok);
+    mpack_node_t root = mpack_tree_root(&tree);
+
+    char buffer[10];
+    mpack_node_print_buffer(root, buffer, sizeof(buffer));
+    TEST_TRUE(mpack_ok == mpack_tree_destroy(&tree));
+
+    // string should be truncated with a null-terminator
+    static const char* expected = "{\n    \"co";
+    TEST_TRUE(buffer[strlen(expected)] == 0);
+    TEST_TRUE(0 == strcmp(buffer, expected));
+}
+#endif
+
 void test_node(void) {
+    #if MPACK_DEBUG && MPACK_STDIO
+    test_node_print_buffer();
+    test_node_print_buffer_bounds();
+    #endif
     test_example_node();
 
     // int/uint
