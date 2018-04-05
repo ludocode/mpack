@@ -579,7 +579,7 @@ bool mpack_str_check_no_null(const char* str, size_t bytes) {
     return true;
 }
 
-#if MPACK_DEBUG
+#if MPACK_DEBUG && MPACK_STDIO
 void mpack_print_append(mpack_print_t* print, const char* data, size_t count) {
 
     // copy whatever fits into the buffer
