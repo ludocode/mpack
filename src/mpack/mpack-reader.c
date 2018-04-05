@@ -1140,11 +1140,11 @@ static void mpack_print_data(const char* data, size_t len, mpack_print_t* print,
 
     char buf[256];
     if (mpack_reader_destroy(&reader) != mpack_ok) {
-        snprintf(buf, sizeof(buf), "\n<mpack parsing error %s>", mpack_error_to_string(mpack_reader_error(&reader)));
+        mpack_snprintf(buf, sizeof(buf), "\n<mpack parsing error %s>", mpack_error_to_string(mpack_reader_error(&reader)));
         buf[sizeof(buf) - 1] = '\0';
         mpack_print_append_cstr(print, buf);
     } else if (remaining > 0) {
-        snprintf(buf, sizeof(buf), "\n<%i extra bytes at end of mpack>", (int)remaining);
+        mpack_snprintf(buf, sizeof(buf), "\n<%i extra bytes at end of mpack>", (int)remaining);
         buf[sizeof(buf) - 1] = '\0';
         mpack_print_append_cstr(print, buf);
     }
