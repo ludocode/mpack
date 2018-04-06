@@ -144,9 +144,12 @@ static bool mpack_tree_reserve_fill(mpack_tree_t* tree) {
 
         // If the fill function returns 0, the data is not available yet. We
         // return false to stop parsing the current node.
-        if (read == 0)
+        if (read == 0) {
+            mpack_log("not enough data.\n");
             return false;
+        }
 
+        mpack_log("read %u more bytes\n", (uint32_t)read);
         tree->data_length += read;
         tree->parser.possible_nodes_left += read;
     } while (tree->parser.possible_nodes_left < bytes);
@@ -393,6 +396,7 @@ static bool mpack_tree_parse_node_contents(mpack_tree_t* tree, mpack_node_data_t
     mpack_assert(tree->data_length > tree->size);
     const char* p = tree->data + tree->size;
     uint8_t type = mpack_load_u8(p);
+    mpack_log("node type %x\n", type);
     p += sizeof(uint8_t);
     tree->parser.current_node_reserved = 0;
 
@@ -773,17 +777,17 @@ static bool mpack_tree_continue_parsing(mpack_tree_t* tree) {
 
     mpack_tree_parser_t* parser = &tree->parser;
     mpack_assert(parser->state == mpack_tree_parse_state_in_progress);
-    mpack_log("parsing tree elements\n");
+    mpack_log("parsing tree elements, %i bytes in buffer\n", (int)tree->data_length);
 
     // we loop parsing nodes until the parse stack is empty. we break
     // by returning out of the function.
     while (true) {
         mpack_node_data_t* node = parser->stack[parser->level].child;
-        --parser->stack[parser->level].left;
-        ++parser->stack[parser->level].child;
-
+        size_t level = parser->level;
         if (!mpack_tree_parse_node(tree, node))
             return false;
+        --parser->stack[level].left;
+        ++parser->stack[level].child;
 
         mpack_assert(mpack_tree_error(tree) == mpack_ok,
                 "mpack_tree_parse_node() should have returned false due to error!");
