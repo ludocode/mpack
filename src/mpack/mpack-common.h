@@ -169,6 +169,10 @@ const char* mpack_error_to_string(mpack_error_t error);
 
 /**
  * Defines the type of a MessagePack tag.
+ *
+ * Note that extension types, both user defined and built-in, are represented
+ * in tags as @ref mpack_type_ext. The value for an extension type is stored
+ * separately.
  */
 typedef enum mpack_type_t {
     mpack_type_nil = 1, /**< A null value. */
@@ -179,9 +183,9 @@ typedef enum mpack_type_t {
     mpack_type_double,  /**< A 64-bit IEEE 754 floating point number. */
     mpack_type_str,     /**< A string. */
     mpack_type_bin,     /**< A chunk of binary data. */
-    mpack_type_ext,     /**< A typed MessagePack extension object containing a chunk of binary data. */
     mpack_type_array,   /**< An array of MessagePack objects. */
     mpack_type_map,     /**< An ordered map of key/value pairs of MessagePack objects. */
+    mpack_type_ext,     /**< A typed MessagePack extension object containing a chunk of binary data. */
 } mpack_type_t;
 
 /**
@@ -501,6 +505,11 @@ MPACK_INLINE int8_t mpack_tag_ext_exttype(mpack_tag_t* tag) {
  * @name Other tag functions
  * @{
  */
+
+/**
+ * The extension type for a timestamp.
+ */
+#define MPACK_EXTTYPE_TIMESTAMP ((int8_t)(-1))
 
 /**
  * Compares two tags with an arbitrary fixed ordering. Returns 0 if the tags are
@@ -864,6 +873,11 @@ MPACK_INLINE void mpack_store_double(char* p, double value) {
 #define MPACK_TAG_SIZE_EXT8     3
 #define MPACK_TAG_SIZE_EXT16    4
 #define MPACK_TAG_SIZE_EXT32    6
+
+// size in bytes for complete ext types
+#define MPACK_EXT_SIZE_TIMESTAMP4 (MPACK_TAG_SIZE_FIXEXT4 + 4)
+#define MPACK_EXT_SIZE_TIMESTAMP8 (MPACK_TAG_SIZE_FIXEXT8 + 8)
+#define MPACK_EXT_SIZE_TIMESTAMP12 (MPACK_TAG_SIZE_EXT8 + 12)
 
 /** @endcond */
 

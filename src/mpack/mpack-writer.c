@@ -702,20 +702,20 @@ MPACK_STATIC_INLINE void mpack_encode_ext32(char* p, int8_t exttype, uint32_t co
 }
 
 MPACK_STATIC_INLINE void mpack_encode_timestamp_4(char* p, uint32_t seconds) {
-    mpack_encode_fixext4(p, MPACK_TIMESTAMP_EXTTYPE);
+    mpack_encode_fixext4(p, MPACK_EXTTYPE_TIMESTAMP);
     mpack_store_u32(p + MPACK_TAG_SIZE_FIXEXT4, seconds);
 }
 
 MPACK_STATIC_INLINE void mpack_encode_timestamp_8(char* p, int64_t seconds, uint32_t nanoseconds) {
     mpack_assert(nanoseconds <= MPACK_TIMESTAMP_NANOSECONDS_MAX);
-    mpack_encode_fixext8(p, MPACK_TIMESTAMP_EXTTYPE);
+    mpack_encode_fixext8(p, MPACK_EXTTYPE_TIMESTAMP);
     uint64_t encoded = ((uint64_t)nanoseconds << 34) | (uint64_t)seconds;
     mpack_store_u64(p + MPACK_TAG_SIZE_FIXEXT8, encoded);
 }
 
 MPACK_STATIC_INLINE void mpack_encode_timestamp_12(char* p, int64_t seconds, uint32_t nanoseconds) {
     mpack_assert(nanoseconds <= MPACK_TIMESTAMP_NANOSECONDS_MAX);
-    mpack_encode_ext8(p, MPACK_TIMESTAMP_EXTTYPE, 12);
+    mpack_encode_ext8(p, MPACK_EXTTYPE_TIMESTAMP, 12);
     mpack_store_u32(p + MPACK_TAG_SIZE_EXT8, nanoseconds);
     mpack_store_i64(p + MPACK_TAG_SIZE_EXT8 + 4, seconds);
 }
@@ -924,11 +924,11 @@ void mpack_write_timestamp(mpack_writer_t* writer, int64_t seconds, uint32_t nan
     mpack_writer_track_element(writer);
 
     if (seconds < 0 || seconds >= (INT64_C(1) << 34)) {
-        MPACK_WRITE_ENCODED(mpack_encode_timestamp_12, MPACK_TAG_SIZE_TIMESTAMP12, seconds, nanoseconds);
+        MPACK_WRITE_ENCODED(mpack_encode_timestamp_12, MPACK_EXT_SIZE_TIMESTAMP12, seconds, nanoseconds);
     } else if (seconds > UINT32_MAX || nanoseconds > 0) {
-        MPACK_WRITE_ENCODED(mpack_encode_timestamp_8, MPACK_TAG_SIZE_TIMESTAMP8, seconds, nanoseconds);
+        MPACK_WRITE_ENCODED(mpack_encode_timestamp_8, MPACK_EXT_SIZE_TIMESTAMP8, seconds, nanoseconds);
     } else {
-        MPACK_WRITE_ENCODED(mpack_encode_timestamp_4, MPACK_TAG_SIZE_TIMESTAMP4, (uint32_t)seconds);
+        MPACK_WRITE_ENCODED(mpack_encode_timestamp_4, MPACK_EXT_SIZE_TIMESTAMP4, (uint32_t)seconds);
     }
 }
 

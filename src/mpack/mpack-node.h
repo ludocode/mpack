@@ -653,6 +653,28 @@ float mpack_node_float_strict(mpack_node_t node);
 double mpack_node_double_strict(mpack_node_t node);
 
 /**
+ * Returns a timestamp.
+ *
+ * @throws mpack_error_type if the underlying value is not a timestamp.
+ */
+mpack_timestamp_t mpack_node_timestamp(mpack_node_t node);
+
+/**
+ * Returns a timestamp's (signed) seconds since 1970-01-01T00:00:00Z.
+ *
+ * @throws mpack_error_type if the underlying value is not a timestamp.
+ */
+int64_t mpack_node_timestamp_seconds(mpack_node_t node);
+
+/**
+ * Returns a timestamp's additional nanoseconds.
+ *
+ * @return A nanosecond count between 0 and 999,999,999 inclusive.
+ * @throws mpack_error_type if the underlying value is not a timestamp.
+ */
+uint32_t mpack_node_timestamp_nanoseconds(mpack_node_t node);
+
+/**
  * @}
  */
 
