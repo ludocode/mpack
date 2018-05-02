@@ -329,7 +329,6 @@
 
 /**
  * The maximum depth for the node parser if @ref MPACK_MALLOC is not available.
- * The parsing stack is placed on the call stack.
  */
 #ifndef MPACK_NODE_MAX_DEPTH_WITHOUT_MALLOC
 #define MPACK_NODE_MAX_DEPTH_WITHOUT_MALLOC 32

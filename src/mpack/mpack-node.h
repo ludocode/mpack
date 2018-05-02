@@ -109,10 +109,18 @@ typedef void (*mpack_tree_error_t)(mpack_tree_t* tree, mpack_error_t error);
  * In case of error, it should flag an appropriate error on the reader
  * (usually @ref mpack_error_io.)
  *
- * @note You should only copy and return the bytes that are immediately
- * available. It is always safe to return less than the requested count
- * as long as some non-zero number of bytes are read; if more bytes are
- * needed, the read function will simply be called again.
+ * The blocking or non-blocking behaviour of the read should match whether
+ * mpack_tree_parse() or mpack_tree_try_parse() is called.
+ *
+ * If you are using mpack_tree_parse(), the read should block until at least
+ * one byte is read. If you return 0, mpack_tree_parse() will raise @ref
+ * mpack_error_io.
+ *
+ * If you are using mpack_tree_try_parse(), the read function can always
+ * return 0, and must never block waiting for data (otherwise
+ * mpack_tree_try_parse() would be equivalent to mpack_tree_parse().)
+ * mpack_tree_try_parse() will return @ref mpack_try_later if not enough bytes
+ * were read.
  */
 typedef size_t (*mpack_tree_read_t)(mpack_tree_t* tree, char* buffer, size_t count);
 
@@ -158,6 +166,60 @@ typedef struct mpack_tree_page_t {
     mpack_node_data_t nodes[1]; // variable size
 } mpack_tree_page_t;
 
+typedef enum mpack_tree_parse_state_t {
+    mpack_tree_parse_state_not_started,
+    mpack_tree_parse_state_in_progress,
+    mpack_tree_parse_state_parsed,
+} mpack_tree_parse_state_t;
+
+typedef struct mpack_level_t {
+    mpack_node_data_t* child;
+    size_t left; // children left in level
+} mpack_level_t;
+
+typedef struct mpack_tree_parser_t {
+    mpack_tree_parse_state_t state;
+
+    // We keep track of the number of "possible nodes" left in the data rather
+    // than the number of bytes.
+    //
+    // When a map or array is parsed, we ensure at least one byte for each child
+    // exists and subtract them right away. This ensures that if ever a map or
+    // array declares more elements than could possibly be contained in the data,
+    // we will error out immediately rather than allocating storage for them.
+    //
+    // For example malicious data that repeats 0xDE 0xFF 0xFF (start of a map
+    // with 65536 key-value pairs) would otherwise cause us to run out of
+    // memory. With this, the parser can allocate at most as many nodes as
+    // there are bytes in the data (plus the paging overhead, 12%.) An error
+    // will be flagged immediately if and when there isn't enough data left to
+    // fully read all children of all open compound types on the parsing stack.
+    //
+    // Once an entire message has been parsed (and there are no nodes left to
+    // parse whose bytes have been subtracted), this matches the number of left
+    // over bytes in the data.
+    size_t possible_nodes_left;
+
+    mpack_node_data_t* nodes; // next node in current page/pool
+    size_t nodes_left; // nodes left in current page/pool
+
+    size_t current_node_reserved;
+    size_t level;
+
+    #ifdef MPACK_MALLOC
+    // It's much faster to allocate the initial parsing stack inline within the
+    // parser. We replace it with a heap allocation if we need to grow it.
+    mpack_level_t* stack;
+    size_t stack_capacity;
+    bool stack_owned;
+    mpack_level_t stack_local[MPACK_NODE_INITIAL_DEPTH];
+    #else
+    // Without malloc(), we have to reserve a parsing stack the maximum allowed
+    // parsing depth.
+    mpack_level_t stack[MPACK_NODE_MAX_DEPTH_WITHOUT_MALLOC];
+    #endif
+} mpack_tree_parser_t;
+
 struct mpack_tree_t {
     mpack_tree_error_t error_fn;    /* Function to call on error */
     mpack_tree_read_t read_fn;      /* Function to call to read more data */
@@ -176,14 +238,13 @@ struct mpack_tree_t {
     const char* data;
     size_t data_length; // length of data (and content of buffer, if used)
 
-    size_t node_count; // total node count of tree
     size_t size; // size in bytes of tree (usually matches length, but not if tree has trailing data)
 
     size_t max_size;  // maximum message size
     size_t max_nodes; // maximum nodes in a message
 
+    mpack_tree_parser_t parser;
     mpack_node_data_t* root;
-    bool parsed;
 
     mpack_node_data_t* pool; // pool, or NULL if no pool provided
     size_t pool_count;
@@ -243,7 +304,9 @@ void mpack_tree_init(mpack_tree_t* tree, const char* data, size_t length);
  *
  * The parser can be used to read a single message from a stream of unknown
  * length, or multiple messages from an unbounded stream, allowing it to
- * be used for RPC communication.
+ * be used for RPC communication. Call @ref mpack_tree_parse() to parse
+ * a message from a blocking stream, or @ref mpack_tree_try_parse() for a
+ * non-blocking stream.
  *
  * The stream will use a growable internal buffer to store the most recent
  * message, as well as allocated pages of nodes for the parse tree.
@@ -327,7 +390,7 @@ void mpack_tree_init_stdfile(mpack_tree_t* tree, FILE* stdfile, size_t max_bytes
 #endif
 
 /**
- * Parses a MessagePack message.
+ * Parses a MessagePack message into a tree of immutable nodes.
  *
  * If successful, the root node will be available under @ref mpack_tree_root().
  * If not, an appropriate error will be flagged.
@@ -335,8 +398,39 @@ void mpack_tree_init_stdfile(mpack_tree_t* tree, FILE* stdfile, size_t max_bytes
  * This can be called repeatedly to parse a series of messages from a data
  * source. When this is called, all previous nodes from this tree and their
  * contents (including the root node) are invalidated.
+ *
+ * If this is called with a stream (see @ref mpack_tree_init_stream()), the
+ * stream must block until data is available. (Otherwise, if this is called on
+ * a non-blocking stream, parsing will fail with @ref mpack_error_io when the
+ * fill function returns 0.)
+ *
+ * There is no way to recover a tree in an error state. It must be destroyed.
  */
 void mpack_tree_parse(mpack_tree_t* tree);
+
+/**
+ * Attempts to parse a MessagePack message from a non-blocking stream into a
+ * tree of immutable nodes.
+ *
+ * A non-blocking read function must have been passed to the tree in
+ * mpack_tree_init_stream().
+ *
+ * If this returns true, a message is available under
+ * @ref mpack_tree_root(). The tree nodes and data will be valid until
+ * the next time a parse is started.
+ *
+ * If this returns false, no message is available, because either not enough
+ * data is available yet or an error has occurred. You must check the tree for
+ * errors whenever this returns false. If there is no error, you should try
+ * again later when more data is available. (You will want to select()/poll()
+ * on the underlying socket or use some other asynchronous mechanism to
+ * determine when it has data.)
+ *
+ * There is no way to recover a tree in an error state. It must be destroyed.
+ *
+ * @see mpack_tree_init_stream()
+ */
+bool mpack_tree_try_parse(mpack_tree_t* tree);
 
 /**
  * Returns the root node of the tree, if the tree is not in an error state.

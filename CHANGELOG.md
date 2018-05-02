@@ -22,7 +22,9 @@ New Features:
 
 - The Node API can now parse messages indefinitely from a continuous stream. A tree can be initialized with `mpack_tree_init_stream()` to receive a callback for more data.
 
-- The writer now supports a v4 compatibility mode. Call `mpack_writer_set_version(writer, mpack_version_v4);` to encode without using the `raw8`, `bin` and `ext` types.
+- The Node API can now parse messages incrementally from a non-blocking stream. Call `mpack_tree_try_parse()` to continue parsing. It will return true when a complete message has become available.
+
+- The writer now supports a v4 compatibility mode. Call `mpack_writer_set_version(writer, mpack_version_v4);` to encode without using the `raw8`, `bin`, `ext` and `timestamp` types.
 
 - The stdio helpers now allow reading from a `FILE*`. `_init_file()` functions have been renamed to `_init_filename()`. The old names will continue to work for a few more versions.
 

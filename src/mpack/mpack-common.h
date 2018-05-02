@@ -788,6 +788,7 @@ MPACK_INLINE void mpack_store_i64(char* p, int64_t val) {mpack_store_u64(p, (uin
 
 MPACK_INLINE float mpack_load_float(const char* p) {
     MPACK_CHECK_FLOAT_ORDER();
+    MPACK_STATIC_ASSERT(sizeof(float) == sizeof(uint32_t), "float is wrong size??");
     union {
         float f;
         uint32_t u;
@@ -798,6 +799,7 @@ MPACK_INLINE float mpack_load_float(const char* p) {
 
 MPACK_INLINE double mpack_load_double(const char* p) {
     MPACK_CHECK_FLOAT_ORDER();
+    MPACK_STATIC_ASSERT(sizeof(double) == sizeof(uint64_t), "double is wrong size??");
     union {
         double d;
         uint64_t u;
