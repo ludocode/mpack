@@ -26,6 +26,8 @@ New Features:
 
 - The stdio helpers now allow reading from a `FILE*`. `_init_file()` functions have been renamed to `_init_filename()`. The old names will continue to work for a few more versions.
 
+- The Node API now returns a node of "missing" type instead of "nil" type for optional map lookups. This allows the caller to tell the difference between a key having value nil and a missing key.
+
 Changes:
 
 - The reader's skip function is no longer ignored under `MPACK_OPTIMIZE_FOR_SIZE`.

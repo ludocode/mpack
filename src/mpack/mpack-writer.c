@@ -459,24 +459,31 @@ mpack_error_t mpack_writer_destroy(mpack_writer_t* writer) {
 
 void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t value) {
     switch (value.type) {
-        case mpack_type_nil:    mpack_write_nil   (writer);            break;
-        case mpack_type_bool:   mpack_write_bool  (writer, value.v.b); break;
-        case mpack_type_float:  mpack_write_float (writer, value.v.f); break;
-        case mpack_type_double: mpack_write_double(writer, value.v.d); break;
-        case mpack_type_int:    mpack_write_int   (writer, value.v.i); break;
-        case mpack_type_uint:   mpack_write_uint  (writer, value.v.u); break;
+        case mpack_type_missing:
+            mpack_break("cannot write a missing value!");
+            mpack_writer_flag_error(writer, mpack_error_bug);
+            return;
 
-        case mpack_type_str: mpack_start_str(writer, value.v.l); break;
-        case mpack_type_bin: mpack_start_bin(writer, value.v.l); break;
-        case mpack_type_ext: mpack_start_ext(writer, value.exttype, value.v.l); break;
+        case mpack_type_nil:    mpack_write_nil   (writer);            return;
+        case mpack_type_bool:   mpack_write_bool  (writer, value.v.b); return;
+        case mpack_type_float:  mpack_write_float (writer, value.v.f); return;
+        case mpack_type_double: mpack_write_double(writer, value.v.d); return;
+        case mpack_type_int:    mpack_write_int   (writer, value.v.i); return;
+        case mpack_type_uint:   mpack_write_uint  (writer, value.v.u); return;
 
-        case mpack_type_array: mpack_start_array(writer, value.v.n); break;
-        case mpack_type_map:   mpack_start_map(writer, value.v.n);   break;
+        case mpack_type_str: mpack_start_str(writer, value.v.l); return;
+        case mpack_type_bin: mpack_start_bin(writer, value.v.l); return;
 
-        default:
-            mpack_assert(0, "unrecognized type %i", (int)value.type);
-            break;
+        case mpack_type_ext:
+            mpack_start_ext(writer, mpack_tag_ext_exttype(&value), mpack_tag_ext_length(&value));
+            return;
+
+        case mpack_type_array: mpack_start_array(writer, value.v.n); return;
+        case mpack_type_map:   mpack_start_map(writer, value.v.n);   return;
     }
+
+    mpack_break("unrecognized type %i", (int)value.type);
+    mpack_writer_flag_error(writer, mpack_error_bug);
 }
 
 MPACK_STATIC_INLINE void mpack_write_byte_element(mpack_writer_t* writer, char value) {

@@ -164,7 +164,8 @@ struct mpack_tree_t {
     mpack_tree_teardown_t teardown; /* Function to teardown the context on destroy */
     void* context;                  /* Context for tree callbacks */
 
-    mpack_node_data_t nil_node; /* a nil node to be returned in case of error */
+    mpack_node_data_t nil_node;     /* a nil node to be returned in case of error */
+    mpack_node_data_t missing_node; /* a missing node to be returned in optional lookups */
     mpack_error_t error;
 
     #ifdef MPACK_MALLOC
@@ -207,6 +208,10 @@ MPACK_INLINE mpack_node_data_t* mpack_node_child(mpack_node_t node, size_t child
 
 MPACK_INLINE mpack_node_t mpack_tree_nil_node(mpack_tree_t* tree) {
     return mpack_node(tree, &tree->nil_node);
+}
+
+MPACK_INLINE mpack_node_t mpack_tree_missing_node(mpack_tree_t* tree) {
+    return mpack_node(tree, &tree->missing_node);
 }
 
 /** @endcond */
@@ -519,16 +524,29 @@ MPACK_INLINE void mpack_node_print(mpack_node_t node) {
 /**
  * Returns the type of the node.
  */
-MPACK_INLINE mpack_type_t mpack_node_type(mpack_node_t node) {
-    if (mpack_node_error(node) != mpack_ok)
-        return mpack_type_nil;
-    return node.data->type;
-}
+mpack_type_t mpack_node_type(mpack_node_t node);
 
 /**
- * Checks if the given node is of nil type, raising mpack_error_type otherwise.
+ * Returns true if the given node is a nil node; false otherwise.
+ */
+bool mpack_node_is_nil(mpack_node_t node);
+
+/**
+ * Returns true if the given node indicates a missing node; false otherwise.
+ */
+bool mpack_node_is_missing(mpack_node_t node);
+
+/**
+ * Checks that the given node is of nil type, raising @ref mpack_error_type
+ * otherwise.
  */
 void mpack_node_nil(mpack_node_t node);
+
+/**
+ * Checks that the given node indicates a missing node, raising @ref
+ * mpack_error_type otherwise.
+ */
+void mpack_node_missing(mpack_node_t node);
 
 /**
  * Returns the bool value of the node. If this node is not of the correct
@@ -1047,8 +1065,8 @@ mpack_node_t mpack_node_map_value_at(mpack_node_t node, size_t index);
 mpack_node_t mpack_node_map_int(mpack_node_t node, int64_t num);
 
 /**
- * Returns the value node in the given map for the given integer key, or a nil
- * node if the map does not contain the given key.
+ * Returns the value node in the given map for the given integer key, or a
+ * missing node if the map does not contain the given key.
  *
  * The key must be unique. An error is flagged if the node has multiple
  * entries with the given key.
@@ -1056,7 +1074,8 @@ mpack_node_t mpack_node_map_int(mpack_node_t node, int64_t num);
  * @throws mpack_error_type If the node is not a map
  * @throws mpack_error_data If the node contains more than one entry with the given key
  *
- * @return The value node for the given key, or a nil node in case of error
+ * @return The value node for the given key, or a missing node if the key does
+ *         not exist, or a nil node in case of error
  */
 mpack_node_t mpack_node_map_int_optional(mpack_node_t node, int64_t num);
 
@@ -1086,7 +1105,8 @@ mpack_node_t mpack_node_map_uint(mpack_node_t node, uint64_t num);
  * @throws mpack_error_type If the node is not a map
  * @throws mpack_error_data If the node contains more than one entry with the given key
  *
- * @return The value node for the given key, or a nil node in case of error
+ * @return The value node for the given key, or a missing node if the key does
+ *         not exist, or a nil node in case of error
  */
 mpack_node_t mpack_node_map_uint_optional(mpack_node_t node, uint64_t num);
 
@@ -1116,7 +1136,8 @@ mpack_node_t mpack_node_map_str(mpack_node_t node, const char* str, size_t lengt
  * @throws mpack_error_type If the node is not a map
  * @throws mpack_error_data If the node contains more than one entry with the given key
  *
- * @return The value node for the given key, or a nil node in case of error
+ * @return The value node for the given key, or a missing node if the key does
+ *         not exist, or a nil node in case of error
  */
 mpack_node_t mpack_node_map_str_optional(mpack_node_t node, const char* str, size_t length);
 
@@ -1147,7 +1168,8 @@ mpack_node_t mpack_node_map_cstr(mpack_node_t node, const char* cstr);
  * @throws mpack_error_type If the node is not a map
  * @throws mpack_error_data If the node contains more than one entry with the given key
  *
- * @return The value node for the given key, or a nil node in case of error
+ * @return The value node for the given key, or a missing node if the key does
+ *         not exist, or a nil node in case of error
  */
 mpack_node_t mpack_node_map_cstr_optional(mpack_node_t node, const char* cstr);
 
