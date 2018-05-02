@@ -235,31 +235,6 @@ static void test_tags_compound() {
     TEST_TRUE(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_bin(0)));
 }
 
-static void test_tags_timestamps() {
-    TEST_TRUE(-1 == mpack_tag_cmp(
-                mpack_tag_make_timestamp_seconds(-1),
-                mpack_tag_make_timestamp_seconds(0)));
-    TEST_TRUE(1 == mpack_tag_cmp(
-                mpack_tag_make_timestamp_seconds(1),
-                mpack_tag_make_timestamp_seconds(0)));
-    TEST_TRUE(0 == mpack_tag_cmp(
-                mpack_tag_make_timestamp_seconds(INT64_MIN),
-                mpack_tag_make_timestamp(INT64_MIN, 0)));
-    TEST_TRUE(1 == mpack_tag_cmp(
-                mpack_tag_make_timestamp(-1, 500000000),
-                mpack_tag_make_timestamp(-1, 499999999)));
-    TEST_TRUE(-1 == mpack_tag_cmp(
-                mpack_tag_make_timestamp(INT64_MAX, 999999998),
-                mpack_tag_make_timestamp(INT64_MAX, 999999999)));
-    TEST_TRUE(-1 == mpack_tag_cmp(
-                mpack_tag_make_timestamp_seconds(-5000),
-                mpack_tag_make_timestamp(-5000, 1)));
-
-    #if MPACK_DEBUG
-    TEST_ASSERT(mpack_tag_make_timestamp(1, 1000000000)); // out of bounds
-    #endif
-}
-
 static void test_string(const char* str, const char* content) {
     #if MPACK_STRINGS
     // with strings enabled, the string should contain the expected content
@@ -446,7 +421,6 @@ void test_common() {
     test_tags_simple();
     test_tags_reals();
     test_tags_compound();
-    test_tags_timestamps();
 
     test_strings();
     test_utf8_check();
