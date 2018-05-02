@@ -814,14 +814,25 @@ static void test_node_read_timestamp() {
             INT64_MIN == mpack_node_timestamp_seconds(node) &&
             MPACK_TIMESTAMP_NANOSECONDS_MAX == mpack_node_timestamp_nanoseconds(node));
 
+    // invalid timestamps should not flag errors...
+    TEST_SIMPLE_TREE_READ("\xd7\xff\xff\xff\xff\xff\x00\x00\x00\x00",
+            (MPACK_UNUSED(node), true));
+    TEST_SIMPLE_TREE_READ("\xd7\xff\xee\x6b\x28\x00\xff\xff\xff\xff",
+            (MPACK_UNUSED(node), true));
+    TEST_SIMPLE_TREE_READ("\xc7\x0c\xff\x3b\x9a\xca\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+            (MPACK_UNUSED(node), true));
+    TEST_SIMPLE_TREE_READ("\xc7\x0c\xff\x40\x00\x00\x00\xff\xff\xff\xff\xff\xff\xff\xff",
+            (MPACK_UNUSED(node), true));
+
+    // ...unless we ask mpack to interpret them for us.
     TEST_SIMPLE_TREE_READ_ERROR("\xd7\xff\xff\xff\xff\xff\x00\x00\x00\x00",
-            (MPACK_UNUSED(node), true), mpack_error_invalid);
+            (mpack_node_timestamp(node), true), mpack_error_invalid);
     TEST_SIMPLE_TREE_READ_ERROR("\xd7\xff\xee\x6b\x28\x00\xff\xff\xff\xff",
-            (MPACK_UNUSED(node), true), mpack_error_invalid);
+            (mpack_node_timestamp(node), true), mpack_error_invalid);
     TEST_SIMPLE_TREE_READ_ERROR("\xc7\x0c\xff\x3b\x9a\xca\x00\x00\x00\x00\x00\x00\x00\x00\x00",
-            (MPACK_UNUSED(node), true), mpack_error_invalid);
+            (mpack_node_timestamp(node), true), mpack_error_invalid);
     TEST_SIMPLE_TREE_READ_ERROR("\xc7\x0c\xff\x40\x00\x00\x00\xff\xff\xff\xff\xff\xff\xff\xff",
-            (MPACK_UNUSED(node), true), mpack_error_invalid);
+            (mpack_node_timestamp(node), true), mpack_error_invalid);
 }
 
 static void test_node_read_array() {

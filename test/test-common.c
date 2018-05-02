@@ -36,7 +36,7 @@ static void test_tags_special(void) {
     // test comparison with invalid tags
     // (invalid enum values cause undefined behavior in C++)
     #if MPACK_DEBUG && !defined(__cplusplus)
-    mpack_tag_t invalid;
+    mpack_tag_t invalid = mpack_tag_nil();
     invalid.type = (mpack_type_t)-1;
     TEST_ASSERT(mpack_tag_cmp(invalid, invalid));
     #endif
