@@ -921,14 +921,12 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
     switch (tag.type) {
         case mpack_type_map:
         case mpack_type_array:
-            track_error = mpack_track_push(&reader->track, tag.type, tag.v.l);
+            track_error = mpack_track_push(&reader->track, tag.type, tag.v.n);
             break;
         case mpack_type_str:
         case mpack_type_bin:
-            track_error = mpack_track_push(&reader->track, tag.type, tag.v.n);
-            break;
         case mpack_type_ext:
-            track_error = mpack_track_push(&reader->track, tag.type, tag.v.ext.length);
+            track_error = mpack_track_push(&reader->track, tag.type, tag.v.l);
             break;
         default:
             break;
@@ -973,7 +971,7 @@ void mpack_discard(mpack_reader_t* reader) {
             mpack_done_bin(reader);
             break;
         case mpack_type_ext:
-            mpack_skip_bytes(reader, var.v.ext.length);
+            mpack_skip_bytes(reader, var.v.l);
             mpack_done_ext(reader);
             break;
         case mpack_type_array: {
@@ -1126,7 +1124,7 @@ static void mpack_print_element(mpack_reader_t* reader, mpack_print_t* print, si
             break;
 
         case mpack_type_ext:
-            mpack_skip_bytes(reader, val.v.ext.length);
+            mpack_skip_bytes(reader, mpack_tag_ext_length(&val));
             mpack_done_ext(reader);
             break;
 

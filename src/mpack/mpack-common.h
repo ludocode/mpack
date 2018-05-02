@@ -218,33 +218,25 @@ typedef struct mpack_tag_t mpack_tag_t;
 /* Hide internals from documentation */
 /** @cond */
 struct mpack_tag_t {
+    mpack_type_t type; /*< The type of value. */
+
+    int8_t exttype; /*< The extension type if the type is @ref mpack_type_ext. */
+
     /* The value for non-compound types. */
-    union
-    {
+    union {
         uint64_t u; /*< The value if the type is unsigned int. */
         int64_t  i; /*< The value if the type is signed int. */
         double   d; /*< The value if the type is double. */
         float    f; /*< The value if the type is float. */
         bool     b; /*< The value if the type is bool. */
 
-        /* The number of bytes if the type is a str or bin. */
+        /* The number of bytes if the type is str, bin or ext. */
         uint32_t l;
 
         /* The element count if the type is an array, or the number of
             key/value pairs if the type is map. */
         uint32_t n;
-
-        /*
-         * The extension data if the type is @ref mpack_type_ext.
-         */
-        struct {
-            int8_t exttype; /*< The extension type. */
-            uint32_t length; /*< The number of bytes. */
-        } ext;
     } v;
-
-    /* The type of value. */
-    mpack_type_t type;
 };
 /** @endcond */
 
@@ -258,7 +250,7 @@ struct mpack_tag_t {
  *
  * This does not make the tag nil! The tag's type is invalid when initialized this way.
  */
-#define MPACK_TAG_ZERO {{0}, (mpack_type_t)0}
+#define MPACK_TAG_ZERO {(mpack_type_t)0, 0, {0}}
 
 /** Generates a nil tag. */
 MPACK_INLINE mpack_tag_t mpack_tag_make_nil(void) {
@@ -359,8 +351,8 @@ MPACK_INLINE mpack_tag_t mpack_tag_make_bin(uint32_t length) {
 MPACK_INLINE mpack_tag_t mpack_tag_make_ext(int8_t exttype, uint32_t length) {
     mpack_tag_t ret = MPACK_TAG_ZERO;
     ret.type = mpack_type_ext;
-    ret.v.ext.exttype = exttype;
-    ret.v.ext.length = length;
+    ret.exttype = exttype;
+    ret.v.l = length;
     return ret;
 }
 
@@ -484,7 +476,7 @@ MPACK_INLINE uint32_t mpack_tag_bin_length(mpack_tag_t* tag) {
  */
 MPACK_INLINE uint32_t mpack_tag_ext_length(mpack_tag_t* tag) {
     mpack_assert(tag->type == mpack_type_ext, "tag is not an ext!");
-    return tag->v.ext.length;
+    return tag->v.l;
 }
 
 /**
@@ -494,7 +486,7 @@ MPACK_INLINE uint32_t mpack_tag_ext_length(mpack_tag_t* tag) {
  */
 MPACK_INLINE int8_t mpack_tag_ext_exttype(mpack_tag_t* tag) {
     mpack_assert(tag->type == mpack_type_ext, "tag is not an ext!");
-    return tag->v.ext.exttype;
+    return tag->exttype;
 }
 
 /**

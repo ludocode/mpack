@@ -468,7 +468,7 @@ void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t value) {
 
         case mpack_type_str: mpack_start_str(writer, value.v.l); break;
         case mpack_type_bin: mpack_start_bin(writer, value.v.l); break;
-        case mpack_type_ext: mpack_start_ext(writer, value.v.ext.exttype, value.v.ext.length); break;
+        case mpack_type_ext: mpack_start_ext(writer, value.exttype, value.v.l); break;
 
         case mpack_type_array: mpack_start_array(writer, value.v.n); break;
         case mpack_type_map:   mpack_start_map(writer, value.v.n);   break;
