@@ -24,13 +24,11 @@ New Features:
 
 - The Node API can now parse messages indefinitely from a continuous stream. A tree can be initialized with `mpack_tree_init_stream()` to receive a callback for more data.
 
-- The writer now supports a v4 compatibility mode. Call `mpack_writer_set_version(writer, mpack_version_v4);` to encode without using the `raw8`, `bin`, `ext` and `timestamp` types.
+- The writer now supports a v4 compatibility mode. Call `mpack_writer_set_version(writer, mpack_version_v4);` to encode without using the `raw8`, `bin` and `ext` types.
 
 - The stdio helpers now allow reading from a `FILE*`. `_init_file()` functions have been renamed to `_init_filename()`. The old names will continue to work for a few more versions.
 
 Changes:
-
-- Timestamps (exttype -1) are no longer reported as ext types. If you were reading an ext of exttype -1 and parsing the timestamp from it manually, you will need to switch over to the new timestamp functions.
 
 - The reader's skip function is no longer ignored under `MPACK_OPTIMIZE_FOR_SIZE`.
 

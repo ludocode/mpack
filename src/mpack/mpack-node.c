@@ -1176,10 +1176,6 @@ mpack_tag_t mpack_node_tag(mpack_node_t node) {
             tag.v.ext.exttype = mpack_node_exttype_unchecked(node);
             break;
 
-        case mpack_type_timestamp:
-            tag.v.timestamp = mpack_node_timestamp(node);
-            break;
-
         case mpack_type_array:   tag.v.n = node.data->len;  break;
         case mpack_type_map:     tag.v.n = node.data->len;  break;
 
@@ -1304,58 +1300,6 @@ void mpack_node_print_file(mpack_node_t node, FILE* file) {
     mpack_print_flush(&print);
 }
 #endif
-
-
-/*
- * Node Value Functions
- */
-
-mpack_timestamp_t mpack_node_timestamp(mpack_node_t node) {
-    mpack_timestamp_t timestamp = {0, 0};
-
-    if (mpack_node_error(node) != mpack_ok)
-        return timestamp;
-
-    if (node.data->type != mpack_type_timestamp) {
-        mpack_node_flag_error(node, mpack_error_type);
-        return timestamp;
-    }
-
-    const char* p = mpack_node_data_unchecked(node);
-
-    switch (node.data->len) {
-        case 4:
-            timestamp.nanoseconds = 0;
-            timestamp.seconds = mpack_load_u32(p);
-            break;
-
-        case 8: {
-            uint64_t value = mpack_load_u64(p);
-            timestamp.nanoseconds = (uint32_t)(value >> 34);
-            timestamp.seconds = value & ((UINT64_C(1) << 34) - 1);
-            break;
-        }
-
-        case 12:
-            timestamp.nanoseconds = mpack_load_u32(p);
-            timestamp.seconds = mpack_load_i64(p + 4);
-            break;
-
-        default:
-            mpack_assert(false, "timestamp with a wrong length should have flagged an error!");
-            break;
-    }
-
-    return timestamp;
-}
-
-int64_t mpack_node_timestamp_seconds(mpack_node_t node) {
-    return mpack_node_timestamp(node).seconds;
-}
-
-uint32_t mpack_node_timestamp_nanoseconds(mpack_node_t node) {
-    return mpack_node_timestamp(node).nanoseconds;
-}
 
 
 

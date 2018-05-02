@@ -473,10 +473,6 @@ void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t value) {
         case mpack_type_array: mpack_start_array(writer, value.v.n); break;
         case mpack_type_map:   mpack_start_map(writer, value.v.n);   break;
 
-        case mpack_type_timestamp:
-            mpack_write_timestamp(writer, value.v.timestamp.seconds, value.v.timestamp.nanoseconds);
-            break;
-
         default:
             mpack_assert(0, "unrecognized type %i", (int)value.type);
             break;
