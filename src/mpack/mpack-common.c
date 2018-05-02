@@ -66,7 +66,6 @@ const char* mpack_type_to_string(mpack_type_t type) {
         MPACK_TYPE_STRING_CASE(mpack_type_ext);
         MPACK_TYPE_STRING_CASE(mpack_type_array);
         MPACK_TYPE_STRING_CASE(mpack_type_map);
-        MPACK_TYPE_STRING_CASE(mpack_type_timestamp);
         #undef MPACK_TYPE_STRING_CASE
         default: break;
     }
@@ -123,21 +122,12 @@ int mpack_tag_cmp(mpack_tag_t left, mpack_tag_t right) {
             return (left.v.l < right.v.l) ? -1 : 1;
 
         case mpack_type_ext:
-            if (left.v.ext.exttype == right.v.ext.exttype) {
-                if (left.v.ext.length == right.v.ext.length)
+            if (left.exttype == right.exttype) {
+                if (left.v.l == right.v.l)
                     return 0;
-                return (left.v.ext.length < right.v.ext.length) ? -1 : 1;
+                return (left.v.l < right.v.l) ? -1 : 1;
             }
-            return (int)left.v.ext.exttype - (int)right.v.ext.exttype;
-
-        case mpack_type_timestamp:
-            if (left.v.timestamp.seconds == right.v.timestamp.seconds) {
-                if (left.v.timestamp.nanoseconds == right.v.timestamp.nanoseconds) {
-                    return 0;
-                }
-                return (left.v.timestamp.nanoseconds < right.v.timestamp.nanoseconds) ? -1 : 1;
-            }
-            return (left.v.timestamp.seconds < right.v.timestamp.seconds) ? -1 : 1;
+            return (int)left.exttype - (int)right.exttype;
 
         // floats should not normally be compared for equality. we compare
         // with memcmp() to silence compiler warnings, but this will return
@@ -196,29 +186,14 @@ void mpack_tag_debug_pseudo_json(mpack_tag_t tag, char* buffer, size_t buffer_si
             break;
         case mpack_type_ext:
             mpack_snprintf(buffer, buffer_size, "<ext data of type %i and length %u>",
-                    tag.v.ext.exttype, tag.v.ext.length);
+                    mpack_tag_ext_exttype(&tag), mpack_tag_ext_length(&tag));
             break;
-
         case mpack_type_array:
             mpack_snprintf(buffer, buffer_size, "<array of %u elements>", tag.v.n);
             break;
         case mpack_type_map:
             mpack_snprintf(buffer, buffer_size, "<map of %u key-value pairs>", tag.v.n);
             break;
-
-        case mpack_type_timestamp:
-            {
-                int64_t seconds = tag.v.timestamp.seconds;
-                uint32_t nanoseconds = tag.v.timestamp.nanoseconds;
-                if (nanoseconds == 0) {
-                    mpack_snprintf(buffer, buffer_size, "<timestamp %" PRIi64 ">", seconds);
-                } else {
-                    mpack_snprintf(buffer, buffer_size, "<timestamp %" PRIi64 ".%09u>",
-                            seconds, nanoseconds);
-                }
-            }
-            break;
-
         default:
             mpack_snprintf(buffer, buffer_size, "<unknown!>");
             break;
@@ -259,25 +234,13 @@ void mpack_tag_debug_describe(mpack_tag_t tag, char* buffer, size_t buffer_size)
             mpack_snprintf(buffer, buffer_size, "bin of %u bytes", tag.v.l);
             break;
         case mpack_type_ext:
-            mpack_snprintf(buffer, buffer_size, "ext of type %i, %u bytes", tag.v.ext.exttype, tag.v.ext.length);
+            mpack_snprintf(buffer, buffer_size, "ext of type %i, %u bytes", tag.exttype, tag.v.l);
             break;
         case mpack_type_array:
             mpack_snprintf(buffer, buffer_size, "array of %u elements", tag.v.n);
             break;
         case mpack_type_map:
             mpack_snprintf(buffer, buffer_size, "map of %u key-value pairs", tag.v.n);
-            break;
-        case mpack_type_timestamp:
-            {
-                int64_t seconds = tag.v.timestamp.seconds;
-                uint32_t nanoseconds = tag.v.timestamp.nanoseconds;
-                if (nanoseconds == 0) {
-                    mpack_snprintf(buffer, buffer_size, "timestamp %" PRIi64 , seconds);
-                } else {
-                    mpack_snprintf(buffer, buffer_size, "timestamp %" PRIi64 ".%09u",
-                            seconds, nanoseconds);
-                }
-            }
             break;
         default:
             mpack_snprintf(buffer, buffer_size, "unknown!");

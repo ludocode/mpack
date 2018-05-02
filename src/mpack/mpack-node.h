@@ -148,7 +148,7 @@ struct mpack_node_data_t {
         double   d; /* The value if the type is double. */
         int64_t  i; /* The value if the type is signed int. */
         uint64_t u; /* The value if the type is unsigned int. */
-        size_t offset; /* The byte offset for str, bin, ext and timestamp */
+        size_t offset; /* The byte offset for str, bin and ext */
         mpack_node_data_t* children; /* The children for map or array */
     } value;
 };

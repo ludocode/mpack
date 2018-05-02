@@ -575,48 +575,6 @@ const char* mpack_read_utf8_inplace(mpack_reader_t* reader, size_t count) {
     return str;
 }
 
-static void mpack_parse_timestamp(mpack_reader_t* reader, mpack_tag_t* tag, uint32_t length, const char* p) {
-    mpack_timestamp_t timestamp;
-
-    switch (length) {
-        case 4:
-            timestamp.nanoseconds = 0;
-            timestamp.seconds = mpack_load_u32(p);
-            break;
-        case 8:
-            timestamp.nanoseconds = mpack_load_u32(p) >> 2;
-            timestamp.seconds = mpack_load_u64(p) & ((UINT64_C(1) << 34) - 1);
-            break;
-        case 12:
-            timestamp.nanoseconds = mpack_load_u32(p);
-            timestamp.seconds = mpack_load_i64(p + 4);
-            break;
-        default:
-            mpack_reader_flag_error(reader, mpack_error_invalid);
-            return;
-    }
-
-    if (timestamp.nanoseconds > MPACK_TIMESTAMP_NANOSECONDS_MAX) {
-        mpack_reader_flag_error(reader, mpack_error_invalid);
-        return;
-    }
-
-    *tag = mpack_tag_make_timestamp_struct(timestamp);
-}
-
-static size_t mpack_parse_ext(mpack_reader_t* reader, mpack_tag_t* tag, size_t tagsize, uint32_t length, const char* p) {
-    int8_t exttype = mpack_load_i8(p++);
-
-    if (exttype == MPACK_TIMESTAMP_EXTTYPE) {
-        mpack_parse_timestamp(reader, tag, length, p);
-        tagsize += length;
-    } else {
-        *tag = mpack_tag_make_ext(exttype, length);
-    }
-
-    return tagsize;
-}
-
 static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
     mpack_assert(reader->error == mpack_ok, "reader cannot be in an error state!");
 
@@ -755,19 +713,22 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
         case 0xc7:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_EXT8))
                 return 0;
-            return mpack_parse_ext(reader, tag, MPACK_TAG_SIZE_EXT8, mpack_load_u8(reader->data + 1), reader->data + 2);
+            *tag = mpack_tag_make_ext(mpack_load_i8(reader->data + 2), mpack_load_u8(reader->data + 1));
+            return MPACK_TAG_SIZE_EXT8;
 
         // ext16
         case 0xc8:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_EXT16))
                 return 0;
-            return mpack_parse_ext(reader, tag, MPACK_TAG_SIZE_EXT16, mpack_load_u16(reader->data + 1), reader->data + 3);
+            *tag = mpack_tag_make_ext(mpack_load_i8(reader->data + 3), mpack_load_u16(reader->data + 1));
+            return MPACK_TAG_SIZE_EXT16;
 
         // ext32
         case 0xc9:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_EXT32))
                 return 0;
-            return mpack_parse_ext(reader, tag, MPACK_TAG_SIZE_EXT32, mpack_load_u32(reader->data + 1), reader->data + 5);
+            *tag = mpack_tag_make_ext(mpack_load_i8(reader->data + 5), mpack_load_u32(reader->data + 1));
+            return MPACK_TAG_SIZE_EXT32;
 
         // float
         case 0xca:
@@ -843,31 +804,36 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
         case 0xd4:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_FIXEXT1))
                 return 0;
-            return mpack_parse_ext(reader, tag, MPACK_TAG_SIZE_FIXEXT1, 1, reader->data + 1);
+            *tag = mpack_tag_make_ext(mpack_load_i8(reader->data + 1), 1);
+            return MPACK_TAG_SIZE_FIXEXT1;
 
         // fixext2
         case 0xd5:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_FIXEXT2))
                 return 0;
-            return mpack_parse_ext(reader, tag, MPACK_TAG_SIZE_FIXEXT2, 2, reader->data + 1);
+            *tag = mpack_tag_make_ext(mpack_load_i8(reader->data + 1), 2);
+            return MPACK_TAG_SIZE_FIXEXT2;
 
         // fixext4
         case 0xd6:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_FIXEXT4))
                 return 0;
-            return mpack_parse_ext(reader, tag, MPACK_TAG_SIZE_FIXEXT4, 4, reader->data + 1);
+            *tag = mpack_tag_make_ext(mpack_load_i8(reader->data + 1), 4);
+            return 2;
 
         // fixext8
         case 0xd7:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_FIXEXT8))
                 return 0;
-            return mpack_parse_ext(reader, tag, MPACK_TAG_SIZE_FIXEXT8, 8, reader->data + 1);
+            *tag = mpack_tag_make_ext(mpack_load_i8(reader->data + 1), 8);
+            return MPACK_TAG_SIZE_FIXEXT8;
 
         // fixext16
         case 0xd8:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_FIXEXT16))
                 return 0;
-            return mpack_parse_ext(reader, tag, MPACK_TAG_SIZE_FIXEXT16, 16, reader->data + 1);
+            *tag = mpack_tag_make_ext(mpack_load_i8(reader->data + 1), 16);
+            return MPACK_TAG_SIZE_FIXEXT16;
 
         // str8
         case 0xd9:
@@ -955,14 +921,12 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
     switch (tag.type) {
         case mpack_type_map:
         case mpack_type_array:
-            track_error = mpack_track_push(&reader->track, tag.type, tag.v.l);
+            track_error = mpack_track_push(&reader->track, tag.type, tag.v.n);
             break;
         case mpack_type_str:
         case mpack_type_bin:
-            track_error = mpack_track_push(&reader->track, tag.type, tag.v.n);
-            break;
         case mpack_type_ext:
-            track_error = mpack_track_push(&reader->track, tag.type, tag.v.ext.length);
+            track_error = mpack_track_push(&reader->track, tag.type, tag.v.l);
             break;
         default:
             break;
@@ -1007,7 +971,7 @@ void mpack_discard(mpack_reader_t* reader) {
             mpack_done_bin(reader);
             break;
         case mpack_type_ext:
-            mpack_skip_bytes(reader, var.v.ext.length);
+            mpack_skip_bytes(reader, var.v.l);
             mpack_done_ext(reader);
             break;
         case mpack_type_array: {
@@ -1032,6 +996,51 @@ void mpack_discard(mpack_reader_t* reader) {
         default:
             break;
     }
+}
+
+mpack_timestamp_t mpack_read_timestamp(mpack_reader_t* reader, size_t size) {
+    mpack_timestamp_t timestamp = {0, 0};
+
+    if (size != 4 && size != 8 && size != 12) {
+        mpack_reader_flag_error(reader, mpack_error_invalid);
+        return timestamp;
+    }
+
+    char buf[12];
+    mpack_read_bytes(reader, buf, size);
+    mpack_done_ext(reader);
+    if (mpack_reader_error(reader) != mpack_ok)
+        return timestamp;
+
+    switch (size) {
+        case 4:
+            timestamp.seconds = (int64_t)(uint64_t)mpack_load_u32(buf);
+            break;
+
+        case 8: {
+            uint64_t packed = mpack_load_u64(buf);
+            timestamp.seconds = (int64_t)(packed & ((UINT64_C(1) << 34) - 1));
+            timestamp.nanoseconds = (uint32_t)(packed >> 34);
+            break;
+        }
+
+        case 12:
+            timestamp.nanoseconds = mpack_load_u32(buf);
+            timestamp.seconds = mpack_load_i64(buf + 4);
+            break;
+
+        default:
+            mpack_assert(false, "unreachable");
+            break;
+    }
+
+    if (timestamp.nanoseconds > MPACK_TIMESTAMP_NANOSECONDS_MAX) {
+        mpack_reader_flag_error(reader, mpack_error_invalid);
+        mpack_timestamp_t zero = {0, 0};
+        return zero;
+    }
+
+    return timestamp;
 }
 
 #if MPACK_READ_TRACKING
@@ -1115,7 +1124,7 @@ static void mpack_print_element(mpack_reader_t* reader, mpack_print_t* print, si
             break;
 
         case mpack_type_ext:
-            mpack_skip_bytes(reader, val.v.ext.length);
+            mpack_skip_bytes(reader, mpack_tag_ext_length(&val));
             mpack_done_ext(reader);
             break;
 

@@ -774,68 +774,65 @@ static void test_node_read_timestamp() {
 
     TEST_SIMPLE_TREE_READ("\xd6\xff\x00\x00\x00\x00",
             0 == mpack_node_timestamp_seconds(node) &&
-            0 == mpack_node_timestamp_nanoseconds(node) &&
-            mpack_tag_equal(mpack_tag_make_timestamp(0, 0), mpack_node_tag(node)));
+            0 == mpack_node_timestamp_nanoseconds(node));
     TEST_SIMPLE_TREE_READ("\xd6\xff\x00\x00\x01\x00",
             256 == mpack_node_timestamp_seconds(node) &&
-            0 == mpack_node_timestamp_nanoseconds(node) &&
-            mpack_tag_equal(mpack_tag_make_timestamp_seconds(256), mpack_node_tag(node)));
+            0 == mpack_node_timestamp_nanoseconds(node));
     TEST_SIMPLE_TREE_READ("\xd6\xff\xfe\xdc\xba\x98",
             4275878552u == mpack_node_timestamp_seconds(node) &&
-            0 == mpack_node_timestamp_nanoseconds(node) &&
-            mpack_tag_equal(mpack_tag_make_timestamp(4275878552u, 0), mpack_node_tag(node)));
+            0 == mpack_node_timestamp_nanoseconds(node));
     TEST_SIMPLE_TREE_READ("\xd6\xff\xff\xff\xff\xff",
             UINT32_MAX == mpack_node_timestamp_seconds(node) &&
-            0 == mpack_node_timestamp_nanoseconds(node) &&
-            mpack_tag_equal(mpack_tag_make_timestamp_seconds(UINT32_MAX), mpack_node_tag(node)));
+            0 == mpack_node_timestamp_nanoseconds(node));
 
     TEST_SIMPLE_TREE_READ("\xd7\xff\x00\x00\x00\x03\x00\x00\x00\x00",
             INT64_C(12884901888) == mpack_node_timestamp_seconds(node) &&
-            0 == mpack_node_timestamp_nanoseconds(node) &&
-            mpack_tag_equal(mpack_tag_make_timestamp_seconds(INT64_C(12884901888)), mpack_node_tag(node)));
+            0 == mpack_node_timestamp_nanoseconds(node));
     TEST_SIMPLE_TREE_READ("\xd7\xff\x00\x00\x00\x00\x00\x00\x00\x00",
             0 == mpack_node_timestamp_seconds(node) &&
-            0 == mpack_node_timestamp_nanoseconds(node) &&
-            mpack_tag_equal(mpack_tag_make_timestamp_seconds(0), mpack_node_tag(node)));
+            0 == mpack_node_timestamp_nanoseconds(node));
     TEST_SIMPLE_TREE_READ("\xd7\xff\xee\x6b\x27\xfc\x00\x00\x00\x00",
             0 == mpack_node_timestamp_seconds(node) &&
-            MPACK_TIMESTAMP_NANOSECONDS_MAX == mpack_node_timestamp_nanoseconds(node) &&
-            mpack_tag_equal(mpack_tag_make_timestamp(0, MPACK_TIMESTAMP_NANOSECONDS_MAX), mpack_node_tag(node)));
-    mpack_timestamp_t timestamp_max = {INT64_C(17179869183), MPACK_TIMESTAMP_NANOSECONDS_MAX};
+            MPACK_TIMESTAMP_NANOSECONDS_MAX == mpack_node_timestamp_nanoseconds(node));
     TEST_SIMPLE_TREE_READ("\xd7\xff\xee\x6b\x27\xff\xff\xff\xff\xff",
             INT64_C(17179869183) == mpack_node_timestamp_seconds(node) &&
-            MPACK_TIMESTAMP_NANOSECONDS_MAX == mpack_node_timestamp_nanoseconds(node) &&
-            mpack_tag_equal(mpack_tag_make_timestamp_struct(timestamp_max), mpack_node_tag(node)));
+            MPACK_TIMESTAMP_NANOSECONDS_MAX == mpack_node_timestamp_nanoseconds(node));
 
     TEST_SIMPLE_TREE_READ("\xc7\x0c\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01",
             1 == mpack_node_timestamp_seconds(node) &&
-            0 == mpack_node_timestamp_nanoseconds(node) &&
-            mpack_tag_equal(mpack_tag_make_timestamp_seconds(1), mpack_node_tag(node)));
+            0 == mpack_node_timestamp_nanoseconds(node));
     TEST_SIMPLE_TREE_READ("\xc7\x0c\xff\x3b\x9a\xc9\xff\x00\x00\x00\x00\x00\x00\x00\x00",
             0 == mpack_node_timestamp_seconds(node) &&
-            MPACK_TIMESTAMP_NANOSECONDS_MAX == mpack_node_timestamp_nanoseconds(node) &&
-            mpack_tag_equal(mpack_tag_make_timestamp(0, MPACK_TIMESTAMP_NANOSECONDS_MAX), mpack_node_tag(node)));
+            MPACK_TIMESTAMP_NANOSECONDS_MAX == mpack_node_timestamp_nanoseconds(node));
     TEST_SIMPLE_TREE_READ("\xc7\x0c\xff\x00\x00\x00\x01\xff\xff\xff\xff\xff\xff\xff\xff",
             -1 == mpack_node_timestamp_seconds(node) &&
-            1 == mpack_node_timestamp_nanoseconds(node) &&
-            mpack_tag_equal(mpack_tag_make_timestamp(-1, 1), mpack_node_tag(node)));
+            1 == mpack_node_timestamp_nanoseconds(node));
     TEST_SIMPLE_TREE_READ("\xc7\x0c\xff\x3b\x9a\xc9\xff\x7f\xff\xff\xff\xff\xff\xff\xff",
             INT64_MAX == mpack_node_timestamp_seconds(node) &&
-            MPACK_TIMESTAMP_NANOSECONDS_MAX == mpack_node_timestamp_nanoseconds(node) &&
-            mpack_tag_equal(mpack_tag_make_timestamp(INT64_MAX, MPACK_TIMESTAMP_NANOSECONDS_MAX), mpack_node_tag(node)));
+            MPACK_TIMESTAMP_NANOSECONDS_MAX == mpack_node_timestamp_nanoseconds(node));
     TEST_SIMPLE_TREE_READ("\xc7\x0c\xff\x3b\x9a\xc9\xff\x80\x00\x00\x00\x00\x00\x00\x00",
             INT64_MIN == mpack_node_timestamp_seconds(node) &&
-            MPACK_TIMESTAMP_NANOSECONDS_MAX == mpack_node_timestamp_nanoseconds(node) &&
-            mpack_tag_equal(mpack_tag_make_timestamp(INT64_MIN, MPACK_TIMESTAMP_NANOSECONDS_MAX), mpack_node_tag(node)));
+            MPACK_TIMESTAMP_NANOSECONDS_MAX == mpack_node_timestamp_nanoseconds(node));
 
+    // invalid timestamps should not flag errors...
+    TEST_SIMPLE_TREE_READ("\xd7\xff\xff\xff\xff\xff\x00\x00\x00\x00",
+            (MPACK_UNUSED(node), true));
+    TEST_SIMPLE_TREE_READ("\xd7\xff\xee\x6b\x28\x00\xff\xff\xff\xff",
+            (MPACK_UNUSED(node), true));
+    TEST_SIMPLE_TREE_READ("\xc7\x0c\xff\x3b\x9a\xca\x00\x00\x00\x00\x00\x00\x00\x00\x00",
+            (MPACK_UNUSED(node), true));
+    TEST_SIMPLE_TREE_READ("\xc7\x0c\xff\x40\x00\x00\x00\xff\xff\xff\xff\xff\xff\xff\xff",
+            (MPACK_UNUSED(node), true));
+
+    // ...unless we ask mpack to interpret them for us.
     TEST_SIMPLE_TREE_READ_ERROR("\xd7\xff\xff\xff\xff\xff\x00\x00\x00\x00",
-            (MPACK_UNUSED(node), true), mpack_error_invalid);
+            (mpack_node_timestamp(node), true), mpack_error_invalid);
     TEST_SIMPLE_TREE_READ_ERROR("\xd7\xff\xee\x6b\x28\x00\xff\xff\xff\xff",
-            (MPACK_UNUSED(node), true), mpack_error_invalid);
+            (mpack_node_timestamp(node), true), mpack_error_invalid);
     TEST_SIMPLE_TREE_READ_ERROR("\xc7\x0c\xff\x3b\x9a\xca\x00\x00\x00\x00\x00\x00\x00\x00\x00",
-            (MPACK_UNUSED(node), true), mpack_error_invalid);
+            (mpack_node_timestamp(node), true), mpack_error_invalid);
     TEST_SIMPLE_TREE_READ_ERROR("\xc7\x0c\xff\x40\x00\x00\x00\xff\xff\xff\xff\xff\xff\xff\xff",
-            (MPACK_UNUSED(node), true), mpack_error_invalid);
+            (mpack_node_timestamp(node), true), mpack_error_invalid);
 }
 
 static void test_node_read_array() {

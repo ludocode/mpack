@@ -1277,8 +1277,6 @@ static void test_expect_timestamp() {
             (mpack_expect_timestamp(&reader), true), mpack_error_invalid);
     TEST_SIMPLE_READ_ERROR("\xc7\x0c\xff\x40\x00\x00\x00\xff\xff\xff\xff\xff\xff\xff\xff",
             (mpack_expect_timestamp(&reader), true), mpack_error_invalid);
-
-    TEST_SIMPLE_READ_ERROR("\xc3", 0 == mpack_expect_timestamp_truncate(&reader), mpack_error_type);
 }
 
 void test_expect() {

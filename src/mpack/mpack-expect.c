@@ -301,20 +301,23 @@ void mpack_expect_false(mpack_reader_t* reader) {
 }
 
 mpack_timestamp_t mpack_expect_timestamp(mpack_reader_t* reader) {
-    mpack_tag_t var = mpack_read_tag(reader);
-    if (var.type == mpack_type_timestamp)
-        return var.v.timestamp;
-    mpack_reader_flag_error(reader, mpack_error_type);
     mpack_timestamp_t zero = {0, 0};
-    return zero;
+
+    mpack_tag_t tag = mpack_read_tag(reader);
+    if (tag.type != mpack_type_ext) {
+        mpack_reader_flag_error(reader, mpack_error_type);
+        return zero;
+    }
+    if (mpack_tag_ext_exttype(&tag) != MPACK_EXTTYPE_TIMESTAMP) {
+        mpack_reader_flag_error(reader, mpack_error_type);
+        return zero;
+    }
+
+    return mpack_read_timestamp(reader, mpack_tag_ext_length(&tag));
 }
 
 int64_t mpack_expect_timestamp_truncate(mpack_reader_t* reader) {
-    mpack_tag_t var = mpack_read_tag(reader);
-    if (var.type == mpack_type_timestamp)
-        return var.v.timestamp.seconds;
-    mpack_reader_flag_error(reader, mpack_error_type);
-    return 0;
+    return mpack_expect_timestamp(reader).seconds;
 }
 
 
@@ -534,8 +537,8 @@ size_t mpack_expect_bin_buf(mpack_reader_t* reader, char* buf, size_t bufsize) {
 uint32_t mpack_expect_ext(mpack_reader_t* reader, int8_t* type) {
     mpack_tag_t var = mpack_read_tag(reader);
     if (var.type == mpack_type_ext) {
-        *type = var.v.ext.exttype;
-        return var.v.ext.length;
+        *type = mpack_tag_ext_exttype(&var);
+        return mpack_tag_ext_length(&var);
     }
     *type = 0;
     mpack_reader_flag_error(reader, mpack_error_type);

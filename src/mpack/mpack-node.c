@@ -30,8 +30,7 @@ MPACK_STATIC_INLINE const char* mpack_node_data_unchecked(mpack_node_t node) {
 
     mpack_type_t type = node.data->type;
     MPACK_UNUSED(type);
-    mpack_assert(type == mpack_type_str || type == mpack_type_bin ||
-            type == mpack_type_ext || type == mpack_type_timestamp,
+    mpack_assert(type == mpack_type_str || type == mpack_type_bin || type == mpack_type_ext,
             "node of type %i (%s) is not a data type!", type, mpack_type_to_string(type));
 
     return node.tree->data + node.data->value.offset;
@@ -46,7 +45,7 @@ MPACK_STATIC_INLINE int8_t mpack_node_exttype_unchecked(mpack_node_t node) {
             type, mpack_type_to_string(type));
 
     // the exttype of an ext node is stored in the byte preceding the data
-    return (int8_t)*(mpack_node_data_unchecked(node) - 1);
+    return mpack_load_i8(mpack_node_data_unchecked(node) - 1);
 }
 
 
@@ -391,37 +390,10 @@ static void mpack_tree_parse_bytes(mpack_tree_parser_t* parser, mpack_node_data_
     parser->tree->size += length;
 }
 
-static void mpack_tree_parse_validate_timestamp(mpack_tree_parser_t* parser, mpack_node_data_t* node) {
-    uint32_t nanoseconds;
-    switch (node->len) {
-        case 4:
-            return;
-        case 8:
-            nanoseconds = mpack_load_u32(parser->tree->data + node->value.offset) >> 2;
-            break;
-        case 12:
-            nanoseconds = mpack_load_u32(parser->tree->data + node->value.offset);
-            break;
-        default:
-            mpack_tree_flag_error(parser->tree, mpack_error_invalid);
-            return;
-    }
-
-    if (nanoseconds > MPACK_TIMESTAMP_NANOSECONDS_MAX) {
-        mpack_tree_flag_error(parser->tree, mpack_error_invalid);
-    }
-}
-
-static void mpack_tree_parse_ext(mpack_tree_parser_t* parser, mpack_node_data_t* node) {
-    int8_t exttype = mpack_tree_i8(parser);
+MPACK_STATIC_INLINE void mpack_tree_parse_ext(mpack_tree_parser_t* parser, mpack_node_data_t* node) {
+    node->type = mpack_type_ext;
+    mpack_tree_i8(parser); // exttype
     mpack_tree_parse_bytes(parser, node);
-
-    if (exttype == MPACK_TIMESTAMP_EXTTYPE) {
-        node->type = mpack_type_timestamp;
-        mpack_tree_parse_validate_timestamp(parser, node);
-    } else {
-        node->type = mpack_type_ext;
-    }
 }
 
 static void mpack_tree_parse_node(mpack_tree_parser_t* parser, mpack_node_data_t* node) {
@@ -1172,12 +1144,8 @@ mpack_tag_t mpack_node_tag(mpack_node_t node) {
         case mpack_type_bin:     tag.v.l = node.data->len;     break;
 
         case mpack_type_ext:
-            tag.v.ext.length = node.data->len;
-            tag.v.ext.exttype = mpack_node_exttype_unchecked(node);
-            break;
-
-        case mpack_type_timestamp:
-            tag.v.timestamp = mpack_node_timestamp(node);
+            tag.v.l = node.data->len;
+            tag.exttype = mpack_node_exttype_unchecked(node);
             break;
 
         case mpack_type_array:   tag.v.n = node.data->len;  break;
@@ -1304,8 +1272,9 @@ void mpack_node_print_file(mpack_node_t node, FILE* file) {
     mpack_print_flush(&print);
 }
 #endif
+ 
 
-
+ 
 /*
  * Node Value Functions
  */
@@ -1313,10 +1282,9 @@ void mpack_node_print_file(mpack_node_t node, FILE* file) {
 mpack_timestamp_t mpack_node_timestamp(mpack_node_t node) {
     mpack_timestamp_t timestamp = {0, 0};
 
-    if (mpack_node_error(node) != mpack_ok)
-        return timestamp;
-
-    if (node.data->type != mpack_type_timestamp) {
+    // we'll let mpack_node_exttype() do most checks
+    if (mpack_node_exttype(node) != MPACK_EXTTYPE_TIMESTAMP) {
+        mpack_log("exttype %i\n", mpack_node_exttype(node));
         mpack_node_flag_error(node, mpack_error_type);
         return timestamp;
     }
@@ -1342,8 +1310,14 @@ mpack_timestamp_t mpack_node_timestamp(mpack_node_t node) {
             break;
 
         default:
-            mpack_assert(false, "timestamp with a wrong length should have flagged an error!");
-            break;
+            mpack_tree_flag_error(node.tree, mpack_error_invalid);
+            return timestamp;
+    }
+
+    if (timestamp.nanoseconds > MPACK_TIMESTAMP_NANOSECONDS_MAX) {
+        mpack_tree_flag_error(node.tree, mpack_error_invalid);
+        mpack_timestamp_t zero = {0, 0};
+        return zero;
     }
 
     return timestamp;

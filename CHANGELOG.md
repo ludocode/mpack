@@ -10,9 +10,7 @@ Breaking Changes:
 
 - The Node API now separates tree initialization from parsing. After calling one of the `mpack_tree_init()` functions, you must explicitly call `mpack_tree_parse()` before accessing any nodes.
 
-- The layout of fields for ext tags in `mpack_tag_t` has changed. An ext tag no longer uses `.v.l` for its length. The compiler will not warn you about this, so be careful when upgrading.
-
-- `mpack_tag_t` is now considered an opaque type (to prevent future breakage when changing its layout.) Compatibility for all types besides `ext` is maintained for this release, but this may change in future releases.
+- `mpack_tag_t` is now considered an opaque type (to prevent future breakage when changing its layout.) Compatibility is maintained for this release, but this may change in future releases.
 
 - The mpack configuration `mpack-config.h` file is now optional, and requires `MPACK_HAS_CONFIG` in order to be included. This means you must define `MPACK_HAS_CONFIG` when upgrading or your config file will be ignored! (It is recommended to delete your config file and use the defaults.)
 
@@ -24,13 +22,11 @@ New Features:
 
 - The Node API can now parse messages indefinitely from a continuous stream. A tree can be initialized with `mpack_tree_init_stream()` to receive a callback for more data.
 
-- The writer now supports a v4 compatibility mode. Call `mpack_writer_set_version(writer, mpack_version_v4);` to encode without using the `raw8`, `bin`, `ext` and `timestamp` types.
+- The writer now supports a v4 compatibility mode. Call `mpack_writer_set_version(writer, mpack_version_v4);` to encode without using the `raw8`, `bin` and `ext` types.
 
 - The stdio helpers now allow reading from a `FILE*`. `_init_file()` functions have been renamed to `_init_filename()`. The old names will continue to work for a few more versions.
 
 Changes:
-
-- Timestamps (exttype -1) are no longer reported as ext types. If you were reading an ext of exttype -1 and parsing the timestamp from it manually, you will need to switch over to the new timestamp functions.
 
 - The reader's skip function is no longer ignored under `MPACK_OPTIMIZE_FOR_SIZE`.
 
