@@ -684,6 +684,22 @@ MPACK_INLINE bool mpack_should_read_bytes_inplace(mpack_reader_t* reader, size_t
 }
 
 /**
+ * Reads a timestamp contained in an ext object of the given size, closing the
+ * ext type.
+ *
+ * An ext object of exttype @ref MPACK_EXTTYPE_TIMESTAMP must have been opened
+ * by a call to e.g. mpack_read_tag() or mpack_expect_ext().
+ *
+ * You must NOT call mpack_done_ext() after calling this. A timestamp ext
+ * object can only contain a single timestamp value, so this calls
+ * mpack_done_ext() automatically.
+ *
+ * @throws mpack_error_invalid if the size is not one of the supported
+ * timestamp sizes, or if the nanoseconds are out of range.
+ */
+mpack_timestamp_t mpack_read_timestamp(mpack_reader_t* reader, size_t size);
+
+/**
  * @}
  */
 

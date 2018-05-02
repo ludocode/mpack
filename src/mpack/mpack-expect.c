@@ -301,58 +301,19 @@ void mpack_expect_false(mpack_reader_t* reader) {
 }
 
 mpack_timestamp_t mpack_expect_timestamp(mpack_reader_t* reader) {
-    mpack_timestamp_t timestamp = {0, 0};
+    mpack_timestamp_t zero = {0, 0};
 
     mpack_tag_t tag = mpack_read_tag(reader);
     if (tag.type != mpack_type_ext) {
         mpack_reader_flag_error(reader, mpack_error_type);
-        return timestamp;
+        return zero;
     }
     if (tag.v.ext.exttype != MPACK_EXTTYPE_TIMESTAMP) {
         mpack_reader_flag_error(reader, mpack_error_type);
-        return timestamp;
-    }
-    if (tag.v.ext.length != 4 && tag.v.ext.length != 8 && tag.v.ext.length != 12) {
-        mpack_reader_flag_error(reader, mpack_error_invalid);
-        return timestamp;
-    }
-
-    char buf[12];
-    mpack_read_bytes(reader, buf, tag.v.ext.length);
-    mpack_done_ext(reader);
-
-    if (mpack_reader_error(reader) != mpack_ok)
-        return timestamp;
-
-    switch (tag.v.ext.length) {
-        case 4:
-            timestamp.seconds = (int64_t)(uint64_t)mpack_load_u32(buf);
-            break;
-
-        case 8: {
-            uint64_t packed = mpack_load_u64(buf);
-            timestamp.seconds = (int64_t)(packed & ((UINT64_C(1) << 34) - 1));
-            timestamp.nanoseconds = (uint32_t)(packed >> 34);
-            break;
-        }
-
-        case 12:
-            timestamp.nanoseconds = mpack_load_u32(buf);
-            timestamp.seconds = mpack_load_i64(buf + 4);
-            break;
-
-        default:
-            mpack_assert(false, "unreachable");
-            break;
-    }
-
-    if (timestamp.nanoseconds > MPACK_TIMESTAMP_NANOSECONDS_MAX) {
-        mpack_reader_flag_error(reader, mpack_error_invalid);
-        mpack_timestamp_t zero = {0, 0};
         return zero;
     }
 
-    return timestamp;
+    return mpack_read_timestamp(reader, tag.v.ext.length);
 }
 
 int64_t mpack_expect_timestamp_truncate(mpack_reader_t* reader) {

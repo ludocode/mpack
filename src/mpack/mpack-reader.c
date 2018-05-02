@@ -1000,6 +1000,51 @@ void mpack_discard(mpack_reader_t* reader) {
     }
 }
 
+mpack_timestamp_t mpack_read_timestamp(mpack_reader_t* reader, size_t size) {
+    mpack_timestamp_t timestamp = {0, 0};
+
+    if (size != 4 && size != 8 && size != 12) {
+        mpack_reader_flag_error(reader, mpack_error_invalid);
+        return timestamp;
+    }
+
+    char buf[12];
+    mpack_read_bytes(reader, buf, size);
+    mpack_done_ext(reader);
+    if (mpack_reader_error(reader) != mpack_ok)
+        return timestamp;
+
+    switch (size) {
+        case 4:
+            timestamp.seconds = (int64_t)(uint64_t)mpack_load_u32(buf);
+            break;
+
+        case 8: {
+            uint64_t packed = mpack_load_u64(buf);
+            timestamp.seconds = (int64_t)(packed & ((UINT64_C(1) << 34) - 1));
+            timestamp.nanoseconds = (uint32_t)(packed >> 34);
+            break;
+        }
+
+        case 12:
+            timestamp.nanoseconds = mpack_load_u32(buf);
+            timestamp.seconds = mpack_load_i64(buf + 4);
+            break;
+
+        default:
+            mpack_assert(false, "unreachable");
+            break;
+    }
+
+    if (timestamp.nanoseconds > MPACK_TIMESTAMP_NANOSECONDS_MAX) {
+        mpack_reader_flag_error(reader, mpack_error_invalid);
+        mpack_timestamp_t zero = {0, 0};
+        return zero;
+    }
+
+    return timestamp;
+}
+
 #if MPACK_READ_TRACKING
 void mpack_done_type(mpack_reader_t* reader, mpack_type_t type) {
     if (mpack_reader_error(reader) == mpack_ok)
