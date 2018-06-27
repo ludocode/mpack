@@ -1051,10 +1051,27 @@ void mpack_done_type(mpack_reader_t* reader, mpack_type_t type) {
 #endif
 
 #if MPACK_DEBUG && MPACK_STDIO
+static size_t mpack_print_read_prefix(mpack_reader_t* reader, size_t length, char* buffer, size_t buffer_size) {
+    if (length == 0)
+        return 0;
+
+    size_t read = (length < buffer_size) ? length : buffer_size;
+    mpack_read_bytes(reader, buffer, buffer_size);
+    if (mpack_reader_error(reader) != mpack_ok)
+        return 0;
+
+    mpack_skip_bytes(reader, length - read);
+    return read;
+}
+
 static void mpack_print_element(mpack_reader_t* reader, mpack_print_t* print, size_t depth) {
     mpack_tag_t val = mpack_read_tag(reader);
     if (mpack_reader_error(reader) != mpack_ok)
         return;
+
+    // We read some bytes from bin and ext so we can print its prefix in hex.
+    char buffer[8];
+    size_t count = 0;
 
     switch (val.type) {
         case mpack_type_str:
@@ -1119,12 +1136,12 @@ static void mpack_print_element(mpack_reader_t* reader, mpack_print_t* print, si
         // below cases break and print pseudo-json.
 
         case mpack_type_bin:
-            mpack_skip_bytes(reader, val.v.l);
+            count = mpack_print_read_prefix(reader, mpack_tag_bin_length(&val), buffer, sizeof(buffer));
             mpack_done_bin(reader);
             break;
 
         case mpack_type_ext:
-            mpack_skip_bytes(reader, mpack_tag_ext_length(&val));
+            count = mpack_print_read_prefix(reader, mpack_tag_ext_length(&val), buffer, sizeof(buffer));
             mpack_done_ext(reader);
             break;
 
@@ -1133,7 +1150,7 @@ static void mpack_print_element(mpack_reader_t* reader, mpack_print_t* print, si
     }
 
     char buf[256];
-    mpack_tag_debug_pseudo_json(val, buf, sizeof(buf));
+    mpack_tag_debug_pseudo_json(val, buf, sizeof(buf), buffer, count);
     mpack_print_append_cstr(print, buf);
 }
 

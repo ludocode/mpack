@@ -1280,9 +1280,16 @@ static void mpack_node_print_element(mpack_node_t node, mpack_print_t* print, si
 
         default:
             {
+                const char* prefix = NULL;
+                size_t prefix_length = 0;
+                if (mpack_node_type(node) == mpack_type_bin || mpack_node_type(node) == mpack_type_ext) {
+                    prefix = mpack_node_data(node);
+                    prefix_length = mpack_node_data_len(node);
+                }
+
                 char buf[256];
                 mpack_tag_t tag = mpack_node_tag(node);
-                mpack_tag_debug_pseudo_json(tag, buf, sizeof(buf));
+                mpack_tag_debug_pseudo_json(tag, buf, sizeof(buf), prefix, prefix_length);
                 mpack_print_append_cstr(print, buf);
             }
             break;

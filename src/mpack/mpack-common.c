@@ -151,7 +151,68 @@ int mpack_tag_cmp(mpack_tag_t left, mpack_tag_t right) {
 }
 
 #if MPACK_DEBUG && MPACK_STDIO
-static void mpack_tag_debug_pseudo_json_impl(mpack_tag_t tag, char* buffer, size_t buffer_size) {
+static char mpack_hex_char(uint8_t hex_value) {
+    return (hex_value < 10) ? (char)('0' + hex_value) : (char)('a' + (hex_value - 10));
+}
+
+static void mpack_tag_debug_complete_bin_ext(mpack_tag_t tag, size_t string_length, char* buffer, size_t buffer_size,
+        const char* prefix, size_t prefix_size)
+{
+    // If at any point in this function we run out of space in the buffer, we
+    // bail out. The outer tag print wrapper will make sure we have a
+    // null-terminator.
+
+    if (string_length == 0 || string_length >= buffer_size)
+        return;
+    buffer += string_length;
+    buffer_size -= string_length;
+
+    size_t total = mpack_tag_bytes(&tag);
+    if (total == 0) {
+        strncpy(buffer, ">", buffer_size);
+        return;
+    }
+
+    strncpy(buffer, ": ", buffer_size);
+    if (buffer_size < 2)
+        return;
+    buffer += 2;
+    buffer_size -= 2;
+
+    size_t hex_bytes = 0;
+    for (size_t i = 0; i < 4 && i < prefix_size && buffer_size > 2; ++i) {
+        uint8_t byte = (uint8_t)prefix[i];
+        buffer[0] = mpack_hex_char((uint8_t)(byte >> 4));
+        buffer[1] = mpack_hex_char((uint8_t)(byte & 0xfu));
+        buffer += 2;
+        buffer_size -= 2;
+        ++hex_bytes;
+    }
+
+    if (buffer_size != 0)
+        mpack_snprintf(buffer, buffer_size, "%s>", (total > hex_bytes) ? "..." : "");
+}
+
+static void mpack_tag_debug_pseudo_json_bin(mpack_tag_t tag, char* buffer, size_t buffer_size,
+        const char* prefix, size_t prefix_size)
+{
+    mpack_assert(mpack_tag_type(&tag) == mpack_type_bin);
+    size_t length = (size_t)mpack_snprintf(buffer, buffer_size, "<binary data of length %u", tag.v.l);
+    mpack_tag_debug_complete_bin_ext(tag, length, buffer, buffer_size, prefix, prefix_size);
+}
+
+static void mpack_tag_debug_pseudo_json_ext(mpack_tag_t tag, char* buffer, size_t buffer_size,
+        const char* prefix, size_t prefix_size)
+{
+    mpack_assert(mpack_tag_type(&tag) == mpack_type_ext);
+    size_t length = (size_t)mpack_snprintf(buffer, buffer_size, "<ext data of type %i and length %u",
+            mpack_tag_ext_exttype(&tag), mpack_tag_ext_length(&tag));
+    mpack_tag_debug_complete_bin_ext(tag, length, buffer, buffer_size, prefix, prefix_size);
+}
+
+static void mpack_tag_debug_pseudo_json_impl(mpack_tag_t tag, char* buffer, size_t buffer_size,
+        const char* prefix, size_t prefix_size)
+{
     switch (tag.type) {
         case mpack_type_missing:
             mpack_snprintf(buffer, buffer_size, "<missing!>");
@@ -179,11 +240,10 @@ static void mpack_tag_debug_pseudo_json_impl(mpack_tag_t tag, char* buffer, size
             mpack_snprintf(buffer, buffer_size, "<string of %u bytes>", tag.v.l);
             return;
         case mpack_type_bin:
-            mpack_snprintf(buffer, buffer_size, "<binary data of length %u>", tag.v.l);
+            mpack_tag_debug_pseudo_json_bin(tag, buffer, buffer_size, prefix, prefix_size);
             return;
         case mpack_type_ext:
-            mpack_snprintf(buffer, buffer_size, "<ext data of type %i and length %u>",
-                    mpack_tag_ext_exttype(&tag), mpack_tag_ext_length(&tag));
+            mpack_tag_debug_pseudo_json_ext(tag, buffer, buffer_size, prefix, prefix_size);
             return;
 
         case mpack_type_array:
@@ -197,11 +257,13 @@ static void mpack_tag_debug_pseudo_json_impl(mpack_tag_t tag, char* buffer, size
     mpack_snprintf(buffer, buffer_size, "<unknown!>");
 }
 
-void mpack_tag_debug_pseudo_json(mpack_tag_t tag, char* buffer, size_t buffer_size) {
+void mpack_tag_debug_pseudo_json(mpack_tag_t tag, char* buffer, size_t buffer_size,
+        const char* prefix, size_t prefix_size)
+{
     mpack_assert(buffer_size > 0, "buffer size cannot be zero!");
     buffer[0] = 0;
 
-    mpack_tag_debug_pseudo_json_impl(tag, buffer, buffer_size);
+    mpack_tag_debug_pseudo_json_impl(tag, buffer, buffer_size, prefix, prefix_size);
 
     // We always null-terminate the buffer manually just in case the snprintf()
     // function doesn't null-terminate when the string doesn't fit.

@@ -491,6 +491,19 @@ MPACK_INLINE int8_t mpack_tag_ext_exttype(mpack_tag_t* tag) {
 }
 
 /**
+ * Gets the length in bytes of a str-, bin- or ext-type tag.
+ *
+ * @see mpack_type_str
+ * @see mpack_type_bin
+ * @see mpack_type_ext
+ */
+MPACK_INLINE uint32_t mpack_tag_bytes(mpack_tag_t* tag) {
+    mpack_assert(tag->type == mpack_type_str || tag->type == mpack_type_bin ||
+            tag->type == mpack_type_ext, "tag is not a str, bin or ext!");
+    return tag->v.l;
+}
+
+/**
  * @}
  */
 
@@ -530,7 +543,7 @@ int mpack_tag_cmp(mpack_tag_t left, mpack_tag_t right);
  * is equal to the value 1 stored in a 64-bit unsigned integer field.
  *
  * The "extension type" of an extension object is considered part of the value
- * and much match exactly.
+ * and must match exactly.
  *
  * \warning Floating point numbers are compared bit-for-bit, not using the language's
  * operator==. This means that NaNs with matching representation will compare equal.
@@ -546,8 +559,12 @@ MPACK_INLINE bool mpack_tag_equal(mpack_tag_t left, mpack_tag_t right) {
  *
  * This is only available in debug mode, and only if stdio is available (since
  * it uses snprintf().) It's strictly for debugging purposes.
+ *
+ * The prefix is used to print the first few hexadecimal bytes of a bin or ext
+ * type. Pass NULL if not a bin or ext.
  */
-void mpack_tag_debug_pseudo_json(mpack_tag_t tag, char* buffer, size_t buffer_size);
+void mpack_tag_debug_pseudo_json(mpack_tag_t tag, char* buffer, size_t buffer_size,
+        const char* prefix, size_t prefix_size);
 
 /**
  * Generates a debug string description of the given tag into the given buffer.
