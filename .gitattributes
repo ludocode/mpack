@@ -1,0 +1,3 @@
+# git must not convert line endings in our reference test file
+# https://github.com/ludocode/mpack/issues/64
+*.debug text eol=lf
