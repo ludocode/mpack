@@ -163,9 +163,15 @@ static bool mpack_tree_reserve_fill(mpack_tree_t* tree) {
  * the reserved bytes for children of previous compound nodes), reading more
  * data if needed.
  *
+ * extra_bytes is the number of additional bytes to reserve for the current
+ * node beyond the type byte (since one byte is already reserved for each node
+ * by its parent array or map.)
+ *
+ * This may reallocate the tree, which means the tree->data pointer may change!
+ *
  * Returns false if not enough bytes could be read.
  */
-MPACK_STATIC_INLINE bool mpack_tree_reserve_bytes(mpack_tree_t* tree, size_t bytes) {
+MPACK_STATIC_INLINE bool mpack_tree_reserve_bytes(mpack_tree_t* tree, size_t extra_bytes) {
     mpack_assert(tree->parser.state == mpack_tree_parse_state_in_progress);
 
     // We guard against overflow here. A compound type could declare more than
@@ -174,12 +180,12 @@ MPACK_STATIC_INLINE bool mpack_tree_reserve_bytes(mpack_tree_t* tree, size_t byt
     // more likely that the message is corrupt than that the data is valid but
     // not parseable on this architecture (see test_read_node_possible() in
     // test-node.c .)
-    if ((uint64_t)tree->parser.current_node_reserved + (uint64_t)bytes > SIZE_MAX) {
+    if ((uint64_t)tree->parser.current_node_reserved + (uint64_t)extra_bytes > SIZE_MAX) {
         mpack_tree_flag_error(tree, mpack_error_invalid);
         return false;
     }
 
-    tree->parser.current_node_reserved += bytes;
+    tree->parser.current_node_reserved += extra_bytes;
 
     // Note that possible_nodes_left already accounts for reserved bytes for
     // children of previous compound nodes. So even if there are hundreds of
@@ -366,10 +372,8 @@ static bool mpack_tree_parse_node_contents(mpack_tree_t* tree, mpack_node_data_t
     // possible_nodes_left, so we already know it is in bounds, and we don't
     // need to reserve it for this node.
     mpack_assert(tree->data_length > tree->size);
-    const char* p = tree->data + tree->size;
-    uint8_t type = mpack_load_u8(p);
+    uint8_t type = mpack_load_u8(tree->data + tree->size);
     mpack_log("node type %x\n", type);
-    p += sizeof(uint8_t);
     tree->parser.current_node_reserved = 0;
 
     // as with mpack_read_tag(), the fastest way to parse a node is to switch
@@ -489,7 +493,7 @@ static bool mpack_tree_parse_node_contents(mpack_tree_t* tree, mpack_node_data_t
             node->type = mpack_type_bin;
             if (!mpack_tree_reserve_bytes(tree, sizeof(uint8_t)))
                 return false;
-            node->len = mpack_load_u8(p);
+            node->len = mpack_load_u8(tree->data + tree->size + 1);
             return mpack_tree_parse_bytes(tree, node);
 
         // bin16
@@ -497,7 +501,7 @@ static bool mpack_tree_parse_node_contents(mpack_tree_t* tree, mpack_node_data_t
             node->type = mpack_type_bin;
             if (!mpack_tree_reserve_bytes(tree, sizeof(uint16_t)))
                 return false;
-            node->len = mpack_load_u16(p);
+            node->len = mpack_load_u16(tree->data + tree->size + 1);
             return mpack_tree_parse_bytes(tree, node);
 
         // bin32
@@ -505,35 +509,35 @@ static bool mpack_tree_parse_node_contents(mpack_tree_t* tree, mpack_node_data_t
             node->type = mpack_type_bin;
             if (!mpack_tree_reserve_bytes(tree, sizeof(uint32_t)))
                 return false;
-            node->len = mpack_load_u32(p);
+            node->len = mpack_load_u32(tree->data + tree->size + 1);
             return mpack_tree_parse_bytes(tree, node);
 
         // ext8
         case 0xc7:
             if (!mpack_tree_reserve_bytes(tree, sizeof(uint8_t)))
                 return false;
-            node->len = mpack_load_u8(p);
+            node->len = mpack_load_u8(tree->data + tree->size + 1);
             return mpack_tree_parse_ext(tree, node);
 
         // ext16
         case 0xc8:
             if (!mpack_tree_reserve_bytes(tree, sizeof(uint16_t)))
                 return false;
-            node->len = mpack_load_u16(p);
+            node->len = mpack_load_u16(tree->data + tree->size + 1);
             return mpack_tree_parse_ext(tree, node);
 
         // ext32
         case 0xc9:
             if (!mpack_tree_reserve_bytes(tree, sizeof(uint32_t)))
                 return false;
-            node->len = mpack_load_u32(p);
+            node->len = mpack_load_u32(tree->data + tree->size + 1);
             return mpack_tree_parse_ext(tree, node);
 
         // float
         case 0xca:
             if (!mpack_tree_reserve_bytes(tree, sizeof(float)))
                 return false;
-            node->value.f = mpack_load_float(p);
+            node->value.f = mpack_load_float(tree->data + tree->size + 1);
             node->type = mpack_type_float;
             return true;
 
@@ -541,7 +545,7 @@ static bool mpack_tree_parse_node_contents(mpack_tree_t* tree, mpack_node_data_t
         case 0xcb:
             if (!mpack_tree_reserve_bytes(tree, sizeof(double)))
                 return false;
-            node->value.d = mpack_load_double(p);
+            node->value.d = mpack_load_double(tree->data + tree->size + 1);
             node->type = mpack_type_double;
             return true;
 
@@ -550,7 +554,7 @@ static bool mpack_tree_parse_node_contents(mpack_tree_t* tree, mpack_node_data_t
             node->type = mpack_type_uint;
             if (!mpack_tree_reserve_bytes(tree, sizeof(uint8_t)))
                 return false;
-            node->value.u = mpack_load_u8(p);
+            node->value.u = mpack_load_u8(tree->data + tree->size + 1);
             return true;
 
         // uint16
@@ -558,7 +562,7 @@ static bool mpack_tree_parse_node_contents(mpack_tree_t* tree, mpack_node_data_t
             node->type = mpack_type_uint;
             if (!mpack_tree_reserve_bytes(tree, sizeof(uint16_t)))
                 return false;
-            node->value.u = mpack_load_u16(p);
+            node->value.u = mpack_load_u16(tree->data + tree->size + 1);
             return true;
 
         // uint32
@@ -566,7 +570,7 @@ static bool mpack_tree_parse_node_contents(mpack_tree_t* tree, mpack_node_data_t
             node->type = mpack_type_uint;
             if (!mpack_tree_reserve_bytes(tree, sizeof(uint32_t)))
                 return false;
-            node->value.u = mpack_load_u32(p);
+            node->value.u = mpack_load_u32(tree->data + tree->size + 1);
             return true;
 
         // uint64
@@ -574,7 +578,7 @@ static bool mpack_tree_parse_node_contents(mpack_tree_t* tree, mpack_node_data_t
             node->type = mpack_type_uint;
             if (!mpack_tree_reserve_bytes(tree, sizeof(uint64_t)))
                 return false;
-            node->value.u = mpack_load_u64(p);
+            node->value.u = mpack_load_u64(tree->data + tree->size + 1);
             return true;
 
         // int8
@@ -582,7 +586,7 @@ static bool mpack_tree_parse_node_contents(mpack_tree_t* tree, mpack_node_data_t
             node->type = mpack_type_int;
             if (!mpack_tree_reserve_bytes(tree, sizeof(int8_t)))
                 return false;
-            node->value.i = mpack_load_i8(p);
+            node->value.i = mpack_load_i8(tree->data + tree->size + 1);
             return true;
 
         // int16
@@ -590,7 +594,7 @@ static bool mpack_tree_parse_node_contents(mpack_tree_t* tree, mpack_node_data_t
             node->type = mpack_type_int;
             if (!mpack_tree_reserve_bytes(tree, sizeof(int16_t)))
                 return false;
-            node->value.i = mpack_load_i16(p);
+            node->value.i = mpack_load_i16(tree->data + tree->size + 1);
             return true;
 
         // int32
@@ -598,7 +602,7 @@ static bool mpack_tree_parse_node_contents(mpack_tree_t* tree, mpack_node_data_t
             node->type = mpack_type_int;
             if (!mpack_tree_reserve_bytes(tree, sizeof(int32_t)))
                 return false;
-            node->value.i = mpack_load_i32(p);
+            node->value.i = mpack_load_i32(tree->data + tree->size + 1);
             return true;
 
         // int64
@@ -606,7 +610,7 @@ static bool mpack_tree_parse_node_contents(mpack_tree_t* tree, mpack_node_data_t
             node->type = mpack_type_int;
             if (!mpack_tree_reserve_bytes(tree, sizeof(int64_t)))
                 return false;
-            node->value.i = mpack_load_i64(p);
+            node->value.i = mpack_load_i64(tree->data + tree->size + 1);
             return true;
 
         // fixext1
@@ -638,7 +642,7 @@ static bool mpack_tree_parse_node_contents(mpack_tree_t* tree, mpack_node_data_t
         case 0xd9:
             if (!mpack_tree_reserve_bytes(tree, sizeof(uint8_t)))
                 return false;
-            node->len = mpack_load_u8(p);
+            node->len = mpack_load_u8(tree->data + tree->size + 1);
             node->type = mpack_type_str;
             return mpack_tree_parse_bytes(tree, node);
 
@@ -646,7 +650,7 @@ static bool mpack_tree_parse_node_contents(mpack_tree_t* tree, mpack_node_data_t
         case 0xda:
             if (!mpack_tree_reserve_bytes(tree, sizeof(uint16_t)))
                 return false;
-            node->len = mpack_load_u16(p);
+            node->len = mpack_load_u16(tree->data + tree->size + 1);
             node->type = mpack_type_str;
             return mpack_tree_parse_bytes(tree, node);
 
@@ -654,7 +658,7 @@ static bool mpack_tree_parse_node_contents(mpack_tree_t* tree, mpack_node_data_t
         case 0xdb:
             if (!mpack_tree_reserve_bytes(tree, sizeof(uint32_t)))
                 return false;
-            node->len = mpack_load_u32(p);
+            node->len = mpack_load_u32(tree->data + tree->size + 1);
             node->type = mpack_type_str;
             return mpack_tree_parse_bytes(tree, node);
 
@@ -662,7 +666,7 @@ static bool mpack_tree_parse_node_contents(mpack_tree_t* tree, mpack_node_data_t
         case 0xdc:
             if (!mpack_tree_reserve_bytes(tree, sizeof(uint16_t)))
                 return false;
-            node->len = mpack_load_u16(p);
+            node->len = mpack_load_u16(tree->data + tree->size + 1);
             node->type = mpack_type_array;
             return mpack_tree_parse_children(tree, node);
 
@@ -670,7 +674,7 @@ static bool mpack_tree_parse_node_contents(mpack_tree_t* tree, mpack_node_data_t
         case 0xdd:
             if (!mpack_tree_reserve_bytes(tree, sizeof(uint32_t)))
                 return false;
-            node->len = mpack_load_u32(p);
+            node->len = mpack_load_u32(tree->data + tree->size + 1);
             node->type = mpack_type_array;
             return mpack_tree_parse_children(tree, node);
 
@@ -678,7 +682,7 @@ static bool mpack_tree_parse_node_contents(mpack_tree_t* tree, mpack_node_data_t
         case 0xde:
             if (!mpack_tree_reserve_bytes(tree, sizeof(uint16_t)))
                 return false;
-            node->len = mpack_load_u16(p);
+            node->len = mpack_load_u16(tree->data + tree->size + 1);
             node->type = mpack_type_map;
             return mpack_tree_parse_children(tree, node);
 
@@ -686,7 +690,7 @@ static bool mpack_tree_parse_node_contents(mpack_tree_t* tree, mpack_node_data_t
         case 0xdf:
             if (!mpack_tree_reserve_bytes(tree, sizeof(uint32_t)))
                 return false;
-            node->len = mpack_load_u32(p);
+            node->len = mpack_load_u32(tree->data + tree->size + 1);
             node->type = mpack_type_map;
             return mpack_tree_parse_children(tree, node);
 
