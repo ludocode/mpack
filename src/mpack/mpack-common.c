@@ -180,7 +180,7 @@ static void mpack_tag_debug_complete_bin_ext(mpack_tag_t tag, size_t string_leng
     buffer_size -= 2;
 
     size_t hex_bytes = 0;
-    for (size_t i = 0; i < 4 && i < prefix_size && buffer_size > 2; ++i) {
+    for (size_t i = 0; i < MPACK_PRINT_BYTE_COUNT && i < prefix_size && buffer_size > 2; ++i) {
         uint8_t byte = (uint8_t)prefix[i];
         buffer[0] = mpack_hex_char((uint8_t)(byte >> 4));
         buffer[1] = mpack_hex_char((uint8_t)(byte & 0xfu));

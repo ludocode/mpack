@@ -30,6 +30,10 @@
 
 #include "mpack-platform.h"
 
+#ifndef MPACK_PRINT_BYTE_COUNT
+#define MPACK_PRINT_BYTE_COUNT 12
+#endif
+
 MPACK_HEADER_START
 
 

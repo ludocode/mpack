@@ -1070,7 +1070,7 @@ static void mpack_print_element(mpack_reader_t* reader, mpack_print_t* print, si
         return;
 
     // We read some bytes from bin and ext so we can print its prefix in hex.
-    char buffer[8];
+    char buffer[MPACK_PRINT_BYTE_COUNT];
     size_t count = 0;
 
     switch (val.type) {

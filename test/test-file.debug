@@ -20,6 +20,6 @@
             },
             "\"\n\\",
             "The quick brown fox jumps over the lazy dog.",
-            <binary data of length 37: 54686520...>,
-            <ext data of type 1 and length 37: 53706869...>
+            <binary data of length 37: 546865206669766520626f78...>,
+            <ext data of type 1 and length 37: 537068696e78206f6620626c...>
         ]
