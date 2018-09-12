@@ -174,7 +174,7 @@ MPACK_STATIC_INLINE bool mpack_tree_reserve_bytes(mpack_tree_t* tree, size_t byt
     // more likely that the message is corrupt than that the data is valid but
     // not parseable on this architecture (see test_read_node_possible() in
     // test-node.c .)
-    if ((uint64_t)tree->parser.current_node_reserved + (uint64_t)bytes > (uint64_t)SIZE_MAX) {
+    if ((uint64_t)tree->parser.current_node_reserved + (uint64_t)bytes > SIZE_MAX) {
         mpack_tree_flag_error(tree, mpack_error_invalid);
         return false;
     }
@@ -260,11 +260,18 @@ static bool mpack_tree_parse_children(mpack_tree_t* tree, mpack_node_data_t* nod
 
     // Calculate total elements to read
     if (type == mpack_type_map) {
-        if ((uint64_t)total * 2 > (uint64_t)SIZE_MAX) {
+        if ((uint64_t)total * 2 > SIZE_MAX) {
             mpack_tree_flag_error(tree, mpack_error_too_big);
             return false;
         }
         total *= 2;
+    }
+
+    // Make sure we are under our total node limit (TODO can this overflow?)
+    tree->node_count += total;
+    if (tree->node_count > tree->max_nodes) {
+        mpack_tree_flag_error(tree, mpack_error_too_big);
+        return false;
     }
 
     // Each node is at least one byte. Count these bytes now to make
@@ -829,6 +836,7 @@ static bool mpack_tree_parse_start(mpack_tree_t* tree) {
         }
         tree->data_length -= tree->size;
         tree->size = 0;
+        tree->node_count = 0;
     }
 
     // make sure we have at least one byte available before allocating anything
@@ -839,6 +847,7 @@ static bool mpack_tree_parse_start(mpack_tree_t* tree) {
     }
     mpack_log("parsing tree at %p starting with byte %x\n", tree->data, (uint8_t)tree->data[0]);
     parser->possible_nodes_left -= 1;
+    tree->node_count = 1;
 
     #ifdef MPACK_MALLOC
     parser->stack = parser->stack_local;
@@ -1020,6 +1029,8 @@ void mpack_tree_init_stream(mpack_tree_t* tree, mpack_tree_read_t read_fn, void*
 
     tree->read_fn = read_fn;
     tree->context = context;
+
+    mpack_tree_set_limits(tree, max_message_size, max_message_nodes);
     tree->max_size = max_message_size;
     tree->max_nodes = max_message_nodes;
 
@@ -1028,6 +1039,13 @@ void mpack_tree_init_stream(mpack_tree_t* tree, mpack_tree_read_t read_fn, void*
             (int)max_message_size, (int)max_message_nodes);
 }
 #endif
+
+void mpack_tree_set_limits(mpack_tree_t* tree, size_t max_message_size, size_t max_message_nodes) {
+    mpack_assert(max_message_size > 0);
+    mpack_assert(max_message_nodes > 0);
+    tree->max_size = max_message_size;
+    tree->max_nodes = max_message_nodes;
+}
 
 #if MPACK_STDIO
 typedef struct mpack_file_tree_t {

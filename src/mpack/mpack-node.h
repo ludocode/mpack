@@ -238,7 +238,8 @@ struct mpack_tree_t {
     const char* data;
     size_t data_length; // length of data (and content of buffer, if used)
 
-    size_t size; // size in bytes of tree (usually matches length, but not if tree has trailing data)
+    size_t size; // size in bytes of tree (usually matches data_length, but not if tree has trailing data)
+    size_t node_count; // total number of nodes in tree (across all pages)
 
     size_t max_size;  // maximum message size
     size_t max_nodes; // maximum nodes in a message
@@ -311,17 +312,37 @@ void mpack_tree_init(mpack_tree_t* tree, const char* data, size_t length);
  * The stream will use a growable internal buffer to store the most recent
  * message, as well as allocated pages of nodes for the parse tree.
  *
+ * Maximum allowances for message size and node count must be specified in this
+ * function (since the stream is unbounded.) They can be changed later with
+ * @ref mpack_tree_set_limits().
+ *
  * @param tree The tree parser
  * @param read_fn The read function
- * @param max_size The maximum size of a message in bytes
- * @param max_size The maximum number of nodes to allocate. See @ref mpack_node_data_t
- *     for the size of nodes.
+ * @param max_message_size The maximum size of a message in bytes
+ * @param max_message_nodes The maximum number of nodes per message. See
+ *        @ref mpack_node_data_t for the size of nodes.
  *
  * @see mpack_tree_read_t
  */
 void mpack_tree_init_stream(mpack_tree_t* tree, mpack_tree_read_t read_fn, void* context,
         size_t max_message_size, size_t max_message_nodes);
 #endif
+
+/**
+ * Sets the maximum byte size and maximum number of nodes allowed per message.
+ *
+ * The default is SIZE_MAX (no limit) unless @ref mpack_tree_init_stream() is
+ * called (where maximums are required.)
+ *
+ * If a pool of nodes is used, the node limit is the lesser of this limit and
+ * the pool size.
+ *
+ * @param max_message_size The maximum size of a message in bytes
+ * @param max_message_nodes The maximum number of nodes per message. See
+ *        @ref mpack_node_data_t for the size of nodes.
+ */
+void mpack_tree_set_limits(mpack_tree_t* tree, size_t max_message_size,
+        size_t max_message_nodes);
 
 /**
  * Initializes a tree parser with the given data buffer, using the given
