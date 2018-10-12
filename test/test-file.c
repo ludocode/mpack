@@ -11,10 +11,12 @@
 #if MPACK_WRITER
 
 #ifdef WIN32
-#define TEST_PATH "..\\..\\test\\"
+#define MESSAGEPACK_FILES_PATH "..\\..\\test\\messagepack\\"
+#define PSEUDOJSON_FILES_PATH "..\\..\\test\\pseudojson\\"
 #else
 #include <unistd.h>
-#define TEST_PATH "test/"
+#define MESSAGEPACK_FILES_PATH "test/messagepack/"
+#define PSEUDOJSON_FILES_PATH "test/pseudojson/"
 #endif
 
 static const char* test_blank_filename = "mpack-test-blank-file";
@@ -259,7 +261,7 @@ static bool test_file_write_failure(void) {
 // compares the test filename to the expected debug output
 static void test_compare_print() {
     size_t expected_size;
-    char* expected_data = test_file_fetch(TEST_PATH "test-file.debug", &expected_size);
+    char* expected_data = test_file_fetch(PSEUDOJSON_FILES_PATH "test-file.debug", &expected_size);
     size_t actual_size;
     char* actual_data = test_file_fetch(test_filename, &actual_size);
 
@@ -293,7 +295,7 @@ static void test_print(void) {
     // dump MessagePack to debug file
 
     size_t input_size;
-    char* input_data = test_file_fetch(TEST_PATH "test-file.mp", &input_size);
+    char* input_data = test_file_fetch(MESSAGEPACK_FILES_PATH "test-file.mp", &input_size);
 
     out = fopen(test_filename, "wb");
     mpack_print_data_to_file(input_data, input_size, out);
@@ -324,7 +326,7 @@ static void test_node_print(void) {
 
     // dump MessagePack to debug file
 
-    mpack_tree_init_filename(&tree, TEST_PATH "test-file.mp", 0);
+    mpack_tree_init_filename(&tree, MESSAGEPACK_FILES_PATH "test-file.mp", 0);
     mpack_tree_parse(&tree);
 
     out = fopen(test_filename, "wb");
