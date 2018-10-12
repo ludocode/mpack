@@ -1056,7 +1056,7 @@ static size_t mpack_print_read_prefix(mpack_reader_t* reader, size_t length, cha
         return 0;
 
     size_t read = (length < buffer_size) ? length : buffer_size;
-    mpack_read_bytes(reader, buffer, buffer_size);
+    mpack_read_bytes(reader, buffer, read);
     if (mpack_reader_error(reader) != mpack_ok)
         return 0;
 

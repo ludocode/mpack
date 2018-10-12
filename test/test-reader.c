@@ -97,12 +97,38 @@ static void test_print_buffer_bounds() {
     TEST_TRUE(buffer[strlen(expected)] == 0);
     TEST_TRUE(0 == strcmp(buffer, expected));
 }
+
+static void test_print_buffer_hexdump() {
+    static const char test[] = "\xc4\x03""abc";
+
+    char buffer[64];
+    mpack_print_data_to_buffer(test, sizeof(test) - 1, buffer, sizeof(buffer));
+
+    // string should be truncated with a null-terminator
+    static const char* expected = "<binary data of length 3: 616263>";
+    TEST_TRUE(buffer[strlen(expected)] == 0);
+    TEST_TRUE(0 == strcmp(buffer, expected));
+}
+
+static void test_print_buffer_no_hexdump() {
+    static const char test[] = "\xc4\x00";
+
+    char buffer[64];
+    mpack_print_data_to_buffer(test, sizeof(test) - 1, buffer, sizeof(buffer));
+
+    // string should be truncated with a null-terminator
+    static const char* expected = "<binary data of length 0>";
+    TEST_TRUE(buffer[strlen(expected)] == 0);
+    TEST_TRUE(0 == strcmp(buffer, expected));
+}
 #endif
 
 void test_reader() {
     #if MPACK_DEBUG && MPACK_STDIO
     test_print_buffer();
     test_print_buffer_bounds();
+    test_print_buffer_hexdump();
+    test_print_buffer_no_hexdump();
     #endif
     test_reader_should_inplace();
     test_reader_miscellaneous();
