@@ -25,6 +25,7 @@ SOURCES="\
     "
 
 TOOLS="\
+    tools/afl.sh \
     tools/clean.sh \
     tools/gcov.sh \
     tools/scan-build.sh \
