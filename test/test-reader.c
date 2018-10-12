@@ -75,7 +75,7 @@ static void test_print_buffer() {
     static const char test[] = "\x82\xA7""compact\xC3\xA6""schema\x00";
 
     char buffer[1024];
-    mpack_print_buffer(test, sizeof(test) - 1, buffer, sizeof(buffer));
+    mpack_print_data_to_buffer(test, sizeof(test) - 1, buffer, sizeof(buffer));
 
     static const char* expected =
         "{\n"
@@ -90,7 +90,7 @@ static void test_print_buffer_bounds() {
     static const char test[] = "\x82\xA7""compact\xC3\xA6""schema\x00";
 
     char buffer[10];
-    mpack_print_buffer(test, sizeof(test) - 1, buffer, sizeof(buffer));
+    mpack_print_data_to_buffer(test, sizeof(test) - 1, buffer, sizeof(buffer));
 
     // string should be truncated with a null-terminator
     static const char* expected = "{\n    \"co";

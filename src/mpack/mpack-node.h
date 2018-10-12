@@ -574,7 +574,7 @@ MPACK_INLINE mpack_error_t mpack_node_error(mpack_node_t node) {
 mpack_tag_t mpack_node_tag(mpack_node_t node);
 
 #if MPACK_DEBUG && MPACK_STDIO
-/**
+/*
  * Converts a node to a pseudo-JSON string for debugging purposes, placing the
  * result in the given buffer with a null-terminator.
  *
@@ -584,7 +584,7 @@ mpack_tag_t mpack_node_tag(mpack_node_t node);
  * This is only available in debug mode, and only if stdio is available (since
  * it uses snprintf().) It's strictly for debugging purposes.
  */
-void mpack_node_print_buffer(mpack_node_t node, char* buffer, size_t buffer_size);
+void mpack_node_print_to_buffer(mpack_node_t node, char* buffer, size_t buffer_size);
 
 /*
  * Converts a node to pseudo-JSON for debugging purposes, calling the given
@@ -595,35 +595,35 @@ void mpack_node_print_buffer(mpack_node_t node, char* buffer, size_t buffer_size
  * This is only available in debug mode, and only if stdio is available (since
  * it uses snprintf().) It's strictly for debugging purposes.
  */
-void mpack_node_print_callback(mpack_node_t node, mpack_print_callback_t callback, void* context);
+void mpack_node_print_to_callback(mpack_node_t node, mpack_print_callback_t callback, void* context);
 
-/**
+/*
  * Converts a node to pseudo-JSON for debugging purposes
  * and pretty-prints it to the given file.
  *
  * This is only available in debug mode, and only if stdio is available (since
  * it uses snprintf().) It's strictly for debugging purposes.
  */
-void mpack_node_print_file(mpack_node_t node, FILE* file);
+void mpack_node_print_to_file(mpack_node_t node, FILE* file);
 
-/**
+/*
  * Converts a node to pseudo-JSON for debugging purposes
  * and pretty-prints it to stdout.
  *
  * This is only available in debug mode, and only if stdio is available (since
  * it uses snprintf().) It's strictly for debugging purposes.
  */
-MPACK_INLINE void mpack_node_print_stdout(mpack_node_t node) {
-    mpack_node_print_file(node, stdout);
+MPACK_INLINE void mpack_node_print_to_stdout(mpack_node_t node) {
+    mpack_node_print_to_file(node, stdout);
 }
 
-/**
+/*
  * Deprecated.
  *
- * \deprecated Renamed to mpack_node_print_stdout().
+ * \deprecated Renamed to mpack_node_print_to_stdout().
  */
 MPACK_INLINE void mpack_node_print(mpack_node_t node) {
-    mpack_node_print_stdout(node);
+    mpack_node_print_to_stdout(node);
 }
 #endif
 

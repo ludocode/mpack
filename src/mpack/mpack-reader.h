@@ -791,7 +791,7 @@ void mpack_discard(mpack_reader_t* reader);
  * @name Debugging Functions
  * @{
  */
-/**
+/*
  * Converts a blob of MessagePack to a pseudo-JSON string for debugging
  * purposes, placing the result in the given buffer with a null-terminator.
  *
@@ -801,7 +801,7 @@ void mpack_discard(mpack_reader_t* reader);
  * This is only available in debug mode, and only if stdio is available (since
  * it uses snprintf().) It's strictly for debugging purposes.
  */
-void mpack_print_buffer(const char* data, size_t data_size, char* buffer, size_t buffer_size);
+void mpack_print_data_to_buffer(const char* data, size_t data_size, char* buffer, size_t buffer_size);
 
 /*
  * Converts a node to pseudo-JSON for debugging purposes, calling the given
@@ -812,29 +812,36 @@ void mpack_print_buffer(const char* data, size_t data_size, char* buffer, size_t
  * This is only available in debug mode, and only if stdio is available (since
  * it uses snprintf().) It's strictly for debugging purposes.
  */
-void mpack_print_callback(const char* data, size_t size, mpack_print_callback_t callback, void* context);
+void mpack_print_data_to_callback(const char* data, size_t size, mpack_print_callback_t callback, void* context);
 
-/**
+/*
  * Converts a blob of MessagePack to pseudo-JSON for debugging purposes
  * and pretty-prints it to the given file.
  */
-void mpack_print_file(const char* data, size_t len, FILE* file);
+void mpack_print_data_to_file(const char* data, size_t len, FILE* file);
 
-/**
+/*
  * Converts a blob of MessagePack to pseudo-JSON for debugging purposes
  * and pretty-prints it to stdout.
  */
-MPACK_INLINE void mpack_print_stdout(const char* data, size_t len) {
-    mpack_print_file(data, len, stdout);
+MPACK_INLINE void mpack_print_data_to_stdout(const char* data, size_t len) {
+    mpack_print_data_to_file(data, len, stdout);
 }
+
+/*
+ * Converts the MessagePack contained in the given `FILE*` to pseudo-JSON for
+ * debugging purposes, calling the given callback as many times as is necessary
+ * to output the character data.
+ */
+void mpack_print_stdfile_to_callback(FILE* file, mpack_print_callback_t callback, void* context);
 
 /**
  * Deprecated.
  *
- * \deprecated Renamed to mpack_print_stdout().
+ * \deprecated Renamed to mpack_print_data_to_stdout().
  */
 MPACK_INLINE void mpack_print(const char* data, size_t len) {
-    mpack_print_stdout(data, len);
+    mpack_print_data_to_stdout(data, len);
 }
 
 /**

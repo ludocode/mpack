@@ -1154,29 +1154,32 @@ static void mpack_print_element(mpack_reader_t* reader, mpack_print_t* print, si
     mpack_print_append_cstr(print, buf);
 }
 
-static void mpack_print_data(const char* data, size_t len, mpack_print_t* print, size_t depth) {
-    mpack_reader_t reader;
-    mpack_reader_init_data(&reader, data, len);
-
+static void mpack_print_and_destroy(mpack_reader_t* reader, mpack_print_t* print, size_t depth) {
     for (size_t i = 0; i < depth; ++i)
         mpack_print_append_cstr(print, "    ");
-    mpack_print_element(&reader, print, depth);
+    mpack_print_element(reader, print, depth);
 
-    size_t remaining = mpack_reader_remaining(&reader, NULL);
+    size_t remaining = mpack_reader_remaining(reader, NULL);
 
     char buf[256];
-    if (mpack_reader_destroy(&reader) != mpack_ok) {
-        mpack_snprintf(buf, sizeof(buf), "\n<mpack parsing error %s>", mpack_error_to_string(mpack_reader_error(&reader)));
+    if (mpack_reader_destroy(reader) != mpack_ok) {
+        mpack_snprintf(buf, sizeof(buf), "\n<mpack parsing error %s>", mpack_error_to_string(mpack_reader_error(reader)));
         buf[sizeof(buf) - 1] = '\0';
         mpack_print_append_cstr(print, buf);
     } else if (remaining > 0) {
-        mpack_snprintf(buf, sizeof(buf), "\n<%i extra bytes at end of mpack>", (int)remaining);
+        mpack_snprintf(buf, sizeof(buf), "\n<%i extra bytes at end of message>", (int)remaining);
         buf[sizeof(buf) - 1] = '\0';
         mpack_print_append_cstr(print, buf);
     }
 }
 
-void mpack_print_buffer(const char* data, size_t data_size, char* buffer, size_t buffer_size) {
+static void mpack_print_data(const char* data, size_t len, mpack_print_t* print, size_t depth) {
+    mpack_reader_t reader;
+    mpack_reader_init_data(&reader, data, len);
+    mpack_print_and_destroy(&reader, print, depth);
+}
+
+void mpack_print_data_to_buffer(const char* data, size_t data_size, char* buffer, size_t buffer_size) {
     if (buffer_size == 0) {
         mpack_assert(false, "buffer size is zero!");
         return;
@@ -1195,7 +1198,7 @@ void mpack_print_buffer(const char* data, size_t data_size, char* buffer, size_t
     print.buffer[print.size - 1] = '\0';
 }
 
-void mpack_print_callback(const char* data, size_t size, mpack_print_callback_t callback, void* context) {
+void mpack_print_data_to_callback(const char* data, size_t size, mpack_print_callback_t callback, void* context) {
     char buffer[1024];
     mpack_print_t print;
     mpack_memset(&print, 0, sizeof(print));
@@ -1207,7 +1210,7 @@ void mpack_print_callback(const char* data, size_t size, mpack_print_callback_t 
     mpack_print_flush(&print);
 }
 
-void mpack_print_file(const char* data, size_t len, FILE* file) {
+void mpack_print_data_to_file(const char* data, size_t len, FILE* file) {
     mpack_assert(data != NULL, "data is NULL");
     mpack_assert(file != NULL, "file is NULL");
 
@@ -1221,6 +1224,21 @@ void mpack_print_file(const char* data, size_t len, FILE* file) {
 
     mpack_print_data(data, len, &print, 2);
     mpack_print_append_cstr(&print, "\n");
+    mpack_print_flush(&print);
+}
+
+void mpack_print_stdfile_to_callback(FILE* file, mpack_print_callback_t callback, void* context) {
+    char buffer[1024];
+    mpack_print_t print;
+    mpack_memset(&print, 0, sizeof(print));
+    print.buffer = buffer;
+    print.size = sizeof(buffer);
+    print.callback = callback;
+    print.context = context;
+
+    mpack_reader_t reader;
+    mpack_reader_init_stdfile(&reader, file, false);
+    mpack_print_and_destroy(&reader, &print, 0);
     mpack_print_flush(&print);
 }
 #endif

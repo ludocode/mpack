@@ -1205,7 +1205,7 @@ static void test_node_print_buffer() {
     mpack_node_t root = mpack_tree_root(&tree);
 
     char buffer[1024];
-    mpack_node_print_buffer(root, buffer, sizeof(buffer));
+    mpack_node_print_to_buffer(root, buffer, sizeof(buffer));
 
     static const char* expected =
         "{\n"
@@ -1228,7 +1228,7 @@ static void test_node_print_buffer_bounds() {
     mpack_node_t root = mpack_tree_root(&tree);
 
     char buffer[10];
-    mpack_node_print_buffer(root, buffer, sizeof(buffer));
+    mpack_node_print_to_buffer(root, buffer, sizeof(buffer));
     TEST_TRUE(mpack_ok == mpack_tree_destroy(&tree));
 
     // string should be truncated with a null-terminator

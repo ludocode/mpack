@@ -1318,7 +1318,7 @@ static void mpack_node_print_element(mpack_node_t node, mpack_print_t* print, si
     }
 }
 
-void mpack_node_print_buffer(mpack_node_t node, char* buffer, size_t buffer_size) {
+void mpack_node_print_to_buffer(mpack_node_t node, char* buffer, size_t buffer_size) {
     if (buffer_size == 0) {
         mpack_assert(false, "buffer size is zero!");
         return;
@@ -1337,7 +1337,7 @@ void mpack_node_print_buffer(mpack_node_t node, char* buffer, size_t buffer_size
     print.buffer[print.size - 1] = '\0';
 }
 
-void mpack_node_print_callback(mpack_node_t node, mpack_print_callback_t callback, void* context) {
+void mpack_node_print_to_callback(mpack_node_t node, mpack_print_callback_t callback, void* context) {
     char buffer[1024];
     mpack_print_t print;
     mpack_memset(&print, 0, sizeof(print));
@@ -1349,7 +1349,7 @@ void mpack_node_print_callback(mpack_node_t node, mpack_print_callback_t callbac
     mpack_print_flush(&print);
 }
 
-void mpack_node_print_file(mpack_node_t node, FILE* file) {
+void mpack_node_print_to_file(mpack_node_t node, FILE* file) {
     mpack_assert(file != NULL, "file is NULL");
 
     char buffer[1024];

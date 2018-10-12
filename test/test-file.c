@@ -278,13 +278,13 @@ static void test_print(void) {
     // (we're not actually checking the output; we just want to make
     // sure it doesn't crash under the below errors.)
     FILE* out = fopen(test_filename, "wb");
-    mpack_print_file("\x91", 1, out); // truncated file
-    mpack_print_file("\xa1", 1, out); // truncated str
-    mpack_print_file("\x92\x00", 2, out); // truncated array
-    mpack_print_file("\x81", 1, out); // truncated map key
-    mpack_print_file("\x81\x00", 2, out); // truncated map value
-    mpack_print_file("\x90\xc0", 2, out); // extra bytes
-    mpack_print_file("\xca\x00\x00\x00\x00", 5, out); // float
+    mpack_print_data_to_file("\x91", 1, out); // truncated file
+    mpack_print_data_to_file("\xa1", 1, out); // truncated str
+    mpack_print_data_to_file("\x92\x00", 2, out); // truncated array
+    mpack_print_data_to_file("\x81", 1, out); // truncated map key
+    mpack_print_data_to_file("\x81\x00", 2, out); // truncated map value
+    mpack_print_data_to_file("\x90\xc0", 2, out); // extra bytes
+    mpack_print_data_to_file("\xca\x00\x00\x00\x00", 5, out); // float
     fclose(out);
 
     // print test string to stdout
@@ -296,7 +296,7 @@ static void test_print(void) {
     char* input_data = test_file_fetch(TEST_PATH "test-file.mp", &input_size);
 
     out = fopen(test_filename, "wb");
-    mpack_print_file(input_data, input_size, out);
+    mpack_print_data_to_file(input_data, input_size, out);
     fclose(out);
 
     MPACK_FREE(input_data);
@@ -312,7 +312,7 @@ static void test_node_print(void) {
     FILE* out = fopen(test_filename, "wb");
     mpack_tree_init(&tree, "\xca\x00\x00\x00\x00", 5); // float
     mpack_tree_parse(&tree);
-    mpack_node_print_file(mpack_tree_root(&tree), out);
+    mpack_node_print_to_file(mpack_tree_root(&tree), out);
     mpack_tree_destroy(&tree);
     fclose(out);
 
@@ -328,7 +328,7 @@ static void test_node_print(void) {
     mpack_tree_parse(&tree);
 
     out = fopen(test_filename, "wb");
-    mpack_node_print_file(mpack_tree_root(&tree), out);
+    mpack_node_print_to_file(mpack_tree_root(&tree), out);
     fclose(out);
 
     TEST_TRUE(mpack_ok == mpack_tree_destroy(&tree));
