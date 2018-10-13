@@ -297,7 +297,16 @@ MPACK_INLINE mpack_node_t mpack_tree_missing_node(mpack_tree_t* tree) {
  * Any string or blob data types reference the original data, so the data
  * pointer must remain valid until after the tree is destroyed.
  */
-void mpack_tree_init(mpack_tree_t* tree, const char* data, size_t length);
+void mpack_tree_init_data(mpack_tree_t* tree, const char* data, size_t length);
+
+/**
+ * Deprecated.
+ *
+ * \deprecated Renamed to mpack_tree_init_data().
+ */
+MPACK_INLINE void mpack_tree_init(mpack_tree_t* tree, const char* data, size_t length) {
+    mpack_tree_init_data(tree, data, length);
+}
 
 /**
  * Initializes a tree parser from an unbounded stream, or a stream of

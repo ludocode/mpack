@@ -974,7 +974,7 @@ static void mpack_tree_init_clear(mpack_tree_t* tree) {
 }
 
 #ifdef MPACK_MALLOC
-void mpack_tree_init(mpack_tree_t* tree, const char* data, size_t length) {
+void mpack_tree_init_data(mpack_tree_t* tree, const char* data, size_t length) {
     mpack_tree_init_clear(tree);
 
     MPACK_STATIC_ASSERT(MPACK_NODE_PAGE_SIZE >= sizeof(mpack_tree_page_t),
@@ -1143,7 +1143,7 @@ static void mpack_tree_init_stdfile_noclose(mpack_tree_t* tree, FILE* stdfile, s
         return;
     }
 
-    mpack_tree_init(tree, file_tree->data, file_tree->size);
+    mpack_tree_init_data(tree, file_tree->data, file_tree->size);
     mpack_tree_set_context(tree, file_tree);
     mpack_tree_set_teardown(tree, mpack_file_tree_teardown);
 }
