@@ -43,11 +43,17 @@ struct mpack_track_t;
 #define MPACK_READER_SMALL_FRACTION_DENOMINATOR 32
 
 /**
- * @defgroup reader Core Reader API
+ * @defgroup reader Reader API
  *
- * The MPack Core Reader API contains functions for imperatively reading
- * dynamically typed data from a MessagePack stream. This forms the basis
- * of the Expect API.
+ * The MPack Reader API contains functions for imperatively reading dynamically
+ * typed data from a MessagePack stream.
+ *
+ * @note If you are not writing code for an embedded device (or otherwise do
+ * not need maximum performance with minimal memory usage), you should not use
+ * this. You probably want to use the @link node Node API@endlink instead.
+ *
+ * This forms the basis of the @link expect Expect API@endlink, which can be
+ * used to interpret the stream of elements in expected types and value ranges.
  *
  * @{
  */
@@ -843,7 +849,7 @@ MPACK_INLINE void mpack_print_data_to_stdout(const char* data, size_t len) {
  */
 void mpack_print_stdfile_to_callback(FILE* file, mpack_print_callback_t callback, void* context);
 
-/**
+/*
  * Deprecated.
  *
  * \deprecated Renamed to mpack_print_data_to_stdout().

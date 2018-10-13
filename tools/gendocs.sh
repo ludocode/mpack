@@ -1,5 +1,6 @@
 #!/bin/bash
-. "`dirname $0`"/getversion.sh
+cd "$(dirname "$0")"/..
+source tools/getversion.sh
 mkdir -p build/docs
 
 # Write temporary README.md without "Build Status" section
@@ -13,4 +14,7 @@ cat README.md | \
     cat docs/doxyfile
     echo "PROJECT_NUMBER = $VERSION"
     echo
-) | doxygen -
+) | doxygen - || exit 1
+
+echo
+echo "Docs generated: file://$(pwd)/build/docs/html/index.html"

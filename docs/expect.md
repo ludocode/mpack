@@ -197,7 +197,7 @@ bool compact = false;
 int schema = -1;
 
 for (size_t i = mpack_expect_map_max(&reader, 100); i > 0 && mpack_reader_error(&reader) == mpack_ok; --i) {
-    switch (mpack_expect_key_cstr(&reader, keys, found, key_count)) {
+    switch (mpack_expect_key_cstr(&reader, keys, found, KEY_COUNT)) {
         case KEY_COMPACT: compact = mpack_expect_bool(&reader); break;
         case KEY_SCHEMA:  schema  = mpack_expect_int(&reader);  break;
         default: mpack_discard(&reader); break;

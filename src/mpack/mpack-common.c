@@ -150,7 +150,7 @@ int mpack_tag_cmp(mpack_tag_t left, mpack_tag_t right) {
         case mpack_type_double:
             return mpack_memcmp(&left.v.d, &right.v.d, sizeof(left.v.d));
     }
-    
+
     mpack_assert(0, "unrecognized type %i", (int)left.type);
     return false;
 }

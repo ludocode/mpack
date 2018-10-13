@@ -13,13 +13,14 @@
  *
  * If you'd like to use a file for configuration instead, define
  * @ref MPACK_HAS_CONFIG to 1 in your build system or project settings.
- * You can then copy @c mpack-config.h.sample to @c mpack-config.h, or
- * create a blank file and set only the options you want. The below
- * settings are the defaults if they are not set by your configuration
- * file.
+ * This will cause MPack to include a file you create called @c mpack-config.h.
+ * You can copy @c mpack-config.h.sample to @c mpack-config.h and make your
+ * changes, or create a blank @c mpack-config.h and set only the options you
+ * want. The below settings are the defaults if they are not set by your
+ * configuration file.
  *
  * @warning The value of all configuration options must be the same in
- * all translation units of your project, as well as @c mpack.c itself.
+ * all translation units of your project, as well as in @c mpack.c itself.
  * These configuration options affect the layout of structs, among other
  * things, which cannot be different in source files that are linked
  * together.

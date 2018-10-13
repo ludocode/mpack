@@ -274,7 +274,8 @@ struct mpack_tag_t {
  *
  * An @ref mpack_tag_t initializer that zeroes the given tag.
  *
- * This does not make the tag nil! The tag's type is invalid when initialized this way.
+ * @warning This does not make the tag nil! The tag's type is invalid when
+ * initialized this way. Use @ref mpack_tag_make_nil() to generate a nil tag.
  */
 #if MPACK_EXTENSIONS
 #define MPACK_TAG_ZERO {(mpack_type_t)0, 0, {0}}
@@ -411,6 +412,9 @@ MPACK_INLINE mpack_type_t mpack_tag_type(mpack_tag_t* tag) {
 /**
  * Gets the boolean value of a bool-type tag. The tag must be of type @ref
  * mpack_type_bool.
+ *
+ * This asserts that the type in the tag is @ref mpack_type_bool. (No check is
+ * performed if MPACK_DEBUG is not set.)
  */
 MPACK_INLINE bool mpack_tag_bool_value(mpack_tag_t* tag) {
     mpack_assert(tag->type == mpack_type_bool, "tag is not a bool!");
@@ -420,7 +424,13 @@ MPACK_INLINE bool mpack_tag_bool_value(mpack_tag_t* tag) {
 /**
  * Gets the signed integer value of an int-type tag.
  *
- * This does not convert between signed and unsigned tags! A positive integer may be stored in a tag as either @ref mpack_type_int or @ref mpack_type_uint. You must check the type first; this can only be used if the type is @ref mpack_type_int.
+ * This asserts that the type in the tag is @ref mpack_type_int. (No check is
+ * performed if MPACK_DEBUG is not set.)
+ *
+ * @warning This does not convert between signed and unsigned tags! A positive
+ * integer may be stored in a tag as either @ref mpack_type_int or @ref
+ * mpack_type_uint. You must check the type first; this can only be used if the
+ * type is @ref mpack_type_int.
  *
  * @see mpack_type_int
  */
@@ -430,9 +440,15 @@ MPACK_INLINE int64_t mpack_tag_int_value(mpack_tag_t* tag) {
 }
 
 /**
- * Gets the unsigned integer value of an uint-type tag.
+ * Gets the unsigned integer value of a uint-type tag.
  *
- * This does not convert between signed and unsigned tags! A positive integer may be stored in a tag as either @ref mpack_type_int or @ref mpack_type_uint. You must check the type first; this can only be used if the type is @ref mpack_type_uint.
+ * This asserts that the type in the tag is @ref mpack_type_uint. (No check is
+ * performed if MPACK_DEBUG is not set.)
+ *
+ * @warning This does not convert between signed and unsigned tags! A positive
+ * integer may be stored in a tag as either @ref mpack_type_int or @ref
+ * mpack_type_uint. You must check the type first; this can only be used if the
+ * type is @ref mpack_type_uint.
  *
  * @see mpack_type_uint
  */
@@ -444,7 +460,11 @@ MPACK_INLINE uint64_t mpack_tag_uint_value(mpack_tag_t* tag) {
 /**
  * Gets the float value of a float-type tag.
  *
- * This does not convert between float and double tags. This can only be used if the type is @ref mpack_type_float.
+ * This asserts that the type in the tag is @ref mpack_type_float. (No check is
+ * performed if MPACK_DEBUG is not set.)
+ *
+ * @warning This does not convert between float and double tags! This can only
+ * be used if the type is @ref mpack_type_float.
  *
  * @see mpack_type_float
  */
@@ -456,7 +476,11 @@ MPACK_INLINE float mpack_tag_float_value(mpack_tag_t* tag) {
 /**
  * Gets the double value of a double-type tag.
  *
- * This does not convert between float and double tags. This can only be used if the type is @ref mpack_type_double.
+ * This asserts that the type in the tag is @ref mpack_type_double. (No check
+ * is performed if MPACK_DEBUG is not set.)
+ *
+ * @warning This does not convert between float and double tags! This can only
+ * be used if the type is @ref mpack_type_double.
  *
  * @see mpack_type_double
  */
@@ -468,6 +492,9 @@ MPACK_INLINE double mpack_tag_double_value(mpack_tag_t* tag) {
 /**
  * Gets the number of elements in an array tag.
  *
+ * This asserts that the type in the tag is @ref mpack_type_array. (No check is
+ * performed if MPACK_DEBUG is not set.)
+ *
  * @see mpack_type_array
  */
 MPACK_INLINE uint32_t mpack_tag_array_count(mpack_tag_t* tag) {
@@ -477,6 +504,9 @@ MPACK_INLINE uint32_t mpack_tag_array_count(mpack_tag_t* tag) {
 
 /**
  * Gets the number of key-value pairs in a map tag.
+ *
+ * This asserts that the type in the tag is @ref mpack_type_map. (No check is
+ * performed if MPACK_DEBUG is not set.)
  *
  * @see mpack_type_map
  */
@@ -488,6 +518,9 @@ MPACK_INLINE uint32_t mpack_tag_map_count(mpack_tag_t* tag) {
 /**
  * Gets the length in bytes of a str-type tag.
  *
+ * This asserts that the type in the tag is @ref mpack_type_str. (No check is
+ * performed if MPACK_DEBUG is not set.)
+ *
  * @see mpack_type_str
  */
 MPACK_INLINE uint32_t mpack_tag_str_length(mpack_tag_t* tag) {
@@ -497,6 +530,9 @@ MPACK_INLINE uint32_t mpack_tag_str_length(mpack_tag_t* tag) {
 
 /**
  * Gets the length in bytes of a bin-type tag.
+ *
+ * This asserts that the type in the tag is @ref mpack_type_bin. (No check is
+ * performed if MPACK_DEBUG is not set.)
  *
  * @see mpack_type_bin
  */
@@ -508,6 +544,9 @@ MPACK_INLINE uint32_t mpack_tag_bin_length(mpack_tag_t* tag) {
 #if MPACK_EXTENSIONS
 /**
  * Gets the length in bytes of an ext-type tag.
+ *
+ * This asserts that the type in the tag is @ref mpack_type_ext. (No check is
+ * performed if MPACK_DEBUG is not set.)
  *
  * @note This requires @ref MPACK_EXTENSIONS.
  *
@@ -521,6 +560,9 @@ MPACK_INLINE uint32_t mpack_tag_ext_length(mpack_tag_t* tag) {
 /**
  * Gets the extension type (exttype) of an ext-type tag.
  *
+ * This asserts that the type in the tag is @ref mpack_type_ext. (No check is
+ * performed if MPACK_DEBUG is not set.)
+ *
  * @note This requires @ref MPACK_EXTENSIONS.
  *
  * @see mpack_type_ext
@@ -533,6 +575,10 @@ MPACK_INLINE int8_t mpack_tag_ext_exttype(mpack_tag_t* tag) {
 
 /**
  * Gets the length in bytes of a str-, bin- or ext-type tag.
+ *
+ * This asserts that the type in the tag is @ref mpack_type_str, @ref
+ * mpack_type_bin or @ref mpack_type_ext. (No check is performed if MPACK_DEBUG
+ * is not set.)
  *
  * @see mpack_type_str
  * @see mpack_type_bin
@@ -624,14 +670,14 @@ void mpack_tag_debug_pseudo_json(mpack_tag_t tag, char* buffer, size_t buffer_si
  */
 void mpack_tag_debug_describe(mpack_tag_t tag, char* buffer, size_t buffer_size);
 
-/**
+/** @cond */
+
+/*
  * A callback function for printing pseudo-JSON for debugging purposes.
  *
  * @see mpack_node_print_callback
  */
 typedef void (*mpack_print_callback_t)(void* context, const char* data, size_t count);
-
-/** @cond */
 
 // helpers for printing debug output
 // i feel a bit like i'm re-implementing a buffered writer again...
@@ -652,6 +698,9 @@ MPACK_INLINE void mpack_print_append_cstr(mpack_print_t* print, const char* cstr
 void mpack_print_flush(mpack_print_t* print);
 
 void mpack_print_file_callback(void* context, const char* data, size_t count);
+
+/** @endcond */
+
 #endif
 
 /**
@@ -1009,6 +1058,14 @@ bool mpack_str_check_no_null(const char* str, size_t bytes);
 #endif
 
 
+
+/**
+ * @}
+ */
+
+/**
+ * @}
+ */
 
 MPACK_HEADER_END
 

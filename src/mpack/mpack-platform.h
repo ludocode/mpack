@@ -44,11 +44,23 @@
 
 
 
+/* Doxygen preprocs */
+#if MPACK_DOXYGEN
+#define MPACK_HAS_CONFIG 0
+// We give these their default values of 0 here even though they are defined to
+// 1 in the doxyfile. Doxygen will show this as the value in the docs, even
+// though it ignores it when parsing the rest of the source. This is what we
+// want, since we want the documentation to show these defaults but still
+// generate documentation for the functions they add when they're on.
+#define MPACK_COMPATIBILITY 0
+#define MPACK_EXTENSIONS 0
+#endif
+
+
+
 /* Include the custom config file if enabled */
 
-#ifdef MPACK_DOXYGEN
-#define MPACK_HAS_CONFIG 1
-#elif defined(MPACK_HAS_CONFIG) && MPACK_HAS_CONFIG
+#if defined(MPACK_HAS_CONFIG) && MPACK_HAS_CONFIG
 #include "mpack-config.h"
 #endif
 

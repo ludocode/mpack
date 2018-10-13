@@ -44,6 +44,10 @@ MPACK_HEADER_START
  * The MPack Expect API allows you to easily read MessagePack data when you
  * expect it to follow a predefined schema.
  *
+ * @note If you are not writing code for an embedded device (or otherwise do
+ * not need maximum performance with minimal memory usage), you should not use
+ * this. You probably want to use the @link node Node API@endlink instead.
+ *
  * See @ref docs/expect.md for examples.
  *
  * The main purpose of the Expect API is convenience, so the API is lax. It
@@ -553,6 +557,15 @@ void mpack_expect_true(mpack_reader_t* reader);
  */
 void mpack_expect_false(mpack_reader_t* reader);
 
+/**
+ * @}
+ */
+
+/**
+ * @name Extension Functions
+ * @{
+ */
+
 #if MPACK_EXTENSIONS
 /**
  * Reads a timestamp.
@@ -1036,7 +1049,7 @@ MPACK_INLINE void mpack_expect_cstr_match(mpack_reader_t* reader, const char* cs
  */
 
 /**
- * @name Binary Data / Extension Functions
+ * @name Binary Data
  * @{
  */
 
@@ -1100,6 +1113,15 @@ size_t mpack_expect_bin_buf(mpack_reader_t* reader, char* buf, size_t size);
  * Reads a binary blob with the given total maximum size, allocating storage for it.
  */
 char* mpack_expect_bin_alloc(mpack_reader_t* reader, size_t maxsize, size_t* size);
+
+/**
+ * @}
+ */
+
+/**
+ * @name Extension Functions
+ * @{
+ */
 
 #if MPACK_EXTENSIONS
 /**

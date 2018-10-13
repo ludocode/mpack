@@ -37,8 +37,9 @@ MPACK_HEADER_START
 /**
  * @defgroup node Node API
  *
- * The MPack Node API allows you to parse a chunk of MessagePack data
- * in-place into a dynamically typed data structure.
+ * The MPack Node API allows you to parse a chunk of MessagePack into a
+ * dynamically typed data structure, providing random access to the parsed
+ * data.
  *
  * @{
  */
@@ -52,8 +53,9 @@ MPACK_HEADER_START
  *
  * Nodes are immutable.
  *
- * @note @ref mpack_node_t is a handle, not the node data itself. It
- *     is passed by value in the Node API.
+ * @note @ref mpack_node_t is an opaque reference to the node data, not the
+ * node data itself. (It contains pointers to both the node data and the tree.)
+ * It is passed by value in the Node API.
  */
 typedef struct mpack_node_t mpack_node_t;
 
@@ -63,15 +65,16 @@ typedef struct mpack_node_t mpack_node_t;
  * You only need to use this if you intend to provide your own storage
  * for nodes instead of letting the tree allocate it.
  *
- * Nodes are 16 bytes on most common architectures (32-bit and 64-bit.)
+ * @ref mpack_node_data_t is 16 bytes on most common architectures (32-bit
+ * and 64-bit.)
  */
 typedef struct mpack_node_data_t mpack_node_data_t;
 
 /**
- * An MPack tree parsed from a blob of MessagePack.
+ * An MPack tree parser to parse a blob or stream of MessagePack.
  *
- * The tree contains a single root node which contains all parsed data.
- * The tree and its nodes are immutable.
+ * When a message is parsed, the tree contains a single root node which
+ * contains all parsed data. The tree and its nodes are immutable.
  */
 typedef struct mpack_tree_t mpack_tree_t;
 
@@ -109,8 +112,8 @@ typedef void (*mpack_tree_error_t)(mpack_tree_t* tree, mpack_error_t error);
  * In case of error, it should flag an appropriate error on the reader
  * (usually @ref mpack_error_io.)
  *
- * The blocking or non-blocking behaviour of the read should match whether
- * mpack_tree_parse() or mpack_tree_try_parse() is called.
+ * The blocking or non-blocking behaviour of the read should match whether you
+ * are using mpack_tree_parse() or mpack_tree_try_parse().
  *
  * If you are using mpack_tree_parse(), the read should block until at least
  * one byte is read. If you return 0, mpack_tree_parse() will raise @ref
@@ -119,8 +122,8 @@ typedef void (*mpack_tree_error_t)(mpack_tree_t* tree, mpack_error_t error);
  * If you are using mpack_tree_try_parse(), the read function can always
  * return 0, and must never block waiting for data (otherwise
  * mpack_tree_try_parse() would be equivalent to mpack_tree_parse().)
- * mpack_tree_try_parse() will return @ref mpack_try_later if not enough bytes
- * were read.
+ * When you return 0, mpack_tree_try_parse() will return false without flagging
+ * an error.
  */
 typedef size_t (*mpack_tree_read_t)(mpack_tree_t* tree, char* buffer, size_t count);
 
@@ -281,20 +284,21 @@ MPACK_INLINE mpack_node_t mpack_tree_missing_node(mpack_tree_t* tree) {
 
 
 /**
- * @name Tree Functions
+ * @name Tree Initialization
  * @{
  */
 
 #ifdef MPACK_MALLOC
 /**
- * Initializes a tree parser with the given data buffer. The tree will
- * allocate pages of nodes as needed, and will free them when destroyed.
+ * Initializes a tree parser with the given data.
  *
- * Configure the tree if desired, then call mpack_tree_parse() to parse it.
+ * Configure the tree if desired, then call mpack_tree_parse() to parse it. The
+ * tree will allocate pages of nodes as needed and will free them when
+ * destroyed.
  *
  * The tree must be destroyed with mpack_tree_destroy().
  *
- * Any string or blob data types reference the original data, so the data
+ * Any string or blob data types reference the original data, so the given data
  * pointer must remain valid until after the tree is destroyed.
  */
 void mpack_tree_init_data(mpack_tree_t* tree, const char* data, size_t length);
@@ -327,6 +331,7 @@ MPACK_INLINE void mpack_tree_init(mpack_tree_t* tree, const char* data, size_t l
  *
  * @param tree The tree parser
  * @param read_fn The read function
+ * @param context The context for the read function
  * @param max_message_size The maximum size of a message in bytes
  * @param max_message_nodes The maximum number of nodes per message. See
  *        @ref mpack_node_data_t for the size of nodes.
@@ -338,28 +343,12 @@ void mpack_tree_init_stream(mpack_tree_t* tree, mpack_tree_read_t read_fn, void*
 #endif
 
 /**
- * Sets the maximum byte size and maximum number of nodes allowed per message.
- *
- * The default is SIZE_MAX (no limit) unless @ref mpack_tree_init_stream() is
- * called (where maximums are required.)
- *
- * If a pool of nodes is used, the node limit is the lesser of this limit and
- * the pool size.
- *
- * @param max_message_size The maximum size of a message in bytes
- * @param max_message_nodes The maximum number of nodes per message. See
- *        @ref mpack_node_data_t for the size of nodes.
- */
-void mpack_tree_set_limits(mpack_tree_t* tree, size_t max_message_size,
-        size_t max_message_nodes);
-
-/**
- * Initializes a tree parser with the given data buffer, using the given
- * node data pool to store the results.
+ * Initializes a tree parser with the given data, using the given node data
+ * pool to store the results.
  *
  * Configure the tree if desired, then call mpack_tree_parse() to parse it.
  *
- * If the data does not fit in the pool, mpack_error_too_big will be flagged
+ * If the data does not fit in the pool, @ref mpack_error_too_big will be flagged
  * on the tree.
  *
  * The tree must be destroyed with mpack_tree_destroy(), even if parsing fails.
@@ -369,7 +358,8 @@ void mpack_tree_init_pool(mpack_tree_t* tree, const char* data, size_t length,
 
 /**
  * Initializes an MPack tree directly into an error state. Use this if you
- * are writing a wrapper to mpack_tree_init() which can fail its setup.
+ * are writing a wrapper to another <tt>mpack_tree_init*()</tt> function which
+ * can fail its setup.
  */
 void mpack_tree_init_error(mpack_tree_t* tree, mpack_error_t error);
 
@@ -418,6 +408,32 @@ MPACK_INLINE void mpack_tree_init_file(mpack_tree_t* tree, const char* filename,
  */
 void mpack_tree_init_stdfile(mpack_tree_t* tree, FILE* stdfile, size_t max_bytes, bool close_when_done);
 #endif
+
+/**
+ * @}
+ */
+
+/**
+ * @name Tree Functions
+ * @{
+ */
+
+/**
+ * Sets the maximum byte size and maximum number of nodes allowed per message.
+ *
+ * The default is SIZE_MAX (no limit) unless @ref mpack_tree_init_stream() is
+ * called (where maximums are required.)
+ *
+ * If a pool of nodes is used, the node limit is the lesser of this limit and
+ * the pool size.
+ *
+ * @param tree The tree parser
+ * @param max_message_size The maximum size of a message in bytes
+ * @param max_message_nodes The maximum number of nodes per message. See
+ *        @ref mpack_node_data_t for the size of nodes.
+ */
+void mpack_tree_set_limits(mpack_tree_t* tree, size_t max_message_size,
+        size_t max_message_nodes);
 
 /**
  * Parses a MessagePack message into a tree of immutable nodes.
@@ -479,9 +495,10 @@ MPACK_INLINE mpack_error_t mpack_tree_error(mpack_tree_t* tree) {
 }
 
 /**
- * Returns the number of bytes used in the buffer when the tree was
- * parsed. If there is something in the buffer after the MessagePack
- * object (such as another object), this can be used to find it.
+ * Returns the size in bytes of the current parsed message.
+ *
+ * If there is something in the buffer after the MessagePack object, this can
+ * be used to find it.
  *
  * This is zero if an error occurred during tree parsing (since the
  * portion of the data that the first complete object occupies cannot
@@ -549,6 +566,15 @@ MPACK_INLINE void mpack_tree_set_teardown(mpack_tree_t* tree, mpack_tree_teardow
 void mpack_tree_flag_error(mpack_tree_t* tree, mpack_error_t error);
 
 /**
+ * @}
+ */
+
+/**
+ * @name Node Core Functions
+ * @{
+ */
+
+/**
  * Places the node's tree in the given error state, calling the error callback
  * if one is set.
  *
@@ -559,15 +585,6 @@ void mpack_tree_flag_error(mpack_tree_t* tree, mpack_error_t error);
  * error callback is called.
  */
 void mpack_node_flag_error(mpack_node_t node, mpack_error_t error);
-
-/**
- * @}
- */
-
-/**
- * @name Node Core Functions
- * @{
- */
 
 /**
  * Returns the error state of the node's tree.
@@ -581,6 +598,8 @@ MPACK_INLINE mpack_error_t mpack_node_error(mpack_node_t node) {
  * tree is in an error state.
  */
 mpack_tag_t mpack_node_tag(mpack_node_t node);
+
+/** @cond */
 
 #if MPACK_DEBUG && MPACK_STDIO
 /*
@@ -636,6 +655,8 @@ MPACK_INLINE void mpack_node_print(mpack_node_t node) {
 }
 #endif
 
+/** @endcond */
+
 /**
  * @}
  */
@@ -652,23 +673,33 @@ mpack_type_t mpack_node_type(mpack_node_t node);
 
 /**
  * Returns true if the given node is a nil node; false otherwise.
+ *
+ * To ensure that a node is nil and flag an error otherwise, use
+ * mpack_node_nil().
  */
 bool mpack_node_is_nil(mpack_node_t node);
 
 /**
- * Returns true if the given node indicates a missing node; false otherwise.
+ * Returns true if the given node handle indicates a missing node; false otherwise.
+ *
+ * To ensure that a node is missing and flag an error otherwise, use
+ * mpack_node_missing().
  */
 bool mpack_node_is_missing(mpack_node_t node);
 
 /**
  * Checks that the given node is of nil type, raising @ref mpack_error_type
  * otherwise.
+ *
+ * Use mpack_node_is_nil() to return whether the node is nil.
  */
 void mpack_node_nil(mpack_node_t node);
 
 /**
  * Checks that the given node indicates a missing node, raising @ref
  * mpack_error_type otherwise.
+ *
+ * Use mpack_node_is_missing() to return whether the node is missing.
  */
 void mpack_node_missing(mpack_node_t node);
 
@@ -692,49 +723,49 @@ void mpack_node_false(mpack_node_t node);
 
 /**
  * Returns the 8-bit unsigned value of the node. If this node is not
- * of a compatible type, mpack_error_type is raised and zero is returned.
+ * of a compatible type, @ref mpack_error_type is raised and zero is returned.
  */
 uint8_t mpack_node_u8(mpack_node_t node);
 
 /**
  * Returns the 8-bit signed value of the node. If this node is not
- * of a compatible type, mpack_error_type is raised and zero is returned.
+ * of a compatible type, @ref mpack_error_type is raised and zero is returned.
  */
 int8_t mpack_node_i8(mpack_node_t node);
 
 /**
  * Returns the 16-bit unsigned value of the node. If this node is not
- * of a compatible type, mpack_error_type is raised and zero is returned.
+ * of a compatible type, @ref mpack_error_type is raised and zero is returned.
  */
 uint16_t mpack_node_u16(mpack_node_t node);
 
 /**
  * Returns the 16-bit signed value of the node. If this node is not
- * of a compatible type, mpack_error_type is raised and zero is returned.
+ * of a compatible type, @ref mpack_error_type is raised and zero is returned.
  */
 int16_t mpack_node_i16(mpack_node_t node);
 
 /**
  * Returns the 32-bit unsigned value of the node. If this node is not
- * of a compatible type, mpack_error_type is raised and zero is returned.
+ * of a compatible type, @ref mpack_error_type is raised and zero is returned.
  */
 uint32_t mpack_node_u32(mpack_node_t node);
 
 /**
  * Returns the 32-bit signed value of the node. If this node is not
- * of a compatible type, mpack_error_type is raised and zero is returned.
+ * of a compatible type, @ref mpack_error_type is raised and zero is returned.
  */
 int32_t mpack_node_i32(mpack_node_t node);
 
 /**
  * Returns the 64-bit unsigned value of the node. If this node is not
- * of a compatible type, mpack_error_type is raised, and zero is returned.
+ * of a compatible type, @ref mpack_error_type is raised, and zero is returned.
  */
 uint64_t mpack_node_u64(mpack_node_t node);
 
 /**
  * Returns the 64-bit signed value of the node. If this node is not
- * of a compatible type, mpack_error_type is raised and zero is returned.
+ * of a compatible type, @ref mpack_error_type is raised and zero is returned.
  */
 int64_t mpack_node_i64(mpack_node_t node);
 
@@ -889,7 +920,7 @@ int8_t mpack_node_exttype(mpack_node_t node);
  *
  * This returns zero if the tree is in an error state.
  *
- * If this node is not a bin, mpack_error_type is raised and zero is returned.
+ * If this node is not a bin, @ref mpack_error_type is raised and zero is returned.
  */
 size_t mpack_node_bin_size(mpack_node_t node);
 
@@ -898,7 +929,7 @@ size_t mpack_node_bin_size(mpack_node_t node);
  *
  * This returns zero if the tree is in an error state.
  *
- * If this node is not a str, bin or map, mpack_error_type is raised and zero
+ * If this node is not a str, bin or map, @ref mpack_error_type is raised and zero
  * is returned.
  */
 uint32_t mpack_node_data_len(mpack_node_t node);
@@ -909,14 +940,15 @@ uint32_t mpack_node_data_len(mpack_node_t node);
  *
  * This returns zero if the tree is in an error state.
  *
- * If this node is not a str, mpack_error_type is raised and zero is returned.
+ * If this node is not a str, @ref mpack_error_type is raised and zero is returned.
  */
 size_t mpack_node_strlen(mpack_node_t node);
 
 /**
- * Returns a pointer to the data contained by this node, ensuring it is a string.
+ * Returns a pointer to the data contained by this node, ensuring the node is a
+ * string.
  *
- * @note Strings are not null-terminated! Use one of the cstr functions
+ * @warning Strings are not null-terminated! Use one of the cstr functions
  * to get a null-terminated string.
  *
  * The pointer is valid as long as the data backing the tree is valid.
@@ -937,7 +969,7 @@ const char* mpack_node_str(mpack_node_t node);
  *
  * The pointer is valid as long as the data backing the tree is valid.
  *
- * If this node is not of a str, bin or map, mpack_error_type is raised, and
+ * If this node is not of a str, bin or map, @ref mpack_error_type is raised, and
  * @c NULL is returned.
  *
  * @see mpack_node_copy_cstr()
@@ -951,7 +983,7 @@ const char* mpack_node_data(mpack_node_t node);
  *
  * The pointer is valid as long as the data backing the tree is valid.
  *
- * If this node is not a bin, mpack_error_type is raised and @c NULL is
+ * If this node is not a bin, @ref mpack_error_type is raised and @c NULL is
  * returned.
  */
 const char* mpack_node_bin_data(mpack_node_t node);
@@ -990,8 +1022,8 @@ size_t mpack_node_copy_utf8(mpack_node_t node, char* buffer, size_t bufsize);
  * Checks that the given node contains a string with no NUL bytes, copies the string
  * into the given buffer, and adds a null terminator.
  *
- * If this node is not of a string type, mpack_error_type is raised. If the string
- * does not fit, mpack_error_data is raised.
+ * If this node is not of a string type, @ref mpack_error_type is raised. If the string
+ * does not fit, @ref mpack_error_data is raised.
  *
  * If any error occurs, the buffer will contain an empty null-terminated string.
  *
@@ -1005,8 +1037,8 @@ void mpack_node_copy_cstr(mpack_node_t node, char* buffer, size_t size);
  * Checks that the given node contains a valid UTF-8 string with no NUL bytes,
  * copies the string into the given buffer, and adds a null terminator.
  *
- * If this node is not of a string type, mpack_error_type is raised. If the string
- * does not fit, mpack_error_data is raised.
+ * If this node is not of a string type, @ref mpack_error_type is raised. If the string
+ * does not fit, @ref mpack_error_data is raised.
  *
  * If any error occurs, the buffer will contain an empty null-terminated string.
  *
@@ -1018,7 +1050,7 @@ void mpack_node_copy_utf8_cstr(mpack_node_t node, char* buffer, size_t size);
 
 #ifdef MPACK_MALLOC
 /**
- * Allocates a new chunk of data using MPACK_MALLOC with the bytes
+ * Allocates a new chunk of data using MPACK_MALLOC() with the bytes
  * contained by this node.
  *
  * The allocated data must be freed with MPACK_FREE() (or simply free()
@@ -1037,7 +1069,7 @@ void mpack_node_copy_utf8_cstr(mpack_node_t node, char* buffer, size_t size);
 char* mpack_node_data_alloc(mpack_node_t node, size_t maxsize);
 
 /**
- * Allocates a new null-terminated string using MPACK_MALLOC with the string
+ * Allocates a new null-terminated string using MPACK_MALLOC() with the string
  * contained by this node.
  *
  * The allocated string must be freed with MPACK_FREE() (or simply free()
@@ -1056,7 +1088,7 @@ char* mpack_node_data_alloc(mpack_node_t node, size_t maxsize);
 char* mpack_node_cstr_alloc(mpack_node_t node, size_t maxsize);
 
 /**
- * Allocates a new null-terminated string using MPACK_MALLOC with the UTF-8
+ * Allocates a new null-terminated string using MPACK_MALLOC() with the UTF-8
  * string contained by this node.
  *
  * The allocated string must be freed with MPACK_FREE() (or simply free()
@@ -1152,8 +1184,8 @@ size_t mpack_node_array_length(mpack_node_t node);
 
 /**
  * Returns the node in the given array at the given index. If the node
- * is not an array, mpack_error_type is raised and a nil node is returned.
- * If the given index is out of bounds, mpack_error_data is raised and
+ * is not an array, @ref mpack_error_type is raised and a nil node is returned.
+ * If the given index is out of bounds, @ref mpack_error_data is raised and
  * a nil node is returned.
  */
 mpack_node_t mpack_node_array_at(mpack_node_t node, size_t index);
@@ -1212,6 +1244,8 @@ mpack_node_t mpack_node_map_int(mpack_node_t node, int64_t num);
  *
  * @return The value node for the given key, or a missing node if the key does
  *         not exist, or a nil node in case of error
+ *
+ * @see mpack_node_is_missing()
  */
 mpack_node_t mpack_node_map_int_optional(mpack_node_t node, int64_t num);
 
@@ -1243,6 +1277,8 @@ mpack_node_t mpack_node_map_uint(mpack_node_t node, uint64_t num);
  *
  * @return The value node for the given key, or a missing node if the key does
  *         not exist, or a nil node in case of error
+ *
+ * @see mpack_node_is_missing()
  */
 mpack_node_t mpack_node_map_uint_optional(mpack_node_t node, uint64_t num);
 
@@ -1274,6 +1310,8 @@ mpack_node_t mpack_node_map_str(mpack_node_t node, const char* str, size_t lengt
  *
  * @return The value node for the given key, or a missing node if the key does
  *         not exist, or a nil node in case of error
+ *
+ * @see mpack_node_is_missing()
  */
 mpack_node_t mpack_node_map_str_optional(mpack_node_t node, const char* str, size_t length);
 
@@ -1306,6 +1344,8 @@ mpack_node_t mpack_node_map_cstr(mpack_node_t node, const char* cstr);
  *
  * @return The value node for the given key, or a missing node if the key does
  *         not exist, or a nil node in case of error
+ *
+ * @see mpack_node_is_missing()
  */
 mpack_node_t mpack_node_map_cstr_optional(mpack_node_t node, const char* cstr);
 

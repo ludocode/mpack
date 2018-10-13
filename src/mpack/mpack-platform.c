@@ -83,7 +83,7 @@ void mpack_assert_fail_wrapper(const char* message) {
     mpack_assert_fail(message);
 
     // mpack_assert_fail() is not supposed to return. in case it does, we
-    // abort. it is not safe to resume execution after this.
+    // abort.
 
     #if !MPACK_NO_BUILTINS
     #if defined(__GNUC__) || defined(__clang__)

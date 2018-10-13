@@ -547,6 +547,7 @@ void mpack_write_object_bytes(mpack_writer_t* writer, const char* data, size_t b
  *
  * @note This requires @ref MPACK_EXTENSIONS.
  *
+ * @param writer The writer
  * @param seconds The (signed) number of seconds since 1970-01-01T00:00:00Z.
  * @param nanoseconds The additional number of nanoseconds from 0 to 999,999,999 inclusive.
  */
@@ -557,6 +558,7 @@ void mpack_write_timestamp(mpack_writer_t* writer, int64_t seconds, uint32_t nan
  *
  * @note This requires @ref MPACK_EXTENSIONS.
  *
+ * @param writer The writer
  * @param seconds The (signed) number of seconds since 1970-01-01T00:00:00Z.
  */
 MPACK_INLINE void mpack_write_timestamp_seconds(mpack_writer_t* writer, int64_t seconds) {
@@ -737,6 +739,7 @@ void mpack_write_utf8_cstr_or_nil(mpack_writer_t* writer, const char* cstr);
  */
 void mpack_write_bin(mpack_writer_t* writer, const char* data, uint32_t count);
 
+#if MPACK_EXTENSIONS
 /**
  * Writes an extension type.
  *
@@ -747,8 +750,11 @@ void mpack_write_bin(mpack_writer_t* writer, const char* data, uint32_t count);
  *
  * You should not call mpack_finish_ext() after calling this; this
  * performs both start and finish.
+ *
+ * @note This requires @ref MPACK_EXTENSIONS.
  */
 void mpack_write_ext(mpack_writer_t* writer, int8_t exttype, const char* data, uint32_t count);
+#endif
 
 /**
  * @}
@@ -779,6 +785,7 @@ void mpack_start_str(mpack_writer_t* writer, uint32_t count);
  */
 void mpack_start_bin(mpack_writer_t* writer, uint32_t count);
 
+#if MPACK_EXTENSIONS
 /**
  * Opens an extension type. `count` bytes should be written with calls
  * to mpack_write_bytes(), and mpack_finish_ext() should be called
@@ -786,8 +793,11 @@ void mpack_start_bin(mpack_writer_t* writer, uint32_t count);
  *
  * Extension types [0, 127] are available for application-specific types. Extension
  * types [-128, -1] are reserved for future extensions of MessagePack.
+ *
+ * @note This requires @ref MPACK_EXTENSIONS.
  */
 void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count);
+#endif
 
 /**
  * Writes a portion of bytes for a string, binary blob or extension type which
