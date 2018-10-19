@@ -142,7 +142,7 @@ def AddBuilds(variant_dir, cppflags, linkflags = [], valgrind = True):
 # used for code coverage measurement and static analysis.
 # Note that the default build does not use the default config; it enables
 # MPACK_COMPATIBILITY and MPACK_EXTENSIONS.
-AddBuild("debug", allfeatures + allconfigs + debugflags + cflags + gcovflags, gcovflags)
+AddBuild("debug", defaultfeatures + allconfigs + debugflags + cflags + gcovflags, gcovflags)
 
 
 # Run "scons more=1" to run a handful of builds that are likely

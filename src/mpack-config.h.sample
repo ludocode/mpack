@@ -76,12 +76,15 @@
  * Enables compatibility features for reading and writing older
  * versions of MessagePack.
  *
- * This is on by default if it is not defined. It can be disabled to
- * minimize library size on embedded devices. If disabled, the behaviour
- * is equivalent to using the default version, @ref mpack_version_current.
+ * This is disabled by default. When disabled, the behaviour is equivalent to
+ * using the default version, @ref mpack_version_current.
+ *
+ * Enable this if you need to interoperate with applications or data that do
+ * not support the new (v5) MessagePack spec. See the section on v4
+ * compatibility in @ref docs/protocol.md for more information.
  */
 #ifndef MPACK_COMPATIBILITY
-#define MPACK_COMPATIBILITY 1
+#define MPACK_COMPATIBILITY 0
 #endif
 
 /**

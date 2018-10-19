@@ -16,6 +16,8 @@ Breaking Changes:
 
 - Extension types are now disabled by default. You must define `MPACK_EXTENSIONS` to use them.
 
+- Compatibility with the v4 MessagePack spec is now disabled by default. You must define `MPACK_COMPATIBILITY` to use it.
+
 New Features:
 
 - The timestamp type has been implemented. A timestamp is a signed number of nanoseconds since January 1st, 1970 at 12:00 UTC. (This requires `MPACK_EXTENSIONS`.)
