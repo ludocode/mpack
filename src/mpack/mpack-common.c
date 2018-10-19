@@ -34,6 +34,7 @@ const char* mpack_error_to_string(mpack_error_t error) {
         MPACK_ERROR_STRING_CASE(mpack_ok);
         MPACK_ERROR_STRING_CASE(mpack_error_io);
         MPACK_ERROR_STRING_CASE(mpack_error_invalid);
+        MPACK_ERROR_STRING_CASE(mpack_error_unsupported);
         MPACK_ERROR_STRING_CASE(mpack_error_type);
         MPACK_ERROR_STRING_CASE(mpack_error_too_big);
         MPACK_ERROR_STRING_CASE(mpack_error_memory);
@@ -63,9 +64,11 @@ const char* mpack_type_to_string(mpack_type_t type) {
         MPACK_TYPE_STRING_CASE(mpack_type_uint);
         MPACK_TYPE_STRING_CASE(mpack_type_str);
         MPACK_TYPE_STRING_CASE(mpack_type_bin);
-        MPACK_TYPE_STRING_CASE(mpack_type_ext);
         MPACK_TYPE_STRING_CASE(mpack_type_array);
         MPACK_TYPE_STRING_CASE(mpack_type_map);
+        #if MPACK_EXTENSIONS
+        MPACK_TYPE_STRING_CASE(mpack_type_ext);
+        #endif
         #undef MPACK_TYPE_STRING_CASE
     }
     mpack_assert(0, "unrecognized type %i", (int)type);
@@ -121,6 +124,7 @@ int mpack_tag_cmp(mpack_tag_t left, mpack_tag_t right) {
                 return 0;
             return (left.v.l < right.v.l) ? -1 : 1;
 
+        #if MPACK_EXTENSIONS
         case mpack_type_ext:
             if (left.exttype == right.exttype) {
                 if (left.v.l == right.v.l)
@@ -128,6 +132,7 @@ int mpack_tag_cmp(mpack_tag_t left, mpack_tag_t right) {
                 return (left.v.l < right.v.l) ? -1 : 1;
             }
             return (int)left.exttype - (int)right.exttype;
+        #endif
 
         // floats should not normally be compared for equality. we compare
         // with memcmp() to silence compiler warnings, but this will return
@@ -201,6 +206,7 @@ static void mpack_tag_debug_pseudo_json_bin(mpack_tag_t tag, char* buffer, size_
     mpack_tag_debug_complete_bin_ext(tag, length, buffer, buffer_size, prefix, prefix_size);
 }
 
+#if MPACK_EXTENSIONS
 static void mpack_tag_debug_pseudo_json_ext(mpack_tag_t tag, char* buffer, size_t buffer_size,
         const char* prefix, size_t prefix_size)
 {
@@ -209,6 +215,7 @@ static void mpack_tag_debug_pseudo_json_ext(mpack_tag_t tag, char* buffer, size_
             mpack_tag_ext_exttype(&tag), mpack_tag_ext_length(&tag));
     mpack_tag_debug_complete_bin_ext(tag, length, buffer, buffer_size, prefix, prefix_size);
 }
+#endif
 
 static void mpack_tag_debug_pseudo_json_impl(mpack_tag_t tag, char* buffer, size_t buffer_size,
         const char* prefix, size_t prefix_size)
@@ -242,9 +249,11 @@ static void mpack_tag_debug_pseudo_json_impl(mpack_tag_t tag, char* buffer, size
         case mpack_type_bin:
             mpack_tag_debug_pseudo_json_bin(tag, buffer, buffer_size, prefix, prefix_size);
             return;
+        #if MPACK_EXTENSIONS
         case mpack_type_ext:
             mpack_tag_debug_pseudo_json_ext(tag, buffer, buffer_size, prefix, prefix_size);
             return;
+        #endif
 
         case mpack_type_array:
             mpack_snprintf(buffer, buffer_size, "<array of %u elements>", tag.v.n);
@@ -299,10 +308,12 @@ static void mpack_tag_debug_describe_impl(mpack_tag_t tag, char* buffer, size_t 
         case mpack_type_bin:
             mpack_snprintf(buffer, buffer_size, "bin of %u bytes", tag.v.l);
             return;
+        #if MPACK_EXTENSIONS
         case mpack_type_ext:
             mpack_snprintf(buffer, buffer_size, "ext of type %i, %u bytes",
                     mpack_tag_ext_exttype(&tag), mpack_tag_ext_length(&tag));
             return;
+        #endif
         case mpack_type_array:
             mpack_snprintf(buffer, buffer_size, "array of %u elements", tag.v.n);
             return;

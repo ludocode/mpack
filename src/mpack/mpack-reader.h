@@ -683,6 +683,7 @@ MPACK_INLINE bool mpack_should_read_bytes_inplace(mpack_reader_t* reader, size_t
     return (reader->size == 0 || count <= reader->size / MPACK_READER_SMALL_FRACTION_DENOMINATOR);
 }
 
+#if MPACK_EXTENSIONS
 /**
  * Reads a timestamp contained in an ext object of the given size, closing the
  * ext type.
@@ -694,10 +695,13 @@ MPACK_INLINE bool mpack_should_read_bytes_inplace(mpack_reader_t* reader, size_t
  * object can only contain a single timestamp value, so this calls
  * mpack_done_ext() automatically.
  *
+ * @note This requires @ref MPACK_EXTENSIONS.
+ *
  * @throws mpack_error_invalid if the size is not one of the supported
  * timestamp sizes, or if the nanoseconds are out of range.
  */
 mpack_timestamp_t mpack_read_timestamp(mpack_reader_t* reader, size_t size);
+#endif
 
 /**
  * @}
@@ -765,16 +769,20 @@ MPACK_INLINE void mpack_done_bin(mpack_reader_t* reader) {
     mpack_done_type(reader, mpack_type_bin);
 }
 
+#if MPACK_EXTENSIONS
 /**
  * @fn mpack_done_ext(mpack_reader_t* reader)
  *
  * Finishes reading an extended type binary data blob.
  *
  * This will track reads to ensure that the correct number of bytes are read.
+ *
+ * @note This requires @ref MPACK_EXTENSIONS.
  */
 MPACK_INLINE void mpack_done_ext(mpack_reader_t* reader) {
     mpack_done_type(reader, mpack_type_ext);
 }
+#endif
 
 /**
  * Reads and discards the next object. This will read and discard all

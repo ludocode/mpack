@@ -709,6 +709,7 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             *tag = mpack_tag_make_bin(mpack_load_u32(reader->data + 1));
             return MPACK_TAG_SIZE_BIN32;
 
+        #if MPACK_EXTENSIONS
         // ext8
         case 0xc7:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_EXT8))
@@ -729,6 +730,7 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
                 return 0;
             *tag = mpack_tag_make_ext(mpack_load_i8(reader->data + 5), mpack_load_u32(reader->data + 1));
             return MPACK_TAG_SIZE_EXT32;
+        #endif
 
         // float
         case 0xca:
@@ -800,6 +802,7 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
             *tag = mpack_tag_make_int(mpack_load_i64(reader->data + 1));
             return MPACK_TAG_SIZE_I64;
 
+        #if MPACK_EXTENSIONS
         // fixext1
         case 0xd4:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_FIXEXT1))
@@ -834,6 +837,7 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
                 return 0;
             *tag = mpack_tag_make_ext(mpack_load_i8(reader->data + 1), 16);
             return MPACK_TAG_SIZE_FIXEXT16;
+        #endif
 
         // str8
         case 0xd9:
@@ -886,18 +890,32 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
 
         // reserved
         case 0xc1:
-            break;
+            mpack_reader_flag_error(reader, mpack_error_invalid);
+            return 0;
+
+        #if !MPACK_EXTENSIONS
+        // ext
+        case 0xc7: // fallthrough
+        case 0xc8: // fallthrough
+        case 0xc9: // fallthrough
+        // fixext
+        case 0xd4: // fallthrough
+        case 0xd5: // fallthrough
+        case 0xd6: // fallthrough
+        case 0xd7: // fallthrough
+        case 0xd8:
+            mpack_reader_flag_error(reader, mpack_error_unsupported);
+            return 0;
+        #endif
 
         #if MPACK_OPTIMIZE_FOR_SIZE
         // any other bytes should have been handled by the infix switch
         default:
-            mpack_assert(0, "unreachable");
             break;
         #endif
     }
 
-    // unrecognized type
-    mpack_reader_flag_error(reader, mpack_error_invalid);
+    mpack_assert(0, "unreachable");
     return 0;
 }
 
@@ -923,9 +941,11 @@ mpack_tag_t mpack_read_tag(mpack_reader_t* reader) {
         case mpack_type_array:
             track_error = mpack_track_push(&reader->track, tag.type, tag.v.n);
             break;
+        #if MPACK_EXTENSIONS
+        case mpack_type_ext:
+        #endif
         case mpack_type_str:
         case mpack_type_bin:
-        case mpack_type_ext:
             track_error = mpack_track_push(&reader->track, tag.type, tag.v.l);
             break;
         default:
@@ -970,10 +990,12 @@ void mpack_discard(mpack_reader_t* reader) {
             mpack_skip_bytes(reader, var.v.l);
             mpack_done_bin(reader);
             break;
+        #if MPACK_EXTENSIONS
         case mpack_type_ext:
             mpack_skip_bytes(reader, var.v.l);
             mpack_done_ext(reader);
             break;
+        #endif
         case mpack_type_array: {
             for (; var.v.n > 0; --var.v.n) {
                 mpack_discard(reader);
@@ -998,6 +1020,7 @@ void mpack_discard(mpack_reader_t* reader) {
     }
 }
 
+#if MPACK_EXTENSIONS
 mpack_timestamp_t mpack_read_timestamp(mpack_reader_t* reader, size_t size) {
     mpack_timestamp_t timestamp = {0, 0};
 
@@ -1042,6 +1065,7 @@ mpack_timestamp_t mpack_read_timestamp(mpack_reader_t* reader, size_t size) {
 
     return timestamp;
 }
+#endif
 
 #if MPACK_READ_TRACKING
 void mpack_done_type(mpack_reader_t* reader, mpack_type_t type) {
@@ -1140,10 +1164,12 @@ static void mpack_print_element(mpack_reader_t* reader, mpack_print_t* print, si
             mpack_done_bin(reader);
             break;
 
+        #if MPACK_EXTENSIONS
         case mpack_type_ext:
             count = mpack_print_read_prefix(reader, mpack_tag_ext_length(&val), buffer, sizeof(buffer));
             mpack_done_ext(reader);
             break;
+        #endif
 
         default:
             break;

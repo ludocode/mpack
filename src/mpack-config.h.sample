@@ -84,6 +84,23 @@
 #endif
 
 /**
+ * @def MPACK_EXTENSIONS
+ *
+ * Enables the use of extension types.
+ *
+ * This is disabled by default. Define it to 1 to enable it. If disabled,
+ * functions to read and write extensions will not exist, and any occurrence of
+ * extension types in parsed messages will flag @ref mpack_error_invalid.
+ *
+ * MPack discourages the use of extension types. See the section on extension
+ * types in @ref docs/protocol.md for more information.
+ */
+#ifndef MPACK_EXTENSIONS
+#define MPACK_EXTENSIONS 0
+#endif
+
+
+/**
  * @}
  */
 

@@ -839,6 +839,7 @@ static void test_expect_bin() {
 
 }
 
+#if MPACK_EXTENSIONS
 static void test_expect_ext() {
     char buf[256];
     int8_t type;
@@ -936,6 +937,7 @@ static void test_expect_ext() {
     /*TEST_SIMPLE_READ_ERROR("\x01", NULL == mpack_expect_ext_alloc(&reader, &type, 3, &length), mpack_error_type);*/
     #endif
 }
+#endif
 
 static void test_expect_arrays() {
     uint32_t count;
@@ -1237,6 +1239,7 @@ static void test_expect_streaming() {
     }
 }
 
+#if MPACK_EXTENSIONS
 static bool test_timestamp_match(int64_t seconds, uint32_t nanoseconds, mpack_timestamp_t timestamp) {
     TEST_TRUE(seconds == timestamp.seconds);
     TEST_TRUE(nanoseconds == timestamp.nanoseconds);
@@ -1278,6 +1281,7 @@ static void test_expect_timestamp() {
     TEST_SIMPLE_READ_ERROR("\xc7\x0c\xff\x40\x00\x00\x00\xff\xff\xff\xff\xff\xff\xff\xff",
             (mpack_expect_timestamp(&reader), true), mpack_error_invalid);
 }
+#endif
 
 void test_expect() {
     test_expect_example_read();
@@ -1298,9 +1302,14 @@ void test_expect() {
     // compound types
     test_expect_str();
     test_expect_bin();
-    test_expect_ext();
     test_expect_arrays();
     test_expect_maps();
+
+    // extension types
+    #if MPACK_EXTENSIONS
+    test_expect_ext();
+    test_expect_timestamp();
+    #endif
 
     // key switches
     test_expect_key_cstr_basic();
@@ -1318,7 +1327,6 @@ void test_expect() {
     test_expect_bad_type();
     test_expect_pre_error();
     test_expect_streaming();
-    test_expect_timestamp();
 }
 
 #endif

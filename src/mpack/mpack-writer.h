@@ -306,7 +306,7 @@ mpack_error_t mpack_writer_destroy(mpack_writer_t* writer);
  * This can be used to interface with older libraries that do not support
  * the newest MessagePack features (such as the @c str8 type.)
  *
- * This requires @ref MPACK_COMPATIBILITY.
+ * @note This requires @ref MPACK_COMPATIBILITY.
  */
 MPACK_INLINE void mpack_writer_set_version(mpack_writer_t* writer, mpack_version_t version) {
     writer->version = version;
@@ -541,8 +541,11 @@ void mpack_write_nil(mpack_writer_t* writer);
 /** Write a pre-encoded messagepack object */
 void mpack_write_object_bytes(mpack_writer_t* writer, const char* data, size_t bytes);
 
+#if MPACK_EXTENSIONS
 /**
  * Writes a timestamp.
+ *
+ * @note This requires @ref MPACK_EXTENSIONS.
  *
  * @param seconds The (signed) number of seconds since 1970-01-01T00:00:00Z.
  * @param nanoseconds The additional number of nanoseconds from 0 to 999,999,999 inclusive.
@@ -552,6 +555,8 @@ void mpack_write_timestamp(mpack_writer_t* writer, int64_t seconds, uint32_t nan
 /**
  * Writes a timestamp with the given number of seconds (and zero nanoseconds).
  *
+ * @note This requires @ref MPACK_EXTENSIONS.
+ *
  * @param seconds The (signed) number of seconds since 1970-01-01T00:00:00Z.
  */
 MPACK_INLINE void mpack_write_timestamp_seconds(mpack_writer_t* writer, int64_t seconds) {
@@ -560,10 +565,13 @@ MPACK_INLINE void mpack_write_timestamp_seconds(mpack_writer_t* writer, int64_t 
 
 /**
  * Writes a timestamp.
+ *
+ * @note This requires @ref MPACK_EXTENSIONS.
  */
 MPACK_INLINE void mpack_write_timestamp_struct(mpack_writer_t* writer, mpack_timestamp_t timestamp) {
     mpack_write_timestamp(writer, timestamp.seconds, timestamp.nanoseconds);
 }
+#endif
 
 /**
  * @}
@@ -835,6 +843,7 @@ MPACK_INLINE void mpack_finish_bin(mpack_writer_t* writer) {
     mpack_writer_track_pop(writer, mpack_type_bin);
 }
 
+#if MPACK_EXTENSIONS
 /**
  * Finishes writing an extended type binary data blob.
  *
@@ -843,12 +852,15 @@ MPACK_INLINE void mpack_finish_bin(mpack_writer_t* writer) {
  *
  * This will track writes to ensure that the correct number of bytes are written.
  *
+ * @note This requires @ref MPACK_EXTENSIONS.
+ *
  * @see mpack_start_ext()
  * @see mpack_write_bytes()
  */
 MPACK_INLINE void mpack_finish_ext(mpack_writer_t* writer) {
     mpack_writer_track_pop(writer, mpack_type_ext);
 }
+#endif
 
 /**
  * Finishes writing the given compound type.

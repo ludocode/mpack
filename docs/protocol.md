@@ -1,9 +1,9 @@
 
 # Protocol Clarifications
 
-The MessagePack specification contains overlap between different types, allowing the same data to be encoded in many different representations. For example there are overlong sequences, signed/unsigned overlap for non-negative integers, different floating-point widths, raw/str/bin types, and more.
+The MessagePack specification contains overlap between different types, allowing the same data to be encoded in many different representations. For example there are overlong sequences, signed/unsigned overlap for non-negative integers, different floating-point widths, raw/str/bin/ext types, and more.
 
-MessagePack also does not specify how types should be interpreted, such as whether maps are ordered, whether strings can be treated as binary data, whether integers can be treated as real numbers, and so on.
+MessagePack also does not specify how types should be interpreted, such as whether maps are ordered, whether strings can be treated as binary data, whether integers can be treated as real numbers, and so on. Some of these are explicitly left up to the implementation, such as whether unrecognized extensions should be rejected or treated as opaque data.
 
 MPack currently implements the [v5/2.0 MessagePack specification](https://github.com/msgpack/msgpack/blob/0b8f5ac67cdd130f4d4d4fe6afb839b989fdb86a/spec.md?). This document describes MPack's implementation.
 
@@ -90,3 +90,11 @@ The MessagePack [v4/1.0 spec](https://github.com/msgpack/msgpack/blob/acbcdf6b2a
 - Since MPack allows overlong sequences, it does not require that the str8 type be used, so data encoded with an old-style encoder will be parsed correctly by MPack (with raw types parsed as strings.)
 
 However, other libraries typically also include functions to write an old-style raw in order to create backwards-compatible data, such as `msgpack_pack_v4raw()` in the reference implementation. MPack does not. There hasn't been any demand to create backwards-compatible data so far. If there were, I would be more likely to implement an option on a writer to always generate an old-style raw for both str and bin (and to flag an error if ext is used.) This is not implemented yet, and will hopefully never be implemented if libraries for the old specification can be phased out. If you need this feature, please let me know.
+
+## Extension Types
+
+The MessagePack specification defines support for extension types. These are like bin types, but with an additional marker to define the semantic type, giving a clue to parsers about how to interpret the contained bits.
+
+This author considers them redundant with the bin type. Adding semantic information about binary data does nothing to improve interoperability. It instead only increases the complexity of decoders and fragments support for MessagePack. In my opinion the MessagePack spec should be forever frozen at v5 without extension types, similar (in theory) to JSON. See the discussion in [msgpack/msgpack!206](https://github.com/msgpack/msgpack/issues/206#issuecomment-386066548) for more.
+
+MPack discourages the use of extension types. In its default configuration, MPack will flag `mpack_error_unsupported` when encountering them, and functions to encode them are preproc'd out. Support for extension types can be enabled by defining `MPACK_EXTENSIONS`.

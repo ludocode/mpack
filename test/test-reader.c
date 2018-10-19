@@ -54,6 +54,18 @@ static void test_reader_miscellaneous() {
     // 0xc1 is reserved; it should always raise mpack_error_invalid
     TEST_SIMPLE_READ_ERROR("\xc1", mpack_tag_equal(mpack_read_tag(&reader), mpack_tag_nil()), mpack_error_invalid);
 
+    #if !MPACK_EXTENSIONS
+    // ext types are unsupported without MPACK_EXTENSIONS
+    TEST_SIMPLE_READ_ERROR("\xc7", mpack_tag_equal(mpack_read_tag(&reader), mpack_tag_nil()), mpack_error_unsupported);
+    TEST_SIMPLE_READ_ERROR("\xc8", mpack_tag_equal(mpack_read_tag(&reader), mpack_tag_nil()), mpack_error_unsupported);
+    TEST_SIMPLE_READ_ERROR("\xc9", mpack_tag_equal(mpack_read_tag(&reader), mpack_tag_nil()), mpack_error_unsupported);
+    TEST_SIMPLE_READ_ERROR("\xd4", mpack_tag_equal(mpack_read_tag(&reader), mpack_tag_nil()), mpack_error_unsupported);
+    TEST_SIMPLE_READ_ERROR("\xd5", mpack_tag_equal(mpack_read_tag(&reader), mpack_tag_nil()), mpack_error_unsupported);
+    TEST_SIMPLE_READ_ERROR("\xd6", mpack_tag_equal(mpack_read_tag(&reader), mpack_tag_nil()), mpack_error_unsupported);
+    TEST_SIMPLE_READ_ERROR("\xd7", mpack_tag_equal(mpack_read_tag(&reader), mpack_tag_nil()), mpack_error_unsupported);
+    TEST_SIMPLE_READ_ERROR("\xd8", mpack_tag_equal(mpack_read_tag(&reader), mpack_tag_nil()), mpack_error_unsupported);
+    #endif
+
     // simple truncated tags (testing discard of additional
     // temporary data in mpack_parse_tag())
     TEST_SIMPLE_READ_ERROR("\xcc", mpack_tag_equal(mpack_read_tag(&reader), mpack_tag_nil()), mpack_error_invalid);

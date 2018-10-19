@@ -405,6 +405,18 @@ static void test_node_read_misc() {
     TEST_SIMPLE_TREE_READ("\xc2", mpack_tag_equal(mpack_tag_false(), mpack_node_tag(node)));
     TEST_SIMPLE_TREE_READ("\xc3", mpack_tag_equal(mpack_tag_true(), mpack_node_tag(node)));
 
+    #if !MPACK_EXTENSIONS
+    // ext types are unsupported without MPACK_EXTENSIONS
+    TEST_SIMPLE_TREE_READ_ERROR("\xc7", mpack_type_nil == mpack_node_type(node), mpack_error_unsupported);
+    TEST_SIMPLE_TREE_READ_ERROR("\xc8", mpack_type_nil == mpack_node_type(node), mpack_error_unsupported);
+    TEST_SIMPLE_TREE_READ_ERROR("\xc9", mpack_type_nil == mpack_node_type(node), mpack_error_unsupported);
+    TEST_SIMPLE_TREE_READ_ERROR("\xd4", mpack_type_nil == mpack_node_type(node), mpack_error_unsupported);
+    TEST_SIMPLE_TREE_READ_ERROR("\xd5", mpack_type_nil == mpack_node_type(node), mpack_error_unsupported);
+    TEST_SIMPLE_TREE_READ_ERROR("\xd6", mpack_type_nil == mpack_node_type(node), mpack_error_unsupported);
+    TEST_SIMPLE_TREE_READ_ERROR("\xd7", mpack_type_nil == mpack_node_type(node), mpack_error_unsupported);
+    TEST_SIMPLE_TREE_READ_ERROR("\xd8", mpack_type_nil == mpack_node_type(node), mpack_error_unsupported);
+    #endif
+
     // test missing space for cstr null-terminator
     mpack_tree_t tree;
     mpack_tree_init_pool(&tree, "\xa0", 1, pool, sizeof(pool) / sizeof(*pool));
@@ -593,7 +605,9 @@ static void test_node_read_pre_error() {
     TEST_SIMPLE_TREE_READ_ERROR("", false == mpack_node_map_contains_str(node, "test", 4), mpack_error_invalid);
     TEST_SIMPLE_TREE_READ_ERROR("", false == mpack_node_map_contains_cstr(node, "test"), mpack_error_invalid);
 
+    #if MPACK_EXTENSIONS
     TEST_SIMPLE_TREE_READ_ERROR("", 0 == mpack_node_exttype(node), mpack_error_invalid);
+    #endif
     TEST_SIMPLE_TREE_READ_ERROR("", 0 == mpack_node_data_len(node), mpack_error_invalid);
     TEST_SIMPLE_TREE_READ_ERROR("", 0 == mpack_node_strlen(node), mpack_error_invalid);
     TEST_SIMPLE_TREE_READ_ERROR("", NULL == mpack_node_str(node), mpack_error_invalid);
@@ -769,6 +783,7 @@ static void test_node_read_enum() {
     TEST_SIMPLE_TREE_READ_ERROR("\x01", (mpack_node_nil(node), COUNT == (fruit_t)mpack_node_enum(node, fruits, COUNT)), mpack_error_type);
 }
 
+#if MPACK_EXTENSIONS
 static void test_node_read_timestamp() {
     mpack_node_data_t pool[1];
 
@@ -834,6 +849,7 @@ static void test_node_read_timestamp() {
     TEST_SIMPLE_TREE_READ_ERROR("\xc7\x0c\xff\x40\x00\x00\x00\xff\xff\xff\xff\xff\xff\xff\xff",
             (mpack_node_timestamp(node), true), mpack_error_invalid);
 }
+#endif
 
 static void test_node_read_array() {
     static const char test[] = "\x93\x90\x91\xc3\x92\xc3\xc3";
@@ -954,7 +970,9 @@ static void test_node_read_compound_errors(void) {
     TEST_SIMPLE_TREE_READ_ERROR("\x00", false == mpack_node_map_contains_str(node, "test", 4), mpack_error_type);
     TEST_SIMPLE_TREE_READ_ERROR("\x00", false == mpack_node_map_contains_cstr(node, "test"), mpack_error_type);
 
+    #if MPACK_EXTENSIONS
     TEST_SIMPLE_TREE_READ_ERROR("\x00", 0 == mpack_node_exttype(node), mpack_error_type);
+    #endif
     TEST_SIMPLE_TREE_READ_ERROR("\x00", 0 == mpack_node_data_len(node), mpack_error_type);
     TEST_SIMPLE_TREE_READ_ERROR("\x00", 0 == mpack_node_strlen(node), mpack_error_type);
     TEST_SIMPLE_TREE_READ_ERROR("\x00", NULL == mpack_node_str(node), mpack_error_type);
@@ -985,7 +1003,15 @@ static void test_node_read_compound_errors(void) {
 }
 
 static void test_node_read_data(void) {
-    static const char test[] = "\x93\xa5""alice\xc4\x03""bob\xd6\x07""carl";
+    static const char test[] = "\x93\xa5""alice\xc4\x03""bob"
+        // we'll put carl in an ext (of exttype 7) if extensions are supported,
+        // or in a bin otherwise.
+        #if MPACK_EXTENSIONS
+        "\xd6\x07"
+        #else
+        "\xc4\x04"
+        #endif
+        "carl";
     mpack_tree_t tree;
     TEST_TREE_INIT(&tree, test, sizeof(test) - 1);
     mpack_tree_parse(&tree);
@@ -1020,7 +1046,9 @@ static void test_node_read_data(void) {
     #endif
 
     mpack_node_t carl = mpack_node_array_at(root, 2);
+    #if MPACK_EXTENSIONS
     TEST_TRUE(7 == mpack_node_exttype(carl));
+    #endif
     TEST_TRUE(4 == mpack_node_data_len(carl));
     TEST_TRUE(0 == memcmp("carl", mpack_node_data(carl), 4));
 
@@ -1264,7 +1292,9 @@ void test_node(void) {
     test_node_read_pre_error();
     test_node_read_strings();
     test_node_read_enum();
+    #if MPACK_EXTENSIONS
     test_node_read_timestamp();
+    #endif
 
     // compound types
     test_node_read_array();

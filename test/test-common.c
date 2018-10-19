@@ -117,10 +117,12 @@ static void test_tags_simple(void) {
     TEST_TRUE(-1 == mpack_tag_cmp(mpack_tag_map(0), mpack_tag_map(1)));
     TEST_TRUE(1 == mpack_tag_cmp(mpack_tag_map(1), mpack_tag_map(0)));
 
+    #if MPACK_EXTENSIONS
     TEST_TRUE(-1 == mpack_tag_cmp(mpack_tag_ext(1, 1), mpack_tag_ext(2, 0)));
     TEST_TRUE(-1 == mpack_tag_cmp(mpack_tag_ext(1, 1), mpack_tag_ext(1, 2)));
     TEST_TRUE(1 == mpack_tag_cmp(mpack_tag_ext(2, 0), mpack_tag_ext(1, 1)));
     TEST_TRUE(1 == mpack_tag_cmp(mpack_tag_ext(1, 2), mpack_tag_ext(1, 1)));
+    #endif
 
 }
 
@@ -173,7 +175,9 @@ static void test_tags_compound() {
     TEST_TRUE(mpack_tag_map(0).type == mpack_type_map);
     TEST_TRUE(mpack_tag_str(0).type == mpack_type_str);
     TEST_TRUE(mpack_tag_bin(0).type == mpack_type_bin);
+    #if MPACK_EXTENSIONS
     TEST_TRUE(mpack_tag_ext(0, 0).type == mpack_type_ext);
+    #endif
 
     TEST_TRUE(true == mpack_tag_equal(mpack_tag_array(0), mpack_tag_array(0)));
     TEST_TRUE(false == mpack_tag_equal(mpack_tag_array(0), mpack_tag_array(1)));
@@ -199,6 +203,7 @@ static void test_tags_compound() {
     TEST_TRUE(-1 == mpack_tag_cmp(mpack_tag_bin(0), mpack_tag_bin(1)));
     TEST_TRUE(1 == mpack_tag_cmp(mpack_tag_bin(1), mpack_tag_bin(0)));
 
+    #if MPACK_EXTENSIONS
     TEST_TRUE(true == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_ext(0, 0)));
     TEST_TRUE(true == mpack_tag_equal(mpack_tag_ext(0, 1), mpack_tag_ext(0, 1)));
     TEST_TRUE(true == mpack_tag_equal(mpack_tag_ext(127, 0), mpack_tag_ext(127, 0)));
@@ -208,31 +213,34 @@ static void test_tags_compound() {
     TEST_TRUE(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_ext(127, 0)));
     TEST_TRUE(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_ext(-128, 0)));
     TEST_TRUE(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_ext(0, 1)));
+    #endif
 
     TEST_TRUE(false == mpack_tag_equal(mpack_tag_array(0), mpack_tag_map(0)));
     TEST_TRUE(false == mpack_tag_equal(mpack_tag_array(0), mpack_tag_str(0)));
     TEST_TRUE(false == mpack_tag_equal(mpack_tag_array(0), mpack_tag_bin(0)));
-    TEST_TRUE(false == mpack_tag_equal(mpack_tag_array(0), mpack_tag_ext(0, 0)));
 
     TEST_TRUE(false == mpack_tag_equal(mpack_tag_map(0), mpack_tag_array(0)));
     TEST_TRUE(false == mpack_tag_equal(mpack_tag_map(0), mpack_tag_str(0)));
     TEST_TRUE(false == mpack_tag_equal(mpack_tag_map(0), mpack_tag_bin(0)));
-    TEST_TRUE(false == mpack_tag_equal(mpack_tag_map(0), mpack_tag_ext(0, 0)));
 
     TEST_TRUE(false == mpack_tag_equal(mpack_tag_str(0), mpack_tag_array(0)));
     TEST_TRUE(false == mpack_tag_equal(mpack_tag_str(0), mpack_tag_map(0)));
     TEST_TRUE(false == mpack_tag_equal(mpack_tag_str(0), mpack_tag_bin(0)));
-    TEST_TRUE(false == mpack_tag_equal(mpack_tag_str(0), mpack_tag_ext(0, 0)));
 
     TEST_TRUE(false == mpack_tag_equal(mpack_tag_bin(0), mpack_tag_array(0)));
     TEST_TRUE(false == mpack_tag_equal(mpack_tag_bin(0), mpack_tag_map(0)));
     TEST_TRUE(false == mpack_tag_equal(mpack_tag_bin(0), mpack_tag_str(0)));
-    TEST_TRUE(false == mpack_tag_equal(mpack_tag_bin(0), mpack_tag_ext(0, 0)));
 
+    #if MPACK_EXTENSIONS
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_array(0), mpack_tag_ext(0, 0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_map(0), mpack_tag_ext(0, 0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_str(0), mpack_tag_ext(0, 0)));
+    TEST_TRUE(false == mpack_tag_equal(mpack_tag_bin(0), mpack_tag_ext(0, 0)));
     TEST_TRUE(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_array(0)));
     TEST_TRUE(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_map(0)));
     TEST_TRUE(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_str(0)));
     TEST_TRUE(false == mpack_tag_equal(mpack_tag_ext(0, 0), mpack_tag_bin(0)));
+    #endif
 }
 
 static void test_string(const char* str, const char* content) {
@@ -267,9 +275,11 @@ static void test_strings() {
     TEST_ERROR_TYPE(uint);
     TEST_ERROR_TYPE(str);
     TEST_ERROR_TYPE(bin);
-    TEST_ERROR_TYPE(ext);
     TEST_ERROR_TYPE(array);
     TEST_ERROR_TYPE(map);
+    #if MPACK_EXTENSIONS
+    TEST_ERROR_TYPE(ext);
+    #endif
     #undef TEST_ERROR_TYPE
 
     // test strings for invalid enum values

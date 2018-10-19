@@ -33,8 +33,10 @@
     #define MPACK_STDIO 0
     #endif
 #else
-    // For other platforms, we currently only test in the default
-    // configuration, so we use the default for most settings.
+    // For other platforms, we currently only test in a single configuration,
+    // so we enable everything and otherwise use the default for most settings.
+    #define MPACK_COMPATIBILITY 1
+    #define MPACK_EXTENSIONS 1
 
     // We define our own allocators to test allocations.
     #define MPACK_MALLOC test_malloc

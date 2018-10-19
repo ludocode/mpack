@@ -19,6 +19,14 @@
 #define PSEUDOJSON_FILES_PATH "test/pseudojson/"
 #endif
 
+#if MPACK_EXTENSIONS
+#define TEST_FILE_MESSAGEPACK (MESSAGEPACK_FILES_PATH "test-file-ext.mp")
+#define TEST_FILE_PSEUDOJSON (PSEUDOJSON_FILES_PATH "test-file-ext.debug")
+#else
+#define TEST_FILE_MESSAGEPACK (MESSAGEPACK_FILES_PATH "test-file-noext.mp")
+#define TEST_FILE_PSEUDOJSON (PSEUDOJSON_FILES_PATH "test-file-noext.debug")
+#endif
+
 static const char* test_blank_filename = "mpack-test-blank-file";
 static const char* test_filename = "mpack-test-file";
 static const char* test_dir = "mpack-test-dir";
@@ -114,6 +122,7 @@ static void test_file_write_contents(mpack_writer_t* writer) {
     test_file_write_bytes(writer, mpack_tag_bin(UINT16_MAX + 1));
     mpack_finish_array(writer);
 
+    #if MPACK_EXTENSIONS
     mpack_start_array(writer, 10);
     test_file_write_bytes(writer, mpack_tag_ext(1, 0));
     test_file_write_bytes(writer, mpack_tag_ext(1, 1));
@@ -126,6 +135,9 @@ static void test_file_write_contents(mpack_writer_t* writer) {
     test_file_write_bytes(writer, mpack_tag_ext(4, UINT8_MAX + 1));
     test_file_write_bytes(writer, mpack_tag_ext(5, UINT16_MAX + 1));
     mpack_finish_array(writer);
+    #else
+    mpack_write_nil(writer);
+    #endif
 
     mpack_start_array(writer, 5);
     test_file_write_elements(writer, mpack_tag_array(0));
@@ -261,7 +273,7 @@ static bool test_file_write_failure(void) {
 // compares the test filename to the expected debug output
 static void test_compare_print() {
     size_t expected_size;
-    char* expected_data = test_file_fetch(PSEUDOJSON_FILES_PATH "test-file.debug", &expected_size);
+    char* expected_data = test_file_fetch(TEST_FILE_PSEUDOJSON, &expected_size);
     size_t actual_size;
     char* actual_data = test_file_fetch(test_filename, &actual_size);
 
@@ -295,7 +307,7 @@ static void test_print(void) {
     // dump MessagePack to debug file
 
     size_t input_size;
-    char* input_data = test_file_fetch(MESSAGEPACK_FILES_PATH "test-file.mp", &input_size);
+    char* input_data = test_file_fetch(TEST_FILE_MESSAGEPACK, &input_size);
 
     out = fopen(test_filename, "wb");
     mpack_print_data_to_file(input_data, input_size, out);
@@ -326,8 +338,9 @@ static void test_node_print(void) {
 
     // dump MessagePack to debug file
 
-    mpack_tree_init_filename(&tree, MESSAGEPACK_FILES_PATH "test-file.mp", 0);
+    mpack_tree_init_filename(&tree, TEST_FILE_MESSAGEPACK, 0);
     mpack_tree_parse(&tree);
+    TEST_TRUE(mpack_ok == mpack_tree_error(&tree));
 
     out = fopen(test_filename, "wb");
     mpack_node_print_to_file(mpack_tree_root(&tree), out);
@@ -407,6 +420,7 @@ static void test_file_read_contents(mpack_reader_t* reader) {
     test_file_expect_bytes(reader, mpack_tag_bin(UINT16_MAX + 1));
     mpack_done_array(reader);
 
+    #if MPACK_EXTENSIONS
     TEST_TRUE(10 == mpack_expect_array(reader));
     test_file_expect_bytes(reader, mpack_tag_ext(1, 0));
     test_file_expect_bytes(reader, mpack_tag_ext(1, 1));
@@ -419,6 +433,9 @@ static void test_file_read_contents(mpack_reader_t* reader) {
     test_file_expect_bytes(reader, mpack_tag_ext(4, UINT8_MAX + 1));
     test_file_expect_bytes(reader, mpack_tag_ext(5, UINT16_MAX + 1));
     mpack_done_array(reader);
+    #else
+    mpack_expect_nil(reader);
+    #endif
 
     TEST_TRUE(5 == mpack_expect_array(reader));
     test_file_expect_elements(reader, mpack_tag_array(0));
@@ -674,6 +691,7 @@ static void test_file_node_contents(mpack_node_t root) {
     test_file_node_bytes(mpack_node_array_at(node, 4), mpack_tag_bin(UINT16_MAX + 1));
 
     node = mpack_node_array_at(root, 3);
+    #if MPACK_EXTENSIONS
     TEST_TRUE(10 == mpack_node_array_length(node));
     test_file_node_bytes(mpack_node_array_at(node, 0), mpack_tag_ext(1, 0));
     test_file_node_bytes(mpack_node_array_at(node, 1), mpack_tag_ext(1, 1));
@@ -685,6 +703,9 @@ static void test_file_node_contents(mpack_node_t root) {
     test_file_node_bytes(mpack_node_array_at(node, 7), mpack_tag_ext(3, UINT8_MAX));
     test_file_node_bytes(mpack_node_array_at(node, 8), mpack_tag_ext(4, UINT8_MAX + 1));
     test_file_node_bytes(mpack_node_array_at(node, 9), mpack_tag_ext(5, UINT16_MAX + 1));
+    #else
+    mpack_node_nil(node);
+    #endif
 
     node = mpack_node_array_at(root, 4);
     TEST_TRUE(5 == mpack_node_array_length(node));
@@ -867,7 +888,7 @@ static bool test_file_node_failure(void) {
     char* str = mpack_node_data_alloc(node, 100);
     TEST_POSSIBLE_FAILURE();
     TEST_TRUE(str != NULL);
-    const char* expected = "The quick brown fox jumps over a lazy dog.";
+    const char* expected = quick_brown_fox;
     TEST_TRUE(mpack_node_strlen(node) == strlen(expected));
     if (str) {
         TEST_TRUE(memcmp(str, expected, mpack_node_strlen(node)) == 0);

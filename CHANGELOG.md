@@ -14,9 +14,11 @@ Breaking Changes:
 
 - The mpack configuration `mpack-config.h` file is now optional, and requires `MPACK_HAS_CONFIG` in order to be included. This means you must define `MPACK_HAS_CONFIG` when upgrading or your config file will be ignored! (It is recommended to delete your config file and use the defaults.)
 
+- Extension types are now disabled by default. You must define `MPACK_EXTENSIONS` to use them.
+
 New Features:
 
-- The timestamp type has been implemented. A timestamp is a signed number of nanoseconds since January 1st, 1970 at 12:00 UTC.
+- The timestamp type has been implemented. A timestamp is a signed number of nanoseconds since January 1st, 1970 at 12:00 UTC. (This requires `MPACK_EXTENSIONS`.)
 
 - The Node API can now parse multiple messages from a data source. `mpack_tree_parse()` can be called repeatedly to parse each message.
 

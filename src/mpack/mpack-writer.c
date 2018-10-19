@@ -474,9 +474,11 @@ void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t value) {
         case mpack_type_str: mpack_start_str(writer, value.v.l); return;
         case mpack_type_bin: mpack_start_bin(writer, value.v.l); return;
 
+        #if MPACK_EXTENSIONS
         case mpack_type_ext:
             mpack_start_ext(writer, mpack_tag_ext_exttype(&value), mpack_tag_ext_length(&value));
             return;
+        #endif
 
         case mpack_type_array: mpack_start_array(writer, value.v.n); return;
         case mpack_type_map:   mpack_start_map(writer, value.v.n);   return;
@@ -662,6 +664,7 @@ MPACK_STATIC_INLINE void mpack_encode_bin32(char* p, uint32_t count) {
     mpack_store_u32(p + 1, count);
 }
 
+#if MPACK_EXTENSIONS
 MPACK_STATIC_INLINE void mpack_encode_fixext1(char* p, int8_t exttype) {
     mpack_store_u8(p, 0xd4);
     mpack_store_i8(p + 1, exttype);
@@ -726,6 +729,7 @@ MPACK_STATIC_INLINE void mpack_encode_timestamp_12(char* p, int64_t seconds, uin
     mpack_store_u32(p + MPACK_TAG_SIZE_EXT8, nanoseconds);
     mpack_store_i64(p + MPACK_TAG_SIZE_EXT8 + 4, seconds);
 }
+#endif
 
 
 
@@ -913,6 +917,7 @@ void mpack_write_double(mpack_writer_t* writer, double value) {
     MPACK_WRITE_ENCODED(mpack_encode_double, MPACK_TAG_SIZE_DOUBLE, value);
 }
 
+#if MPACK_EXTENSIONS
 void mpack_write_timestamp(mpack_writer_t* writer, int64_t seconds, uint32_t nanoseconds) {
     #if MPACK_COMPATIBILITY
     if (writer->version <= mpack_version_v4) {
@@ -938,6 +943,7 @@ void mpack_write_timestamp(mpack_writer_t* writer, int64_t seconds, uint32_t nan
         MPACK_WRITE_ENCODED(mpack_encode_timestamp_4, MPACK_EXT_SIZE_TIMESTAMP4, (uint32_t)seconds);
     }
 }
+#endif
 
 void mpack_start_array(mpack_writer_t* writer, uint32_t count) {
     mpack_writer_track_element(writer);
@@ -1018,6 +1024,7 @@ void mpack_start_bin(mpack_writer_t* writer, uint32_t count) {
     mpack_writer_track_push(writer, mpack_type_bin, count);
 }
 
+#if MPACK_EXTENSIONS
 void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count) {
     #if MPACK_COMPATIBILITY
     if (writer->version <= mpack_version_v4) {
@@ -1049,6 +1056,7 @@ void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count) {
 
     mpack_writer_track_push(writer, mpack_type_ext, count);
 }
+#endif
 
 
 
@@ -1118,12 +1126,14 @@ void mpack_write_bin(mpack_writer_t* writer, const char* data, uint32_t count) {
     mpack_finish_bin(writer);
 }
 
+#if MPACK_EXTENSIONS
 void mpack_write_ext(mpack_writer_t* writer, int8_t exttype, const char* data, uint32_t count) {
     mpack_assert(data != NULL, "data pointer for ext of type %i and %i bytes is NULL", exttype, (int)count);
     mpack_start_ext(writer, exttype, count);
     mpack_write_bytes(writer, data, count);
     mpack_finish_ext(writer);
 }
+#endif
 
 void mpack_write_bytes(mpack_writer_t* writer, const char* data, size_t count) {
     mpack_assert(data != NULL, "data pointer for %i bytes is NULL", (int)count);

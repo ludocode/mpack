@@ -30,12 +30,16 @@ MPACK_STATIC_INLINE const char* mpack_node_data_unchecked(mpack_node_t node) {
 
     mpack_type_t type = node.data->type;
     MPACK_UNUSED(type);
-    mpack_assert(type == mpack_type_str || type == mpack_type_bin || type == mpack_type_ext,
-            "node of type %i (%s) is not a data type!", type, mpack_type_to_string(type));
+    mpack_assert(type == mpack_type_str || type == mpack_type_bin
+            #if MPACK_EXTENSIONS
+            || type == mpack_type_ext
+            #endif
+            , "node of type %i (%s) is not a data type!", type, mpack_type_to_string(type));
 
     return node.tree->data + node.data->value.offset;
 }
 
+#if MPACK_EXTENSIONS
 MPACK_STATIC_INLINE int8_t mpack_node_exttype_unchecked(mpack_node_t node) {
     mpack_assert(mpack_node_error(node) == mpack_ok, "tree is in an error state!");
 
@@ -47,6 +51,7 @@ MPACK_STATIC_INLINE int8_t mpack_node_exttype_unchecked(mpack_node_t node) {
     // the exttype of an ext node is stored in the byte preceding the data
     return mpack_load_i8(mpack_node_data_unchecked(node) - 1);
 }
+#endif
 
 
 
@@ -357,12 +362,14 @@ static bool mpack_tree_parse_bytes(mpack_tree_t* tree, mpack_node_data_t* node) 
     return mpack_tree_reserve_bytes(tree, node->len);
 }
 
+#if MPACK_EXTENSIONS
 static bool mpack_tree_parse_ext(mpack_tree_t* tree, mpack_node_data_t* node) {
     // reserve space for exttype
     tree->parser.current_node_reserved += sizeof(int8_t);
     node->type = mpack_type_ext;
     return mpack_tree_parse_bytes(tree, node);
 }
+#endif
 
 static bool mpack_tree_parse_node_contents(mpack_tree_t* tree, mpack_node_data_t* node) {
     mpack_assert(tree->parser.state == mpack_tree_parse_state_in_progress);
@@ -512,6 +519,7 @@ static bool mpack_tree_parse_node_contents(mpack_tree_t* tree, mpack_node_data_t
             node->len = mpack_load_u32(tree->data + tree->size + 1);
             return mpack_tree_parse_bytes(tree, node);
 
+        #if MPACK_EXTENSIONS
         // ext8
         case 0xc7:
             if (!mpack_tree_reserve_bytes(tree, sizeof(uint8_t)))
@@ -532,6 +540,7 @@ static bool mpack_tree_parse_node_contents(mpack_tree_t* tree, mpack_node_data_t
                 return false;
             node->len = mpack_load_u32(tree->data + tree->size + 1);
             return mpack_tree_parse_ext(tree, node);
+        #endif
 
         // float
         case 0xca:
@@ -613,6 +622,7 @@ static bool mpack_tree_parse_node_contents(mpack_tree_t* tree, mpack_node_data_t
             node->value.i = mpack_load_i64(tree->data + tree->size + 1);
             return true;
 
+        #if MPACK_EXTENSIONS
         // fixext1
         case 0xd4:
             node->len = 1;
@@ -637,6 +647,7 @@ static bool mpack_tree_parse_node_contents(mpack_tree_t* tree, mpack_node_data_t
         case 0xd8:
             node->len = 16;
             return mpack_tree_parse_ext(tree, node);
+        #endif
 
         // str8
         case 0xd9:
@@ -698,6 +709,21 @@ static bool mpack_tree_parse_node_contents(mpack_tree_t* tree, mpack_node_data_t
         case 0xc1:
             mpack_tree_flag_error(tree, mpack_error_invalid);
             return false;
+
+        #if !MPACK_EXTENSIONS
+        // ext
+        case 0xc7: // fallthrough
+        case 0xc8: // fallthrough
+        case 0xc9: // fallthrough
+        // fixext
+        case 0xd4: // fallthrough
+        case 0xd5: // fallthrough
+        case 0xd6: // fallthrough
+        case 0xd7: // fallthrough
+        case 0xd8:
+            mpack_tree_flag_error(tree, mpack_error_unsupported);
+            return false;
+        #endif
 
         #if MPACK_OPTIMIZE_FOR_SIZE
         // any other bytes should have been handled by the infix switch
@@ -1232,10 +1258,12 @@ mpack_tag_t mpack_node_tag(mpack_node_t node) {
         case mpack_type_str:     tag.v.l = node.data->len;     break;
         case mpack_type_bin:     tag.v.l = node.data->len;     break;
 
+        #if MPACK_EXTENSIONS
         case mpack_type_ext:
             tag.v.l = node.data->len;
             tag.exttype = mpack_node_exttype_unchecked(node);
             break;
+        #endif
 
         case mpack_type_array:   tag.v.n = node.data->len;  break;
         case mpack_type_map:     tag.v.n = node.data->len;  break;
@@ -1304,7 +1332,11 @@ static void mpack_node_print_element(mpack_node_t node, mpack_print_t* print, si
             {
                 const char* prefix = NULL;
                 size_t prefix_length = 0;
-                if (mpack_node_type(node) == mpack_type_bin || mpack_node_type(node) == mpack_type_ext) {
+                if (mpack_node_type(node) == mpack_type_bin
+                        #if MPACK_EXTENSIONS
+                        || mpack_node_type(node) == mpack_type_ext
+                        #endif
+                ) {
                     prefix = mpack_node_data(node);
                     prefix_length = mpack_node_data_len(node);
                 }
@@ -1375,6 +1407,7 @@ void mpack_node_print_to_file(mpack_node_t node, FILE* file) {
  * Node Value Functions
  */
 
+#if MPACK_EXTENSIONS
 mpack_timestamp_t mpack_node_timestamp(mpack_node_t node) {
     mpack_timestamp_t timestamp = {0, 0};
 
@@ -1426,6 +1459,7 @@ int64_t mpack_node_timestamp_seconds(mpack_node_t node) {
 uint32_t mpack_node_timestamp_nanoseconds(mpack_node_t node) {
     return mpack_node_timestamp(node).nanoseconds;
 }
+#endif
 
 
 
@@ -1456,7 +1490,11 @@ size_t mpack_node_copy_data(mpack_node_t node, char* buffer, size_t bufsize) {
     mpack_assert(bufsize == 0 || buffer != NULL, "buffer is NULL for maximum of %i bytes", (int)bufsize);
 
     mpack_type_t type = node.data->type;
-    if (type != mpack_type_str && type != mpack_type_bin && type != mpack_type_ext) {
+    if (type != mpack_type_str && type != mpack_type_bin
+            #if MPACK_EXTENSIONS
+            && type != mpack_type_ext
+            #endif
+    ) {
         mpack_node_flag_error(node, mpack_error_type);
         return 0;
     }
@@ -1571,7 +1609,11 @@ char* mpack_node_data_alloc(mpack_node_t node, size_t maxlen) {
 
     // make sure this is a valid data type
     mpack_type_t type = node.data->type;
-    if (type != mpack_type_str && type != mpack_type_bin && type != mpack_type_ext) {
+    if (type != mpack_type_str && type != mpack_type_bin
+            #if MPACK_EXTENSIONS
+            && type != mpack_type_ext
+            #endif
+    ) {
         mpack_node_flag_error(node, mpack_error_type);
         return NULL;
     }
@@ -2138,6 +2180,7 @@ double mpack_node_double_strict(mpack_node_t node) {
     return 0.0;
 }
 
+#if MPACK_EXTENSIONS
 int8_t mpack_node_exttype(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
@@ -2148,13 +2191,18 @@ int8_t mpack_node_exttype(mpack_node_t node) {
     mpack_node_flag_error(node, mpack_error_type);
     return 0;
 }
+#endif
 
 uint32_t mpack_node_data_len(mpack_node_t node) {
     if (mpack_node_error(node) != mpack_ok)
         return 0;
 
     mpack_type_t type = node.data->type;
-    if (type == mpack_type_str || type == mpack_type_bin || type == mpack_type_ext)
+    if (type == mpack_type_str || type == mpack_type_bin
+            #if MPACK_EXTENSIONS
+            || type == mpack_type_ext
+            #endif
+            )
         return (uint32_t)node.data->len;
 
     mpack_node_flag_error(node, mpack_error_type);
@@ -2189,7 +2237,11 @@ const char* mpack_node_data(mpack_node_t node) {
         return NULL;
 
     mpack_type_t type = node.data->type;
-    if (type == mpack_type_str || type == mpack_type_bin || type == mpack_type_ext)
+    if (type == mpack_type_str || type == mpack_type_bin
+            #if MPACK_EXTENSIONS
+            || type == mpack_type_ext
+            #endif
+            )
         return mpack_node_data_unchecked(node);
 
     mpack_node_flag_error(node, mpack_error_type);

@@ -64,12 +64,17 @@ AddFlagIfSupported("-Wmisleading-indentation")
 
 # Optional flags used in various builds
 
-allfeatures = [
+defaultfeatures = [
     "-DMPACK_READER=1",
     "-DMPACK_WRITER=1",
     "-DMPACK_EXPECT=1",
     "-DMPACK_NODE=1",
 ]
+allfeatures = defaultfeatures + [
+    "-DMPACK_COMPATIBILITY=1",
+    "-DMPACK_EXTENSIONS=1",
+]
+
 noioconfigs = [
     "-DMPACK_STDLIB=1",
     "-DMPACK_MALLOC=test_malloc",
@@ -135,6 +140,8 @@ def AddBuilds(variant_dir, cppflags, linkflags = [], valgrind = True):
 
 # The default build, everything in debug. This is also the build
 # used for code coverage measurement and static analysis.
+# Note that the default build does not use the default config; it enables
+# MPACK_COMPATIBILITY and MPACK_EXTENSIONS.
 AddBuild("debug", allfeatures + allconfigs + debugflags + cflags + gcovflags, gcovflags)
 
 
@@ -142,7 +149,8 @@ AddBuild("debug", allfeatures + allconfigs + debugflags + cflags + gcovflags, gc
 # to reveal configuration errors.
 if ARGUMENTS.get('more') or ARGUMENTS.get('all'):
     AddBuild("release", allfeatures + allconfigs + releaseflags + cflags)
-    AddBuilds("embed", allfeatures + cflags + ["-DMPACK_NO_BUILTINS=1"])
+    AddBuilds("default", defaultfeatures + allconfigs + cflags)
+    AddBuilds("embed", defaultfeatures + cflags + ["-DMPACK_NO_BUILTINS=1"])
     AddBuilds("noio", allfeatures + noioconfigs + cflags)
     AddBuild("debug-size", ["-DMPACK_OPTIMIZE_FOR_SIZE=1"] + debugflags + allfeatures + allconfigs + cflags)
     if conf.CheckFlags(cxxflags + ["-std=c++11"], [], "-std=c++11"):
@@ -165,7 +173,8 @@ if ARGUMENTS.get('all'):
     AddBuilds("reader", ["-DMPACK_READER=1"] + allconfigs + cflags)
     AddBuilds("expect", ["-DMPACK_READER=1", "-DMPACK_EXPECT=1"] + allconfigs + cflags)
     AddBuilds("node", ["-DMPACK_NODE=1"] + allconfigs + cflags)
-    AddBuilds("nocompat", ["-DMPACK_COMPATIBILITY=0"] + allfeatures + allconfigs + cflags)
+    AddBuilds("compatibility", ["-DMPACK_COMPATIBILITY=1"] + defaultfeatures + allconfigs + cflags)
+    AddBuilds("extensions", ["-DMPACK_EXTENSIONS=1"] + defaultfeatures + allconfigs + cflags)
 
     # no i/o
     AddBuilds("noio-writer", ["-DMPACK_WRITER=1"] + noioconfigs + cflags)
@@ -178,6 +187,7 @@ if ARGUMENTS.get('all'):
     AddBuilds("embed-reader", ["-DMPACK_READER=1"] + cflags)
     AddBuilds("embed-expect", ["-DMPACK_READER=1", "-DMPACK_EXPECT=1"] + cflags)
     AddBuilds("embed-node", ["-DMPACK_NODE=1"] + cflags)
+    AddBuilds("embed-full", allfeatures + cflags)
 
     # miscellaneous test builds
     AddBuilds("notrack", ["-DMPACK_NO_TRACKING=1"] + allfeatures + allconfigs + cflags)

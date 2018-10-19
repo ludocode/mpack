@@ -794,8 +794,11 @@ float mpack_node_float_strict(mpack_node_t node);
  */
 double mpack_node_double_strict(mpack_node_t node);
 
+#if MPACK_EXTENSIONS
 /**
  * Returns a timestamp.
+ *
+ * @note This requires @ref MPACK_EXTENSIONS.
  *
  * @throws mpack_error_type if the underlying value is not a timestamp.
  */
@@ -804,6 +807,8 @@ mpack_timestamp_t mpack_node_timestamp(mpack_node_t node);
 /**
  * Returns a timestamp's (signed) seconds since 1970-01-01T00:00:00Z.
  *
+ * @note This requires @ref MPACK_EXTENSIONS.
+ *
  * @throws mpack_error_type if the underlying value is not a timestamp.
  */
 int64_t mpack_node_timestamp_seconds(mpack_node_t node);
@@ -811,10 +816,13 @@ int64_t mpack_node_timestamp_seconds(mpack_node_t node);
 /**
  * Returns a timestamp's additional nanoseconds.
  *
+ * @note This requires @ref MPACK_EXTENSIONS.
+ *
  * @return A nanosecond count between 0 and 999,999,999 inclusive.
  * @throws mpack_error_type if the underlying value is not a timestamp.
  */
 uint32_t mpack_node_timestamp_nanoseconds(mpack_node_t node);
+#endif
 
 /**
  * @}
@@ -865,12 +873,16 @@ void mpack_node_check_utf8(mpack_node_t node);
  */
 void mpack_node_check_utf8_cstr(mpack_node_t node);
 
+#if MPACK_EXTENSIONS
 /**
  * Returns the extension type of the given ext node.
  *
  * This returns zero if the tree is in an error state.
+ *
+ * @note This requires @ref MPACK_EXTENSIONS.
  */
 int8_t mpack_node_exttype(mpack_node_t node);
+#endif
 
 /**
  * Returns the number of bytes in the given bin node.

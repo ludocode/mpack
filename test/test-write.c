@@ -357,6 +357,7 @@ static void test_write_simple_misc() {
     #endif
 }
 
+#if MPACK_EXTENSIONS
 static void test_write_timestamp() {
     char buf[4096];
 
@@ -386,6 +387,7 @@ static void test_write_timestamp() {
     TEST_BREAK((mpack_write_timestamp(&writer, 0, UINT32_MAX), true));
     TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_bug);
 }
+#endif
 
 #ifdef MPACK_MALLOC
 static void test_write_tag_tracking() {
@@ -1201,11 +1203,13 @@ static void test_write_compatibility() {
         }
     }
 
+    #if MPACK_EXTENSIONS
     // test ext break in v4 mode
     mpack_writer_init(&writer, buf, sizeof(buf));
     mpack_writer_set_version(&writer, mpack_version_v4);
     TEST_BREAK(((void)mpack_start_ext(&writer, 1, 1), true));
     TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_bug);
+    #endif
 }
 #endif
 
@@ -1229,7 +1233,9 @@ void test_writes() {
     #endif
     test_write_simple_misc();
     test_write_utf8();
+    #if MPACK_EXTENSIONS
     test_write_timestamp();
+    #endif
 
     #if MPACK_COMPATIBILITY
     test_write_compatibility();
