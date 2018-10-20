@@ -539,11 +539,13 @@ MPACK_INLINE int8_t mpack_tag_ext_exttype(mpack_tag_t* tag) {
  * @see mpack_type_ext
  */
 MPACK_INLINE uint32_t mpack_tag_bytes(mpack_tag_t* tag) {
+    #if MPACK_EXTENSIONS
     mpack_assert(tag->type == mpack_type_str || tag->type == mpack_type_bin
-            #if MPACK_EXTENSIONS
-            || tag->type == mpack_type_ext
-            #endif
-            , "tag is not a str, bin or ext!");
+            || tag->type == mpack_type_ext, "tag is not a str, bin or ext!");
+    #else
+    mpack_assert(tag->type == mpack_type_str || tag->type == mpack_type_bin,
+            "tag is not a str or bin!");
+    #endif
     return tag->v.l;
 }
 

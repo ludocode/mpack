@@ -30,11 +30,13 @@ MPACK_STATIC_INLINE const char* mpack_node_data_unchecked(mpack_node_t node) {
 
     mpack_type_t type = node.data->type;
     MPACK_UNUSED(type);
-    mpack_assert(type == mpack_type_str || type == mpack_type_bin
-            #if MPACK_EXTENSIONS
-            || type == mpack_type_ext
-            #endif
-            , "node of type %i (%s) is not a data type!", type, mpack_type_to_string(type));
+    #if MPACK_EXTENSIONS
+    mpack_assert(type == mpack_type_str || type == mpack_type_bin || type == mpack_type_ext,
+            "node of type %i (%s) is not a data type!", type, mpack_type_to_string(type));
+    #else
+    mpack_assert(type == mpack_type_str || type == mpack_type_bin,
+            "node of type %i (%s) is not a data type!", type, mpack_type_to_string(type));
+    #endif
 
     return node.tree->data + node.data->value.offset;
 }
