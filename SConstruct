@@ -37,7 +37,7 @@ for x in os.environ.keys():
         env["ENV"][x] = os.environ[x]
 
 env.Append(CPPFLAGS = [
-    "-Wall", "-Wextra", "-Werror",
+    "-Wall", "-Wextra", "-Wpedantic", "-Werror",
     "-Wconversion", "-Wundef",
     "-Wshadow", "-Wcast-qual",
     "-Isrc", "-Itest",
@@ -196,9 +196,12 @@ if ARGUMENTS.get('all'):
         AddBuild("debug-O0", allfeatures + allconfigs + ["-DDEBUG", "-O0"] + cflags)
 
     # other language standards (C99, various C++ versions)
+    # Note: We disable pedantic in C++98 due to our use of variadic macros,
+    # trailing commas, ll format specifiers, and probably more. We technically
+    # only support C++98 with those extensions.
+    AddBuilds("cxx", allfeatures + allconfigs + cxxflags + ["-std=c++98", "-Wno-pedantic"])
     if hasC11:
         AddBuilds("c99", allfeatures + allconfigs + ["-std=c99"])
-    AddBuilds("cxx", allfeatures + allconfigs + cxxflags + ["-std=c++98"])
     if conf.CheckFlags(cxxflags + ["-std=c++14"], [], "-std=c++14"):
         AddBuilds("cxx14", allfeatures + allconfigs + cxxflags + ["-std=c++14"])
     if conf.CheckFlags(cxxflags + ["-std=gnu++11"], [], "-std=gnu++11"):
@@ -207,7 +210,8 @@ if ARGUMENTS.get('all'):
     # 32-bit builds
     if conf.CheckFlags(["-m32"], ["-m32"]):
         AddBuilds("32bit",     allfeatures + allconfigs + cflags + ["-m32"], ["-m32"])
-        AddBuilds("cxx-32bit",  allfeatures + allconfigs + cxxflags + ["-std=c++98", "-m32"], ["-m32"])
+        # As above, pedantic is disabled in C++98
+        AddBuilds("cxx-32bit",  allfeatures + allconfigs + cxxflags + ["-std=c++98", "-Wno-pedantic", "-m32"], ["-m32"])
     if conf.CheckFlags(cxxflags + ["-std=c++11", "-m32"], ["-m32"], "-std=c++11"):
         AddBuilds("cxx11-32bit", allfeatures + allconfigs + cxxflags + ["-std=c++11", "-m32"], ["-m32"])
 

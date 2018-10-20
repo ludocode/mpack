@@ -199,6 +199,16 @@ MPACK_HEADER_START
 #define MPACK_STRINGIFY_IMPL(arg) #arg
 #define MPACK_STRINGIFY(arg) MPACK_STRINGIFY_IMPL(arg)
 
+// Extracts the first argument of a variadic macro list, where there might only
+// be one argument.
+#define MPACK_EXTRACT_ARG0_IMPL(first, ...) first
+#define MPACK_EXTRACT_ARG0(...) MPACK_EXTRACT_ARG0_IMPL( __VA_ARGS__ , ignored)
+
+// Stringifies the first argument of a variadic macro list, where there might
+// only be one argument.
+#define MPACK_STRINGIFY_ARG0_impl(first, ...) #first
+#define MPACK_STRINGIFY_ARG0(...) MPACK_STRINGIFY_ARG0_impl( __VA_ARGS__ , ignored)
+
 
 
 /*
@@ -637,15 +647,33 @@ MPACK_HEADER_START
     MPACK_NORETURN(void mpack_assert_fail_wrapper(const char* message));
     #if MPACK_STDIO
         MPACK_NORETURN(void mpack_assert_fail_format(const char* format, ...));
-        #define mpack_assert_fail_at(line, file, expr, ...) \
-                mpack_assert_fail_format("mpack assertion failed at " file ":" #line "\n" expr "\n" __VA_ARGS__)
+        #define mpack_assert_fail_at(line, file, exprstr, format, ...) \
+                mpack_assert_fail_format("mpack assertion failed at " file ":" #line "\n%s\n" format, exprstr, __VA_ARGS__)
     #else
-        #define mpack_assert_fail_at(line, file, ...) \
-                mpack_assert_fail_wrapper("mpack assertion failed at " file ":" #line )
+        #define mpack_assert_fail_at(line, file, exprstr, format, ...) \
+                mpack_assert_fail_wrapper("mpack assertion failed at " file ":" #line "\n" exprstr "\n")
     #endif
 
-    #define mpack_assert_fail_pos(line, file, expr, ...) mpack_assert_fail_at(line, file, expr, __VA_ARGS__)
-    #define mpack_assert(expr, ...) ((!(expr)) ? mpack_assert_fail_pos(__LINE__, __FILE__, #expr, __VA_ARGS__) : (void)0)
+    #define mpack_assert_fail_pos(line, file, exprstr, expr, ...) \
+            mpack_assert_fail_at(line, file, exprstr, __VA_ARGS__)
+
+    // This contains a workaround to the pedantic C99 requirement of having at
+    // least one argument to a variadic macro. The first argument is the
+    // boolean expression, the optional second argument (if provided) must be a
+    // literal format string, and any additional arguments are the format
+    // argument list.
+    //
+    // Unfortunately this means macros are expanded in the expression before it
+    // gets stringified. I haven't found a workaround to this.
+    //
+    // This adds two unused arguments to the format argument list when a
+    // format string is provided, so this would complicate the use of
+    // -Wformat and __attribute__((format)) on mpack_assert_fail_format() if we
+    // ever bothered to implement it.
+    #define mpack_assert(...) \
+            ((!(MPACK_EXTRACT_ARG0(__VA_ARGS__))) ? \
+                mpack_assert_fail_pos(__LINE__, __FILE__, MPACK_STRINGIFY_ARG0(__VA_ARGS__) , __VA_ARGS__ , "", NULL) : \
+                (void)0)
 
     void mpack_break_hit(const char* message);
     #if MPACK_STDIO
@@ -659,7 +687,10 @@ MPACK_HEADER_START
     #define mpack_break_hit_pos(line, file, ...) mpack_break_hit_at(line, file, __VA_ARGS__)
     #define mpack_break(...) mpack_break_hit_pos(__LINE__, __FILE__, __VA_ARGS__)
 #else
-    #define mpack_assert(expr, ...) ((!(expr)) ? MPACK_UNREACHABLE, (void)0 : (void)0)
+    #define mpack_assert(...) \
+            ((!(MPACK_EXTRACT_ARG0(__VA_ARGS__))) ? \
+                (MPACK_UNREACHABLE, (void)0) : \
+                (void)0)
     #define mpack_break(...) ((void)0)
 #endif
 
