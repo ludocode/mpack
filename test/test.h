@@ -92,10 +92,10 @@ extern "C" {
 // runs the given expression, causing a unit test failure with the
 // given printf format string if the expression is not true.
 #define TEST_TRUE(...) \
-    TEST_TRUE_IMPL((MPACK_EXTRACT_ARG0(__VA_ARGS__)), __FILE__, __LINE__, __VA_ARGS__ , "" , NULL)
+    MPACK_EXPAND(TEST_TRUE_IMPL((MPACK_EXTRACT_ARG0(__VA_ARGS__)), __FILE__, __LINE__, __VA_ARGS__ , "" , NULL))
 
 #define TEST_TRUE_IMPL(result, file, line, ignored, ...) \
-    test_true_impl(result, file, line, __VA_ARGS__)
+    MPACK_EXPAND(test_true_impl(result, file, line, __VA_ARGS__))
 
 void test_true_impl(bool result, const char* file, int line, const char* format, ...);
 

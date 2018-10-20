@@ -742,7 +742,7 @@ MPACK_STATIC_INLINE void mpack_encode_timestamp_12(char* p, int64_t seconds, uin
 // it will flag an error so we don't have to do anything.
 #define MPACK_WRITE_ENCODED(encode_fn, size, ...) do {                                                 \
     if (MPACK_LIKELY(mpack_writer_buffer_left(writer) >= size) || mpack_writer_ensure(writer, size)) { \
-        encode_fn(writer->current, __VA_ARGS__);                                                       \
+        MPACK_EXPAND(encode_fn(writer->current, __VA_ARGS__));                                         \
         writer->current += size;                                                                       \
     }                                                                                                  \
 } while (0)
