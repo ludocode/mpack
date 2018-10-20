@@ -21,6 +21,8 @@ mpack-test-blank-file
 *.vcxproj.user
 /projects/vs/Debug/
 /projects/vs/Release/
+/projects/vs/.vs/
+/projects/vs/Win32/
 
 # xcode project
 xcuserdata/
