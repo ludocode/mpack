@@ -211,6 +211,25 @@ MPACK_HEADER_START
 #define MPACK_STRINGIFY_IMPL(arg) #arg
 #define MPACK_STRINGIFY(arg) MPACK_STRINGIFY_IMPL(arg)
 
+// This is a workaround for MSVC's incorrect expansion of __VA_ARGS__. It
+// treats __VA_ARGS__ as a single preprocessor token when passed in the
+// argument list of another macro unless we use an outer wrapper to expand it
+// lexically first. (For safety/consistency we use this in all variadic macros
+// that don't ignore the variadic arguments regardless of whether __VA_ARGS__
+// is passed to another macro.)
+//     https://stackoverflow.com/a/32400131
+#define MPACK_EXPAND(x) x
+
+// Extracts the first argument of a variadic macro list, where there might only
+// be one argument.
+#define MPACK_EXTRACT_ARG0_IMPL(first, ...) first
+#define MPACK_EXTRACT_ARG0(...) MPACK_EXPAND(MPACK_EXTRACT_ARG0_IMPL( __VA_ARGS__ , ignored))
+
+// Stringifies the first argument of a variadic macro list, where there might
+// only be one argument.
+#define MPACK_STRINGIFY_ARG0_impl(first, ...) #first
+#define MPACK_STRINGIFY_ARG0(...) MPACK_EXPAND(MPACK_STRINGIFY_ARG0_impl( __VA_ARGS__ , ignored))
+
 
 
 /*
@@ -649,29 +668,50 @@ MPACK_HEADER_START
     MPACK_NORETURN(void mpack_assert_fail_wrapper(const char* message));
     #if MPACK_STDIO
         MPACK_NORETURN(void mpack_assert_fail_format(const char* format, ...));
-        #define mpack_assert_fail_at(line, file, expr, ...) \
-                mpack_assert_fail_format("mpack assertion failed at " file ":" #line "\n" expr "\n" __VA_ARGS__)
+        #define mpack_assert_fail_at(line, file, exprstr, format, ...) \
+                MPACK_EXPAND(mpack_assert_fail_format("mpack assertion failed at " file ":" #line "\n%s\n" format, exprstr, __VA_ARGS__))
     #else
-        #define mpack_assert_fail_at(line, file, ...) \
-                mpack_assert_fail_wrapper("mpack assertion failed at " file ":" #line )
+        #define mpack_assert_fail_at(line, file, exprstr, format, ...) \
+                mpack_assert_fail_wrapper("mpack assertion failed at " file ":" #line "\n" exprstr "\n")
     #endif
 
-    #define mpack_assert_fail_pos(line, file, expr, ...) mpack_assert_fail_at(line, file, expr, __VA_ARGS__)
-    #define mpack_assert(expr, ...) ((!(expr)) ? mpack_assert_fail_pos(__LINE__, __FILE__, #expr, __VA_ARGS__) : (void)0)
+    #define mpack_assert_fail_pos(line, file, exprstr, expr, ...) \
+            MPACK_EXPAND(mpack_assert_fail_at(line, file, exprstr, __VA_ARGS__))
+
+    // This contains a workaround to the pedantic C99 requirement of having at
+    // least one argument to a variadic macro. The first argument is the
+    // boolean expression, the optional second argument (if provided) must be a
+    // literal format string, and any additional arguments are the format
+    // argument list.
+    //
+    // Unfortunately this means macros are expanded in the expression before it
+    // gets stringified. I haven't found a workaround to this.
+    //
+    // This adds two unused arguments to the format argument list when a
+    // format string is provided, so this would complicate the use of
+    // -Wformat and __attribute__((format)) on mpack_assert_fail_format() if we
+    // ever bothered to implement it.
+    #define mpack_assert(...) \
+            MPACK_EXPAND(((!(MPACK_EXTRACT_ARG0(__VA_ARGS__))) ? \
+                mpack_assert_fail_pos(__LINE__, __FILE__, MPACK_STRINGIFY_ARG0(__VA_ARGS__) , __VA_ARGS__ , "", NULL) : \
+                (void)0))
 
     void mpack_break_hit(const char* message);
     #if MPACK_STDIO
         void mpack_break_hit_format(const char* format, ...);
         #define mpack_break_hit_at(line, file, ...) \
-                mpack_break_hit_format("mpack breakpoint hit at " file ":" #line "\n" __VA_ARGS__)
+                MPACK_EXPAND(mpack_break_hit_format("mpack breakpoint hit at " file ":" #line "\n" __VA_ARGS__))
     #else
         #define mpack_break_hit_at(line, file, ...) \
                 mpack_break_hit("mpack breakpoint hit at " file ":" #line )
     #endif
-    #define mpack_break_hit_pos(line, file, ...) mpack_break_hit_at(line, file, __VA_ARGS__)
-    #define mpack_break(...) mpack_break_hit_pos(__LINE__, __FILE__, __VA_ARGS__)
+    #define mpack_break_hit_pos(line, file, ...) MPACK_EXPAND(mpack_break_hit_at(line, file, __VA_ARGS__))
+    #define mpack_break(...) MPACK_EXPAND(mpack_break_hit_pos(__LINE__, __FILE__, __VA_ARGS__))
 #else
-    #define mpack_assert(expr, ...) ((!(expr)) ? MPACK_UNREACHABLE, (void)0 : (void)0)
+    #define mpack_assert(...) \
+            (MPACK_EXPAND((!(MPACK_EXTRACT_ARG0(__VA_ARGS__))) ? \
+                (MPACK_UNREACHABLE, (void)0) : \
+                (void)0))
     #define mpack_break(...) ((void)0)
 #endif
 
@@ -761,7 +801,7 @@ size_t mpack_strlen(const char* s);
 /* Debug logging */
 #if 0
     #include <stdio.h>
-    #define mpack_log(...) (printf(__VA_ARGS__), fflush(stdout))
+    #define mpack_log(...) (MPACK_EXPAND(printf(__VA_ARGS__), fflush(stdout)))
 #else
     #define mpack_log(...) ((void)0)
 #endif

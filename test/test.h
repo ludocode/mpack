@@ -91,8 +91,11 @@ extern "C" {
 
 // runs the given expression, causing a unit test failure with the
 // given printf format string if the expression is not true.
-#define TEST_TRUE(expr, ...) \
-    test_true_impl((expr), __FILE__, __LINE__, " " __VA_ARGS__)
+#define TEST_TRUE(...) \
+    MPACK_EXPAND(TEST_TRUE_IMPL((MPACK_EXTRACT_ARG0(__VA_ARGS__)), __FILE__, __LINE__, __VA_ARGS__ , "" , NULL))
+
+#define TEST_TRUE_IMPL(result, file, line, ignored, ...) \
+    MPACK_EXPAND(test_true_impl(result, file, line, __VA_ARGS__))
 
 void test_true_impl(bool result, const char* file, int line, const char* format, ...);
 
@@ -133,10 +136,10 @@ extern bool test_break_hit;
     TEST_TRUE(jumped, "expression should assert, but didn't: " #expr); \
 } while (0)
 
-#define TEST_BREAK(expr, ...) do { \
+#define TEST_BREAK(expr) do { \
     test_break_set = true; \
     test_break_hit = false; \
-    TEST_TRUE(expr , ## __VA_ARGS__, "expression is not true: " # expr); \
+    TEST_TRUE(expr, "expression is not true: " # expr); \
     TEST_TRUE(test_break_hit, "expression should break, but didn't: " # expr); \
     test_break_set = false; \
 } while (0);
@@ -146,7 +149,7 @@ extern bool test_break_hit;
 // in release mode there are no asserts or break functions, so
 // TEST_BREAK() just runs the expr. it is usually used to test
 // that something flags mpack_error_bug.
-#define TEST_BREAK(expr, ...) do { TEST_TRUE(expr , ## __VA_ARGS__); } while (0)
+#define TEST_BREAK(expr) do { TEST_TRUE(expr); } while (0)
 
 // TEST_ASSERT() is not defined because code that causes an assert
 // cannot continue to run; it would cause undefined behavior (and
