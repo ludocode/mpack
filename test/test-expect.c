@@ -681,7 +681,7 @@ static void test_expect_str() {
     #if MPACK_STDLIB
     // str/cstr match larger than 32 bits
     if (UINT32_MAX < SIZE_MAX) {
-        test_system_mock_strlen((size_t)UINT32_MAX + (size_t)1);
+        test_system_mock_strlen((size_t)((uint64_t)UINT32_MAX + UINT64_C(1)));
         TEST_SIMPLE_READ_ERROR("\xa3""abc", (mpack_expect_cstr_match(&reader, "abc"), true), mpack_error_type);
         test_system_mock_strlen(SIZE_MAX);
         TEST_SIMPLE_READ_ERROR("\xa3""abc", (mpack_expect_cstr_match(&reader, "abc"), true), mpack_error_type);

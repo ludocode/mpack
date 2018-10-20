@@ -1141,7 +1141,7 @@ static void test_misc(void) {
         char single[1];
 
         mpack_writer_init(&writer, single, SIZE_MAX);
-        test_system_mock_strlen((size_t)UINT32_MAX + (size_t)1);
+        test_system_mock_strlen((size_t)((uint64_t)UINT32_MAX + UINT64_C(1)));
         mpack_write_cstr(&writer, quick_brown_fox);
         TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_invalid);
 

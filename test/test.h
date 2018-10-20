@@ -44,14 +44,69 @@
 #include <sys/types.h>
 #endif
 
+#include "mpack/mpack.h"
+
+
+
+/**
+ * Floating point infinities
+ *
+ * MSVC is ridiculous with warnings when it comes to infinity. All of this
+ * wraps various infinities to avoid constant arithmetic overflow warnings.
+ */
+
 #ifdef __cplusplus
 #include <limits>
-#define MPACK_INFINITY std::numeric_limits<float>::infinity()
-#else
-#define MPACK_INFINITY INFINITY
+#define MPACK_FLOAT_POSITIVE_INFINITY (std::numeric_limits<float>::infinity())
+#define MPACK_DOUBLE_POSITIVE_INFINITY (std::numeric_limits<double>::infinity())
 #endif
 
-#include "mpack/mpack.h"
+#ifdef _MSC_VER
+    #pragma warning(push)
+    #pragma warning(disable:4056) // overflow in floating-point constant arithmetic
+    #pragma warning(disable:4756) // overflow in constant arithmetic
+
+    #ifndef MPACK_FLOAT_POSITIVE_INFINITY
+        MPACK_STATIC_INLINE float mpack_float_positive_infinity() {
+            return (float)(INFINITY);
+        }
+        #define MPACK_FLOAT_POSITIVE_INFINITY (mpack_float_positive_infinity())
+    #endif
+
+    #ifndef MPACK_DOUBLE_POSITIVE_INFINITY
+        MPACK_STATIC_INLINE float mpack_double_positive_infinity() {
+            return (double)(INFINITY);
+        }
+        #define MPACK_DOUBLE_POSITIVE_INFINITY (mpack_double_positive_infinity())
+    #endif
+
+    MPACK_STATIC_INLINE float mpack_float_negative_infinity() {
+        return -MPACK_FLOAT_POSITIVE_INFINITY;
+    }
+    #define MPACK_FLOAT_NEGATIVE_INFINITY (mpack_float_negative_infinity())
+
+    MPACK_STATIC_INLINE double mpack_double_negative_infinity() {
+        return -MPACK_DOUBLE_POSITIVE_INFINITY;
+    }
+    #define MPACK_DOUBLE_NEGATIVE_INFINITY (mpack_double_negative_infinity())
+
+    #pragma warning(pop)
+#endif
+
+#ifndef MPACK_FLOAT_POSITIVE_INFINITY
+#define MPACK_FLOAT_POSITIVE_INFINITY ((float)(INFINITY))
+#endif
+#ifndef MPACK_DOUBLE_POSITIVE_INFINITY
+#define MPACK_DOUBLE_POSITIVE_INFINITY ((double)(INFINITY))
+#endif
+#ifndef MPACK_FLOAT_NEGATIVE_INFINITY
+#define MPACK_FLOAT_NEGATIVE_INFINITY (-MPACK_FLOAT_POSITIVE_INFINITY)
+#endif
+#ifndef MPACK_DOUBLE_NEGATIVE_INFINITY
+#define MPACK_DOUBLE_NEGATIVE_INFINITY (-MPACK_DOUBLE_POSITIVE_INFINITY)
+#endif
+
+
 
 #if !MPACK_FINITE_MATH
     #if defined(WIN32)

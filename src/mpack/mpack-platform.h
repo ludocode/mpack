@@ -276,8 +276,9 @@ MPACK_HEADER_START
     #define MPACK_INLINE inline
 
 #elif defined(_MSC_VER)
-    // MSVC 2013 always uses COMDAT linkage, but it doesn't treat
-    // 'inline' as a keyword in C99 mode.
+    // MSVC 2013 always uses COMDAT linkage, but it doesn't treat 'inline' as a
+    // keyword in C99 mode. (This appears to be fixed in a later version of
+    // MSVC but we don't bother detecting it.)
     #define MPACK_INLINE __inline
     #define MPACK_STATIC_INLINE static __inline
 

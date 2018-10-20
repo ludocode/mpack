@@ -1201,23 +1201,23 @@ static bool test_node_multiple_allocs(bool stream, size_t stream_read_size) {
     return true;
 }
 
-static bool test_node_multiple_allocs_memory() {
+static bool test_node_multiple_allocs_memory(void) {
     return test_node_multiple_allocs(false, 0);
 }
 
-static bool test_node_multiple_allocs_stream1() {
+static bool test_node_multiple_allocs_stream1(void) {
     return test_node_multiple_allocs(true, 1);
 }
 
-static bool test_node_multiple_allocs_stream2() {
+static bool test_node_multiple_allocs_stream2(void) {
     return test_node_multiple_allocs(true, 2);
 }
 
-static bool test_node_multiple_allocs_stream3() {
+static bool test_node_multiple_allocs_stream3(void) {
     return test_node_multiple_allocs(true, 3);
 }
 
-static bool test_node_multiple_allocs_stream4096() {
+static bool test_node_multiple_allocs_stream4096(void) {
     return test_node_multiple_allocs(true, 4096);
 }
 #endif
