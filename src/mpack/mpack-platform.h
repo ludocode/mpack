@@ -45,7 +45,7 @@
 
 
 /* Doxygen preprocs */
-#if MPACK_DOXYGEN
+#if defined(MPACK_DOXYGEN) && MPACK_DOXYGEN
 #define MPACK_HAS_CONFIG 0
 // We give these their default values of 0 here even though they are defined to
 // 1 in the doxyfile. Doxygen will show this as the value in the docs, even
