@@ -14,7 +14,7 @@ INPUT = \
     docs/node.md \
     docs/features.md \
     docs/protocol.md \
-    build/docs/mpack-defaults.h \
+    build/docs/mpack-defaults-doxygen.h \
     src/mpack/mpack-platform.h \
     src/mpack/mpack-common.h \
     src/mpack/mpack-reader.h \
