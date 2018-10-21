@@ -96,6 +96,8 @@ typedef struct mpack_reader_t mpack_reader_t;
  * less than the requested count as long as some non-zero number of bytes
  * are read; if more bytes are needed, the read function will simply be
  * called again.
+ *
+ * @see mpack_reader_context()
  */
 typedef size_t (*mpack_reader_fill_t)(mpack_reader_t* reader, char* buffer, size_t count);
 
@@ -104,6 +106,8 @@ typedef size_t (*mpack_reader_fill_t)(mpack_reader_t* reader, char* buffer, size
  * of bytes from the source (for example by seeking forward.)
  *
  * In case of error, it should flag an appropriate error on the reader.
+ *
+ * @see mpack_reader_context()
  */
 typedef void (*mpack_reader_skip_t)(mpack_reader_t* reader, size_t count);
 
@@ -283,9 +287,22 @@ mpack_error_t mpack_reader_destroy(mpack_reader_t* reader);
  *
  * @param reader The MPack reader.
  * @param context User data to pass to the reader callbacks.
+ *
+ * @see mpack_reader_context()
  */
 MPACK_INLINE void mpack_reader_set_context(mpack_reader_t* reader, void* context) {
     reader->context = context;
+}
+
+/**
+ * Returns the custom context for reader callbacks.
+ *
+ * @see mpack_reader_set_context
+ * @see mpack_reader_set_fill
+ * @see mpack_reader_set_skip
+ */
+MPACK_INLINE void* mpack_reader_context(mpack_reader_t* reader) {
+    return reader->context;
 }
 
 /**

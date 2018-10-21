@@ -339,6 +339,7 @@ MPACK_INLINE void mpack_tree_init(mpack_tree_t* tree, const char* data, size_t l
  *        @ref mpack_node_data_t for the size of nodes.
  *
  * @see mpack_tree_read_t
+ * @see mpack_reader_context()
  */
 void mpack_tree_init_stream(mpack_tree_t* tree, mpack_tree_read_t read_fn, void* context,
         size_t max_message_size, size_t max_message_nodes);
@@ -520,9 +521,21 @@ mpack_error_t mpack_tree_destroy(mpack_tree_t* tree);
  *
  * @param tree The MPack tree.
  * @param context User data to pass to the tree callbacks.
+ *
+ * @see mpack_reader_context()
  */
 MPACK_INLINE void mpack_tree_set_context(mpack_tree_t* tree, void* context) {
     tree->context = context;
+}
+
+/**
+ * Returns the custom context for tree callbacks.
+ *
+ * @see mpack_tree_set_context
+ * @see mpack_tree_init_stream
+ */
+MPACK_INLINE void* mpack_tree_context(mpack_tree_t* tree) {
+    return tree->context;
 }
 
 /**

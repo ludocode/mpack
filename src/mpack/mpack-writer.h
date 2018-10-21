@@ -319,9 +319,21 @@ MPACK_INLINE void mpack_writer_set_version(mpack_writer_t* writer, mpack_version
  *
  * @param writer The MPack writer.
  * @param context User data to pass to the writer callbacks.
+ *
+ * @see mpack_writer_context()
  */
 MPACK_INLINE void mpack_writer_set_context(mpack_writer_t* writer, void* context) {
     writer->context = context;
+}
+
+/**
+ * Returns the custom context for writer callbacks.
+ *
+ * @see mpack_writer_set_context
+ * @see mpack_writer_set_flush
+ */
+MPACK_INLINE void* mpack_writer_context(mpack_writer_t* writer) {
+    return writer->context;
 }
 
 /**
@@ -335,6 +347,8 @@ MPACK_INLINE void mpack_writer_set_context(mpack_writer_t* writer, void* context
  *
  * @param writer The MPack writer.
  * @param flush The function to write out data from the buffer.
+ *
+ * @see mpack_writer_context()
  */
 void mpack_writer_set_flush(mpack_writer_t* writer, mpack_writer_flush_t flush);
 

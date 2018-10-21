@@ -51,7 +51,7 @@ typedef struct stream_t {
 } stream_t;
 
 static size_t read_stream(mpack_tree_t* tree, char* buffer, size_t count) {
-    stream_t* stream = tree->context;
+    stream_t* stream = mpack_tree_context(tree);
     ssize_t step = read(stream->fd, buffer, count);
     if (step <= 0)
         mpack_tree_flag_error(tree, mpack_error_io);
