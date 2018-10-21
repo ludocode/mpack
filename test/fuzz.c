@@ -89,9 +89,11 @@ static void transfer_element(mpack_reader_t* reader, mpack_writer_t* writer, int
     mpack_write_tag(writer, tag);
 
     switch (tag.type) {
-        case mpack_type_str:
+        #if MPACK_EXTENSIONS
+        case mpack_type_ext: // fallthrough
+        #endif
+        case mpack_type_str: // fallthrough
         case mpack_type_bin:
-        case mpack_type_ext:
             transfer_bytes(reader, writer, mpack_tag_bytes(&tag));
             if (mpack_reader_error(reader) != mpack_ok)
                 return;
@@ -120,6 +122,9 @@ static void transfer_element(mpack_reader_t* reader, mpack_writer_t* writer, int
             }
             mpack_done_array(reader);
             mpack_finish_array(writer);
+            break;
+
+        default:
             break;
     }
 }
