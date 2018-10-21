@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['feature_20comparisons',['Feature Comparisons',['../md_docs_features.html',1,'']]]
+  ['expect_20api',['Expect API',['../group__expect.html',1,'']]]
 ];

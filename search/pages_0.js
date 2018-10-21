@@ -1,4 +1,4 @@
 var searchData=
 [
-  ['feature_20comparisons',['Feature Comparisons',['../md_docs_features.html',1,'']]]
+  ['deprecated_20list',['Deprecated List',['../deprecated.html',1,'']]]
 ];
