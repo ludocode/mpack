@@ -9,7 +9,9 @@ PROJECT_NUMBER = develop
 
 INPUT = \
     build/docs/README.temp.md \
+    docs/reader.md \
     docs/expect.md \
+    docs/node.md \
     docs/features.md \
     docs/protocol.md \
     src/mpack-config.h.sample \

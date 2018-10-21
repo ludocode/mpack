@@ -1,4 +1,3 @@
-
 # Feature Comparisons
 
 This document compares the features of various C libraries for encoding and decoding MessagePack. (It attempts to be neutral, but you may find it biased towards MPack since it is part of this project.)

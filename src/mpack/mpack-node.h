@@ -41,6 +41,8 @@ MPACK_HEADER_START
  * dynamically typed data structure, providing random access to the parsed
  * data.
  *
+ * See @ref docs/node.md for examples.
+ *
  * @{
  */
 

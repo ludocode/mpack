@@ -1,4 +1,3 @@
-
 # Protocol Clarifications
 
 The MessagePack specification contains overlap between different types, allowing the same data to be encoded in many different representations. For example there are overlong sequences, signed/unsigned overlap for non-negative integers, different floating-point widths, raw/str/bin/ext types, and more.

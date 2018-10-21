@@ -39,7 +39,7 @@ MPACK_HEADER_START
 
 
 /**
- * @defgroup common Common Elements
+ * @defgroup common Tags and Common Elements
  *
  * Contains types, constants and functions shared by both the encoding
  * and decoding portions of MPack.

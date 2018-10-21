@@ -1,9 +1,10 @@
-
 # Using the Expect API
 
 The Expect API is used to imperatively parse data of a fixed (hardcoded) schema. It is most useful when parsing very large MessagePack files, parsing in memory-constrained environments, or generating parsing code from a schema. The API is similar to [CMP](https://github.com/camgunz/cmp), but has many helper functions especially for map keys and expected value ranges. Some of these will be covered below.
 
-*If you are not writing code for an embedded device or generating parsing code from a schema, you should not follow this guide. You should most likely be using the Node API instead.*
+Check out the [Reader API](docs/reader.md) guide first for information on setting up a reader and reading strings.
+
+If you are not writing code for an embedded device or generating parsing code from a schema, you should not follow this guide. You should most likely be using the [Node API](docs/node.md) instead.
 
 ## A simple example
 
@@ -196,7 +197,8 @@ bool found[KEY_COUNT] = {0};
 bool compact = false;
 int schema = -1;
 
-for (size_t i = mpack_expect_map_max(&reader, 100); i > 0 && mpack_reader_error(&reader) == mpack_ok; --i) {
+size_t i = mpack_expect_map_max(&reader, 100); // critical check!
+for (; i > 0 && mpack_reader_error(&reader) == mpack_ok; --i) { // critical check!
     switch (mpack_expect_key_cstr(&reader, keys, found, KEY_COUNT)) {
         case KEY_COMPACT: compact = mpack_expect_bool(&reader); break;
         case KEY_SCHEMA:  schema  = mpack_expect_int(&reader);  break;
@@ -211,8 +213,8 @@ if (!found[KEY_COMPACT])
 
 In the above examples, the call to `mpack_discard(&reader);` skips over the value for unrecognized keys, allowing the format to be extensible and providing forwards-compatibility. If you want to forbid unrecognized keys, you can flag an error (e.g. `mpack_reader_flag_error(&reader, mpack_error_data);`) instead of discarding the value.
 
-*Note above the importance of using a reasonable limit on `mpack_expect_map_max()`, and of checking for errors in each iteration of the loop. If we were to leave these out, an attacker could craft a message declaring an array of a billion elements, forcing this code into an infinite loop. We specify a size of 100 here as an arbitrary limit that leaves enough space for the schema to grow in the future. If you forbid unrecognized keys, you could specify the key count as the limit. Alternatively you could specify an unlimited size (`UINT32_MAX`), as long as you are checking for errors in each iteration (since the stream will eventually run out of data.) It's safest to use both the limit and the error check, so we use both in these examples.*
+WARNING: See above the importance of using a reasonable limit on `mpack_expect_map_max()`, and of checking for errors in each iteration of the loop. If we were to leave these out, an attacker could craft a message declaring an array of a billion elements, forcing this code into a very long loop. We specify a size of 100 here as an arbitrary limit that leaves enough space for the schema to grow in the future. If you forbid unrecognized keys, you could specify the key count as the limit.
 
 Unlike JSON, MessagePack supports any type as a map key, so the enum integer values can themselves be used as keys. This reduces message size at some expense of debuggability (losing some of the value of a schemaless format.) There is a simpler function `mpack_expect_key_uint()` which can be used to switch on small non-negative enum values directly.
 
-On the surface this doesn't appear much shorter than the previous code, but it becomes much nicer when you have many possible keys in a map. Of course if at all possible you should consider using the Node API which is much less error-prone and will handle all of this for you.
+On the surface this doesn't appear much shorter than the previous code, but it becomes much nicer when you have many possible keys in a map. Of course if at all possible you should consider using the [Node API](docs/node.md) which is much less error-prone and will handle all of this for you.

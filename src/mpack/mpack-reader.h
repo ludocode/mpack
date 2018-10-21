@@ -48,6 +48,8 @@ struct mpack_track_t;
  * The MPack Reader API contains functions for imperatively reading dynamically
  * typed data from a MessagePack stream.
  *
+ * See @ref docs/reader.md for examples.
+ *
  * @note If you are not writing code for an embedded device (or otherwise do
  * not need maximum performance with minimal memory usage), you should not use
  * this. You probably want to use the @link node Node API@endlink instead.
