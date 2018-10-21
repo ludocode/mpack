@@ -51,7 +51,7 @@
 		012F29BD1AD4524700346AC7 /* mpack-writer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "mpack-writer.c"; sourceTree = "<group>"; };
 		012F29BE1AD4524700346AC7 /* mpack-writer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "mpack-writer.h"; sourceTree = "<group>"; };
 		012F29BF1AD4524700346AC7 /* mpack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mpack.h; sourceTree = "<group>"; };
-		012F29C01AD4524700346AC7 /* mpack-config.h.sample */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = "mpack-config.h.sample"; sourceTree = "<group>"; };
+		012F29C01AD4524700346AC7 /* mpack-defaults.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "mpack-defaults.h"; sourceTree = "<group>"; };
 		012F29C21AD4524700346AC7 /* test.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = test.c; sourceTree = "<group>"; };
 		012F29C31AD4524700346AC7 /* mpack-config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "mpack-config.h"; sourceTree = "<group>"; };
 		012F29C41AD4524700346AC7 /* test-buffer.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = "test-buffer.c"; sourceTree = "<group>"; };
@@ -105,7 +105,6 @@
 			isa = PBXGroup;
 			children = (
 				012F29B01AD4524700346AC7 /* mpack */,
-				012F29C01AD4524700346AC7 /* mpack-config.h.sample */,
 			);
 			name = src;
 			path = ../../src;
@@ -116,6 +115,7 @@
 			children = (
 				012F29B11AD4524700346AC7 /* mpack-common.c */,
 				012F29B21AD4524700346AC7 /* mpack-common.h */,
+				012F29C01AD4524700346AC7 /* mpack-defaults.h */,
 				012F29B31AD4524700346AC7 /* mpack-expect.c */,
 				012F29B41AD4524700346AC7 /* mpack-expect.h */,
 				012F29B71AD4524700346AC7 /* mpack-node.c */,

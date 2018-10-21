@@ -68,13 +68,12 @@
  * Now that the optional config is included, we define the defaults
  * for any of the configuration options and other switches that aren't
  * yet defined.
- *
- * In development mode, or when the library is used without being
- * amalgamated, we set the defaults by including the sample config
- * directly. When amalgamated, this is disabled and the contents
- * of the sample config have been inserted into the top of mpack.h.
  */
-#include "mpack-config.h.sample"
+#if defined(MPACK_DOXYGEN) && MPACK_DOXYGEN
+#include "mpack-defaults-doxygen.h"
+#else
+#include "mpack-defaults.h"
+#endif
 
 /*
  * All remaining configuration options that have not yet been set must

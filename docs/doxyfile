@@ -14,7 +14,7 @@ INPUT = \
     docs/node.md \
     docs/features.md \
     docs/protocol.md \
-    src/mpack-config.h.sample \
+    build/docs/mpack-defaults.h \
     src/mpack/mpack-platform.h \
     src/mpack/mpack-common.h \
     src/mpack/mpack-reader.h \
@@ -50,8 +50,7 @@ JAVADOC_AUTOBRIEF = YES
 ALWAYS_DETAILED_SEC = YES
 SORT_BRIEF_DOCS = YES
 
-EXTENSION_MAPPING = sample=C
-INCLUDE_PATH = src
+INCLUDE_PATH = build/docs src
 
 SEARCH_INCLUDES = YES
 MACRO_EXPANSION = YES

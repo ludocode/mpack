@@ -1,6 +1,3 @@
-
-/** @file */
-
 /**
  * @defgroup config Configuration Options
  *
@@ -9,12 +6,18 @@
  * settings.
  *
  * Custom configuration of MPack is not usually necessary. In almost all
- * cases you can ignore this and use the defaults.
+ * cases you can ignore this and use the defaults. If you are using the
+ * amalgamation package, you do not need to add @c mpack-defaults.h to your
+ * project.
+ *
+ * If you do want to configure MPack, the easiest way is to pre-define some of
+ * the below options as part of your build system or project settings. This
+ * will override the below defaults.
  *
  * If you'd like to use a file for configuration instead, define
  * @ref MPACK_HAS_CONFIG to 1 in your build system or project settings.
  * This will cause MPack to include a file you create called @c mpack-config.h.
- * You can copy @c mpack-config.h.sample to @c mpack-config.h and make your
+ * You can copy @c mpack-defaults.h to @c mpack-config.h and make your
  * changes, or create a blank @c mpack-config.h and set only the options you
  * want. The below settings are the defaults if they are not set by your
  * configuration file.

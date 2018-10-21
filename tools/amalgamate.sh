@@ -6,7 +6,7 @@
 . "`dirname $0`"/getversion.sh
 
 HEADERS="\
-    mpack-config.h.sample \
+    mpack/mpack-defaults.h \
     mpack/mpack-platform.h \
     mpack/mpack-common.h \
     mpack/mpack-writer.h \
@@ -37,7 +37,7 @@ FILES="\
     SConscript \
     SConstruct \
     LICENSE \
-    AUTHORS \
+    AUTHORS.md \
     README.md \
     CHANGELOG.md \
     "
@@ -87,10 +87,9 @@ cp -ar $FILES build/amalgamation
 mkdir -p build/amalgamation/projects/{vs,xcode/MPack.xcodeproj}
 cp projects/vs/mpack.{sln,vcxproj,vcxproj.filters} build/amalgamation/projects/vs
 cp projects/xcode/MPack.xcodeproj/project.pbxproj build/amalgamation/projects/xcode/MPack.xcodeproj
-cp src/mpack-config.h.sample build/amalgamation/src
+cp src/mpack/mpack-defaults.h build/amalgamation/
 mkdir -p build/amalgamation/tools
 cp $TOOLS build/amalgamation/tools
 
 # done!
 echo "Done. MPack amalgamation is in build/amalgamation/"
-
