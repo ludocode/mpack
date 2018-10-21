@@ -49,8 +49,8 @@ MPACK_HEADER_START
 
 /* Version information */
 
-#define MPACK_VERSION_MAJOR 0  /**< The major version number of MPack. */
-#define MPACK_VERSION_MINOR 9  /**< The minor version number of MPack. */
+#define MPACK_VERSION_MAJOR 1  /**< The major version number of MPack. */
+#define MPACK_VERSION_MINOR 0  /**< The minor version number of MPack. */
 #define MPACK_VERSION_PATCH 0  /**< The patch version number of MPack. */
 
 /** A number containing the version number of MPack for comparison purposes. */
@@ -225,12 +225,13 @@ typedef struct mpack_timestamp_t {
 #endif
 
 /**
- * An MPack tag is a MessagePack object header. It is a variant type representing
- * any kind of object, and includes the value of that object when it is not a
- * compound type (i.e. boolean, integer, float.)
+ * An MPack tag is a MessagePack object header. It is a variant type
+ * representing any kind of object, and includes the length of compound types
+ * (e.g. map, array, string) or the value of non-compound types (e.g. boolean,
+ * integer, float.)
  *
- * If the type is compound (str, bin, ext, array or map), the embedded data is
- * stored separately.
+ * If the type is compound (str, bin, ext, array or map), the contained
+ * elements or bytes are stored separately.
  *
  * This structure is opaque; its fields should not be accessed outside
  * of MPack.

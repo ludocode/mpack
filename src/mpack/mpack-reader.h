@@ -819,6 +819,8 @@ void mpack_discard(mpack_reader_t* reader);
  * @}
  */
 
+/** @cond */
+
 #if MPACK_DEBUG && MPACK_STDIO
 /**
  * @name Debugging Functions
@@ -881,6 +883,8 @@ MPACK_INLINE void mpack_print(const char* data, size_t len) {
  * @}
  */
 #endif
+
+/** @endcond */
 
 /**
  * @}

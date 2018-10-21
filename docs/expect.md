@@ -53,38 +53,38 @@ You can use [msgpack-tools](https://github.com/ludocode/msgpack-tools) with the 
 
 int main(void) {
 
-    // initialize a reader from a file
+    // Initialize a reader from a file
     mpack_reader_t reader;
     mpack_reader_init_file(&reader, "example.mp");
 
-    // the top-level array must have exactly three elements
+    // The top-level array must have exactly three elements
     mpack_expect_array_match(&reader, 3);
 
-    // the first two elements are short strings
+    // The first two elements are short strings
     char first[128];
     char second[128];
     mpack_expect_utf8_cstr(&reader, first, sizeof(first));
     mpack_expect_utf8_cstr(&reader, second, sizeof(second));
 
-    // next we have an array of up to ten ints
+    // Next we have an array of up to ten ints
     int32_t numbers[10];
     size_t count = mpack_expect_array_max(&reader, sizeof(numbers) / sizeof(numbers[0]));
     for (size_t i = 0; i < count; ++i)
         numbers[i] = mpack_expect_i32(&reader);
     mpack_done_array(&reader);
 
-    // done reading the top-level array
+    // Done reading the top-level array
     mpack_done_array(&reader);
 
-    // clean up and handle errors
+    // Clean up and handle errors
     mpack_error_t error = mpack_reader_destroy(&reader);
     if (error != mpack_ok) {
         fprintf(stderr, "Error %i occurred reading data!\n", (int)error);
         return EXIT_FAILURE;
     }
 
-    // we now know the data was parsed correctly and can safely
-    // be used. the strings are null-terminated and valid UTF-8,
+    // We now know the data was parsed correctly and can safely
+    // be used. The strings are null-terminated and valid UTF-8,
     // the array contained at most ten elements, and the numbers
     // are all within the range of an int32_t.
     printf("%s\n", first);

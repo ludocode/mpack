@@ -9,35 +9,41 @@ Feedback is welcome! Please let me know if any entries in the table are incorrec
 [mpack]: https://github.com/ludocode/mpack
 [msgpack-c]: https://github.com/msgpack/msgpack-c
 [cmp]: https://github.com/camgunz/cmp
+[cwpack]: https://github.com/clwi/CWPack
 
-|    | [MPack][mpack]<br>(v0.8) | [msgpack-c][msgpack-c]<br>(v1.3.0) | [CMP][cmp]<br>(v14) |
-|:------------------------------------|:---:|:---:|:---:|
-| No libc requirement                 | ✓   |     | ✓   |
-| No allocator requirement            | ✓   |     | ✓   |
-| Growable memory writer              | ✓   | ✓   |     |
-| File I/O helpers                    | ✓   | ✓   |     |
-| Tree parser                         | ✓   | ✓   |     |
-| Propagating errors                  | ✓   |     | ✓   |
-| Descriptive error information       |     |     |     |
-| Compound size tracking              | ✓   |     |     |
-| Automatic compound size             |     |     |     |
-| Incremental parser                  | ✓   |     | ✓   |
-| Incremental type helpers            | ✓   |     | ✓   |
-| Incremental range/match helpers     | ✓   |     |     |
-| Asynchronous incremental parser     |     |     |     |
-| Peek next element                   | ✓   |     |     |
-| Tree stream parser                  |     | ✓   |     |
-| Asynchronous tree stream parser     |     | ✓   |     |
-| Support for new (2.0) spec          | ✓   | ✓   | ✓   |
-| Compatible with older (1.0) spec    | ✓   | ✓   | ✓   |
-| UTF-8 verification                  | ✓   |     |     |
-| Type-generic write helpers          | ✓   | ✓   |     |
+|    | [MPack][mpack]<br>(v1.0) | [msgpack-c][msgpack-c]<br>(v3.1.1) | [CMP][cmp]<br>(v18) | [CWPack][cwpack]<br>(v1.1) |
+|:------------------------------------|:---:|:---:|:---:|:---:|
+| No libc requirement                 | ✓   |     | ✓   | ✓   |
+| No allocator requirement            | ✓   |     | ✓   | ✓   |
+| Growable memory writer              | ✓   | ✓   |     | ✓\* |
+| File I/O helpers                    | ✓   | ✓   |     | ✓\* |
+| Tree parser                         | ✓   | ✓   |     |     |
+| Propagating errors                  | ✓   |     | ✓   |     |
+| Descriptive error information       |     |     |     |     |
+| Compound size tracking              | ✓   |     |     |     |
+| Automatic compound size             |     |     |     |     |
+| Incremental parser                  | ✓   |     | ✓   | ✓   |
+| Typed read helpers                  | ✓   |     | ✓   |     |
+| Range/match read helpers            | ✓   |     |     |     |
+| Asynchronous incremental parser     |     |     |     |     |
+| Peek next element                   | ✓   |     |     |     |
+| Tree stream parser                  | ✓   | ✓   |     |     |
+| Asynchronous tree stream parser     | ✓   | ✓   |     |     |
+| Support for new (2.0) spec          | ✓   | ✓   | ✓   | ✓   |
+| Compatible with older (1.0) spec    | ✓   | ✓   | ✓   | ✓   |
+| UTF-8 verification                  | ✓   |     |     |     |
+| Type-generic write helpers          | ✓   | ✓   |     |     |
+| Timestamps                          | ✓   | ✓   |     |     |
 
-Most of the features above are optional when supported and can be configured in all libraries. In particular, UTF-8 verification is optional with MPack; compound size tracking is optional and disabled in release by default with MPack; and 1.0 (v4) spec compatibility is optional with CMP (v5/2.0 is the recommended and default usage.)
+Most of the features above are optional when supported and can be configured in all libraries. In particular, UTF-8 verification is optional with MPack; compound size tracking is optional and disabled in release by default with MPack; and 1.0 (v4) spec compatibility is optional in all libraries (v5/2.0 is the recommended and default usage.)
+
+\*CWPack's [goodies](https://github.com/clwi/CWPack/tree/master/goodies) are included in the above table.
 
 ## Glossary
 
 *Tree parsing* means parsing a MessagePack object into a DOM-style tree of dynamically-typed elements supporting random access.
+
+*Incremental parsing* means being able to parse one basic MessagePack element at a time (either imperatively or with a SAX-style callback) with no per-element memory usage.
 
 *Propagating errors* means a parse error or type error on one element places the whole parser, encoder or tree in an error state. This means you can check for errors only at certain key points rather than at every interaction with the library, and you get a final error state indicating whether any error occurred at any point during parsing or encoding.
 
@@ -47,11 +53,9 @@ Most of the features above are optional when supported and can be configured in 
 
 *Automatic compound size* means not having to specify the number of elements or bytes in an element up-front, instead determining it automatically when the element is closed.
 
-*Incremental parsing* means being able to parse one basic MessagePack element at a time (either imperatively or with a SAX-style callback) with no per-element memory usage.
+*Typed read helpers* means helper functions for a parser that can check the expected type of an element and return its value in that type. For example `cmp_read_int()` in CMP or `mpack_expect_u32()` in MPack.
 
-*Incremental type helpers* means helper functions for an incremental parser that can check the expected type of an element.
-
-*Incremental range/match helpers* means helper functions for an incremental parser that can check not only the expected type of an element, but also enforce an allowed range or exact match on a given value.
+*Range/match read helpers* means helper functions for a parser that can check not only the expected type of an element, but also enforce an allowed range or exact match on a given value.
 
 *Peeking the next element* means being able to view the next element during incremental parsing without popping it from the data buffer.
 

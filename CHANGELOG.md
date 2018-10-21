@@ -1,48 +1,39 @@
-Unreleased
-==========
+MPack v1.0
+----------
 
-MPack develop (tentatively v0.9)
---------------------------------------------
-
-A number of breaking API changes will be made as we approach a 1.0 release. Please take note of these changes when upgrading.
+A number of breaking API changes have been made for the 1.0 release. Please take note of these changes when upgrading.
 
 Breaking Changes:
 
 - The Node API now separates tree initialization from parsing. After calling one of the `mpack_tree_init()` functions, you must explicitly call `mpack_tree_parse()` before accessing any nodes.
 
-- `mpack_tag_t` is now considered an opaque type (to prevent future breakage when changing its layout.) Compatibility is maintained for this release, but this may change in future releases.
-
-- The mpack configuration `mpack-config.h` file is now optional, and requires `MPACK_HAS_CONFIG` in order to be included. This means you must define `MPACK_HAS_CONFIG` when upgrading or your config file will be ignored! (It is recommended to delete your config file and use the defaults.)
+- The configuration file `mpack-config.h` is now optional, and requires `MPACK_HAS_CONFIG` in order to be included. This means you must define `MPACK_HAS_CONFIG` when upgrading or your config file will be ignored!
 
 - Extension types are now disabled by default. You must define `MPACK_EXTENSIONS` to use them.
 
-- Compatibility with the v4 MessagePack spec is now disabled by default. You must define `MPACK_COMPATIBILITY` to use it.
+- `mpack_tag_t` is now considered an opaque type to prevent future breakage when changing its layout. Compatibility is maintained for this release, but this may change in future releases.
 
 New Features:
-
-- The timestamp type has been implemented. A timestamp is a signed number of nanoseconds since January 1st, 1970 at 12:00 UTC. (This requires `MPACK_EXTENSIONS`.)
 
 - The Node API can now parse multiple messages from a data source. `mpack_tree_parse()` can be called repeatedly to parse each message.
 
 - The Node API can now parse messages indefinitely from a continuous stream. A tree can be initialized with `mpack_tree_init_stream()` to receive a callback for more data.
 
-- The Node API can now parse messages incrementally from a non-blocking stream. Call `mpack_tree_try_parse()` to continue parsing. It will return true when a complete message has become available.
+- The Node API can now parse messages incrementally from a non-blocking stream. Call `mpack_tree_try_parse()` with a non-blocking read function to start and resume parsing. It will return true when a complete message has become available.
 
-- The writer now supports a v4 compatibility mode. Call `mpack_writer_set_version(writer, mpack_version_v4);` to encode without using the `raw8`, `bin`, `ext` and `timestamp` types.
-
-- The stdio helpers now allow reading from a `FILE*`. `_init_file()` functions have been renamed to `_init_filename()`. The old names will continue to work for a few more versions.
+- The stdio helpers now allow reading from a `FILE*`. `_init_file()` functions have been renamed to `_init_filename()`. (The old names will continue to work for a few more versions.)
 
 - The Node API now returns a node of "missing" type instead of "nil" type for optional map lookups. This allows the caller to tell the difference between a key having value nil and a missing key.
 
-Changes:
+- The writer now supports a v4 compatibility mode. Call `mpack_writer_set_version(writer, mpack_version_v4);` to encode without using the `raw8`, `bin` and `ext` types. (This requires `MPACK_COMPATIBILITY`.)
+
+- The timestamp type has been implemented. A timestamp is a signed number of nanoseconds since the Unix epoch (1970-01-01T00:00:00Z). (This requires `MPACK_EXTENSIONS`.)
+
+Bug Fixes and Other Changes:
+
+- Fixed an allocation bug when closing a growable writer without having written anything (#58).
 
 - The reader's skip function is no longer ignored under `MPACK_OPTIMIZE_FOR_SIZE`.
-
-- Fixed an allocation bug when closing a growable writer without having written anything.
-
-
-Release Versions
-================
 
 MPack v0.8.2
 ------------
