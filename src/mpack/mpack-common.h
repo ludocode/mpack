@@ -35,6 +35,7 @@
 #endif
 
 MPACK_HEADER_START
+MPACK_EXTERN_C_START
 
 
 
@@ -1068,6 +1069,7 @@ bool mpack_str_check_no_null(const char* str, size_t bytes);
  * @}
  */
 
+MPACK_EXTERN_C_END
 MPACK_HEADER_END
 
 #endif

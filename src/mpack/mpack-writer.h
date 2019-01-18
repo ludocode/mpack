@@ -30,9 +30,10 @@
 
 #include "mpack-common.h"
 
-MPACK_HEADER_START
-
 #if MPACK_WRITER
+
+MPACK_HEADER_START
+MPACK_EXTERN_C_START
 
 #if MPACK_WRITE_TRACKING
 struct mpack_track_t;
@@ -903,7 +904,7 @@ MPACK_INLINE void mpack_finish_type(mpack_writer_t* writer, mpack_type_t type) {
  * @}
  */
 
-#if MPACK_WRITER && MPACK_HAS_GENERIC && !defined(__cplusplus)
+#if MPACK_HAS_GENERIC && !defined(__cplusplus)
 
 /**
  * @name Type-Generic Writers
@@ -967,23 +968,20 @@ MPACK_INLINE void mpack_finish_type(mpack_writer_t* writer, mpack_type_t type) {
  * @}
  */
 
-#endif
+#endif // MPACK_HAS_GENERIC && !defined(__cplusplus)
 
-/**
- * @}
- */
-
-#endif
-
-MPACK_HEADER_END
+// The rest of this file contains C++ overloads, so we end extern "C" here.
+MPACK_EXTERN_C_END
 
 #if defined(__cplusplus) || defined(MPACK_DOXYGEN)
 
+/**
+ * @name C++ write overloads
+ * @{
+ */
+
 /*
  * C++ generic writers for primitive values
- *
- * These currently sit outside of MPACK_HEADER_END because it defines
- * extern "C". They'll be moved to a C++-specific header soon.
  */
 
 #ifdef MPACK_DOXYGEN
@@ -1109,6 +1107,19 @@ MPACK_INLINE void mpack_write_kv(mpack_writer_t* writer, const char *key, const 
     mpack_write_cstr(writer, key);
     mpack_write_cstr_or_nil(writer, value);
 }
+
+/**
+ * @}
+ */
+
 #endif /* __cplusplus */
+
+/**
+ * @}
+ */
+
+MPACK_HEADER_END
+
+#endif // MPACK_WRITER
 
 #endif

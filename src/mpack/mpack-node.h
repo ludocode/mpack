@@ -31,6 +31,7 @@
 #include "mpack-reader.h"
 
 MPACK_HEADER_START
+MPACK_EXTERN_C_START
 
 #if MPACK_NODE
 
@@ -1422,6 +1423,7 @@ bool mpack_node_map_contains_cstr(mpack_node_t node, const char* cstr);
 
 #endif
 
+MPACK_EXTERN_C_END
 MPACK_HEADER_END
 
 #endif

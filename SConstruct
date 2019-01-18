@@ -202,6 +202,10 @@ if ARGUMENTS.get('all'):
     AddBuilds("cxx", allfeatures + allconfigs + cxxflags + ["-std=c++98", "-Wno-pedantic"])
     if hasC11:
         AddBuilds("c99", allfeatures + allconfigs + ["-std=c99"])
+    if conf.CheckFlags(cxxflags + ["-std=c++11"], [], "-std=c++11"):
+        AddBuilds("cxx11", allfeatures + allconfigs + cxxflags + ["-std=c++11"])
+        # Make sure C++ compiles with disabled features (see #66)
+        AddBuilds("cxx11-empty", allconfigs + cxxflags + ["-std=c++11"])
     if conf.CheckFlags(cxxflags + ["-std=c++14"], [], "-std=c++14"):
         AddBuilds("cxx14", allfeatures + allconfigs + cxxflags + ["-std=c++14"])
     if conf.CheckFlags(cxxflags + ["-std=gnu++11"], [], "-std=gnu++11"):
