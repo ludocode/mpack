@@ -16,8 +16,6 @@ The MPack featureset can be customized at compile-time to set which features, co
 
 ## Build Status
 
-MPack is beta software under development.
-
 [travis-home]: https://travis-ci.org/
 [travis-mpack]: https://travis-ci.org/ludocode/mpack/branches
 [appveyor-home]: https://ci.appveyor.com/
