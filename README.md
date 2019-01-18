@@ -110,7 +110,7 @@ MPack is rich in features while maintaining very high performance and a small co
 | Compound size tracking              | ✓   |     |     |
 | Incremental parser                  | ✓   |     | ✓   |
 | Incremental range/match helpers     | ✓   |     |     |
-| Tree stream parser                  |     | ✓   |     |
+| Tree stream parser                  | ✓   | ✓   |     |
 | UTF-8 verification                  | ✓   |     |     |
 
 A larger feature comparison table is available [here](docs/features.md) which includes descriptions of the various entries in the table.
