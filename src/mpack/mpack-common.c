@@ -185,7 +185,8 @@ static void mpack_tag_debug_complete_bin_ext(mpack_tag_t tag, size_t string_leng
     buffer_size -= 2;
 
     size_t hex_bytes = 0;
-    for (size_t i = 0; i < MPACK_PRINT_BYTE_COUNT && i < prefix_size && buffer_size > 2; ++i) {
+    size_t i;
+    for (i = 0; i < MPACK_PRINT_BYTE_COUNT && i < prefix_size && buffer_size > 2; ++i) {
         uint8_t byte = (uint8_t)prefix[i];
         buffer[0] = mpack_hex_char((uint8_t)(byte >> 4));
         buffer[1] = mpack_hex_char((uint8_t)(byte & 0xfu));
@@ -620,7 +621,8 @@ bool mpack_utf8_check_no_null(const char* str, size_t bytes) {
 }
 
 bool mpack_str_check_no_null(const char* str, size_t bytes) {
-    for (size_t i = 0; i < bytes; ++i)
+    size_t i;
+    for (i = 0; i < bytes; ++i)
         if (str[i] == '\0')
             return false;
     return true;
