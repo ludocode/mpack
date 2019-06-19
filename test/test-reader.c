@@ -135,6 +135,29 @@ static void test_print_buffer_no_hexdump() {
 }
 #endif
 
+static bool count_messages(const void* buffer, size_t byte_count, size_t* message_count) {
+    mpack_reader_t reader;
+    mpack_reader_init_data(&reader, (const char*)buffer, byte_count);
+
+    *message_count = 0;
+    while (mpack_reader_remaining(&reader, NULL) > 0) {
+        ++*message_count;
+        mpack_discard(&reader);
+    }
+
+    return mpack_ok == mpack_reader_destroy(&reader);
+}
+
+static void test_count_messages(void) {
+    static const char test[] = "\x80\x81\xA3""key\xA5""value\x92\xc2\xc3\x90";
+    size_t message_count;
+    TEST_TRUE(count_messages(test, sizeof(test)-1, &message_count));
+    TEST_TRUE(message_count == 4);
+
+    static const char test2[] = "\x92\xc0"; // truncated buffer
+    TEST_TRUE(!count_messages(test2, sizeof(test2)-1, &message_count));
+}
+
 void test_reader() {
     #if MPACK_DEBUG && MPACK_STDIO
     test_print_buffer();
@@ -144,6 +167,7 @@ void test_reader() {
     #endif
     test_reader_should_inplace();
     test_reader_miscellaneous();
+    test_count_messages();
 }
 
 #endif
