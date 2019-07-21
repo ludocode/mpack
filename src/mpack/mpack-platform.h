@@ -151,10 +151,15 @@
     #define MPACK_EXTERN_C_END   /* nothing */
 #endif
 
-/* GCC versions from 4.6 to before 5.1 warn about defining a C99
- * non-static inline function before declaring it (see issue #20) */
-#ifdef __GNUC__
-    #if (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
+/* We can't push/pop diagnostics before GCC 4.6, so if you're on a really old
+ * compiler, MPack does not support the below warning flags. You will have to
+ * manually disable them to use MPack. */
+
+/* GCC versions before 5.1 warn about defining a C99 non-static inline function
+ * before declaring it (see issue #20). Diagnostic push is not supported before
+ * GCC 4.6. */
+#if defined(__GNUC__) && !defined(__clang__)
+    #if (__GNUC__ == 4 && __GNUC_MINOR__ >= 6) || (__GNUC__ == 5 && __GNUC_MINOR__ < 1)
         #ifdef __cplusplus
             #define MPACK_DECLARED_INLINE_WARNING_START \
                 _Pragma ("GCC diagnostic push") \
@@ -173,10 +178,11 @@
     #define MPACK_DECLARED_INLINE_WARNING_END /* nothing */
 #endif
 
-/* GCC versions before 4.8 warn about shadowing a function with a
- * variable that isn't a function or function pointer (like "index") */
-#ifdef __GNUC__
-    #if (__GNUC__ < 4) || (__GNUC__ == 4 && __GNUC_MINOR__ < 8)
+/* GCC versions before 4.8 warn about shadowing a function with a variable that
+ * isn't a function or function pointer (like "index"). Diagnostic push is not
+ * supported before GCC 4.6. */
+#if defined(__GNUC__) && !defined(__clang__)
+    #if __GNUC__ == 4 && __GNUC_MINOR__ >= 6 && __GNUC_MINOR__ < 8
         #define MPACK_WSHADOW_WARNING_START \
             _Pragma ("GCC diagnostic push") \
             _Pragma ("GCC diagnostic ignored \"-Wshadow\"")
@@ -416,9 +422,10 @@ MPACK_EXTERN_C_START
 
     #ifndef MPACK_STATIC_ASSERT
         #if defined(__GNUC__)
-            #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
+            /* Diagnostic push is not supported before GCC 4.6. */
+            #if defined(__clang__) || __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
                 #ifndef __cplusplus
-                    #if __GNUC__ >= 5
+                    #if defined(__clang__) || __GNUC__ >= 5
                     #define MPACK_IGNORE_PEDANTIC "GCC diagnostic ignored \"-Wpedantic\""
                     #else
                     #define MPACK_IGNORE_PEDANTIC "GCC diagnostic ignored \"-pedantic\""
