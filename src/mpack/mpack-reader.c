@@ -232,7 +232,7 @@ MPACK_NOINLINE static size_t mpack_fill_range(mpack_reader_t* reader, char* p, s
         size_t read = reader->fill(reader, p + count, max_bytes - count);
 
         // Reader fill functions can flag an error or return 0 on failure. We
-        // also guard against functions that -1 just in case.
+        // also guard against functions that return -1 just in case.
         if (mpack_reader_error(reader) != mpack_ok)
             return 0;
         if (read == 0 || read == ((size_t)(-1))) {
