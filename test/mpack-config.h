@@ -48,6 +48,11 @@
     #define MPACK_STDIO 1
 #endif
 
+// We've disabled the unit test for single inline under tcc.
+#ifdef __TINYC__
+#define MPACK_DISABLE_TINYC_INLINE_WARNING
+#endif
+
 // We replace the file i/o functions to simulate failures
 #if MPACK_STDIO
 #include <stdio.h>

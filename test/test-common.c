@@ -29,9 +29,12 @@
 
 static void test_tags_special(void) {
 
-    // ensure there is only one inline definition (the global
-    // address is in test.c)
+    // we emit a warning for inlines on tcc because they are static.
+    #ifndef __TINYC__
+    // for all other compilers, ensure there is only one inline definition (the
+    // global address is in test.c)
     TEST_TRUE(fn_mpack_tag_nil == &mpack_tag_nil);
+    #endif
 
     // test comparison with invalid tags
     // (invalid enum values cause undefined behavior in C++)

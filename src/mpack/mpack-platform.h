@@ -276,7 +276,7 @@ MPACK_EXTERN_C_START
     // translation units. If mpack-platform.c (or the amalgamation)
     // is compiled as C, its definition will be used, otherwise a
     // C++ definition will be used, and no other C files will emit
-    // a defition.
+    // a definition.
     #define MPACK_INLINE inline
 
 #elif defined(_MSC_VER)
@@ -287,13 +287,23 @@ MPACK_EXTERN_C_START
     #define MPACK_STATIC_INLINE static __inline
 
 #elif defined(__GNUC__) && (defined(__GNUC_GNU_INLINE__) || \
-        !defined(__GNUC_STDC_INLINE__) && !defined(__GNUC_GNU_INLINE__))
+        (!defined(__GNUC_STDC_INLINE__) && !defined(__GNUC_GNU_INLINE__)))
     // GNU rules
     #if MPACK_EMIT_INLINE_DEFS
         #define MPACK_INLINE inline
     #else
         #define MPACK_INLINE extern inline
     #endif
+
+#elif defined(__TINYC__)
+    // tcc ignores the inline keyword, so we have to use static inline. We
+    // issue a warning to make sure you are aware. You can define the below
+    // macro to disable the warning. Hopefully this will be fixed soon:
+    //     https://lists.nongnu.org/archive/html/tinycc-devel/2019-06/msg00000.html
+    #ifndef MPACK_DISABLE_TINYC_INLINE_WARNING
+        #warning "Single-definition inline is not supported by tcc. All inlines will be static. Define MPACK_DISABLE_TINYC_INLINE_WARNING to disable this warning."
+    #endif
+    #define MPACK_INLINE static inline
 
 #else
     // C99 rules
