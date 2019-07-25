@@ -17,8 +17,8 @@ INPUT = \
     build/docs/mpack-defaults-doxygen.h \
     src/mpack/mpack-platform.h \
     src/mpack/mpack-common.h \
-    src/mpack/mpack-reader.h \
     src/mpack/mpack-writer.h \
+    src/mpack/mpack-reader.h \
     src/mpack/mpack-expect.h \
     src/mpack/mpack-node.h \
     src/mpack/mpack.h \

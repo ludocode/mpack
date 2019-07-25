@@ -27,6 +27,7 @@
 #include "test-reader.h"
 #include "test-expect.h"
 #include "test-write.h"
+#include "test-builder.h"
 #include "test-buffer.h"
 #include "test-common.h"
 #include "test-node.h"
@@ -94,6 +95,9 @@ int main(void) {
     #endif
     #if MPACK_WRITER
     test_writes();
+    #endif
+    #if MPACK_BUILDER
+    test_builder();
     #endif
     #if MPACK_NODE
     test_node();

@@ -1,3 +1,12 @@
+MPack v1.1
+----------
+
+Changes:
+
+- New builder functions have been added to build maps and arrays of indeterminate size: `mpack_build_map()`, `mpack_build_array()`, `mpack_complete_map()` and `mpack_complete_array()`.
+- Fixed some minor portability issues
+- Replaced unit test buildsystem with Lua+Ninja
+
 MPack v1.0
 ----------
 

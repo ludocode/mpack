@@ -1011,6 +1011,10 @@ typedef struct mpack_track_element_t {
     // read/written key. left is not decremented until both key and value are
     // read/written.
     bool key_needs_value;
+
+    // tracks whether the map/array being written is using a builder. if true,
+    // the number of elements is automatic, and left is 0.
+    bool builder;
 } mpack_track_element_t;
 
 typedef struct mpack_track_t {
@@ -1023,7 +1027,9 @@ typedef struct mpack_track_t {
 mpack_error_t mpack_track_init(mpack_track_t* track);
 mpack_error_t mpack_track_grow(mpack_track_t* track);
 mpack_error_t mpack_track_push(mpack_track_t* track, mpack_type_t type, uint32_t count);
+mpack_error_t mpack_track_push_builder(mpack_track_t* track, mpack_type_t type);
 mpack_error_t mpack_track_pop(mpack_track_t* track, mpack_type_t type);
+mpack_error_t mpack_track_pop_builder(mpack_track_t* track, mpack_type_t type);
 mpack_error_t mpack_track_element(mpack_track_t* track, bool read);
 mpack_error_t mpack_track_peek_element(mpack_track_t* track, bool read);
 mpack_error_t mpack_track_bytes(mpack_track_t* track, bool read, size_t count);

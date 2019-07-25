@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2018 Nicholas Fraser
+ * Copyright (c) 2015-2019 Nicholas Fraser
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -108,6 +108,59 @@ typedef void (*mpack_writer_teardown_t)(mpack_writer_t* writer);
 /* Hide internals from documentation */
 /** @cond */
 
+#if MPACK_BUILDER
+/**
+ * Build buffer pages form a linked list.
+ *
+ * They don't always fill up. If there is not enough space within them to write
+ * a tag or place an mpack_build_t, a new page is allocated. For this reason
+ * they store the number of used bytes.
+ */
+typedef struct mpack_builder_page_t {
+    struct mpack_builder_page_t* next;
+    size_t bytes_used;
+} mpack_builder_page_t;
+
+/**
+ * Builds form a linked list of mpack_build_t, interleaved with their encoded
+ * contents directly in the paged builder buffer.
+ */
+typedef struct mpack_build_t {
+    //mpack_builder_page_t* page;
+    struct mpack_build_t* parent;
+    //struct mpack_build_t* next;
+
+    size_t bytes; // number of bytes between this build and the next one
+    uint32_t count; // number of elements (or key/value pairs) in this map/array
+    mpack_type_t type;
+
+    // depth of nested non-build compound elements within this
+    // build.
+    uint32_t nested_compound_elements;
+
+    // indicates that a value still needs to be written for an already
+    // written key. count is not incremented until both key and value are
+    // written.
+    bool key_needs_value;
+} mpack_build_t;
+
+/**
+ * The builder state. This is stored within mpack_writer_t.
+ */
+typedef struct mpack_builder_t {
+    mpack_build_t* current_build; // build which is accumulating elements
+    mpack_build_t* latest_build; // build which is accumulating bytes
+    mpack_builder_page_t* current_page;
+    mpack_builder_page_t* pages;
+    char* stash_buffer;
+    char* stash_current;
+    char* stash_end;
+    #if MPACK_BUILDER_INTERNAL_STORAGE
+    char internal[MPACK_BUILDER_INTERNAL_STORAGE_SIZE];
+    #endif
+} mpack_builder_t;
+#endif
+
 struct mpack_writer_t {
     #if MPACK_COMPATIBILITY
     mpack_version_t version;          /* Version of the MessagePack spec to write */
@@ -131,12 +184,18 @@ struct mpack_writer_t {
      * context in order to reduce heap allocations. */
     void* reserved[2];
     #endif
+
+    #if MPACK_BUILDER
+    mpack_builder_t builder;
+    #endif
 };
+
 
 #if MPACK_WRITE_TRACKING
 void mpack_writer_track_push(mpack_writer_t* writer, mpack_type_t type, uint32_t count);
+void mpack_writer_track_push_builder(mpack_writer_t* writer, mpack_type_t type);
 void mpack_writer_track_pop(mpack_writer_t* writer, mpack_type_t type);
-void mpack_writer_track_element(mpack_writer_t* writer);
+void mpack_writer_track_pop_builder(mpack_writer_t* writer, mpack_type_t type);
 void mpack_writer_track_bytes(mpack_writer_t* writer, size_t count);
 #else
 MPACK_INLINE void mpack_writer_track_push(mpack_writer_t* writer, mpack_type_t type, uint32_t count) {
@@ -144,12 +203,17 @@ MPACK_INLINE void mpack_writer_track_push(mpack_writer_t* writer, mpack_type_t t
     MPACK_UNUSED(type);
     MPACK_UNUSED(count);
 }
+MPACK_INLINE void mpack_writer_track_push_builder(mpack_writer_t* writer, mpack_type_t type) {
+    MPACK_UNUSED(writer);
+    MPACK_UNUSED(type);
+}
 MPACK_INLINE void mpack_writer_track_pop(mpack_writer_t* writer, mpack_type_t type) {
     MPACK_UNUSED(writer);
     MPACK_UNUSED(type);
 }
-MPACK_INLINE void mpack_writer_track_element(mpack_writer_t* writer) {
+MPACK_INLINE void mpack_writer_track_pop_builder(mpack_writer_t* writer, mpack_type_t type) {
     MPACK_UNUSED(writer);
+    MPACK_UNUSED(type);
 }
 MPACK_INLINE void mpack_writer_track_bytes(mpack_writer_t* writer, size_t count) {
     MPACK_UNUSED(writer);
@@ -605,7 +669,11 @@ MPACK_INLINE void mpack_write_timestamp_struct(mpack_writer_t* writer, mpack_tim
  * `count` elements must follow, and mpack_finish_array() must be called
  * when done.
  *
+ * If you do not know the number of elements to be written ahead of time, call
+ * mpack_build_array() instead.
+ *
  * @see mpack_finish_array()
+ * @see mpack_build_array() to count the number of elements automatically
  */
 void mpack_start_array(mpack_writer_t* writer, uint32_t count);
 
@@ -615,13 +683,36 @@ void mpack_start_array(mpack_writer_t* writer, uint32_t count);
  * `count * 2` elements must follow, and mpack_finish_map() must be called
  * when done.
  *
+ * If you do not know the number of elements to be written ahead of time, call
+ * mpack_build_map() instead.
+ *
  * Remember that while map elements in MessagePack are implicitly ordered,
  * they are not ordered in JSON. If you need elements to be read back
  * in the order they are written, consider use an array instead.
  *
  * @see mpack_finish_map()
+ * @see mpack_build_map() to count the number of key/value pairs automatically
  */
 void mpack_start_map(mpack_writer_t* writer, uint32_t count);
+
+MPACK_INLINE void mpack_builder_compound_push(mpack_writer_t* writer) {
+    #if MPACK_BUILDER
+    mpack_build_t* build = writer->builder.current_build; 
+    if (build != NULL) {
+        ++build->nested_compound_elements;
+    }
+    #endif
+}
+
+MPACK_INLINE void mpack_builder_compound_pop(mpack_writer_t* writer) {
+    #if MPACK_BUILDER
+    mpack_build_t* build = writer->builder.current_build; 
+    if (build != NULL) {
+        mpack_assert(build->nested_compound_elements > 0);
+        --build->nested_compound_elements;
+    }
+    #endif
+}
 
 /**
  * Finishes writing an array.
@@ -629,12 +720,14 @@ void mpack_start_map(mpack_writer_t* writer, uint32_t count);
  * This should be called only after a corresponding call to mpack_start_array()
  * and after the array contents are written.
  *
- * This will track writes to ensure that the correct number of elements are written.
+ * In debug mode (or if MPACK_WRITE_TRACKING is not 0), this will track writes
+ * to ensure that the correct number of elements are written.
  *
  * @see mpack_start_array()
  */
 MPACK_INLINE void mpack_finish_array(mpack_writer_t* writer) {
     mpack_writer_track_pop(writer, mpack_type_array);
+    mpack_builder_compound_pop(writer);
 }
 
 /**
@@ -643,13 +736,89 @@ MPACK_INLINE void mpack_finish_array(mpack_writer_t* writer) {
  * This should be called only after a corresponding call to mpack_start_map()
  * and after the map contents are written.
  *
- * This will track writes to ensure that the correct number of elements are written.
+ * In debug mode (or if MPACK_WRITE_TRACKING is not 0), this will track writes
+ * to ensure that the correct number of elements are written.
  *
  * @see mpack_start_map()
  */
 MPACK_INLINE void mpack_finish_map(mpack_writer_t* writer) {
     mpack_writer_track_pop(writer, mpack_type_map);
+    mpack_builder_compound_pop(writer);
 }
+
+/**
+ * Starts building an array.
+ *
+ * Elements must follow, and mpack_complete_map() must be called when done. The
+ * number of elements is determined automatically.
+ *
+ * If you know ahead of time the number of elements in the array, it is more
+ * efficient to call mpack_start_array() instead, even if you are already
+ * within another open build.
+ *
+ * Builder containers can be nested within normal (known size) containers and
+ * vice versa. You can call mpack_build_array(), then mpack_start_array()
+ * inside it, then mpack_build_array() inside that, and so forth.
+ *
+ * @see mpack_complete_array() to complete this array
+ * @see mpack_start_array() if you already know the size of the array
+ * @see mpack_build_map() for implementation details
+ */
+void mpack_build_array(struct mpack_writer_t* writer);
+
+/**
+ * Starts building a map.
+ *
+ * An even number of elements must follow, and mpack_complete_map() must be
+ * called when done. The number of elements is determined automatically.
+ *
+ * If you know ahead of time the number of elements in the map, it is more
+ * efficient to call mpack_start_map() instead, even if you are already within
+ * another open build.
+ *
+ * Builder containers can be nested within normal (known size) containers and
+ * vice versa. You can call mpack_build_map(), then mpack_start_map() inside
+ * it, then mpack_build_map() inside that, and so forth.
+ *
+ * A writer in build mode diverts writes to a builder buffer that allocates as
+ * needed. Once the last map or array being built is completed, the deferred
+ * message is composed with computed array and map sizes into the writer.
+ * Builder maps and arrays are encoded exactly the same as ordinary maps and
+ * arrays in the final message.
+ *
+ * This indirect encoding is costly, as it incurs at least an extra copy of all
+ * data written within a builder (but not additional copies for nested
+ * builders.) Expect a speed penalty of half or more.
+ *
+ * A good strategy is to use this during early development when your messages
+ * are constantly changing, and then closer to release when your message
+ * formats have stabilized, replace all your build calls with start calls with
+ * pre-computed sizes. Or don't, if you find the builder has little impact on
+ * performance, because even with builders MPack is extremely fast.
+ *
+ * @note When an array or map starts being built, nothing will be flushed
+ *       until it is completed. If you are building a large message that
+ *       does not fit in the output stream, you won't get an error about it
+ *       until everything is written.
+ *
+ * @see mpack_complete_map() to complete this map
+ * @see mpack_start_map() if you already know the size of the map
+ */
+void mpack_build_map(struct mpack_writer_t* writer);
+
+/**
+ * Completes an array being built.
+ *
+ * @see mpack_build_array()
+ */
+void mpack_complete_array(struct mpack_writer_t* writer);
+
+/**
+ * Completes a map being built.
+ *
+ * @see mpack_build_map()
+ */
+void mpack_complete_map(struct mpack_writer_t* writer);
 
 /**
  * @}

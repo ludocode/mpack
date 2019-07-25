@@ -23,13 +23,18 @@
  * configuration file.
  *
  * @warning The value of all configuration options must be the same in
- * all translation units of your project, as well as in @c mpack.c itself.
- * These configuration options affect the layout of structs, among other
- * things, which cannot be different in source files that are linked
+ * all translation units of your project, as well as in the mpack source
+ * itself. These configuration options affect the layout of structs, among
+ * other things, which cannot be different in source files that are linked
  * together.
  *
  * @{
  */
+
+// There is intentionally no include guard on this file. If you copy this to
+// your own config file, this still needs to be included afterwards. This
+// provides forward compatibility: new versions of MPack can introduce new
+// options without forcing you to upgrade your config file.
 
 
 /**
@@ -288,6 +293,34 @@
  */
 
 /**
+ * @def MPACK_BUILDER
+ *
+ * Enables compilation of the Builder API (`mpack_build_map()` and
+ * `mpack_build_array()`.)
+ *
+ * This is enabled by default if MPACK_WRITER is enabled and MPACK_MALLOC is
+ * defined.
+ */
+#ifndef MPACK_BUILDER
+#if defined(MPACK_MALLOC) && MPACK_WRITER
+#define MPACK_BUILDER 1
+#else
+#define MPACK_BUILDER 0
+#endif
+#endif
+
+/**
+ * @def MPACK_BUILDER_INTERNAL_STORAGE
+ *
+ * Enables a small amount of internal storage within the writer to avoid
+ * allocations when using builders.
+ */
+#ifndef MPACK_BUILDER_INTERNAL_STORAGE
+//#define MPACK_BUILDER_INTERNAL_STORAGE MPACK_BUILDER
+#define MPACK_BUILDER_INTERNAL_STORAGE 0
+#endif
+
+/**
  * Whether to optimize for size or speed.
  *
  * Optimizing for size simplifies some parsing and encoding algorithms
@@ -326,6 +359,16 @@
 #endif
 
 /**
+ * Minimum size for paged allocations in bytes.
+ *
+ * This is the value used by default for MPACK_NODE_PAGE_SIZE and
+ * MPACK_BUILDER_PAGE_SIZE.
+ */
+#ifndef MPACK_PAGE_SIZE
+#define MPACK_PAGE_SIZE 4096
+#endif
+
+/**
  * Minimum size of an allocated node page in bytes.
  *
  * The children for a given compound element must be contiguous, so
@@ -339,7 +382,37 @@
  * messages.
  */
 #ifndef MPACK_NODE_PAGE_SIZE
-#define MPACK_NODE_PAGE_SIZE 4096
+#define MPACK_NODE_PAGE_SIZE MPACK_PAGE_SIZE
+#endif
+
+/**
+ * Minimum size of an allocated builder page in bytes.
+ *
+ * Builder writes are deferred to the allocated builder buffer which is
+ * composed of a list of buffer pages. This defines the size of those pages.
+ */
+#ifndef MPACK_BUILDER_PAGE_SIZE
+//#define MPACK_BUILDER_PAGE_SIZE MPACK_PAGE_SIZE
+#define MPACK_BUILDER_PAGE_SIZE 99
+#endif
+
+/**
+ * Amount of space reserved inside mpack_writer_t for the Builders. This can
+ * allow small messages to be built with the Builder API without incurring an
+ * allocation.
+ *
+ * An mpack_builder_page_t and several mpack_builder_t are placed within this
+ * space in addition to the literal MessagePack data. It needs to be big enough
+ * to be useful, but not too big so as to be wasteful; if more space is needed,
+ * pages are allocated.
+ *
+ * This is only used if MPACK_BUILDER_INTERNAL_STORAGE is enabled.
+ *
+ * @see MPACK_BUILDER_PAGE_SIZE
+ * @see MPACK_BUILDER_INTERNAL_STORAGE
+ */
+#ifndef MPACK_BUILDER_INTERNAL_STORAGE_SIZE
+#define MPACK_BUILDER_INTERNAL_STORAGE_SIZE 256
 #endif
 
 /**
