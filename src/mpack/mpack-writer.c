@@ -31,7 +31,7 @@ static void mpack_writer_flag_if_error(mpack_writer_t* writer, mpack_error_t err
         mpack_writer_flag_error(writer, error);
 }
 
-void mpack_writer_track_push(mpack_writer_t* writer, mpack_type_t type, uint64_t count) {
+void mpack_writer_track_push(mpack_writer_t* writer, mpack_type_t type, uint32_t count) {
     if (writer->error == mpack_ok)
         mpack_writer_flag_if_error(writer, mpack_track_push(&writer->track, type, count));
 }

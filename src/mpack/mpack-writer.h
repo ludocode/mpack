@@ -134,12 +134,12 @@ struct mpack_writer_t {
 };
 
 #if MPACK_WRITE_TRACKING
-void mpack_writer_track_push(mpack_writer_t* writer, mpack_type_t type, uint64_t count);
+void mpack_writer_track_push(mpack_writer_t* writer, mpack_type_t type, uint32_t count);
 void mpack_writer_track_pop(mpack_writer_t* writer, mpack_type_t type);
 void mpack_writer_track_element(mpack_writer_t* writer);
 void mpack_writer_track_bytes(mpack_writer_t* writer, size_t count);
 #else
-MPACK_INLINE void mpack_writer_track_push(mpack_writer_t* writer, mpack_type_t type, uint64_t count) {
+MPACK_INLINE void mpack_writer_track_push(mpack_writer_t* writer, mpack_type_t type, uint32_t count) {
     MPACK_UNUSED(writer);
     MPACK_UNUSED(type);
     MPACK_UNUSED(count);

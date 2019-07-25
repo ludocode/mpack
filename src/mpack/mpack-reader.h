@@ -941,12 +941,12 @@ MPACK_INLINE mpack_error_t mpack_reader_track_peek_element(mpack_reader_t* reade
     return MPACK_READER_TRACK(reader, mpack_track_peek_element(&reader->track, true));
 }
 
-MPACK_INLINE mpack_error_t mpack_reader_track_bytes(mpack_reader_t* reader, uint64_t count) {
+MPACK_INLINE mpack_error_t mpack_reader_track_bytes(mpack_reader_t* reader, size_t count) {
     MPACK_UNUSED(count);
     return MPACK_READER_TRACK(reader, mpack_track_bytes(&reader->track, true, count));
 }
 
-MPACK_INLINE mpack_error_t mpack_reader_track_str_bytes_all(mpack_reader_t* reader, uint64_t count) {
+MPACK_INLINE mpack_error_t mpack_reader_track_str_bytes_all(mpack_reader_t* reader, size_t count) {
     MPACK_UNUSED(count);
     return MPACK_READER_TRACK(reader, mpack_track_str_bytes_all(&reader->track, true, count));
 }

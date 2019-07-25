@@ -641,7 +641,7 @@ void mpack_expect_str_match(mpack_reader_t* reader, const char* str, size_t len)
     mpack_expect_str_length(reader, (uint32_t)len);
     if (mpack_reader_error(reader))
         return;
-    mpack_reader_track_bytes(reader, len);
+    mpack_reader_track_bytes(reader, (uint32_t)len);
 
     // check each byte one by one (matched strings are likely to be very small)
     for (; len > 0; --len) {
