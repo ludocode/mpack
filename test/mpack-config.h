@@ -10,7 +10,7 @@
 #define MPACK_DEBUG 1
 #endif
 
-#ifdef MPACK_SCONS
+#ifdef MPACK_VARIANT_BUILDS
     // Most options such as featureset and platform configuration
     // are specified by the SCons buildsystem. Any options that are
     // unset on the command line are considered disabled.

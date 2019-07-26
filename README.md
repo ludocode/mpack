@@ -133,12 +133,8 @@ The above issues greatly increase the complexity of the decoder. Full-featured J
 
 While the space inefficiencies of JSON can be partially mitigated through minification and compression, the performance inefficiencies cannot. More importantly, if you are minifying and compressing the data, then why use a human-readable format in the first place?
 
-## Running the Unit Tests
+## Testing MPack
 
 The MPack build process does not build MPack into a library; it is used to build and run the unit tests. You do not need to build MPack or the unit testing suite to use MPack.
 
-On Linux, the test suite uses SCons and requires Valgrind, and can be run in the repository or in the amalgamation package. Run `scons` to build and run the test suite in full debug configuration.
-
-On Windows, there is a Visual Studio solution, and on OS X, there is an Xcode project for building and running the test suite.
-
-You can also build and run the test suite in all supported configurations, which is what the continuous integration server will build and run. If you are on 64-bit, you will need support for cross-compiling to 32-bit, and running 32-bit binaries with 64-bit Valgrind. On Ubuntu, you'll need `libc6-dbg:i386`. On Arch you'll need `gcc-multilib` or `lib32-clang`, and `valgrind-multilib`. Use `scons all=1 -j16` (or some appropriate thread count) to build and run all tests.
+See [test/README.md](test/README.md) for information on how to test MPack.

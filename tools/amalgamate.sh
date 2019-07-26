@@ -29,13 +29,12 @@ TOOLS="\
     tools/clean.sh \
     tools/gcov.sh \
     tools/scan-build.sh \
+    tools/unittest.lua \
     tools/valgrind-suppressions \
     "
 
 FILES="\
     test \
-    SConscript \
-    SConstruct \
     LICENSE \
     AUTHORS.md \
     README.md \

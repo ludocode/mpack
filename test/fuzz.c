@@ -19,6 +19,8 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#ifdef MPACK_FUZZ
+
 /*
  * fuzz.c is a test program to assist with fuzzing MPack. It:
  *
@@ -162,3 +164,7 @@ int main(int argc, char** argv) {
 
     return EXIT_SUCCESS;
 }
+
+#else
+typedef int mpack_pedantic_allow_empty_translation_unit;
+#endif

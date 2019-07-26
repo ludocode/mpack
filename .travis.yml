@@ -1,13 +1,14 @@
 language: c
 
-dist: trusty
+dist: bionic
 sudo: false
 
-addons:
-  apt:
-    packages:
-      - clang
-      - valgrind
+# apparently apt addon doesn't work on bionic?
+before_install:
+  - sudo apt-get update
+  - sudo apt-get install -y build-essential gcc-multilib g++-multilib clang cmake lua5.1 luarocks ninja-build libc6-dbg:i386 tcc valgrind
+  - CC= CXX= sudo luarocks install luafilesystem
+  - CC= CXX= sudo luarocks install rapidjson
 
 script: tools/ci.sh
 
@@ -27,18 +28,19 @@ matrix:
     - os: osx
       compiler: clang
       env: "OSX=1"
+      # disable before_install here to avoid apt-get on mac
+      before_install:
 
     # code coverage build
     - os: linux
       compiler: gcov
       env: "STANDARD=1"
-      addons:
-        apt:
-          packages:
-            - valgrind
-            # these packages are needed for urllib3[secure] for SNI support for
-            # coveralls integration
-            - build-essential
-            - python-dev
-            - libffi-dev
-            - libssl-dev
+      before_install:
+        - sudo apt-get update
+        # these packages are needed for urllib3[secure] for SNI support for
+        # coveralls integration
+        - sudo apt-get install -y python-dev libffi-dev libssl-dev
+        # the rest of this is copied from above
+        - sudo apt-get install -y build-essential gcc-multilib g++-multilib clang cmake lua5.1 luarocks ninja-build libc6-dbg:i386 tcc valgrind
+        - CC= CXX= sudo luarocks install luafilesystem
+        - CC= CXX= sudo luarocks install rapidjson
