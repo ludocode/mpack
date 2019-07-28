@@ -311,7 +311,7 @@ void mpack_writer_init_filename(mpack_writer_t* writer, const char* filename) {
 #endif
 
 void mpack_writer_flag_error(mpack_writer_t* writer, mpack_error_t error) {
-    mpack_log("writer %p setting error %i: %s\n", writer, (int)error, mpack_error_to_string(error));
+    mpack_log("writer %p setting error %i: %s\n", (void*)writer, (int)error, mpack_error_to_string(error));
 
     if (writer->error == mpack_ok) {
         writer->error = error;

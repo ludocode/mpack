@@ -209,7 +209,7 @@ size_t mpack_reader_remaining(mpack_reader_t* reader, const char** data) {
 }
 
 void mpack_reader_flag_error(mpack_reader_t* reader, mpack_error_t error) {
-    mpack_log("reader %p setting error %i: %s\n", reader, (int)error, mpack_error_to_string(error));
+    mpack_log("reader %p setting error %i: %s\n", (void*)reader, (int)error, mpack_error_to_string(error));
 
     if (reader->error == mpack_ok) {
         reader->error = error;
