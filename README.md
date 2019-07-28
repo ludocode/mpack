@@ -100,22 +100,20 @@ MPack is rich in features while maintaining very high performance and a small co
 [msgpack-c]: https://github.com/msgpack/msgpack-c
 [cmp]: https://github.com/camgunz/cmp
 
-|    | [MPack][mpack]<br>(v0.8) | [msgpack-c][msgpack-c]<br>(v1.3.0) | [CMP][cmp]<br>(v14) |
-|:------------------------------------|:---:|:---:|:---:|
-| No libc requirement                 | ✓   |     | ✓   |
-| Growable memory writer              | ✓   | ✓   |     |
-| File I/O helpers                    | ✓   | ✓   |     |
-| Tree parser                         | ✓   | ✓   |     |
-| Propagating errors                  | ✓   |     | ✓   |
-| Compound size tracking              | ✓   |     |     |
-| Incremental parser                  | ✓   |     | ✓   |
-| Incremental range/match helpers     | ✓   |     |     |
-| Tree stream parser                  | ✓   | ✓   |     |
-| UTF-8 verification                  | ✓   |     |     |
+|    | [MPack][mpack]<br>(v1.1) | [msgpack-c][msgpack-c]<br>(v3.2.0) | [CMP][cmp]<br>(v18) | [CWPack][cwpack]<br>(v1.1) |
+|:------------------------------------|:---:|:---:|:---:|:---:|
+| No libc requirement                 | ✓   |     | ✓   | ✓   |
+| Growable memory writer              | ✓   | ✓   |     | ✓\* |
+| File I/O helpers                    | ✓   | ✓   |     | ✓\* |
+| Propagating errors                  | ✓   |     | ✓   |     |
+| Incremental parser                  | ✓   |     | ✓   | ✓   |
+| Tree stream parser                  | ✓   | ✓   |     |     |
+| Compound size tracking              | ✓   |     |     |     |
+| Automatic compound size             |     |     |     |     |
 
 A larger feature comparison table is available [here](docs/features.md) which includes descriptions of the various entries in the table.
 
-[This benchmarking suite](https://github.com/ludocode/schemaless-benchmarks) compares the performance of MPack to other implementations of schemaless serialization formats. MPack outperforms all JSON and MessagePack libraries, and in some tests MPack is several times faster than [RapidJSON](https://github.com/miloyip/rapidjson) for equivalent data.
+[This benchmarking suite](https://github.com/ludocode/schemaless-benchmarks) compares the performance of MPack to other implementations of schemaless serialization formats. MPack outperforms all JSON and MessagePack libraries (except [CWPack][cwpack]), and in some tests MPack is several times faster than [RapidJSON](https://github.com/miloyip/rapidjson) for equivalent data.
 
 ## Why Not Just Use JSON?
 
