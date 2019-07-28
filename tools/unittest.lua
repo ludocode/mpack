@@ -212,12 +212,9 @@ global_cppflags = concatArrays({
     "-g",
 }, extra_warnings)
 
--- if cc == "clang" then
---     global_cppflags = concatArrays(global_cppflags, {})
--- elseif cc == "gcc" then
---     "-Wmisleading-indentation",
--- end
--- global_cppflags = concatArrays(global_cppflags, {"-Wmissing-declarations"})
+if not os.getenv("CI") and checkFlag("-fdiagnostics-color=always") then
+    global_cppflags = concatArrays(global_cppflags, {"-fdiagnostics-color=always"})
+end
 
 defaultfeatures = {
     "-DMPACK_READER=1",
