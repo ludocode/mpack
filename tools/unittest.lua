@@ -28,6 +28,10 @@
 --
 -- This requires at least Lua 5.1, with rocks luafilesystem and rapidjson.
 
+---------------------------------------------------
+-- Dependencies
+---------------------------------------------------
+
 require 'lfs'
 local rapidjson = require 'rapidjson'
 
@@ -53,8 +57,17 @@ function execute(args)
 end
 
 ---------------------------------------------------
--- Load Cached Config
+-- Setup
 ---------------------------------------------------
+
+-- switch working directory to root of library
+if debug.getinfo(1) ~= nil and debug.getinfo(1).short_src ~= nil then
+    local debugname = debug.getinfo(1).short_src
+    if debugname:find("/") then
+		debugname = string.gsub(debugname, "(.*/)(.*)", "%1")
+        lfs.chdir(debugname .. "/..")
+    end
+end
 
 local ccvar = os.getenv("CC")
 local config = {ccvar = os.getenv("CC")}
