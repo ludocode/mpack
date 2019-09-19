@@ -1,0 +1,9 @@
+libdir=@LIBDIR@
+includedir=@INCDIR@
+version=@VERSION@
+
+Name: mpack
+Description: Small binary serialization library implementing mpack protocol
+Version: ${version}
+Libs: -L${libdir} -lmpack
+Cflags: -I${includedir}
