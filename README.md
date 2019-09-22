@@ -99,6 +99,7 @@ MPack is rich in features while maintaining very high performance and a small co
 [mpack]: https://github.com/ludocode/mpack
 [msgpack-c]: https://github.com/msgpack/msgpack-c
 [cmp]: https://github.com/camgunz/cmp
+[cwpack]: https://github.com/clwi/CWPack
 
 |    | [MPack][mpack]<br>(v1.1) | [msgpack-c][msgpack-c]<br>(v3.2.0) | [CMP][cmp]<br>(v18) | [CWPack][cwpack]<br>(v1.1) |
 |:------------------------------------|:---:|:---:|:---:|:---:|
