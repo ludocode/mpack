@@ -15,6 +15,7 @@ mpack-test-blank-file
 /vgcore.*
 /.ninja_deps
 /.ninja_log
+/test/juce/mpack/Builds
 
 # visual studio project
 *.suo
