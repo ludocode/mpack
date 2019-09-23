@@ -88,12 +88,21 @@
 #define MPACK_INTERNAL 1
 
 //==============================================================================
-#include "../src/mpack/mpack-defaults.h"
-#include "../src/mpack/mpack-common.h"
-#include "../src/mpack/mpack-expect.h"
-#include "../src/mpack/mpack-node.h"
-#include "../src/mpack/mpack-platform.h"
-#include "../src/mpack/mpack-reader.h"
-#include "../src/mpack/mpack-writer.h"
+#ifdef _MSC_VER
+#pragma warning(push)
+#pragma warning(disable: 4127 4310)
+#endif
+
+#include "../../../src/mpack/mpack-defaults.h"
+#include "../../../src/mpack/mpack-common.h"
+#include "../../../src/mpack/mpack-expect.h"
+#include "../../../src/mpack/mpack-node.h"
+#include "../../../src/mpack/mpack-platform.h"
+#include "../../../src/mpack/mpack-reader.h"
+#include "../../../src/mpack/mpack-writer.h"
+
+#ifdef _MSC_VER
+#pragma warning(pop)
+#endif
 
 #endif // LUDOCODE_MPACK_H

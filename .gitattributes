@@ -3,5 +3,4 @@
 *.debug text eol=lf
 
 # JUCE modules are defacto CRLF
-ludocode_mpack/*.h text eol=crlf
-ludocode_mpack/*.cpp text eol=crlf
+bindings/juce/ludocode_mpack/*.* text eol=crlf
