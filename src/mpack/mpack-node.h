@@ -1283,7 +1283,7 @@ mpack_node_t mpack_node_map_uint(mpack_node_t node, uint64_t num);
 
 /**
  * Returns the value node in the given map for the given unsigned integer
- * key, or a nil node if the map does not contain the given key.
+ * key, or a missing node if the map does not contain the given key.
  *
  * The key must be unique. An error is flagged if the node has multiple
  * entries with the given key.
@@ -1315,7 +1315,7 @@ mpack_node_t mpack_node_map_uint_optional(mpack_node_t node, uint64_t num);
 mpack_node_t mpack_node_map_str(mpack_node_t node, const char* str, size_t length);
 
 /**
- * Returns the value node in the given map for the given string key, or a nil
+ * Returns the value node in the given map for the given string key, or a missing
  * node if the map does not contain the given key.
  *
  * The key must be unique. An error is flagged if the node has multiple
@@ -1350,7 +1350,7 @@ mpack_node_t mpack_node_map_cstr(mpack_node_t node, const char* cstr);
 
 /**
  * Returns the value node in the given map for the given null-terminated
- * string key, or a nil node if the map does not contain the given key.
+ * string key, or a missing node if the map does not contain the given key.
  *
  * The key must be unique. An error is flagged if the node has multiple
  * entries with the given key.
