@@ -839,6 +839,13 @@ static void test_expect_bin() {
 
 }
 
+static void test_expect_bin_size_buf() {
+    char buf[256];
+    TEST_SIMPLE_READ("\xc4\x00", (mpack_expect_bin_size_buf(&reader, buf, 0), true));
+    TEST_SIMPLE_READ("\xc4\x05hello", (mpack_expect_bin_size_buf(&reader, buf, 5), 0 == memcmp(buf, "hello", 5)));
+    TEST_SIMPLE_READ_ERROR("\xc4\x04test", (mpack_expect_bin_size_buf(&reader, buf, 5), true), mpack_error_type);
+}
+
 #if MPACK_EXTENSIONS
 static void test_expect_ext() {
     char buf[256];
@@ -1302,6 +1309,7 @@ void test_expect() {
     // compound types
     test_expect_str();
     test_expect_bin();
+    test_expect_bin_size_buf();
     test_expect_arrays();
     test_expect_maps();
 
