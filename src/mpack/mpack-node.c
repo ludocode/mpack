@@ -556,9 +556,13 @@ static bool mpack_tree_parse_node_contents(mpack_tree_t* tree, mpack_node_data_t
         case 0xcb:
             if (!mpack_tree_reserve_bytes(tree, sizeof(double)))
                 return false;
+#ifdef MPACK_DOUBLES
             node->value.d = mpack_load_double(tree->data + tree->size + 1);
             node->type = mpack_type_double;
             return true;
+#else
+            return false;
+#endif
 
         // uint8
         case 0xcc:
