@@ -359,6 +359,13 @@
 #endif
 
 /**
+ * Whether to support reading/writing doubles (disable on 8-bit microcontrollers).
+ */
+#ifndef MPACK_DOUBLES
+#define MPACK_DOUBLE 1
+#endif
+
+/**
  * @}
  */
 

@@ -917,6 +917,7 @@ MPACK_INLINE float mpack_load_float(const char* p) {
     return v.f;
 }
 
+#if MPACK_DOUBLES
 MPACK_INLINE double mpack_load_double(const char* p) {
     MPACK_CHECK_FLOAT_ORDER();
     MPACK_STATIC_ASSERT(sizeof(double) == sizeof(uint64_t), "double is wrong size??");
@@ -927,6 +928,7 @@ MPACK_INLINE double mpack_load_double(const char* p) {
     v.u = mpack_load_u64(p);
     return v.d;
 }
+#endif
 
 MPACK_INLINE void mpack_store_float(char* p, float value) {
     MPACK_CHECK_FLOAT_ORDER();
@@ -938,6 +940,7 @@ MPACK_INLINE void mpack_store_float(char* p, float value) {
     mpack_store_u32(p, v.u);
 }
 
+#if MPACK_DOUBLES
 MPACK_INLINE void mpack_store_double(char* p, double value) {
     MPACK_CHECK_FLOAT_ORDER();
     union {
@@ -947,6 +950,7 @@ MPACK_INLINE void mpack_store_double(char* p, double value) {
     v.d = value;
     mpack_store_u64(p, v.u);
 }
+#endif
 
 /** @endcond */
 
