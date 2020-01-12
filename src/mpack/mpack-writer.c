@@ -583,7 +583,7 @@ MPACK_STATIC_INLINE void mpack_encode_float(char* p, float value) {
     mpack_store_float(p + 1, value);
 }
 
-#ifdef MPACK_DOUBLES
+#if MPACK_DOUBLES
 MPACK_STATIC_INLINE void mpack_encode_double(char* p, double value) {
     mpack_store_u8(p, 0xcb);
     mpack_store_double(p + 1, value);

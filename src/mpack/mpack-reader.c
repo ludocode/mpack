@@ -744,12 +744,12 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
         case 0xcb:
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_DOUBLE))
                 return 0;
-#ifdef MPACK_DOUBLES
+            #if MPACK_DOUBLES
             *tag = mpack_tag_make_double(mpack_load_double(reader->data + 1));
             return MPACK_TAG_SIZE_DOUBLE;
-#else
+            #else
             return 0;
-#endif
+            #endif
 
         // uint8
         case 0xcc:
