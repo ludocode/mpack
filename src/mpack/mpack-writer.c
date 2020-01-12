@@ -588,6 +588,11 @@ MPACK_STATIC_INLINE void mpack_encode_double(char* p, double value) {
     mpack_store_u8(p, 0xcb);
     mpack_store_double(p + 1, value);
 }
+#else
+MPACK_STATIC_INLINE void mpack_encode_double(char* p, double value) {
+    mpack_store_u8(p, 0xca);
+    mpack_store_float(p + 1, (float)value);
+}
 #endif
 
 MPACK_STATIC_INLINE void mpack_encode_fixarray(char* p, uint8_t count) {
@@ -916,7 +921,11 @@ void mpack_write_float(mpack_writer_t* writer, float value) {
 
 void mpack_write_double(mpack_writer_t* writer, double value) {
     mpack_writer_track_element(writer);
+    #if MPACK_DOUBLES
     MPACK_WRITE_ENCODED(mpack_encode_double, MPACK_TAG_SIZE_DOUBLE, value);
+    #else
+    MPACK_WRITE_ENCODED(mpack_encode_float, MPACK_TAG_SIZE_FLOAT, (float)value);
+    #endif
 }
 
 #if MPACK_EXTENSIONS

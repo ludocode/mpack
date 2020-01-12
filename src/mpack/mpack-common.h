@@ -950,6 +950,16 @@ MPACK_INLINE void mpack_store_double(char* p, double value) {
     v.d = value;
     mpack_store_u64(p, v.u);
 }
+#else
+MPACK_INLINE void mpack_store_double(char* p, double value) {
+    MPACK_CHECK_FLOAT_ORDER();
+    union {
+        float f;
+        uint32_t u;
+    } v;
+    v.f = (float)value;
+    mpack_store_u32(p, v.u);
+}
 #endif
 
 /** @endcond */
