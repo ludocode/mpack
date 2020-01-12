@@ -561,7 +561,9 @@ static bool mpack_tree_parse_node_contents(mpack_tree_t* tree, mpack_node_data_t
             node->type = mpack_type_double;
             return true;
             #else
-            return false;
+            node->value.f = mpack_load_double(tree->data + tree->size + 1);
+            node->type = mpack_type_float;
+            return true;
             #endif
 
         // uint8

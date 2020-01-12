@@ -928,6 +928,24 @@ MPACK_INLINE double mpack_load_double(const char* p) {
     v.u = mpack_load_u64(p);
     return v.d;
 }
+#else
+MPACK_INLINE float mpack_load_double(const char* p) {
+    MPACK_CHECK_FLOAT_ORDER();
+    union {
+        uint8_t b[8];
+        uint64_t u;
+    } v;
+    v.u = mpack_load_u64(p);
+    union {
+        float f;
+        uint8_t b[4];
+    } w;
+    w.b[3] = (v.b[7] & 0xC0) | (v.b[7] << 3 & 0x3f) | (v.b[6] >> 5);
+    w.b[2] = (v.b[6] << 3) | (v.b[5] >> 5);
+    w.b[1] = (v.b[5] << 3) | (v.b[4] >> 5);
+    w.b[0] = (v.b[4] << 3) | (v.b[3] >> 5);
+    return w.f;
+}
 #endif
 
 MPACK_INLINE void mpack_store_float(char* p, float value) {
