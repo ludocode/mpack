@@ -46,6 +46,28 @@ static void test_builder_basic(void) {
     TEST_DESTROY_MATCH_IMPL("\x81\xa5hello\xa5world");
 }
 
+static void test_builder_repeat(void) {
+    char buf[4096];
+    mpack_writer_t writer;
+
+    mpack_writer_init(&writer, buf, sizeof(buf));
+    mpack_start_array(&writer, 4);
+    mpack_build_array(&writer);
+    mpack_complete_array(&writer);
+    mpack_build_map(&writer);
+    mpack_complete_map(&writer);
+    mpack_build_array(&writer);
+    mpack_write_u8(&writer, 2);
+    mpack_complete_array(&writer);
+    mpack_build_map(&writer);
+    mpack_write_cstr(&writer, "hello");
+    mpack_write_cstr(&writer, "world");
+    mpack_complete_map(&writer);
+    mpack_finish_array(&writer);
+
+    TEST_DESTROY_MATCH_IMPL("\x94\x90\x80\x91\x02\x81\xa5hello\xa5world");
+}
+
 static void test_builder_nested(void) {
     char buf[4096];
     mpack_writer_t writer;
@@ -384,6 +406,7 @@ static void test_builder_strings(void) {
 
 void test_builder(void) {
     test_builder_basic();
+    test_builder_repeat();
     test_builder_nested();
     test_builder_deep();
     test_builder_large();

@@ -696,6 +696,8 @@ void mpack_start_array(mpack_writer_t* writer, uint32_t count);
 void mpack_start_map(mpack_writer_t* writer, uint32_t count);
 
 MPACK_INLINE void mpack_builder_compound_push(mpack_writer_t* writer) {
+    MPACK_UNUSED(writer);
+
     #if MPACK_BUILDER
     mpack_build_t* build = writer->builder.current_build; 
     if (build != NULL) {
@@ -705,6 +707,8 @@ MPACK_INLINE void mpack_builder_compound_push(mpack_writer_t* writer) {
 }
 
 MPACK_INLINE void mpack_builder_compound_pop(mpack_writer_t* writer) {
+    MPACK_UNUSED(writer);
+
     #if MPACK_BUILDER
     mpack_build_t* build = writer->builder.current_build; 
     if (build != NULL) {

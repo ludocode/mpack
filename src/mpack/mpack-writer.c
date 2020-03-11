@@ -1549,6 +1549,16 @@ MPACK_NOINLINE
 static void mpack_builder_resolve(mpack_writer_t* writer) {
     mpack_builder_t* builder = &writer->builder;
 
+    // The starting page is the internal storage (if we have it), otherwise
+    // it's the first page in the array
+    mpack_builder_page_t* page =
+        #if MPACK_BUILDER_INTERNAL_STORAGE
+        (mpack_builder_page_t*)builder->internal
+        #else
+        builder->pages
+        #endif
+        ;
+
     // We start by restoring the writer's original buffer so we can write the
     // data for real.
     writer->buffer = builder->stash_buffer;
@@ -1559,16 +1569,7 @@ static void mpack_builder_resolve(mpack_writer_t* writer) {
     builder->current_build = NULL;
     builder->latest_build = NULL;
     builder->current_page = NULL;
-
-    // The starting page is the internal storage (if we have it), otherwise
-    // it's the first page in the array
-    mpack_builder_page_t* page =
-        #if MPACK_BUILDER_INTERNAL_STORAGE
-        (mpack_builder_page_t*)builder->internal
-        #else
-        builder->pages
-        #endif
-        ;
+    builder->pages = NULL;
 
     // the starting page always starts with the first build
     size_t offset = mpack_builder_align_build(sizeof(mpack_builder_page_t));
@@ -1662,28 +1663,6 @@ static void mpack_builder_resolve(mpack_writer_t* writer) {
     }
 
     mpack_log("done resolve.\n");
-
-        #if 0
-        mpack_build_t* next = build->next;
-        mpack_builder_page_t* end_page = (next == NULL) ? page : next->page;
-
-        // if the next build is on some other page, copy the rest of this page
-        if (page != end_page) {
-            size_t start = (size_t)((char*)build - (char*)page) + sizeof(mpack_build_t);
-        }
-
-        // if the next build is still on some other page, copy the entirety of
-        // any pages in between
-        while
-
-        if (next == NULL)
-            break;
-
-        // figure out the data between this build and the next one (or the end
-        // of the build buffer)
-        build = next;
-        #endif
-
 }
 
 static void mpack_builder_complete(mpack_writer_t* writer, mpack_type_t type) {
