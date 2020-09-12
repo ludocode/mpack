@@ -7,20 +7,6 @@
 
 set -e
 
-if [ "$(uname -s)" == "Darwin" ]; then
-    unset CC
-    unset CXX
-    cd projects/xcode
-    xcodebuild -version
-    xcodebuild build -configuration Debug
-    xcodebuild build -configuration Release
-    echo "Running Debug unit tests..."
-    ( cd ../.. ; projects/xcode/build/Debug/MPack )
-    echo "Running Release unit tests..."
-    ( cd ../.. ; projects/xcode/build/Release/MPack )
-    exit 0
-fi
-
 if [[ "$AMALGAMATED" == "1" ]]; then
     tools/amalgamate.sh
     cd build/amalgamation

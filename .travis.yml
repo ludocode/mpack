@@ -24,13 +24,6 @@ env:
 matrix:
   include:
 
-    # osx build
-    - os: osx
-      compiler: clang
-      env: "OSX=1"
-      # disable before_install here to avoid apt-get on mac
-      before_install:
-
     # code coverage build
     - os: linux
       compiler: gcov
