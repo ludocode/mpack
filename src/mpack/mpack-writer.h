@@ -395,20 +395,20 @@ MPACK_INLINE void mpack_writer_set_teardown(mpack_writer_t* writer, mpack_writer
 /**
  * Flushes any buffered data to the underlying stream.
  *
- * If write tracking is enabled, this will break and flag @ref
- * mpack_error_bug if the writer has any open compound types, ensuring
- * that no compound types are still open. This prevents a "missing
- * finish" bug from causing a never-ending message.
- *
  * If the writer is connected to a socket and you are keeping it open,
  * you will want to call this after writing a message (or set of
  * messages) so that the data is actually sent.
  *
  * It is not necessary to call this if you are not keeping the writer
- * open afterwards. You can just call `mpack_writer_destroy()`, and it
+ * open afterwards. You can just call `mpack_writer_destroy()` and it
  * will flush before cleaning up.
  *
  * This will assert if no flush function is assigned to the writer.
+ *
+ * If write tracking is enabled, this will break and flag @ref
+ * mpack_error_bug if the writer has any open compound types, ensuring
+ * that no compound types are still open. This prevents a "missing
+ * finish" bug from causing a never-ending message.
  */
 void mpack_writer_flush_message(mpack_writer_t* writer);
 
