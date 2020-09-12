@@ -6,15 +6,14 @@ sudo: false
 # apparently apt addon doesn't work on bionic?
 before_install:
   - sudo apt-get update
-  - sudo apt-get install -y build-essential gcc-multilib g++-multilib clang cmake lua5.1 luarocks ninja-build libc6-dbg:i386 tcc valgrind
-  - CC= CXX= sudo luarocks install luafilesystem
-  - CC= CXX= sudo luarocks install rapidjson
+  - sudo apt-get install -y build-essential gcc-multilib g++-multilib clang cmake ninja-build libc6-dbg:i386 tcc valgrind
 
-script: tools/ci.sh
+script: test/unit/ci-unix.sh
 
 compiler:
   - clang
   - gcc
+  - tcc
   - scan-build
 
 env:
@@ -34,6 +33,4 @@ matrix:
         # coveralls integration
         - sudo apt-get install -y python-dev libffi-dev libssl-dev
         # the rest of this is copied from above
-        - sudo apt-get install -y build-essential gcc-multilib g++-multilib clang cmake lua5.1 luarocks ninja-build libc6-dbg:i386 tcc valgrind
-        - CC= CXX= sudo luarocks install luafilesystem
-        - CC= CXX= sudo luarocks install rapidjson
+        - sudo apt-get install -y build-essential gcc-multilib g++-multilib clang cmake ninja-build libc6-dbg:i386 tcc valgrind

@@ -1,16 +1,19 @@
 version: 0.0.{build}
 
+image: Visual Studio 2019
+
 configuration:
   - Debug
-  - Release
+  #- Release
 
 platform:
-  - Win32
+  #- Win32
   - x64
 
-build:
-  project: projects\vs\mpack.sln
-  parallel: true
+build_script:
+  # apparently appveyor doesn't like it if we put nothing in here. looks like a
+  # bug uses whatever used to be in build_script from some other branch...
+  - '@'
 
 test_script:
-- cd projects\vs && %PLATFORM%\%CONFIGURATION%\mpack.exe
+  - 'test\unit\ci-windows.bat'
