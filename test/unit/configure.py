@@ -31,37 +31,68 @@
 import shutil, os, sys, subprocess
 from os import path
 
-cc = None
-msvc = False
-
-if shutil.which("cl.exe"):
-    # MSVC compiler is available so we assume we're supposed to use it.
-    cc = "cl"
-    msvc = True
-else:
-    cc = os.getenv("CC") or "cc"
-    if not shutil.which(cc):
-        raise Exception("Compiler cannot be found!")
-
-globalbuild = path.join("build", "unit")
+globalbuild = path.join("test", "build")
 os.makedirs(globalbuild, exist_ok=True)
-# TODO load config
 
-config = {
-    "flags": {},
-}
 
-obj_extension = ".o"
-exe_extension = ""
-if msvc:
+
+###################################################
+# Determine Compiler
+###################################################
+
+cc = None
+
+if os.getenv("CC"):
+    cc = os.getenv("CC")
+elif shutil.which("cl.exe"):
+    cc = "cl"
+else:
+    cc = "cc"
+
+if not shutil.which(cc):
+    raise Exception("Compiler cannot be found!")
+
+if cc.lower().startswith("cl"):
+    compiler = "msvc"
+else:
+    # try --version
+    ret = subprocess.run([cc, "--version"], universal_newlines=True,
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+    if ret.returncode == 0:
+        if ret.stdout.startswith("gcc "):
+            compiler = "gcc"
+        elif ret.stdout.startswith("clang "):
+            compiler = "clang"
+        elif ret.stdout.startswith("cparser "):
+            compiler = "cparser"
+    else:
+        # try -v
+        ret = subprocess.run([cc, "--version"], universal_newlines=True,
+                stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        if ret.returncode == 0:
+            if ret.stdout.startswith("tcc "):
+                compiler = "tinycc"
+
+print("Using " + compiler + " compiler with executable: " + cc)
+
+if compiler == "msvc":
     obj_extension = ".obj"
     exe_extension = ".exe"
+else:
+    obj_extension = ".o"
+    exe_extension = ""
+
+msvc = (compiler == "msvc")
 
 
 
 ###################################################
 # Compiler Probing
 ###################################################
+
+config = {
+    "flags": {},
+}
 
 flagtest_src = path.join(globalbuild, "flagtest.c")
 flagtest_exe = path.join(globalbuild, "flagtest" + exe_extension)
@@ -74,14 +105,14 @@ int main(int argc, char** argv) {
 }
 """)
 
-def checkFlag(flags):
+def checkFlags(flags):
     if isinstance(flags, str):
         flags = [flags,]
 
     configArg = "|".join(flags)
     if configArg in config["flags"]:
         return config["flags"][configArg]
-    print("Testing flags(s): " + " ".join(flags) + " ... ", end="")
+    print("Testing flag(s): " + " ".join(flags) + " ... ", end="")
     sys.stdout.flush()
 
     if msvc:
@@ -100,8 +131,8 @@ def checkFlag(flags):
     config["flags"][configArg] = supported
     return supported
 
-def flagIfSupported(flags):
-    if checkFlag(flags):
+def flagsIfSupported(flags):
+    if checkFlags(flags):
         if isinstance(flags, str):
             return [flags]
         return flags
@@ -130,7 +161,7 @@ else:
         if hasOg:
             print("Supported.")
         else:
-            print("Supported, but we won't use it.")
+            print("May be supported, but we won't use it.")
 
 
 
@@ -196,7 +227,7 @@ if msvc:
     cxxflags = ["/TP"]
 else:
     cflags = [
-        checkFlag("-std=c11") and "-std=c11" or "-std=c99",
+        checkFlags("-std=c11") and "-std=c11" or "-std=c99",
         "-Wc++-compat"
     ]
     cxxflags = [
@@ -211,13 +242,18 @@ else:
 ###################################################
 
 if not os.getenv("CI"):
-    global_cppflags += flagIfSupported("-fdiagnostics-color=always")
+    # we have to force color diagnostics to get color output from ninja
+    # (ninja will strip the colors if it's being piped)
+    if checkFlags("-fdiagnostics-color=always"):
+        global_cppflags.append("-fdiagnostics-color=always")
+    elif checkFlags("-fcolor-diagnostics=always"):
+        global_cppflags.append("-color-diagnostics=always")
 
-if checkFlag("-Wstrict-aliasing=3"):
+if checkFlags("-Wstrict-aliasing=3"):
     global_cppflags.append("-Wstrict-aliasing=3")
-elif checkFlag("-Wstrict-aliasing=2"):
+elif checkFlags("-Wstrict-aliasing=2"):
     global_cppflags.append("-Wstrict-aliasing=2")
-elif checkFlag("-Wstrict-aliasing"):
+elif checkFlags("-Wstrict-aliasing"):
     global_cppflags.append("-Wstrict-aliasing")
 
 extra_warnings_to_test = [
@@ -227,9 +263,9 @@ extra_warnings_to_test = [
     "-fstrict-aliasing",
 ]
 for flag in extra_warnings_to_test:
-    global_cppflags += flagIfSupported(flag)
+    global_cppflags += flagsIfSupported(flag)
 
-cflags += flagIfSupported("-Wmissing-prototypes")
+cflags += flagsIfSupported("-Wmissing-prototypes")
 
 #TODO
 ltoflags = []
@@ -242,13 +278,16 @@ ltoflags = []
 
 builds = {}
 
+class Build:
+    def __init__(self, name, cppflags, ldflags):
+        self.name = name
+        self.cppflags = cppflags
+        self.ldflags = ldflags
+        self.run_wrapper = None
+        self.exclude = False
+
 def addBuild(name, cppflags, ldflags=[]):
-    builds[name] = {
-        "cppflags": cppflags,
-        "ldflags": ldflags,
-        "run-wrapper": "",
-        "exclude": False,
-    }
+    builds[name] = Build(name, cppflags, ldflags)
 
 def addDebugReleaseBuilds(name, cppflags, ldflags = []):
     addBuild(name + "-debug", cppflags + debugflags, ldflags)
@@ -283,39 +322,39 @@ haveValgrind = shutil.which("valgrind")
 
 if haveValgrind:
     # use valgrind for everything build if available
-    builds["everything-debug"]["run_wrapper"] = "valgrind "
-    builds["everything-release"]["run_wrapper"] = "valgrind "
+    builds["everything-debug"].run_wrapper = "valgrind"
+    builds["everything-release"].run_wrapper = "valgrind"
 
 # language versions
 if msvc:
     addDebugReleaseBuilds('c++', allfeatures + allconfigs + cxxflags)
 elif cc != "tcc":
-    if checkFlag("-std=c11"):
+    if checkFlags("-std=c11"):
         # if we're using c11 for everything else, we still need to test c99
         addDebugReleaseBuilds('c99', allfeatures + allconfigs + ["-std=c99"])
     for version in ["c++11", "gnu++11", "c++14", "c++17"]:
         flags = cxxflags + ["-std=" + version]
-        if checkFlag(flags):
+        if checkFlags(flags):
             addDebugReleaseBuilds(version, allfeatures + allconfigs + flags)
 
     # Make sure C++11 compiles with disabled features (see #66)
     cxx11flags = cxxflags + ["-std=c++11"]
-    if checkFlag(cxx11flags):
+    if checkFlags(cxx11flags):
         addDebugReleaseBuilds('c++11-empty', allconfigs + cxx11flags)
 
     # We disable pedantic in C++98 due to our use of variadic macros, trailing
     # commas, ll format specifiers, and probably more. We technically only support
     # C++98 with those extensions.
     cxx98flags = cxxflags + ["-std=c++98"]
-    if checkFlag("-Wno-pedantic"):
+    if checkFlags("-Wno-pedantic"):
         cxx98flags += ["-Wno-pedantic"]
     addDebugReleaseBuilds('c++98', allfeatures + allconfigs + cxx98flags)
 
 # 32-bit builds
-if not msvc and checkFlag("-m32"):
+if not msvc and checkFlags("-m32"):
     addDebugReleaseBuilds('m32', allfeatures + allconfigs + cflags + ["-m32"], ["-m32"])
     addDebugReleaseBuilds('cxx98-m32', allfeatures + allconfigs + cxx98flags + ["-m32"], ["-m32"])
-    if checkFlag(cxx11flags):
+    if checkFlags(cxx11flags):
         addDebugReleaseBuilds('c++11-m32', allfeatures + allconfigs + cxx11flags + ["-m32"], ["-m32"])
 
 # lto build
@@ -323,18 +362,18 @@ if msvc:
     addBuild('lto', allfeatures + allconfigs + cflags + releaseflags + ["/GL"], ["/LTCG"])
 elif cc != "tcc":
     ltoflags = ["-O3", "-flto", "-fuse-linker-plugin", "-fno-fat-lto-objects"]
-    if checkFlag(ltoflags):
+    if checkFlags(ltoflags):
         ltoflags = allfeatures + allconfigs + cflags + ltoflags
     else:
         ltoflags = ["-O3", "-flto"]
-        if checkFlag(ltoflags):
+        if checkFlags(ltoflags):
             ltoflags = allfeatures + allconfigs + cflags + ltoflags
         else:
             ltoflags = None
     if ltoflags:
         addBuild('lto', ltoflags, ltoflags)
         if haveValgrind:
-            builds["lto"]["run_wrapper"] = "valgrind"
+            builds["lto"].run_wrapper = "valgrind"
 
 # size-optimized build (both debug and release)
 if msvc:
@@ -352,14 +391,14 @@ addDebugReleaseBuilds('realloc', allfeatures + allconfigs + cflags + ["-DMPACK_R
 if not msvc and cc != "tcc":
     addBuild('O3', allfeatures + allconfigs + cflags + ["-O3"])
     if haveValgrind:
-        builds["O3"]["run_wrapper"] = "valgrind"
+        builds["O3"].run_wrapper = "valgrind"
     addBuild('fastmath', allfeatures + allconfigs + cflags + ["-ffast-math"])
     if haveValgrind:
-        builds["fastmath"]["run_wrapper"] = "valgrind"
+        builds["fastmath"].run_wrapper = "valgrind"
     addBuild('coverage', allfeatures + allconfigs + cflags +
             ["-DMPACK_GCOV=1", "--coverage", "-fno-inline", "-fno-inline-small-functions", "-fno-default-inline"],
             ["--coverage"])
-    builds["coverage"]["exclude"] = True # don't run during "all". run separately by travis.
+    builds["coverage"].exclude = True # don't run coverage during "all". run separately by travis.
     if hasOg:
         addBuild('O0', allfeatures + allconfigs + cflags + ["-DDEBUG", "-O0"])
 
@@ -372,7 +411,7 @@ if msvc:
                 "/wholearchive:clang_rt.asan_dynamic_runtime_thunk-x86_64.lib"])
 elif cc != "tcc":
     def addSanitizerBuilds(name, cppflags, ldflags=[]):
-        if checkFlag(cppflags):
+        if checkFlags(cppflags):
             addDebugReleaseBuilds(name, allfeatures + allconfigs + cflags + cppflags, ldflags)
     addSanitizerBuilds('sanitize-undefined', ["-fsanitize=undefined"], ["-fsanitize=undefined"])
     addSanitizerBuilds('sanitize-safe-stack', ["-fsanitize=safe-stack"], ["-fsanitize=safe-stack"])
@@ -393,7 +432,7 @@ for paths in [path.join("src", "mpack"), "test"]:
     for root, dirs, files in os.walk(paths):
         for name in files:
             # TODO remove
-            if name[-2:] == ".c" and name != "fuzz.c":
+            if name.endswith(".c") and name != "fuzz.c":
                 srcs.append(os.path.join(root, name))
 
 ninja = path.join(globalbuild, "build.ninja")
@@ -434,21 +473,16 @@ with open(ninja, "w") as out:
     out.write(" pool = run_pool\n")
     out.write("\n")
 
-    out.write("rule clean\n")
-    out.write(" command = rm -rf build .ninja_deps .ninja_log\n")
-    out.write("build clean: clean\n")
-    out.write("\n")
-
     out.write("rule help\n")
     out.write(" command = cat build/help\n")
     out.write("build help: help\n")
     out.write("\n")
 
-    for build in sorted(builds.keys()):
-        flags = builds[build]
-        buildfolder = path.join(globalbuild, build)
-        cppflags = global_cppflags + flags["cppflags"]
-        ldflags = flags["ldflags"] or []
+    for buildname in sorted(builds.keys()):
+        build = builds[buildname]
+        buildfolder = path.join(globalbuild, buildname)
+        cppflags = global_cppflags + build.cppflags
+        ldflags = build.ldflags
         objs = []
 
         for src in srcs:
@@ -465,11 +499,11 @@ with open(ninja, "w") as out:
         # You can omit "run-" in front of any build to just build it without
         # running it. This lets you run it some other way (e.g. under gdb,
         # with/without Valgrind, etc.)
-        out.write("build " + build + ": phony " + runner + "\n\n")
+        out.write("build " + buildname + ": phony " + runner + "\n\n")
 
-        out.write("build run-" + build + ": run " + runner + "\n")
-        if "run_wrapper" in builds[build]:
-            run_wrapper = builds[build]["run_wrapper"]
+        out.write("build run-" + buildname + ": run " + runner + "\n")
+        if build.run_wrapper:
+            run_wrapper = build.run_wrapper
             out.write(" run_wrapper = " + run_wrapper + " ")
             if run_wrapper == "valgrind":
                 out.write("--leak-check=full --error-exitcode=1 ")
@@ -488,7 +522,7 @@ with open(ninja, "w") as out:
 
     out.write("build all: phony")
     for build in sorted(builds.keys()):
-        if not builds[build]["exclude"]:
+        if not builds[build].exclude:
             out.write(" run-")
             out.write(build)
     out.write("\n")
