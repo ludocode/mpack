@@ -30,6 +30,25 @@ matrix:
       env: "OSX=1"
       # disable before_install here to avoid apt-get on mac
       before_install:
+      script:
+        - cd $TRAVIS_BUILD_DIR
+        - echo "Cloning JUCE:"
+        - git clone https://github.com/WeAreROLI/JUCE --depth=1
+        - cd JUCE
+        - git checkout develop
+        - JUCE_ROOT=$TRAVIS_BUILD_DIR/JUCE
+        - PROJUCER_ROOT=$JUCE_ROOT/extras/Projucer/Builds/MacOSX
+        - PROJUCER_APP=$PROJUCER_ROOT/build/Release/Projucer.app/Contents/MacOS/Projucer
+        - echo "Building the Projucer:"
+        - $PROJUCER_ROOT
+        - xcodebuild -configuration Release
+        - cd $TRAVIS_BUILD_DIR
+        - echo "Generating Xcode project:"
+        - "$PROJUCER_APP" --resave "$TRAVIS_BUILD_DIR/test/juce/mpack/mpack.jucer"
+        - echo "Building test app:"
+        - cd test/juce/mpack/Builds/macOS
+        - xcodebuild -configuration Release
+        - ls -l
 
     # code coverage build
     - os: linux

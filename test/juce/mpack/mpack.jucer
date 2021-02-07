@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="IqlZ5o" name="mpack" projectType="consoleapp" jucerVersion="5.4.4"
+              companyName="mpack" companyWebsite="https://github.com/ludocode/mpack"
+              companyCopyright="mpack" includeBinaryInJuceHeader="0" defines="JUCE_DISPLAY_SPLASH_SCREEN=0&#10;JUCE_REPORT_APP_USAGE=0">
+  <MAINGROUP id="JpT846" name="mpack">
+    <GROUP id="{4D21DA22-1069-33A6-76AD-175A60AB3E8B}" name="Source">
+      <FILE id="ZjtXOw" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
+    </GROUP>
+  </MAINGROUP>
+  <EXPORTFORMATS>
+    <XCODE_MAC targetFolder="Builds/macOS">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug"/>
+        <CONFIGURATION isDebug="0" name="Release"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_core" path="../../../../../neuraldsp/neuralcortex/submodules/juce/modules"/>
+        <MODULEPATH id="juce_cryptography" path="../../../../../neuraldsp/neuralcortex/submodules/juce/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../../../../neuraldsp/neuralcortex/submodules/juce/modules"/>
+        <MODULEPATH id="juce_events" path="../../../../../neuraldsp/neuralcortex/submodules/juce/modules"/>
+      </MODULEPATHS>
+    </XCODE_MAC>
+    <VS2019 targetFolder="Builds/VisualStudio2019">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug"/>
+        <CONFIGURATION isDebug="0" name="Release"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_core" path="../../../../../neuraldsp/neuralcortex/submodules/juce/modules"/>
+        <MODULEPATH id="juce_cryptography" path="../../../../../neuraldsp/neuralcortex/submodules/juce/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../../../../neuraldsp/neuralcortex/submodules/juce/modules"/>
+        <MODULEPATH id="juce_events" path="../../../../../neuraldsp/neuralcortex/submodules/juce/modules"/>
+      </MODULEPATHS>
+    </VS2019>
+    <VS2017 targetFolder="Builds/VisualStudio2017">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug"/>
+        <CONFIGURATION isDebug="0" name="Release"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_core" path="../../../../../neuraldsp/neuralcortex/submodules/juce/modules"/>
+        <MODULEPATH id="juce_cryptography" path="../../../../../neuraldsp/neuralcortex/submodules/juce/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../../../../neuraldsp/neuralcortex/submodules/juce/modules"/>
+        <MODULEPATH id="juce_events" path="../../../../../neuraldsp/neuralcortex/submodules/juce/modules"/>
+      </MODULEPATHS>
+    </VS2017>
+    <VS2015 targetFolder="Builds/VisualStudio2015">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug"/>
+        <CONFIGURATION isDebug="0" name="Release"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_core" path="../../../../../neuraldsp/neuralcortex/submodules/juce/modules"/>
+        <MODULEPATH id="juce_cryptography" path="../../../../../neuraldsp/neuralcortex/submodules/juce/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../../../../neuraldsp/neuralcortex/submodules/juce/modules"/>
+        <MODULEPATH id="juce_events" path="../../../../../neuraldsp/neuralcortex/submodules/juce/modules"/>
+      </MODULEPATHS>
+    </VS2015>
+    <LINUX_MAKE targetFolder="Builds/LinuxMakefile">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug"/>
+        <CONFIGURATION isDebug="0" name="Release"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_core" path="../../../../../neuraldsp/neuralcortex/submodules/juce/modules"/>
+        <MODULEPATH id="juce_cryptography" path="../../../../../neuraldsp/neuralcortex/submodules/juce/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../../../../neuraldsp/neuralcortex/submodules/juce/modules"/>
+        <MODULEPATH id="juce_events" path="../../../../../neuraldsp/neuralcortex/submodules/juce/modules"/>
+      </MODULEPATHS>
+    </LINUX_MAKE>
+  </EXPORTFORMATS>
+  <MODULES>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_cryptography" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="0"/>
+  </MODULES>
+  <LIVE_SETTINGS>
+    <WINDOWS buildEnabled="1"/>
+  </LIVE_SETTINGS>
+  <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1"/>
+</JUCERPROJECT>
