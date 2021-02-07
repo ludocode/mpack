@@ -121,11 +121,32 @@
 #define __STDC_CONSTANT_MACROS 1
 #endif
 
+#ifndef __KERNEL__
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <inttypes.h>
 #include <limits.h>
+#else
+#include <linux/types.h>
+#include <linux/limits.h>
+#define UINT8_MAX     U8_MAX
+#define UINT16_MAX    U16_MAX
+#define UINT32_MAX    U32_MAX
+
+#define INT8_MAX      S8_MAX
+#define INT16_MAX     S16_MAX
+#define INT32_MAX     S32_MAX
+
+#define UINT8_MIN     U8_MIN
+#define UINT16_MIN    U16_MIN
+#define UINT32_MIN    U32_MIN
+
+#define INT8_MIN      S8_MIN
+#define INT16_MIN     S16_MIN
+#define INT32_MIN     S32_MIN
+#endif
+
 
 #if MPACK_STDLIB
 #include <string.h>
@@ -337,7 +358,11 @@ MPACK_EXTERN_C_START
     #if defined(_MSC_VER)
         #define MPACK_NOINLINE __declspec(noinline)
     #elif defined(__GNUC__) || defined(__clang__)
-        #define MPACK_NOINLINE __attribute__((noinline))
+        #ifndef __KERNEL__
+            #define MPACK_NOINLINE __attribute__((noinline))
+        #else
+            #define MPACK_NOINLINE
+        #endif
     #endif
 #endif
 #ifndef MPACK_NOINLINE

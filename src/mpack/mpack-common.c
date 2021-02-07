@@ -644,7 +644,8 @@ bool mpack_utf8_check_no_null(const char* str, size_t bytes) {
 }
 
 bool mpack_str_check_no_null(const char* str, size_t bytes) {
-    for (size_t i = 0; i < bytes; ++i)
+    size_t i;
+    for (i = 0; i < bytes; ++i)
         if (str[i] == '\0')
             return false;
     return true;
