@@ -1,0 +1,16 @@
+{
+	"name": "mpack",
+	"version": "1.0.0",
+	"keywords": "mpack",
+	"description": "A C encoder/decoder for the MessagePack serialization format / msgpack.org[C]",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/vertices-network/mpack"
+	},
+	"build": {
+        "includeDir": "src/mpack",
+        "srcDir": "src/mpack"
+	},
+	"frameworks": "*",
+	"platforms": "*"
+}
