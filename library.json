@@ -1,8 +1,8 @@
 {
 	"name": "mpack",
 	"version": "1.0.0",
-	"keywords": "mpack",
-	"description": "A C encoder/decoder for the MessagePack serialization format / msgpack.org[C]",
+	"keywords": "mpack, messagepack",
+	"description": "A C encoder/decoder for the MessagePack serialization format / msgpack.org[C]. Based on https://github.com/ludocode/mpack.",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/vertices-network/mpack"
@@ -11,6 +11,16 @@
         "includeDir": "src/mpack",
         "srcDir": "src/mpack"
 	},
+	"examples": [
+		{
+			"name": "sax-example",
+			"base": "examples",
+			"files": [
+				"sax-example.c",
+				"sax-example.h"
+			]
+		}
+	],
 	"frameworks": "*",
 	"platforms": "*"
 }
