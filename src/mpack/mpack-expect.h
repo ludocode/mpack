@@ -694,7 +694,7 @@ void mpack_expect_map_match(mpack_reader_t* reader, uint32_t count);
  * with a safe maximum size instead.
  *
  * @returns @c true if a map was read successfully; @c false if nil was read
- *     or an error occured.
+ *     or an error occurred.
  * @throws mpack_error_type if the value is not a nil or map.
  */
 bool mpack_expect_map_or_nil(mpack_reader_t* reader, uint32_t* count);
@@ -714,7 +714,7 @@ bool mpack_expect_map_or_nil(mpack_reader_t* reader, uint32_t* count);
  * to switch on the key; see @ref docs/expect.md for examples.
  *
  * @returns @c true if a map was read successfully; @c false if nil was read
- *     or an error occured.
+ *     or an error occurred.
  * @throws mpack_error_type if the value is not a nil or map.
  */
 bool mpack_expect_map_max_or_nil(mpack_reader_t* reader, uint32_t max_count, uint32_t* count);
@@ -795,7 +795,7 @@ void mpack_expect_array_match(mpack_reader_t* reader, uint32_t count);
  * with a safe maximum size instead.
  *
  * @returns @c true if an array was read successfully; @c false if nil was read
- *     or an error occured.
+ *     or an error occurred.
  * @throws mpack_error_type if the value is not a nil or array.
  */
 bool mpack_expect_array_or_nil(mpack_reader_t* reader, uint32_t* count);
@@ -810,7 +810,7 @@ bool mpack_expect_array_or_nil(mpack_reader_t* reader, uint32_t* count);
  * have been read (only if an array was read.)
  *
  * @returns @c true if an array was read successfully; @c false if nil was read
- *     or an error occured.
+ *     or an error occurred.
  * @throws mpack_error_type if the value is not a nil or array.
  */
 bool mpack_expect_array_max_or_nil(mpack_reader_t* reader, uint32_t max_count, uint32_t* count);
