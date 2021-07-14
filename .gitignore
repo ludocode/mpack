@@ -1,12 +1,8 @@
 
 # build files
-/build
-*.o
+test/.build/
 *.swp
 *.gcov
-/.sconsign.dblite
-/.sconf_temp/
-/config.log
 mpack-test-file
 mpack-test-blank-file
 /mpack-test-dir/
@@ -15,21 +11,6 @@ mpack-test-blank-file
 /vgcore.*
 /.ninja_deps
 /.ninja_log
-
-# visual studio project
-*.suo
-*.opensdf
-*.sdf
-*.vcxproj.user
-/projects/vs/Debug/
-/projects/vs/Release/
-/projects/vs/.vs/
-/projects/vs/Win32/
-
-# xcode project
-xcuserdata/
-*.xcworkspace/
-.DS_Store
 
 # other junk
 .directory

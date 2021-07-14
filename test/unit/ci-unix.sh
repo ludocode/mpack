@@ -30,8 +30,6 @@ fi
 if [ "$CC" = "gcov" ]; then
     unset CC
     unset CXX
-    test/unit/configure.py
-    ninja -f build/unit/build.ninja run-coverage
     tools/gcov.sh
     pip install --user idna==2.5 # below packages conflict with idna-2.6 (not sure if this is still necessary on bionic)
     pip install --user cpp-coveralls urllib3[secure]

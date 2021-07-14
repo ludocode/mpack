@@ -31,7 +31,7 @@
 import shutil, os, sys, subprocess
 from os import path
 
-globalbuild = path.join("test", "build")
+globalbuild = path.join("test", ".build")
 os.makedirs(globalbuild, exist_ok=True)
 
 
@@ -41,6 +41,7 @@ os.makedirs(globalbuild, exist_ok=True)
 ###################################################
 
 cc = None
+compiler = "unknown"
 
 if os.getenv("CC"):
     cc = os.getenv("CC")
@@ -52,37 +53,47 @@ else:
 if not shutil.which(cc):
     raise Exception("Compiler cannot be found!")
 
-if cc.lower().startswith("cl"):
-    compiler = "msvc"
+if cc.lower() == "cl" or cc.lower() == "cl.exe":
+    compiler = "MSVC"
+elif cc.endswith("cproc"):
+    compiler = "cproc"
+elif cc.endswith("chibicc"):
+    compiler = "chibicc"
+elif cc.endswith("8cc"):
+    compiler = "8cc"
 else:
     # try --version
     ret = subprocess.run([cc, "--version"], universal_newlines=True,
-            stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     if ret.returncode == 0:
-        if ret.stdout.startswith("gcc "):
-            compiler = "gcc"
-        elif ret.stdout.startswith("clang "):
-            compiler = "clang"
-        elif ret.stdout.startswith("cparser "):
+        if ret.stdout.startswith("cparser "):
             compiler = "cparser"
-    else:
+        elif "clang" in ret.stdout:
+            compiler = "Clang"
+
+    if compiler == "unknown":
         # try -v
-        ret = subprocess.run([cc, "--version"], universal_newlines=True,
-                stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        ret = subprocess.run([cc, "-v"], universal_newlines=True,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         if ret.returncode == 0:
-            if ret.stdout.startswith("tcc "):
-                compiler = "tinycc"
+            for line in (ret.stdout + "\n" + ret.stderr).splitlines():
+                if line.startswith("tcc "):
+                    compiler = "TinyCC"
+                    break
+                elif line.startswith("gcc "):
+                    compiler = "GCC"
+                    break
 
 print("Using " + compiler + " compiler with executable: " + cc)
 
-if compiler == "msvc":
+if compiler == "MSVC":
     obj_extension = ".obj"
     exe_extension = ".exe"
 else:
     obj_extension = ".o"
     exe_extension = ""
 
-msvc = (compiler == "msvc")
+msvc = (compiler == "MSVC")
 
 
 
@@ -101,7 +112,9 @@ with open(flagtest_src, "w") as out:
 int main(int argc, char** argv) {
     // array dereference to test for the existence of
     // sanitizer libs when using -fsanitize (libubsan)
-    return argv[argc - 1] == 0;
+    // compare it to another string in the array so that
+    // -Wzero-as-null-pointer-constant works
+    return argv[argc - 1] == argv[0];
 }
 """)
 
@@ -328,7 +341,7 @@ if haveValgrind:
 # language versions
 if msvc:
     addDebugReleaseBuilds('c++', allfeatures + allconfigs + cxxflags)
-elif cc != "tcc":
+elif compiler != "TinyCC":
     if checkFlags("-std=c11"):
         # if we're using c11 for everything else, we still need to test c99
         addDebugReleaseBuilds('c99', allfeatures + allconfigs + ["-std=c99"])
@@ -360,7 +373,7 @@ if not msvc and checkFlags("-m32"):
 # lto build
 if msvc:
     addBuild('lto', allfeatures + allconfigs + cflags + releaseflags + ["/GL"], ["/LTCG"])
-elif cc != "tcc":
+elif compiler != "TinyCC":
     ltoflags = ["-O3", "-flto", "-fuse-linker-plugin", "-fno-fat-lto-objects"]
     if checkFlags(ltoflags):
         ltoflags = allfeatures + allconfigs + cflags + ltoflags
@@ -388,7 +401,7 @@ addBuild('optimize-size-release', allfeatures + allconfigs + cflags + sizeOptimi
 # miscellaneous special builds
 addBuild('notrack', allfeatures + allconfigs + cflags + debugflags + ["-DMPACK_NO_TRACKING=1"])
 addDebugReleaseBuilds('realloc', allfeatures + allconfigs + cflags + ["-DMPACK_REALLOC=test_realloc"])
-if not msvc and cc != "tcc":
+if not msvc and compiler != "TinyCC":
     addBuild('O3', allfeatures + allconfigs + cflags + ["-O3"])
     if haveValgrind:
         builds["O3"].run_wrapper = "valgrind"
@@ -409,7 +422,7 @@ if msvc:
         addDebugReleaseBuilds('sanitize-address', allfeatures + allconfigs + cflags + ["/fsanitize=address"],
                 ["/wholearchive:clang_rt.asan_dynamic-x86_64.lib",
                 "/wholearchive:clang_rt.asan_dynamic_runtime_thunk-x86_64.lib"])
-elif cc != "tcc":
+elif compiler != "TinyCC":
     def addSanitizerBuilds(name, cppflags, ldflags=[]):
         if checkFlags(cppflags):
             addDebugReleaseBuilds(name, allfeatures + allconfigs + cflags + cppflags, ldflags)
@@ -430,9 +443,12 @@ srcs = []
 
 for paths in [path.join("src", "mpack"), "test"]:
     for root, dirs, files in os.walk(paths):
+        if ".build" in root:
+            continue
         for name in files:
-            # TODO remove
-            if name.endswith(".c") and name != "fuzz.c":
+            if name == "fuzz.c":
+                continue
+            if name.endswith(".c"):
                 srcs.append(os.path.join(root, name))
 
 ninja = path.join(globalbuild, "build.ninja")
