@@ -1,6 +1,6 @@
 
 # Note: match-leak-kinds is currently commented out because older
-# versions of valgrind don't support it (like the one on Travis-CI.)
+# versions of valgrind don't support it
 
 # C++ GCC 5.1 reachable objects
 # https://bugs.kde.org/show_bug.cgi?id=345307

@@ -411,17 +411,16 @@ if not msvc and compiler != "TinyCC":
     addBuild('coverage', allfeatures + allconfigs + cflags +
             ["-DMPACK_GCOV=1", "--coverage", "-fno-inline", "-fno-inline-small-functions", "-fno-default-inline"],
             ["--coverage"])
-    builds["coverage"].exclude = True # don't run coverage during "all". run separately by travis.
+    builds["coverage"].exclude = True # don't run coverage during "all". run separately by CI.
     if hasOg:
         addBuild('O0', allfeatures + allconfigs + cflags + ["-DDEBUG", "-O0"])
 
 # sanitizers
 if msvc:
-    if not os.getenv("APPVEYOR"): # asan libraries not installed on appveyor
-        # https://devblogs.microsoft.com/cppblog/asan-for-windows-x64-and-debug-build-support/
-        addDebugReleaseBuilds('sanitize-address', allfeatures + allconfigs + cflags + ["/fsanitize=address"],
-                ["/wholearchive:clang_rt.asan_dynamic-x86_64.lib",
-                "/wholearchive:clang_rt.asan_dynamic_runtime_thunk-x86_64.lib"])
+    # https://devblogs.microsoft.com/cppblog/asan-for-windows-x64-and-debug-build-support/
+    addDebugReleaseBuilds('sanitize-address', allfeatures + allconfigs + cflags + ["/fsanitize=address"],
+            ["/wholearchive:clang_rt.asan_dynamic-x86_64.lib",
+            "/wholearchive:clang_rt.asan_dynamic_runtime_thunk-x86_64.lib"])
 elif compiler != "TinyCC":
     def addSanitizerBuilds(name, cppflags, ldflags=[]):
         if checkFlags(cppflags):
