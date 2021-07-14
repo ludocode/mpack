@@ -27,15 +27,13 @@ if [[ "$CC" == "scan-build" ]]; then
     exit $?
 fi
 
-if [ "$CC" = "gcov" ]; then
-    unset CC
-    unset CXX
-    tools/gcov.sh
-    pip install --user idna==2.5 # below packages conflict with idna-2.6 (not sure if this is still necessary on bionic)
-    pip install --user cpp-coveralls urllib3[secure]
-    coveralls --no-gcov --include src
-    exit $?
-fi
-
 # Run the "more" variant of unit tests
 tools/unit.sh more
+
+if [ "$CC" = "gcc" ]; then
+    # Collect coverage info.
+    # This is submitted to Coveralls as a separate GitHub Action.
+    unset CC
+    unset CXX
+    tools/coverage.sh
+fi

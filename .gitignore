@@ -1,6 +1,7 @@
 
 # build files
 test/.build/
+coverage/
 *.swp
 *.gcov
 mpack-test-file
