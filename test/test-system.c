@@ -19,6 +19,10 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+#ifdef _WIN32
+#define _CRT_SECURE_NO_WARNINGS
+#endif
+
 // We need to include test.h here instead of test-system.h because
 // test-system.h is included within the mpack-config.h.
 #include "test.h"

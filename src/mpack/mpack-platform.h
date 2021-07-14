@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2018 Nicholas Fraser
+ * Copyright (c) 2015-2020 Nicholas Fraser
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -38,7 +38,7 @@
 #error "In Visual Studio 2012 and earlier, MPack must be compiled as C++. Enable the /Tp compiler flag."
 #endif
 
-#if defined(WIN32) && defined(MPACK_INTERNAL) && MPACK_INTERNAL
+#if defined(_WIN32) && defined(MPACK_INTERNAL) && MPACK_INTERNAL
 #define _CRT_SECURE_NO_WARNINGS 1
 #endif
 
@@ -581,12 +581,16 @@ MPACK_EXTERN_C_START
         #endif
     #endif
 
-#elif defined(_MSC_VER) && defined(_WIN32) && !MPACK_NO_BUILTINS
+#elif defined(_MSC_VER) && defined(_WIN32) && MPACK_STDLIB && !MPACK_NO_BUILTINS
 
     // On Windows, we assume x86 and x86_64 are always little-endian.
     // We make no assumptions about ARM even though all current
     // Windows Phone devices are little-endian in case Microsoft's
     // compiler is ever used with a big-endian ARM device.
+
+    // These are functions in <stdlib.h> so we depend on MPACK_STDLIB.
+    // It's not clear if these are actually faster than just doing the
+    // swap manually; maybe we shouldn't bother with this.
 
     #if defined(_M_IX86) || defined(_M_X64) || defined(_M_AMD64)
         #define MPACK_NHSWAP16(x) _byteswap_ushort(x)
