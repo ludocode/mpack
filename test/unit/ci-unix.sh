@@ -37,5 +37,5 @@ if [ "$CC" = "gcov" ]; then
     exit $?
 fi
 
-test/unit/configure.py
-ninja -f build/unit/build.ninja all
+# Run the "more" variant of unit tests
+tools/unit.sh more
