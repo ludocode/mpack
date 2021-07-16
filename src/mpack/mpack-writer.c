@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2018 Nicholas Fraser
+ * Copyright (c) 2015-2019 Nicholas Fraser
  * 
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -25,6 +25,10 @@
 
 #if MPACK_WRITER
 
+#if MPACK_BUILDER
+static void mpack_builder_flush(mpack_writer_t* writer);
+#endif
+
 #if MPACK_WRITE_TRACKING
 static void mpack_writer_flag_if_error(mpack_writer_t* writer, mpack_error_t error) {
     if (error != mpack_ok)
@@ -36,14 +40,19 @@ void mpack_writer_track_push(mpack_writer_t* writer, mpack_type_t type, uint32_t
         mpack_writer_flag_if_error(writer, mpack_track_push(&writer->track, type, count));
 }
 
+void mpack_writer_track_push_builder(mpack_writer_t* writer, mpack_type_t type) {
+    if (writer->error == mpack_ok)
+        mpack_writer_flag_if_error(writer, mpack_track_push_builder(&writer->track, type));
+}
+
 void mpack_writer_track_pop(mpack_writer_t* writer, mpack_type_t type) {
     if (writer->error == mpack_ok)
         mpack_writer_flag_if_error(writer, mpack_track_pop(&writer->track, type));
 }
 
-void mpack_writer_track_element(mpack_writer_t* writer) {
+void mpack_writer_track_pop_builder(mpack_writer_t* writer, mpack_type_t type) {
     if (writer->error == mpack_ok)
-        mpack_writer_flag_if_error(writer, mpack_track_element(&writer->track, false));
+        mpack_writer_flag_if_error(writer, mpack_track_pop_builder(&writer->track, type));
 }
 
 void mpack_writer_track_bytes(mpack_writer_t* writer, size_t count) {
@@ -51,6 +60,35 @@ void mpack_writer_track_bytes(mpack_writer_t* writer, size_t count) {
         mpack_writer_flag_if_error(writer, mpack_track_bytes(&writer->track, false, count));
 }
 #endif
+
+// This should probably be renamed. It's not solely used for tracking.
+static inline void mpack_writer_track_element(mpack_writer_t* writer) {
+    (void)writer;
+
+    #if MPACK_WRITE_TRACKING
+    if (writer->error == mpack_ok)
+        mpack_writer_flag_if_error(writer, mpack_track_element(&writer->track, false));
+    #endif
+
+    #if MPACK_BUILDER
+    if (writer->builder.current_build != NULL) {
+        mpack_build_t* build = writer->builder.current_build;
+        // We only track this write if it's not nested within another non-build
+        // map or array.
+        if (build->nested_compound_elements == 0) {
+            if (build->type != mpack_type_map) {
+                ++build->count;
+                mpack_log("adding element to build %p, now %u elements\n", (void*)build, build->count);
+            } else if (build->key_needs_value) {
+                build->key_needs_value = false;
+                ++build->count;
+            } else {
+                build->key_needs_value = true;
+            }
+        }
+    }
+    #endif
+}
 
 static void mpack_writer_clear(mpack_writer_t* writer) {
     #if MPACK_COMPATIBILITY
@@ -68,6 +106,16 @@ static void mpack_writer_clear(mpack_writer_t* writer) {
 
     #if MPACK_WRITE_TRACKING
     mpack_memset(&writer->track, 0, sizeof(writer->track));
+    #endif
+
+    #if MPACK_BUILDER
+    writer->builder.current_build = NULL;
+    writer->builder.latest_build = NULL;
+    writer->builder.current_page = NULL;
+    writer->builder.pages = NULL;
+    writer->builder.stash_buffer = NULL;
+    writer->builder.stash_current = NULL;
+    writer->builder.stash_end = NULL;
     #endif
 }
 
@@ -334,9 +382,18 @@ void mpack_writer_flush_message(mpack_writer_t* writer) {
         return;
 
     #if MPACK_WRITE_TRACKING
+    // You cannot flush while there are elements open.
     mpack_writer_flag_if_error(writer, mpack_track_check_empty(&writer->track));
     if (writer->error != mpack_ok)
         return;
+    #endif
+
+    #if MPACK_BUILDER
+    if (writer->builder.current_build != NULL) {
+        mpack_break("cannot call mpack_writer_flush_message() while there are elements open!");
+        mpack_writer_flag_error(writer, mpack_error_bug);
+        return;
+    }
     #endif
 
     if (writer->flush == NULL) {
@@ -365,6 +422,15 @@ MPACK_NOINLINE static bool mpack_writer_ensure(mpack_writer_t* writer, size_t co
 
     if (mpack_writer_error(writer) != mpack_ok)
         return false;
+
+    #if MPACK_BUILDER
+    // if we have a build in progress, we just ask the builder for a page.
+    // either it will have space for a tag, or it will flag a memory error.
+    if (writer->builder.current_build != NULL) {
+        mpack_builder_flush(writer);
+        return mpack_writer_error(writer) == mpack_ok;
+    }
+    #endif
 
     if (writer->flush == NULL) {
         mpack_writer_flag_error(writer, mpack_error_too_big);
@@ -397,6 +463,30 @@ MPACK_NOINLINE static void mpack_write_native_straddle(mpack_writer_t* writer, c
             "big write requested for %i bytes, but there is %i available "
             "space in buffer. should have called mpack_write_native() instead",
             (int)count, (int)(mpack_writer_buffer_left(writer)));
+
+    #if MPACK_BUILDER
+    // if we have a build in progress, we can't flush. we need to copy all
+    // bytes into as many build buffer pages as it takes.
+    if (writer->builder.current_build != NULL) {
+        while (true) {
+            size_t step = (size_t)(writer->end - writer->current);
+            if (step > count)
+                step = count;
+            mpack_memcpy(writer->current, p, step);
+            writer->current += step;
+            p += step;
+            count -= step;
+
+            if (count == 0)
+                return;
+
+            mpack_builder_flush(writer);
+            if (mpack_writer_error(writer) != mpack_ok)
+                return;
+            mpack_assert(writer->current != writer->end);
+        }
+    }
+    #endif
 
     // we'll need a flush function
     if (!writer->flush) {
@@ -945,9 +1035,7 @@ void mpack_write_timestamp(mpack_writer_t* writer, int64_t seconds, uint32_t nan
 }
 #endif
 
-void mpack_start_array(mpack_writer_t* writer, uint32_t count) {
-    mpack_writer_track_element(writer);
-
+static void mpack_write_array_notrack(mpack_writer_t* writer, uint32_t count) {
     if (count <= 15) {
         MPACK_WRITE_ENCODED(mpack_encode_fixarray, MPACK_TAG_SIZE_FIXARRAY, (uint8_t)count);
     } else if (count <= UINT16_MAX) {
@@ -955,13 +1043,9 @@ void mpack_start_array(mpack_writer_t* writer, uint32_t count) {
     } else {
         MPACK_WRITE_ENCODED(mpack_encode_array32, MPACK_TAG_SIZE_ARRAY32, (uint32_t)count);
     }
-
-    mpack_writer_track_push(writer, mpack_type_array, count);
 }
 
-void mpack_start_map(mpack_writer_t* writer, uint32_t count) {
-    mpack_writer_track_element(writer);
-
+static void mpack_write_map_notrack(mpack_writer_t* writer, uint32_t count) {
     if (count <= 15) {
         MPACK_WRITE_ENCODED(mpack_encode_fixmap, MPACK_TAG_SIZE_FIXMAP, (uint8_t)count);
     } else if (count <= UINT16_MAX) {
@@ -969,8 +1053,20 @@ void mpack_start_map(mpack_writer_t* writer, uint32_t count) {
     } else {
         MPACK_WRITE_ENCODED(mpack_encode_map32, MPACK_TAG_SIZE_MAP32, (uint32_t)count);
     }
+}
 
+void mpack_start_array(mpack_writer_t* writer, uint32_t count) {
+    mpack_writer_track_element(writer);
+    mpack_write_array_notrack(writer, count);
+    mpack_writer_track_push(writer, mpack_type_array, count);
+    mpack_builder_compound_push(writer);
+}
+
+void mpack_start_map(mpack_writer_t* writer, uint32_t count) {
+    mpack_writer_track_element(writer);
+    mpack_write_map_notrack(writer, count);
     mpack_writer_track_push(writer, mpack_type_map, count);
+    mpack_builder_compound_push(writer);
 }
 
 static void mpack_start_str_notrack(mpack_writer_t* writer, uint32_t count) {
@@ -1182,5 +1278,451 @@ void mpack_write_utf8_cstr_or_nil(mpack_writer_t* writer, const char* cstr) {
         mpack_write_nil(writer);
 }
 
+/*
+ * Builder implementation
+ *
+ * When a writer is in build mode, it diverts writes to an internal growable
+ * buffer. All elements other than builder start tags are encoded as normal
+ * into the builder buffer (even nested maps and arrays of known size, e.g.
+ * `mpack_start_array()`.) But for compound elements of unknown size, an
+ * mpack_build_t is written to the buffer instead.
+ *
+ * The mpack_build_t tracks everything needed to re-constitute the final
+ * message once all sizes are known. When the last build element is completed,
+ * the builder resolves the build by walking through the builds, outputting the
+ * final encoded tag, and copying everything in between to the writer's true
+ * buffer.
+ *
+ * To make things extra complicated, the builder buffer is not contiguous. It's
+ * allocated in pages, where the first page may be an internal page in the
+ * writer. But, each mpack_build_t must itself be contiguous and aligned
+ * properly within the buffer. This means bytes can be skipped (and wasted)
+ * before the builds or at the end of pages.
+ *
+ * To keep track of this, builds store both their element count and the number
+ * of encoded bytes that follow, and pages store the number of bytes used. As
+ * elements are written, each element adds to the count in the current open
+ * build, and the number of bytes written adds to the current page and the byte
+ * count in the last started build (whether or not it is completed.)
+ */
+
+#if MPACK_BUILDER
+
+#ifdef MPACK_ALIGNOF
+    #define MPACK_BUILD_ALIGNMENT MPACK_ALIGNOF(mpack_build_t)
+#else
+    // without alignof, we just align to the greater of size_t, void* and uint64_t.
+    // (we do this even though we don't have uint64_t in it in case we add it later.)
+    #define MPACK_BUILD_ALIGNMENT_MAX(x, y) ((x) > (y) ? (x) : (y))
+    #define MPACK_BUILD_ALIGNMENT (MPACK_BUILD_ALIGNMENT_MAX(sizeof(void*), \
+                MPACK_BUILD_ALIGNMENT_MAX(sizeof(size_t), sizeof(uint64_t))))
 #endif
 
+static inline void mpack_builder_check_sizes(mpack_writer_t* writer) {
+
+    // We check internal and page sizes here so that we don't have to check
+    // them again. A new page with a build in it will have a page header,
+    // build, and minimum space for a tag. This will perform horribly and waste
+    // tons of memory if the page size is small, so you're best off just
+    // sticking with the defaults.
+    //
+    // These are all known at compile time, so if they are large
+    // enough this function should trivially optimize to a no-op.
+
+    #if MPACK_BUILDER_INTERNAL_STORAGE
+    // make sure the internal storage is big enough to be useful
+    MPACK_STATIC_ASSERT(MPACK_BUILDER_INTERNAL_STORAGE_SIZE >= (sizeof(mpack_builder_page_t) +
+            sizeof(mpack_build_t) + MPACK_WRITER_MINIMUM_BUFFER_SIZE),
+            "MPACK_BUILDER_INTERNAL_STORAGE_SIZE is too small to be useful!");
+    if (MPACK_BUILDER_INTERNAL_STORAGE_SIZE < (sizeof(mpack_builder_page_t) +
+            sizeof(mpack_build_t) + MPACK_WRITER_MINIMUM_BUFFER_SIZE))
+    {
+        mpack_break("MPACK_BUILDER_INTERNAL_STORAGE_SIZE is too small to be useful!");
+        mpack_writer_flag_error(writer, mpack_error_bug);
+    }
+    #endif
+
+    // make sure the builder page size is big enough to be useful
+    MPACK_STATIC_ASSERT(MPACK_BUILDER_PAGE_SIZE >= (sizeof(mpack_builder_page_t) +
+            sizeof(mpack_build_t) + MPACK_WRITER_MINIMUM_BUFFER_SIZE),
+            "MPACK_BUILDER_PAGE_SIZE is too small to be useful!");
+    if (MPACK_BUILDER_PAGE_SIZE < (sizeof(mpack_builder_page_t) +
+            sizeof(mpack_build_t) + MPACK_WRITER_MINIMUM_BUFFER_SIZE))
+    {
+        mpack_break("MPACK_BUILDER_PAGE_SIZE is too small to be useful!");
+        mpack_writer_flag_error(writer, mpack_error_bug);
+    }
+}
+
+static inline size_t mpack_builder_page_size(mpack_writer_t* writer, mpack_builder_page_t* page) {
+    #if MPACK_BUILDER_INTERNAL_STORAGE
+    if ((char*)page == writer->builder.internal)
+        return sizeof(writer->builder.internal);
+    #else
+    (void)writer;
+    (void)page;
+    #endif
+    return MPACK_BUILDER_PAGE_SIZE;
+}
+
+static inline size_t mpack_builder_align_build(size_t bytes_used) {
+    size_t offset = bytes_used;
+    offset += MPACK_BUILD_ALIGNMENT - 1;
+    offset -= offset % MPACK_BUILD_ALIGNMENT;
+    mpack_log("aligned %zi to %zi\n", bytes_used, offset);
+    return offset;
+}
+
+static inline void mpack_builder_free_page(mpack_writer_t* writer, mpack_builder_page_t* page) {
+    mpack_log("freeing page %p\n", (void*)page);
+    #if MPACK_BUILDER_INTERNAL_STORAGE
+    if ((char*)page == writer->builder.internal)
+        return;
+    #else
+    (void)writer;
+    #endif
+    MPACK_FREE(page);
+}
+
+static inline size_t mpack_builder_page_remaining(mpack_writer_t* writer, mpack_builder_page_t* page) {
+    return mpack_builder_page_size(writer, page) - page->bytes_used;
+}
+
+static void mpack_builder_configure_buffer(mpack_writer_t* writer) {
+    if (mpack_writer_error(writer) != mpack_ok)
+        return;
+    mpack_builder_t* builder = &writer->builder;
+
+    mpack_builder_page_t* page = builder->current_page;
+    mpack_assert(page != NULL, "page is null??");
+
+    // This diverts the writer into the remainder of the current page of our
+    // build buffer.
+    writer->buffer = (char*)page + page->bytes_used;
+    writer->current = (char*)page + page->bytes_used;
+    writer->end = (char*)page + mpack_builder_page_size(writer, page);
+    mpack_log("configuring buffer from %p to %p\n", (void*)writer->current, (void*)writer->end);
+}
+
+static void mpack_builder_add_page(mpack_writer_t* writer) {
+    mpack_builder_t* builder = &writer->builder;
+    mpack_assert(writer->error == mpack_ok);
+
+    mpack_log("adding a page.\n");
+    mpack_builder_page_t* page = (mpack_builder_page_t*)MPACK_MALLOC(MPACK_BUILDER_PAGE_SIZE);
+    if (page == NULL) {
+        mpack_writer_flag_error(writer, mpack_error_memory);
+        return;
+    }
+
+    page->next = NULL;
+    page->bytes_used = sizeof(mpack_builder_page_t);
+    builder->current_page->next = page;
+    builder->current_page = page;
+}
+
+// Checks how many bytes the writer wrote to the page, adding it to the page's
+// bytes_used. This must be followed up with mpack_builder_configure_buffer()
+// (after adding a new page, build, etc) to reset the writer's buffer pointers.
+static void mpack_builder_apply_writes(mpack_writer_t* writer) {
+    mpack_assert(writer->error == mpack_ok);
+    mpack_builder_t* builder = &writer->builder;
+    mpack_log("latest build is %p\n", (void*)builder->latest_build);
+
+    // The difference between buffer and current is the number of bytes that
+    // were written to the page.
+    size_t bytes_written = (size_t)(writer->current - writer->buffer);
+    mpack_log("applying write of %zi bytes to build %p\n", bytes_written, (void*)builder->latest_build);
+
+    mpack_assert(builder->current_page != NULL);
+    mpack_assert(builder->latest_build != NULL);
+    builder->current_page->bytes_used += bytes_written;
+    builder->latest_build->bytes += bytes_written;
+    mpack_log("latest build %p now has %zi bytes\n", (void*)builder->latest_build, builder->latest_build->bytes);
+}
+
+static void mpack_builder_flush(mpack_writer_t* writer) {
+    mpack_assert(writer->error == mpack_ok);
+    mpack_builder_apply_writes(writer);
+    mpack_builder_add_page(writer);
+    mpack_builder_configure_buffer(writer);
+}
+
+MPACK_NOINLINE static void mpack_builder_begin(mpack_writer_t* writer) {
+    mpack_builder_t* builder = &writer->builder;
+    mpack_assert(writer->error == mpack_ok);
+    mpack_assert(builder->current_build == NULL);
+    mpack_assert(builder->latest_build == NULL);
+    mpack_assert(builder->pages == NULL);
+
+    // If this is the first build, we need to stash the real buffer backing our
+    // writer. We'll be diverting the writer to our build buffer.
+    builder->stash_buffer = writer->buffer;
+    builder->stash_current = writer->current;
+    builder->stash_end = writer->end;
+
+    mpack_builder_page_t* page;
+
+    // we've checked that both these sizes are large enough above.
+    #if MPACK_BUILDER_INTERNAL_STORAGE
+    page = (mpack_builder_page_t*)builder->internal;
+    mpack_log("beginning builder with internal storage %p\n", (void*)page);
+    #else
+    page = (mpack_builder_page_t*)MPACK_MALLOC(MPACK_BUILDER_PAGE_SIZE);
+    if (page == NULL) {
+        mpack_writer_flag_error(writer, mpack_error_memory);
+        return;
+    }
+    mpack_log("beginning builder with allocated page %p\n", (void*)page);
+    #endif
+
+    page->next = NULL;
+    page->bytes_used = sizeof(mpack_builder_page_t);
+    builder->pages = page;
+    builder->current_page = page;
+}
+
+static void mpack_builder_build(mpack_writer_t* writer, mpack_type_t type) {
+    mpack_builder_check_sizes(writer);
+    if (mpack_writer_error(writer) != mpack_ok)
+        return;
+
+    mpack_writer_track_element(writer);
+    mpack_writer_track_push_builder(writer, type);
+
+    mpack_builder_t* builder = &writer->builder;
+
+    if (builder->current_build == NULL) {
+        mpack_builder_begin(writer);
+    } else {
+        mpack_builder_apply_writes(writer);
+    }
+    if (mpack_writer_error(writer) != mpack_ok)
+        return;
+
+    // find aligned space for a new build. if there isn't enough space in the
+    // current page, we discard the remaining space in it and allocate a new
+    // page.
+    size_t offset = mpack_builder_align_build(builder->current_page->bytes_used);
+    if (offset + sizeof(mpack_build_t) > mpack_builder_page_size(writer, builder->current_page)) {
+        mpack_log("not enough space for a build. %zi bytes used of %zi in this page\n",
+                builder->current_page->bytes_used, mpack_builder_page_size(writer, builder->current_page));
+        mpack_builder_add_page(writer);
+        // there is always enough space in a fresh page.
+        offset = mpack_builder_align_build(builder->current_page->bytes_used);
+    }
+
+    // allocate the build within the page. note that we don't keep track of the
+    // space wasted due to the offset. instead the previous build has stored
+    // how many bytes follow it, and we'll redo this offset calculation to find
+    // this build after it.
+    mpack_builder_page_t* page = builder->current_page;
+    page->bytes_used = offset + sizeof(mpack_build_t);
+    mpack_assert(page->bytes_used <= mpack_builder_page_size(writer, page));
+    mpack_build_t* build = (mpack_build_t*)((char*)page + offset);
+    mpack_log("created new build %p within page %p, which now has %zi bytes used\n",
+            (void*)build, (void*)page, page->bytes_used);
+
+    // configure the new build
+    build->parent = builder->current_build;
+    build->bytes = 0;
+    build->count = 0;
+    build->type = type;
+    build->key_needs_value = false;
+    build->nested_compound_elements = 0;
+
+    mpack_log("setting current and latest build to new build %p\n", (void*)build);
+    builder->current_build = build;
+    builder->latest_build = build;
+
+    // we always need to provide a buffer that meets the minimum buffer size.
+    // if there isn't enough space, we discard the remaining space in the
+    // current page and allocate a new one.
+    if (mpack_builder_page_remaining(writer, page) < MPACK_WRITER_MINIMUM_BUFFER_SIZE) {
+        mpack_log("less than minimum buffer size in current page. %zi bytes used of %zi in this page\n",
+                builder->current_page->bytes_used, mpack_builder_page_size(writer, builder->current_page));
+        mpack_builder_add_page(writer);
+        if (mpack_writer_error(writer) != mpack_ok)
+            return;
+    }
+    mpack_assert(mpack_builder_page_remaining(writer, builder->current_page) >= MPACK_WRITER_MINIMUM_BUFFER_SIZE);
+    mpack_builder_configure_buffer(writer);
+}
+
+MPACK_NOINLINE
+static void mpack_builder_resolve(mpack_writer_t* writer) {
+    mpack_builder_t* builder = &writer->builder;
+
+    // The starting page is the internal storage (if we have it), otherwise
+    // it's the first page in the array
+    mpack_builder_page_t* page =
+        #if MPACK_BUILDER_INTERNAL_STORAGE
+        (mpack_builder_page_t*)builder->internal
+        #else
+        builder->pages
+        #endif
+        ;
+
+    // We start by restoring the writer's original buffer so we can write the
+    // data for real.
+    writer->buffer = builder->stash_buffer;
+    writer->current = builder->stash_current;
+    writer->end = builder->stash_end;
+
+    // We can also close out the build now.
+    builder->current_build = NULL;
+    builder->latest_build = NULL;
+    builder->current_page = NULL;
+    builder->pages = NULL;
+
+    // the starting page always starts with the first build
+    size_t offset = mpack_builder_align_build(sizeof(mpack_builder_page_t));
+    mpack_build_t* build = (mpack_build_t*)((char*)page + offset);
+    mpack_log("starting resolve with build %p in page %p\n", (void*)build, (void*)page);
+
+    // encoded data immediately follows the build
+    offset += sizeof(mpack_build_t);
+
+    // Walk the list of builds, writing everything out in the buffer. Note that
+    // we don't check for errors anywhere. The lower-level write functions will
+    // all check for errors. We need to walk all pages anyway to free them, so
+    // there's not much point in optimizing an error path at the expense of the
+    // normal path.
+    while (true) {
+
+        // write out the container tag
+        mpack_log("writing out an %s with count %u followed by %zi bytes\n",
+                mpack_type_to_string(build->type), build->count, build->bytes);
+        switch (build->type) {
+            case mpack_type_map:
+                mpack_write_map_notrack(writer, build->count);
+                break;
+            case mpack_type_array:
+                mpack_write_array_notrack(writer, build->count);
+                break;
+            default:
+                mpack_break("invalid type in builder?");
+                mpack_writer_flag_error(writer, mpack_error_bug);
+                return;
+        }
+
+        // figure out how many bytes follow this container. we're going to be
+        // freeing pages as we write, so we need to be done with this build.
+        size_t left = build->bytes;
+        build = NULL;
+
+        // write out all bytes following this container
+        while (left > 0) {
+            size_t bytes_used = page->bytes_used;
+            if (offset < bytes_used) {
+                size_t step = bytes_used - offset;
+                if (step > left)
+                    step = left;
+                mpack_log("writing out %zi bytes starting at %p in page %p\n",
+                        step, (void*)((char*)page + offset), (void*)page);
+                mpack_write_native(writer, (char*)page + offset, step);
+                offset += step;
+                left -= step;
+            }
+
+            if (left == 0) {
+                mpack_log("done writing bytes for this build\n");
+                break;
+            }
+
+            // still need to write more bytes. free this page and jump to the
+            // next one.
+            mpack_builder_page_t* next_page = page->next;
+            mpack_builder_free_page(writer, page);
+            page = next_page;
+            // bytes on the next page immediately follow the header.
+            offset = sizeof(mpack_builder_page_t);
+        }
+
+        // now see if we can find another build.
+        offset = mpack_builder_align_build(offset);
+        if (offset + sizeof(mpack_build_t) >= mpack_builder_page_size(writer, page)) {
+            mpack_log("not enough room in this page for another build\n");
+            mpack_builder_page_t* next_page = page->next;
+            mpack_builder_free_page(writer, page);
+            page = next_page;
+            if (page == NULL) {
+                mpack_log("no more pages\n");
+                // there are no more pages. we're done.
+                break;
+            }
+            offset = mpack_builder_align_build(sizeof(mpack_builder_page_t));
+        }
+        if (offset + sizeof(mpack_build_t) > page->bytes_used) {
+            // there is no more data. we're done.
+            mpack_log("no more data\n");
+            mpack_builder_free_page(writer, page);
+            break;
+        }
+
+        // we've found another build. loop around!
+        build = (mpack_build_t*)((char*)page + offset);
+        offset += sizeof(mpack_build_t);
+        mpack_log("found build %p\n", (void*)build);
+    }
+
+    mpack_log("done resolve.\n");
+}
+
+static void mpack_builder_complete(mpack_writer_t* writer, mpack_type_t type) {
+    if (mpack_writer_error(writer) != mpack_ok)
+        return;
+
+    mpack_writer_track_pop_builder(writer, type);
+    mpack_builder_t* builder = &writer->builder;
+    mpack_assert(builder->current_build != NULL, "no build in progress!");
+    mpack_assert(builder->latest_build != NULL, "missing latest build!");
+    mpack_assert(builder->current_build->type == type, "completing wrong type!");
+    mpack_log("completing build %p\n", (void*)builder->current_build);
+
+    if (builder->current_build->key_needs_value) {
+        mpack_break("an odd number of elements were written in a map!");
+        mpack_writer_flag_error(writer, mpack_error_bug);
+        return;
+    }
+
+    if (builder->current_build->nested_compound_elements != 0) {
+        mpack_break("there is a nested unfinished non-build map or array in this build.");
+        mpack_writer_flag_error(writer, mpack_error_bug);
+        return;
+    }
+
+    // We need to apply whatever writes have been made to the current build
+    // before popping it.
+    mpack_builder_apply_writes(writer);
+
+    // For a nested build, we just switch the current build back to its parent.
+    if (builder->current_build->parent != NULL) {
+        mpack_log("setting current build to parent build %p. latest is still %p.\n",
+                (void*)builder->current_build->parent, (void*)builder->latest_build);
+        builder->current_build = builder->current_build->parent;
+        mpack_builder_configure_buffer(writer);
+    } else {
+        // We're completing the final build.
+        mpack_builder_resolve(writer);
+    }
+}
+
+void mpack_build_map(mpack_writer_t* writer) {
+    mpack_builder_build(writer, mpack_type_map);
+}
+
+void mpack_build_array(mpack_writer_t* writer) {
+    mpack_builder_build(writer, mpack_type_array);
+}
+
+void mpack_complete_map(mpack_writer_t* writer) {
+    mpack_builder_complete(writer, mpack_type_map);
+}
+
+void mpack_complete_array(mpack_writer_t* writer) {
+    mpack_builder_complete(writer, mpack_type_array);
+}
+
+#endif // MPACK_BUILDER
+#endif // MPACK_WRITER

@@ -11,7 +11,7 @@ Feedback is welcome! Please let me know if any entries in the table are incorrec
 [cmp]: https://github.com/camgunz/cmp
 [cwpack]: https://github.com/clwi/CWPack
 
-|    | [MPack][mpack]<br>(v1.0) | [msgpack-c][msgpack-c]<br>(v3.1.1) | [CMP][cmp]<br>(v18) | [CWPack][cwpack]<br>(v1.1) |
+|    | [MPack][mpack]<br>(v1.1 beta) | [msgpack-c][msgpack-c]<br>(v3.1.1) | [CMP][cmp]<br>(v18) | [CWPack][cwpack]<br>(v1.1) |
 |:------------------------------------|:---:|:---:|:---:|:---:|
 | No libc requirement                 | ✓   |     | ✓   | ✓   |
 | No allocator requirement            | ✓   |     | ✓   | ✓   |
@@ -21,7 +21,7 @@ Feedback is welcome! Please let me know if any entries in the table are incorrec
 | Propagating errors                  | ✓   |     | ✓   |     |
 | Descriptive error information       |     |     |     |     |
 | Compound size tracking              | ✓   |     |     |     |
-| Automatic compound size             |     |     |     |     |
+| Automatic compound size             | ✓   |     |     |     |
 | Incremental parser                  | ✓   |     | ✓   | ✓   |
 | Typed read helpers                  | ✓   |     | ✓   |     |
 | Range/match read helpers            | ✓   |     |     |     |

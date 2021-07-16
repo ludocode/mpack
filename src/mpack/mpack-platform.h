@@ -405,6 +405,42 @@ MPACK_EXTERN_C_START
 
 
 
+/* alignof */
+
+#ifndef MPACK_ALIGNOF
+    #if defined(__STDC_VERSION__)
+        #if __STDC_VERSION__ >= 201112L
+            #define MPACK_ALIGNOF(T) (_Alignof(T))
+        #endif
+    #endif
+#endif
+
+#ifndef MPACK_ALIGNOF
+    #if defined(__cplusplus)
+        #if __cplusplus >= 201103L
+            #define MPACK_ALIGNOF(T) (alignof(T))
+        #endif
+    #endif
+#endif
+
+#ifndef MPACK_ALIGNOF
+    #if defined(__GNUC__) && !defined(MPACK_NO_BUILTINS)
+        #if defined(__clang__) || __GNUC__ >= 4
+            #define MPACK_ALIGNOF(T) (__alignof__(T))
+        #endif
+    #endif
+#endif
+
+#ifndef MPACK_ALIGNOF
+    #ifdef _MSC_VER
+        #define MPACK_ALIGNOF(T) __alignof(T)
+    #endif
+#endif
+
+// MPACK_ALIGNOF may not exist, in which case a workaround is used.
+
+
+
 /* Static assert */
 
 #ifndef MPACK_STATIC_ASSERT

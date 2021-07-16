@@ -103,6 +103,17 @@
 #define MPACK_STACK_SIZE 33
 #define MPACK_BUFFER_SIZE 33
 #define MPACK_NODE_PAGE_SIZE 113
+#define MPACK_BUILDER_INTERNAL_STORAGE_SIZE (sizeof(mpack_builder_page_t) + \
+            sizeof(mpack_build_t) + MPACK_WRITER_MINIMUM_BUFFER_SIZE + 33)
+#define MPACK_BUILDER_PAGE_SIZE (sizeof(mpack_builder_page_t) + \
+            sizeof(mpack_build_t) + MPACK_WRITER_MINIMUM_BUFFER_SIZE + 77)
+
+/*
+#undef MPACK_BUILDER_INTERNAL_STORAGE_SIZE
+#define MPACK_BUILDER_INTERNAL_STORAGE_SIZE 0
+#undef MPACK_BUILDER_PAGE_SIZE
+#define MPACK_BUILDER_PAGE_SIZE 80
+*/
 
 #ifdef MPACK_MALLOC
 #define MPACK_NODE_INITIAL_DEPTH 3

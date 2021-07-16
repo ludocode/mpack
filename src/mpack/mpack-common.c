@@ -388,12 +388,34 @@ mpack_error_t mpack_track_push(mpack_track_t* track, mpack_type_t type, uint32_t
     // insert new track
     track->elements[track->count].type = type;
     track->elements[track->count].left = count;
+    track->elements[track->count].builder = false;
     track->elements[track->count].key_needs_value = false;
     ++track->count;
     return mpack_ok;
 }
 
-mpack_error_t mpack_track_pop(mpack_track_t* track, mpack_type_t type) {
+// TODO dedupe this
+mpack_error_t mpack_track_push_builder(mpack_track_t* track, mpack_type_t type) {
+    mpack_assert(track->elements, "null track elements!");
+    mpack_log("track pushing %s builder\n", mpack_type_to_string(type));
+
+    // grow if needed
+    if (track->count == track->capacity) {
+        mpack_error_t error = mpack_track_grow(track);
+        if (error != mpack_ok)
+            return error;
+    }
+
+    // insert new track
+    track->elements[track->count].type = type;
+    track->elements[track->count].left = 0;
+    track->elements[track->count].builder = true;
+    track->elements[track->count].key_needs_value = false;
+    ++track->count;
+    return mpack_ok;
+}
+
+static mpack_error_t mpack_track_pop_impl(mpack_track_t* track, mpack_type_t type, bool builder) {
     mpack_assert(track->elements, "null track elements!");
     mpack_log("track popping %s\n", mpack_type_to_string(type));
 
@@ -424,8 +446,23 @@ mpack_error_t mpack_track_pop(mpack_track_t* track, mpack_type_t type) {
         return mpack_error_bug;
     }
 
+    if (element->builder != builder) {
+        mpack_break("attempting to pop a %sbuilder but the open element is %sa builder",
+                builder ? "" : "non-",
+                element->builder ? "" : "not ");
+        return mpack_error_bug;
+    }
+
     --track->count;
     return mpack_ok;
+}
+
+mpack_error_t mpack_track_pop(mpack_track_t* track, mpack_type_t type) {
+    return mpack_track_pop_impl(track, type, false);
+}
+
+mpack_error_t mpack_track_pop_builder(mpack_track_t* track, mpack_type_t type) {
+    return mpack_track_pop_impl(track, type, true);
 }
 
 mpack_error_t mpack_track_peek_element(mpack_track_t* track, bool read) {
@@ -444,7 +481,7 @@ mpack_error_t mpack_track_peek_element(mpack_track_t* track, bool read) {
         return mpack_error_bug;
     }
 
-    if (element->left == 0 && !element->key_needs_value) {
+    if (!element->builder && element->left == 0 && !element->key_needs_value) {
         mpack_break("too many elements %s for %s", read ? "read" : "written",
                 mpack_type_to_string(element->type));
         return mpack_error_bug;
@@ -468,7 +505,8 @@ mpack_error_t mpack_track_element(mpack_track_t* track, bool read) {
         element->key_needs_value = false;
     }
 
-    --element->left;
+    if (!element->builder)
+        --element->left;
     return mpack_ok;
 }
 
