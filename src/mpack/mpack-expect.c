@@ -722,7 +722,8 @@ size_t mpack_expect_enum(mpack_reader_t* reader, const char* strings[], size_t c
         return count;
 
     // find what key it matches
-    for (size_t i = 0; i < count; ++i) {
+    size_t i;
+    for (i = 0; i < count; ++i) {
         const char* other = strings[i];
         size_t otherlen = mpack_strlen(other);
         if (keylen == otherlen && mpack_memcmp(key, other, keylen) == 0)
@@ -755,7 +756,8 @@ size_t mpack_expect_enum_optional(mpack_reader_t* reader, const char* strings[],
         return count;
 
     // find what key it matches
-    for (size_t i = 0; i < count; ++i) {
+    size_t i;
+    for (i = 0; i < count; ++i) {
         const char* other = strings[i];
         size_t otherlen = mpack_strlen(other);
         if (keylen == otherlen && mpack_memcmp(key, other, keylen) == 0)

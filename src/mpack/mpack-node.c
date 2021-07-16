@@ -1280,12 +1280,13 @@ mpack_tag_t mpack_node_tag(mpack_node_t node) {
 #if MPACK_DEBUG && MPACK_STDIO
 static void mpack_node_print_element(mpack_node_t node, mpack_print_t* print, size_t depth) {
     mpack_node_data_t* data = node.data;
+    size_t i,j;
     switch (data->type) {
         case mpack_type_str:
             {
                 mpack_print_append_cstr(print, "\"");
                 const char* bytes = mpack_node_data_unchecked(node);
-                for (size_t i = 0; i < data->len; ++i) {
+                for (i = 0; i < data->len; ++i) {
                     char c = bytes[i];
                     switch (c) {
                         case '\n': mpack_print_append_cstr(print, "\\n"); break;
@@ -1300,23 +1301,23 @@ static void mpack_node_print_element(mpack_node_t node, mpack_print_t* print, si
 
         case mpack_type_array:
             mpack_print_append_cstr(print, "[\n");
-            for (size_t i = 0; i < data->len; ++i) {
-                for (size_t j = 0; j < depth + 1; ++j)
+            for (i = 0; i < data->len; ++i) {
+                for (j = 0; j < depth + 1; ++j)
                     mpack_print_append_cstr(print, "    ");
                 mpack_node_print_element(mpack_node_array_at(node, i), print, depth + 1);
                 if (i != data->len - 1)
                     mpack_print_append_cstr(print, ",");
                 mpack_print_append_cstr(print, "\n");
             }
-            for (size_t i = 0; i < depth; ++i)
+            for (i = 0; i < depth; ++i)
                 mpack_print_append_cstr(print, "    ");
             mpack_print_append_cstr(print, "]");
             break;
 
         case mpack_type_map:
             mpack_print_append_cstr(print, "{\n");
-            for (size_t i = 0; i < data->len; ++i) {
-                for (size_t j = 0; j < depth + 1; ++j)
+            for (i = 0; i < data->len; ++i) {
+                for (j = 0; j < depth + 1; ++j)
                     mpack_print_append_cstr(print, "    ");
                 mpack_node_print_element(mpack_node_map_key_at(node, i), print, depth + 1);
                 mpack_print_append_cstr(print, ": ");
@@ -1325,7 +1326,7 @@ static void mpack_node_print_element(mpack_node_t node, mpack_print_t* print, si
                     mpack_print_append_cstr(print, ",");
                 mpack_print_append_cstr(print, "\n");
             }
-            for (size_t i = 0; i < depth; ++i)
+            for (i = 0; i < depth; ++i)
                 mpack_print_append_cstr(print, "    ");
             mpack_print_append_cstr(print, "}");
             break;
@@ -1395,7 +1396,8 @@ void mpack_node_print_to_file(mpack_node_t node, FILE* file) {
     print.context = file;
 
     size_t depth = 2;
-    for (size_t i = 0; i < depth; ++i)
+    size_t i;
+    for (i = 0; i < depth; ++i)
         mpack_print_append_cstr(&print, "    ");
     mpack_node_print_element(node, &print, depth);
     mpack_print_append_cstr(&print, "\n");
@@ -1726,7 +1728,8 @@ static mpack_node_data_t* mpack_node_map_int_impl(mpack_node_t node, int64_t num
 
     mpack_node_data_t* found = NULL;
 
-    for (size_t i = 0; i < node.data->len; ++i) {
+    size_t i;
+    for (i = 0; i < node.data->len; ++i) {
         mpack_node_data_t* key = mpack_node_child(node, i * 2);
 
         if ((key->type == mpack_type_int && key->value.i == num) ||
@@ -1757,7 +1760,8 @@ static mpack_node_data_t* mpack_node_map_uint_impl(mpack_node_t node, uint64_t n
 
     mpack_node_data_t* found = NULL;
 
-    for (size_t i = 0; i < node.data->len; ++i) {
+    size_t i;
+    for (i = 0; i < node.data->len; ++i) {
         mpack_node_data_t* key = mpack_node_child(node, i * 2);
 
         if ((key->type == mpack_type_uint && key->value.u == num) ||
@@ -1791,7 +1795,8 @@ static mpack_node_data_t* mpack_node_map_str_impl(mpack_node_t node, const char*
     mpack_tree_t* tree = node.tree;
     mpack_node_data_t* found = NULL;
 
-    for (size_t i = 0; i < node.data->len; ++i) {
+    size_t i;
+    for (i = 0; i < node.data->len; ++i) {
         mpack_node_data_t* key = mpack_node_child(node, i * 2);
 
         if (key->type == mpack_type_str && key->len == length &&
@@ -1893,7 +1898,8 @@ size_t mpack_node_enum_optional(mpack_node_t node, const char* strings[], size_t
     mpack_assert(mpack_node_error(node) == mpack_ok, "these should not fail");
 
     // find what key it matches
-    for (size_t i = 0; i < count; ++i) {
+    size_t i;
+    for (i = 0; i < count; ++i) {
         const char* other = strings[i];
         size_t otherlen = mpack_strlen(other);
         if (keylen == otherlen && mpack_memcmp(key, other, keylen) == 0)
