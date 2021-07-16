@@ -9,3 +9,4 @@
 | 喜欢兰花山丘                    | https://github.com/wangzhione              |
 | Vasily Postnicov                | https://github.com/shamazmazum             |
 | Tim Gates                       | https://github.com/timgates42              |
+| Dirkson                         | https://github.com/dirkson                 |

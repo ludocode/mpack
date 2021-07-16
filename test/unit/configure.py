@@ -352,9 +352,18 @@ if haveValgrind:
 if msvc:
     addDebugReleaseBuilds('c++', allfeatures + allconfigs + cxxflags)
 elif compiler != "TinyCC":
+
+    # MPack is really C11 code with C++ support. We need lots of compiler
+    # extensions to build as ANSI C. We technically only support gnu89 so we
+    # need to disable pedantic C89 warnings.
+    gnu89flags = ["-std=gnu89", "-Wno-pedantic"]
+    if checkFlags(gnu89flags):
+        addDebugReleaseBuilds('gnu89', allfeatures + allconfigs + gnu89flags)
+
     if checkFlags("-std=c11"):
         # if we're using c11 for everything else, we still need to test c99
         addDebugReleaseBuilds('c99', allfeatures + allconfigs + ["-std=c99"])
+
     for version in ["c++11", "gnu++11", "c++14", "c++17"]:
         flags = cxxflags + ["-std=" + version]
         if checkFlags(flags):
@@ -540,7 +549,25 @@ with open(ninja, "w") as out:
     out.write("build default: phony run-everything-debug\n")
     out.write("\n")
 
-    out.write("build more: phony run-everything-debug run-everything-release run-default-debug run-embed-debug run-embed-release")
+    # Builds included under the "more" target
+    more = [
+        "run-default-debug",
+        "run-everything-debug",
+        "run-everything-release",
+        "run-embed-debug",
+        "run-embed-release",
+    ]
+    if "gnu89-debug" in builds:
+        more += [
+            "run-gnu89-debug",
+            "run-gnu89-release",
+        ]
+    if "c++11-debug" in builds:
+        more += [
+            "run-c++11-debug",
+        ]
+
+    out.write("build more: phony " + " ".join(more))
     if ltoflags:
         out.write(" run-lto")
     out.write("\n\n")

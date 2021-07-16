@@ -3,6 +3,8 @@ MPack v1.1
 
 New Features:
 
+- Compiling as gnu89 is now supported. (See #68, #69)
+
 - Maps and arrays can now be built dynamically without specifying their size up front. See `mpack_build_map()` and `mpack_build_array()`.
 
 Bug Fixes and Other Changes:
