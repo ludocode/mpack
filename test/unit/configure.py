@@ -235,6 +235,7 @@ debugflags.append("-DDEBUG")
 releaseflags.append("-DNDEBUG")
 
 # flags for specifying source language
+cxxlinkflags = []
 if msvc:
     cflags = ["/TC"]
     cxxflags = ["/TP"]
@@ -247,6 +248,13 @@ else:
         "-x", "c++",
         "-Wmissing-declarations",
     ]
+    # When building as C++ on macOS, clang will emit calls to std::terminate
+    # even if no C++ features are used so libc++ is required. We link with cc,
+    # not c++ so we need to link it manually, and there is apparently no way to
+    # link it statically either. (This overrides the use of libstdc++ if libc++
+    # is installed so it's not ideal. We can worry about this later.)
+    if checkFlags(cxxflags + ["-lc++"]):
+        cxxlinkflags.append("-lc++")
 
 
 
@@ -367,12 +375,12 @@ elif compiler != "TinyCC":
     for version in ["c++11", "gnu++11", "c++14", "c++17"]:
         flags = cxxflags + ["-std=" + version]
         if checkFlags(flags):
-            addDebugReleaseBuilds(version, allfeatures + allconfigs + flags)
+            addDebugReleaseBuilds(version, allfeatures + allconfigs + flags, cxxlinkflags)
 
     # Make sure C++11 compiles with disabled features (see #66)
     cxx11flags = cxxflags + ["-std=c++11"]
     if checkFlags(cxx11flags):
-        addDebugReleaseBuilds('c++11-empty', allconfigs + cxx11flags)
+        addDebugReleaseBuilds('c++11-empty', allconfigs + cxx11flags, cxxlinkflags)
 
     # We disable pedantic in C++98 due to our use of variadic macros, trailing
     # commas, ll format specifiers, and probably more. We technically only support
@@ -380,7 +388,7 @@ elif compiler != "TinyCC":
     cxx98flags = cxxflags + ["-std=c++98"]
     if checkFlags("-Wno-pedantic"):
         cxx98flags += ["-Wno-pedantic"]
-    addDebugReleaseBuilds('c++98', allfeatures + allconfigs + cxx98flags)
+    addDebugReleaseBuilds('c++98', allfeatures + allconfigs + cxx98flags, cxxlinkflags)
 
 # 32-bit builds
 if not msvc and checkFlags("-m32"):
