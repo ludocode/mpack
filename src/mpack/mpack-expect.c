@@ -600,8 +600,8 @@ static char* mpack_expect_cstr_alloc_unchecked(mpack_reader_t* reader, size_t ma
         return NULL;
     }
 
-    if (maxsize > UINT32_MAX)
-        maxsize = UINT32_MAX;
+    if (maxsize > SIZE_MAX)
+        maxsize = SIZE_MAX;
 
     size_t length = mpack_expect_str_max(reader, (uint32_t)maxsize - 1);
     char* str = mpack_read_bytes_alloc_impl(reader, length, true);
@@ -672,8 +672,8 @@ char* mpack_expect_bin_alloc(mpack_reader_t* reader, size_t maxsize, size_t* siz
     mpack_assert(size != NULL, "size cannot be NULL");
     *size = 0;
 
-    if (maxsize > UINT32_MAX)
-        maxsize = UINT32_MAX;
+    if (maxsize > SIZE_MAX)
+        maxsize = SIZE_MAX;
 
     size_t length = mpack_expect_bin_max(reader, (uint32_t)maxsize);
     if (mpack_reader_error(reader))
@@ -693,8 +693,8 @@ char* mpack_expect_ext_alloc(mpack_reader_t* reader, int8_t* type, size_t maxsiz
     mpack_assert(size != NULL, "size cannot be NULL");
     *size = 0;
 
-    if (maxsize > UINT32_MAX)
-        maxsize = UINT32_MAX;
+    if (maxsize > SIZE_MAX)
+        maxsize = SIZE_MAX;
 
     size_t length = mpack_expect_ext_max(reader, type, (uint32_t)maxsize);
     if (mpack_reader_error(reader))
