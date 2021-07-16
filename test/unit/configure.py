@@ -309,12 +309,22 @@ def addDebugReleaseBuilds(name, cppflags, ldflags = []):
 addDebugReleaseBuilds('default', defaultfeatures + allconfigs + cflags)
 addDebugReleaseBuilds('everything', allfeatures + allconfigs + cflags)
 addDebugReleaseBuilds('empty', allconfigs + cflags)
-addDebugReleaseBuilds('writer', ["-DMPACK_WRITER=1"] + allconfigs + cflags)
 addDebugReleaseBuilds('reader', ["-DMPACK_READER=1"] + allconfigs + cflags)
 addDebugReleaseBuilds('expect', ["-DMPACK_READER=1", "-DMPACK_EXPECT=1"] + allconfigs + cflags)
 addDebugReleaseBuilds('node', ["-DMPACK_NODE=1"] + allconfigs + cflags)
 addDebugReleaseBuilds('compatibility', defaultfeatures + ["-DMPACK_COMPATIBILITY=1"] + allconfigs + cflags)
 addDebugReleaseBuilds('extensions', defaultfeatures + ["-DMPACK_EXTENSIONS=1"] + allconfigs + cflags)
+
+# writer builds
+addDebugReleaseBuilds('writer-only',
+        ["-DMPACK_WRITER=1", "-DMPACK_BUILDER=0"]
+        + allconfigs + cflags)
+addDebugReleaseBuilds('builder-internal',
+        ["-DMPACK_WRITER=1", "-DMPACK_BUILDER=1", "-DMPACK_BUILDER_INTERNAL_STORAGE=1"]
+        + allconfigs + cflags)
+addDebugReleaseBuilds('builder-nointernal',
+        ["-DMPACK_WRITER=1", "-DMPACK_BUILDER=1", "-DMPACK_BUILDER_INTERNAL_STORAGE=0"]
+        + allconfigs + cflags)
 
 # no i/o
 addDebugReleaseBuilds('noio', allfeatures + noioconfigs + cflags)

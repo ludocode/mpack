@@ -423,12 +423,14 @@ MPACK_NOINLINE static bool mpack_writer_ensure(mpack_writer_t* writer, size_t co
     if (mpack_writer_error(writer) != mpack_ok)
         return false;
 
+    #if MPACK_BUILDER
     // if we have a build in progress, we just ask the builder for a page.
     // either it will have space for a tag, or it will flag a memory error.
     if (writer->builder.current_build != NULL) {
         mpack_builder_flush(writer);
         return mpack_writer_error(writer) == mpack_ok;
     }
+    #endif
 
     if (writer->flush == NULL) {
         mpack_writer_flag_error(writer, mpack_error_too_big);
@@ -462,6 +464,7 @@ MPACK_NOINLINE static void mpack_write_native_straddle(mpack_writer_t* writer, c
             "space in buffer. should have called mpack_write_native() instead",
             (int)count, (int)(mpack_writer_buffer_left(writer)));
 
+    #if MPACK_BUILDER
     // if we have a build in progress, we can't flush. we need to copy all
     // bytes into as many build buffer pages as it takes.
     if (writer->builder.current_build != NULL) {
@@ -483,6 +486,7 @@ MPACK_NOINLINE static void mpack_write_native_straddle(mpack_writer_t* writer, c
             mpack_assert(writer->current != writer->end);
         }
     }
+    #endif
 
     // we'll need a flush function
     if (!writer->flush) {

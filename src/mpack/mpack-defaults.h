@@ -312,11 +312,15 @@
 /**
  * @def MPACK_BUILDER_INTERNAL_STORAGE
  *
- * Enables a small amount of internal storage within the writer to avoid
+ * Enables a small amount of internal storage within the writer to avoid some
  * allocations when using builders.
+ *
+ * This is disabled by default. Enable it to potentially improve performance at
+ * the expense of a larger writer.
+ *
+ * @see MPACK_BUILDER_INTERNAL_STORAGE_SIZE to configure its size.
  */
 #ifndef MPACK_BUILDER_INTERNAL_STORAGE
-//#define MPACK_BUILDER_INTERNAL_STORAGE MPACK_BUILDER
 #define MPACK_BUILDER_INTERNAL_STORAGE 0
 #endif
 
