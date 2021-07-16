@@ -15,24 +15,43 @@ In addition, if Valgrind is installed and the compiler supports 32-bit cross-com
 
 ### Running the unit tests
 
-First configure the unit test suite:
+Run the build script:
 
 ```sh
-tools/unit/configure.py
+tools/unit.sh
 ```
 
-Then build and run the unit test suite with:
+This will run a Python script which generates a Ninja file, then invoke Ninja on it in the default configuration.
 
-```
-ninja -f build/unit/build.ninja
-```
+You can run additional tests by passing specific targets on the command-line:
 
-You can run additional tests by passing specific targets on the command-line. The "more" or "all" targets can run additional tests, and the "help" target lists tests. The CI runs "all" under various compilers.
+- The "help" target lists all targets;
+- The "more" target runs additional configurations (those run by the CI);
+- The "all" target runs all tests (those run on various platforms and compilers before each release,);
+- Most targets take the form `run-{name}-{mode}` where `{name}` is a configuration name and `{mode}` is either `debug` or `release`.
 
-You can change the compiler by passing a different `CC` to the configure script. For example:
+For example, to run all tests with the default compiler:
 
 ```sh
-CC=tcc tools/unit/configure.py
+tools/unit.sh all
+```
+
+To run only a specific configuration, say, the debug `noio` configuration where `MPACK_STDIO` is disabled:
+
+```sh
+tools/unit.sh run-noio-debug
+```
+
+To list all targets:
+
+```sh
+tools/unit.sh help
+```
+
+You can also change the compiler by passing a different `CC` to the configure script. For example, to build with [TinyCC](https://bellard.org/tcc/tcc-doc.html):
+
+```sh
+CC=tcc tools/unit.sh
 ```
 
 # Fuzz Testing

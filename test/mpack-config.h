@@ -12,7 +12,7 @@
 
 #ifdef MPACK_VARIANT_BUILDS
     // Most options such as featureset and platform configuration
-    // are specified by the SCons buildsystem. Any options that are
+    // are specified by the buildsystem. Any options that are
     // unset on the command line are considered disabled.
     #ifndef MPACK_READER
     #define MPACK_READER 0

@@ -1,6 +1,5 @@
 # This Makefile currently just builds fuzz.c into a fuzzer for use with
-# american fuzzy lop. Eventually this will grow to replace the SCons
-# buildsystem. For now use tools/afl.sh to fuzz MPack.
+# american fuzzy lop. Don't use this directly; use tools/afl.sh to fuzz MPack.
 
 ifeq (Makefile, $(firstword $(MAKEFILE_LIST)))
 $(error The current directory should be the root of the repository. Try "cd .." and then "make -f test/Makefile")

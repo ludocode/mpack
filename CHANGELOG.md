@@ -1,11 +1,17 @@
 MPack v1.1
 ----------
 
-Changes:
+New Features:
 
-- New builder functions have been added to build maps and arrays of indeterminate size: `mpack_build_map()`, `mpack_build_array()`, `mpack_complete_map()` and `mpack_complete_array()`.
-- Fixed some minor portability issues
-- Replaced unit test buildsystem with Lua+Ninja
+- Maps and arrays can now be built dynamically without specifying their size up front. See `mpack_build_map()` and `mpack_build_array()`.
+
+Bug Fixes and Other Changes:
+
+- Replaced SCons unit test buildsystem and XCode/VS projects with Python+Ninja.
+
+- Fixed an issue where write overloads could be erroneously defined in C++ without `MPACK_WRITER` (#66).
+
+- Fixed some minor portability issues.
 
 MPack v1.0
 ----------
