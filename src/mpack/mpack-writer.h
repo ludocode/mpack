@@ -171,7 +171,7 @@ struct mpack_writer_t {
     void* context;                    /* Context for writer callbacks */
 
     char* buffer;         /* Byte buffer */
-    char* current;        /* Current position within the buffer */
+    char* curr;           /* Current position within the buffer */
     char* end;            /* The end of the buffer */
     mpack_error_t error;  /* Error state */
 
@@ -482,7 +482,7 @@ void mpack_writer_flush_message(mpack_writer_t* writer);
  * been flushed to an underlying stream.
  */
 MPACK_INLINE size_t mpack_writer_buffer_used(mpack_writer_t* writer) {
-    return (size_t)(writer->current - writer->buffer);
+    return (size_t)(writer->curr - writer->buffer);
 }
 
 /**
@@ -490,7 +490,7 @@ MPACK_INLINE size_t mpack_writer_buffer_used(mpack_writer_t* writer) {
  * after a write if bytes are flushed to an underlying stream.
  */
 MPACK_INLINE size_t mpack_writer_buffer_left(mpack_writer_t* writer) {
-    return (size_t)(writer->end - writer->current);
+    return (size_t)(writer->end - writer->curr);
 }
 
 /**
