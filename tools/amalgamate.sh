@@ -29,7 +29,6 @@ TOOLS="\
     tools/clean.sh \
     tools/gcov.sh \
     tools/scan-build.sh \
-    tools/unittest.lua \
     tools/valgrind-suppressions \
     "
 
@@ -83,9 +82,6 @@ done
 
 # assemble package contents
 cp -ar $FILES build/amalgamation
-mkdir -p build/amalgamation/projects/{vs,xcode/MPack.xcodeproj}
-cp projects/vs/mpack.{sln,vcxproj,vcxproj.filters} build/amalgamation/projects/vs
-cp projects/xcode/MPack.xcodeproj/project.pbxproj build/amalgamation/projects/xcode/MPack.xcodeproj
 cp src/mpack/mpack-defaults.h build/amalgamation/
 mkdir -p build/amalgamation/tools
 cp $TOOLS build/amalgamation/tools

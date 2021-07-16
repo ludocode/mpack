@@ -10,14 +10,18 @@
 // is used to write the test data that is read back.
 #if MPACK_WRITER
 
-#ifdef WIN32
-#define MESSAGEPACK_FILES_PATH "..\\..\\test\\messagepack\\"
-#define PSEUDOJSON_FILES_PATH "..\\..\\test\\pseudojson\\"
+#ifdef _WIN32
+#include <direct.h>
+#define test_mkdir(dir, mode) ((void)mode, _mkdir(dir))
+#define test_rmdir _rmdir
 #else
 #include <unistd.h>
+#define test_mkdir mkdir
+#define test_rmdir rmdir
+#endif
+
 #define MESSAGEPACK_FILES_PATH "test/messagepack/"
 #define PSEUDOJSON_FILES_PATH "test/pseudojson/"
-#endif
 
 #if MPACK_EXTENSIONS
 #define TEST_FILE_MESSAGEPACK (MESSAGEPACK_FILES_PATH "test-file-ext.mp")
@@ -169,7 +173,7 @@ static void test_file_write_failures(void) {
     mpack_writer_t writer;
 
     // test invalid filename
-    (void)mkdir(test_dir, 0700);
+    (void)test_mkdir(test_dir, 0700);
     mpack_writer_init_filename(&writer, test_dir);
     TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_io);
 
@@ -981,7 +985,7 @@ void test_file(void) {
 
     TEST_TRUE(remove(test_filename) == 0, "failed to delete %s", test_filename);
     TEST_TRUE(remove(test_blank_filename) == 0, "failed to delete %s", test_blank_filename);
-    TEST_TRUE(rmdir(test_dir) == 0, "failed to delete %s", test_dir);
+    TEST_TRUE(test_rmdir(test_dir) == 0, "failed to delete %s", test_dir);
 
     (void)&test_compare_print;
 }

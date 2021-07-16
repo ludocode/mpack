@@ -1,0 +1,73 @@
+name: Unit Tests
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-20.04]
+
+        # workaround for matrix keys not allowed to be empty. we want
+        # to manually specify the compilers for each platform.
+        cc: [nocc]
+        exclude:
+          - cc: nocc
+
+        include:
+          - os: macos-latest
+            cc: clang
+          - os: ubuntu-20.04
+            cc: gcc
+          - os: ubuntu-20.04
+            cc: tcc
+          - os: windows-latest
+            cc: cl
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Install Ninja (Ubuntu)
+      if: contains(matrix.os, 'ubuntu')
+          # sudo apt-get update -y &&
+      run: sudo apt-get install -y ninja-build
+
+    - name: Install Ninja (macOS)
+      if: contains(matrix.os, 'macos')
+      run: brew install ninja
+
+    - name: Install TinyCC (Ubuntu+tcc)
+      if: contains(matrix.cc, 'tcc')
+      run: sudo apt-get install -y tcc
+
+    - name: Install lcov (Ubuntu+gcc)
+      if: contains(matrix.cc, 'gcc')
+      run: |
+        curl -LO https://github.com/linux-test-project/lcov/releases/download/v1.15/lcov-1.15.tar.gz
+        tar xzf lcov-1.15.tar.gz
+        cd lcov-1.15
+        sudo make install
+
+    - name: Run ci-unix (Ubuntu, macOS)
+      if: ${{ !contains(matrix.os, 'windows') }}
+      run: test/unit/ci-unix.sh
+      env:
+        CC: ${{ matrix.cc }}
+
+    - name: Run ci-windows (Windows)
+      if: contains(matrix.os, 'windows')
+      shell: cmd
+      run: test\\unit\\ci-windows.bat
+
+    - name: Submit coverage to Coveralls
+      id: coverage
+      if: contains(matrix.cc, 'gcc')
+      uses: coverallsapp/github-action@1.1.3
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Print Coveralls submission result
+      if: contains(matrix.cc, 'gcc')
+      run: echo ${{ steps.coverage.outputs['coveralls-api-result'] }}

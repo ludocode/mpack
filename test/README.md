@@ -2,51 +2,38 @@ The MPack build process does not build MPack into a library; it is used to build
 
 # Unit Tests
 
-## Linux
+## Dependencies
 
-### Dependencies
+The unit test suite (on Linux and Windows) requires Python 3 (at least 3.5) and Ninja (at least 1.3).
 
-The unit test suite on Linux has the following requirements:
+It can also make use of 32-bit cross-compiling support if on a 32-bit system. To do this, install the appropriate package:
 
-- Lua, at least version 5.1, with the following rocks:
-    - luafilesystem
-    - rapidjson (this requires CMake to build)
-- Ninja
-- 32-bit cross-compiling support, if on a 64-bit system
-    - On Arch, this is `gcc-multilib` or `lib32-clang`
-    - On Ubuntu, this is `gcc-multilib` and `g++-multilib`
-- Valgrind
-    - Including debugging 32-bit apps with 64-bit Valgrind, e.g. `valgrind-multilib`, `libc6-dbg:i386`
+- On Arch, this is `gcc-multilib` or `lib32-clang`
+- On Ubuntu, this is `gcc-multilib` and `g++-multilib`
 
-For example, on Ubuntu:
+In addition, if Valgrind is installed and the compiler supports 32-bit cross-compiling, you will need to install Valgrind's 32-bit support, e.g. `valgrind-multilib` and/or `libc6-dbg:i386`.
+
+### Running the unit tests
+
+First configure the unit test suite:
 
 ```sh
-# This installs Lua 5.1. You may need to change it for newer versions of Ubuntu.
-sudo apt install build-essential gcc-multilib g++-multilib cmake lua5.1 luarocks ninja-build libc6-dbg:i386 valgrind
+tools/unit/configure.py
 ```
 
-Or on Arch:
+Then build and run the unit test suite with:
 
-```sh
-sudo pacman -S --needed gcc-multilib cmake lua luarocks ninja valgrind
 ```
-
-Then:
-
-```sh
-sudo luarocks install luafilesystem
-sudo luarocks install rapidjson
+ninja -f build/unit/build.ninja
 ```
-
-### Running the tests
-
-Run the default tests with: `tools/unittest.lua`
 
 You can run additional tests by passing specific targets on the command-line. The "more" or "all" targets can run additional tests, and the "help" target lists tests. The CI runs "all" under various compilers.
 
-## Other platforms
+You can change the compiler by passing a different `CC` to the configure script. For example:
 
-On Windows, there is a Visual Studio solution, and on OS X, there is an Xcode project for building and running the test suite.
+```sh
+CC=tcc tools/unit/configure.py
+```
 
 # Fuzz Testing
 
