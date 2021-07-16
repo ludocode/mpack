@@ -107,7 +107,8 @@ static void test_builder_deep(void) {
     size_t pos = 0;
     int depth = 2;//50;
 
-    for (int i = 0; i < depth; ++i) {
+    int i;
+    for (i = 0; i < depth; ++i) {
         //mpack_build_map(&writer);
         mpack_start_map(&writer, 2);
         expected[pos++] = '\x82';
@@ -128,7 +129,7 @@ static void test_builder_deep(void) {
     mpack_write_bool(&writer, true);
     expected[pos++] = '\xc3';
 
-    for (int i = 0; i < depth; ++i) {
+    for (i = 0; i < depth; ++i) {
         mpack_complete_array(&writer);
         mpack_write_int(&writer, 1);
         expected[pos++] = '\x01';
@@ -172,12 +173,14 @@ static void test_builder_large(void) {
     size_t pos = 0;
     int depth = 6;
 
-    for (int i = 0; i < depth; ++i) {
+    int i;
+    for (i = 0; i < depth; ++i) {
         mpack_build_map(&writer);
         expected[pos++] = '\xde';
         expected[pos++] = '\x00';
         expected[pos++] = '\x32';
-        for (size_t j = 0; j < 99; ++j) {
+        size_t j;
+        for (j = 0; j < 99; ++j) {
             mpack_write_int(&writer, -1);
             expected[pos++] = '\xff';
         }
@@ -186,7 +189,7 @@ static void test_builder_large(void) {
     mpack_write_int(&writer, -1);
     expected[pos++] = '\xff';
 
-    for (int i = 0; i < depth; ++i) {
+    for (i = 0; i < depth; ++i) {
         mpack_complete_map(&writer);
     }
 
@@ -219,7 +222,8 @@ static void test_builder_content(void) {
     mpack_write_bin(&writer, rid, sizeof(rid));
     expected[pos++] = '\xc4';
     expected[pos++] = '\x10';
-    for (size_t i = 0; i < 16; ++i)
+    size_t i;
+    for (i = 0; i < 16; ++i)
         expected[pos++] = '\x00';
 
     mpack_write_cstr(&writer, "type");
@@ -284,7 +288,7 @@ static void test_builder_content(void) {
     mpack_write_bin(&writer, rid, sizeof(rid));
     expected[pos++] = '\xc4';
     expected[pos++] = '\x10';
-    for (size_t i = 0; i < 16; ++i)
+    for (i = 0; i < 16; ++i)
         expected[pos++] = '\x00';
 
     mpack_write_cstr(&writer, "pass");
@@ -307,14 +311,14 @@ static void test_builder_content(void) {
 
     /*
     printf("actual %zi expected %zi\n", used, pos);
-    for (size_t i = 0; i < used; ++i) {
+    for (i = 0; i < used; ++i) {
         printf("%02hhx ", buf[i]);
         if (((i+1) % 16)==0)
             printf("\n");
     }
     printf("\n");
     printf("\n");
-    for (size_t i = 0; i < pos; ++i) {
+    for (i = 0; i < pos; ++i) {
         printf("%02hhx ", expected[i]);
         if (((i+1) % 16)==0)
             printf("\n");
@@ -355,7 +359,8 @@ static void test_builder_strings_length(uint32_t length) {
     memset(str, 'a', length);
     size_t depth = 2;
 
-    for (size_t i = 0; i < depth; ++i) {
+    size_t i;
+    for (i = 0; i < depth; ++i) {
         mpack_build_array(&writer);
         expected[pos++] = '\x93';
         mpack_write_str(&writer, str, length);
@@ -365,7 +370,7 @@ static void test_builder_strings_length(uint32_t length) {
     mpack_write_str(&writer, str, length);
     test_builder_add_expected_str(expected, &pos, str, length);
 
-    for (size_t i = 0; i < depth; ++i) {
+    for (i = 0; i < depth; ++i) {
         mpack_write_str(&writer, str, length);
         test_builder_add_expected_str(expected, &pos, str, length);
         mpack_complete_array(&writer);
@@ -376,14 +381,14 @@ static void test_builder_strings_length(uint32_t length) {
 
     /*
     printf("actual %zi expected %zi\n", used, pos);
-    for (size_t i = 0; i < used; ++i) {
+    for (i = 0; i < used; ++i) {
         printf("%02hhx ", buf[i]);
         if (((i+1) % 16)==0)
             printf("\n");
     }
     printf("\n");
     printf("\n");
-    for (size_t i = 0; i < pos; ++i) {
+    for (i = 0; i < pos; ++i) {
         printf("%02hhx ", expected[i]);
         if (((i+1) % 16)==0)
             printf("\n");

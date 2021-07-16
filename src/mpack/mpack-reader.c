@@ -1097,11 +1097,12 @@ static void mpack_print_element(mpack_reader_t* reader, mpack_print_t* print, si
     // We read some bytes from bin and ext so we can print its prefix in hex.
     char buffer[MPACK_PRINT_BYTE_COUNT];
     size_t count = 0;
+    size_t i, j;
 
     switch (val.type) {
         case mpack_type_str:
             mpack_print_append_cstr(print, "\"");
-            for (size_t i = 0; i < val.v.l; ++i) {
+            for (i = 0; i < val.v.l; ++i) {
                 char c;
                 mpack_read_bytes(reader, &c, 1);
                 if (mpack_reader_error(reader) != mpack_ok)
@@ -1119,8 +1120,8 @@ static void mpack_print_element(mpack_reader_t* reader, mpack_print_t* print, si
 
         case mpack_type_array:
             mpack_print_append_cstr(print, "[\n");
-            for (size_t i = 0; i < val.v.n; ++i) {
-                for (size_t j = 0; j < depth + 1; ++j)
+            for (i = 0; i < val.v.n; ++i) {
+                for (j = 0; j < depth + 1; ++j)
                     mpack_print_append_cstr(print, "    ");
                 mpack_print_element(reader, print, depth + 1);
                 if (mpack_reader_error(reader) != mpack_ok)
@@ -1129,7 +1130,7 @@ static void mpack_print_element(mpack_reader_t* reader, mpack_print_t* print, si
                     mpack_print_append_cstr(print, ",");
                 mpack_print_append_cstr(print, "\n");
             }
-            for (size_t i = 0; i < depth; ++i)
+            for (i = 0; i < depth; ++i)
                 mpack_print_append_cstr(print, "    ");
             mpack_print_append_cstr(print, "]");
             mpack_done_array(reader);
@@ -1137,8 +1138,8 @@ static void mpack_print_element(mpack_reader_t* reader, mpack_print_t* print, si
 
         case mpack_type_map:
             mpack_print_append_cstr(print, "{\n");
-            for (size_t i = 0; i < val.v.n; ++i) {
-                for (size_t j = 0; j < depth + 1; ++j)
+            for (i = 0; i < val.v.n; ++i) {
+                for (j = 0; j < depth + 1; ++j)
                     mpack_print_append_cstr(print, "    ");
                 mpack_print_element(reader, print, depth + 1);
                 if (mpack_reader_error(reader) != mpack_ok)
@@ -1151,7 +1152,7 @@ static void mpack_print_element(mpack_reader_t* reader, mpack_print_t* print, si
                     mpack_print_append_cstr(print, ",");
                 mpack_print_append_cstr(print, "\n");
             }
-            for (size_t i = 0; i < depth; ++i)
+            for (i = 0; i < depth; ++i)
                 mpack_print_append_cstr(print, "    ");
             mpack_print_append_cstr(print, "}");
             mpack_done_map(reader);
@@ -1182,7 +1183,8 @@ static void mpack_print_element(mpack_reader_t* reader, mpack_print_t* print, si
 }
 
 static void mpack_print_and_destroy(mpack_reader_t* reader, mpack_print_t* print, size_t depth) {
-    for (size_t i = 0; i < depth; ++i)
+    size_t i;
+    for (i = 0; i < depth; ++i)
         mpack_print_append_cstr(print, "    ");
     mpack_print_element(reader, print, depth);
 

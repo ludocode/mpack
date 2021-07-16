@@ -95,7 +95,8 @@ static void test_file_write_bytes(mpack_writer_t* writer, mpack_tag_t tag) {
 
 static void test_file_write_elements(mpack_writer_t* writer, mpack_tag_t tag) {
     mpack_write_tag(writer, tag);
-    for (size_t i = 0; i < tag.v.n; ++i) {
+    size_t i;
+    for (i = 0; i < tag.v.n; ++i) {
         if (tag.type == mpack_type_map)
             mpack_write_nil(writer);
         mpack_write_nil(writer);
@@ -160,10 +161,11 @@ static void test_file_write_contents(mpack_writer_t* writer) {
     mpack_finish_array(writer);
 
     // test deep nesting
-    for (int i = 0; i < nesting_depth; ++i)
+    int i;
+    for (i = 0; i < nesting_depth; ++i)
         mpack_start_array(writer, 1);
     mpack_write_nil(writer);
-    for (int i = 0; i < nesting_depth; ++i)
+    for (i = 0; i < nesting_depth; ++i)
         mpack_finish_array(writer);
 
     mpack_finish_array(writer);
@@ -188,7 +190,8 @@ static void test_file_write_failures(void) {
     int count = UINT16_MAX / 20;
     mpack_writer_init_filename(&writer, "/dev/full");
     mpack_start_array(&writer, (uint32_t)count);
-    for (int i = 0; i < count; ++i)
+    int i;
+    for (i = 0; i < count; ++i)
         mpack_write_cstr(&writer, quick_brown_fox);
     mpack_finish_array(&writer);
     TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_io);
@@ -257,10 +260,11 @@ static bool test_file_write_failure(void) {
     mpack_finish_array(&writer);
 
     // test deep nesting
-    for (int i = 0; i < nesting_depth; ++i)
+    int i;
+    for (i = 0; i < nesting_depth; ++i)
         mpack_start_array(&writer, 1);
     mpack_write_nil(&writer);
-    for (int i = 0; i < nesting_depth; ++i)
+    for (i = 0; i < nesting_depth; ++i)
         mpack_finish_array(&writer);
 
     mpack_finish_array(&writer);
@@ -390,7 +394,8 @@ static void test_file_expect_bytes(mpack_reader_t* reader, mpack_tag_t tag) {
 
 static void test_file_expect_elements(mpack_reader_t* reader, mpack_tag_t tag) {
     mpack_expect_tag(reader, tag);
-    for (size_t i = 0; i < tag.v.n; ++i) {
+    size_t i;
+    for (i = 0; i < tag.v.n; ++i) {
         if (tag.type == mpack_type_map)
             mpack_expect_nil(reader);
         mpack_expect_nil(reader);
@@ -457,10 +462,11 @@ static void test_file_read_contents(mpack_reader_t* reader) {
     test_file_expect_elements(reader, mpack_tag_map(UINT16_MAX + 1));
     mpack_done_array(reader);
 
-    for (int i = 0; i < nesting_depth; ++i)
+    int i;
+    for (i = 0; i < nesting_depth; ++i)
         mpack_expect_array_match(reader, 1);
     mpack_expect_nil(reader);
-    for (int i = 0; i < nesting_depth; ++i)
+    for (i = 0; i < nesting_depth; ++i)
         mpack_done_array(reader);
 
     mpack_done_array(reader);
@@ -529,7 +535,8 @@ static void test_file_read_streaming(void) {
     // than read by a single call to the fill function.
 
     size_t sizes[] = {1, 2, 3, 5, 7, 11};
-    for (size_t i = 0; i < sizeof(sizes) / sizeof(*sizes); ++i) {
+    size_t i;
+    for (i = 0; i < sizeof(sizes) / sizeof(*sizes); ++i) {
 
         FILE* file = fopen(test_filename, "rb");
         TEST_TRUE(file != NULL, "failed to open file! filename %s", test_filename);
@@ -657,7 +664,8 @@ static void test_file_node_bytes(mpack_node_t node, mpack_tag_t tag) {
 
 static void test_file_node_elements(mpack_node_t node, mpack_tag_t tag) {
     TEST_TRUE(mpack_tag_equal(tag, mpack_node_tag(node)));
-    for (size_t i = 0; i < tag.v.n; ++i) {
+    size_t i;
+    for (i = 0; i < tag.v.n; ++i) {
         if (tag.type == mpack_type_map) {
             mpack_node_nil(mpack_node_map_key_at(node, i));
             mpack_node_nil(mpack_node_map_value_at(node, i));
@@ -728,7 +736,8 @@ static void test_file_node_contents(mpack_node_t root) {
     test_file_node_elements(mpack_node_array_at(node, 4), mpack_tag_map(UINT16_MAX + 1));
 
     node = mpack_node_array_at(root, 6);
-    for (int i = 0; i < nesting_depth; ++i)
+    int i;
+    for (i = 0; i < nesting_depth; ++i)
         node = mpack_node_array_at(node, 0);
     TEST_TRUE(mpack_ok == mpack_node_error(node));
     mpack_node_nil(node);
@@ -825,7 +834,8 @@ static void test_file_node_stream() {
 
     size_t steps[] = {11, 23, 32, 127, 369, 4096, SIZE_MAX};
 
-    for (size_t i = 0; i < sizeof(steps) / sizeof(steps[0]); ++i) {
+    size_t i;
+    for (i = 0; i < sizeof(steps) / sizeof(steps[0]); ++i) {
         stream.pos = 0;
         stream.step = steps[i];
 
@@ -839,7 +849,8 @@ static void test_file_node_stream() {
                 mpack_error_to_string(mpack_tree_error(&tree)));
 
         // We try parsing the same tree a dozen times repeatedly with this step size.
-        for (int j = 0; j < 12; ++j) {
+        int j;
+        for (j = 0; j < 12; ++j) {
             mpack_tree_parse(&tree);
             TEST_TRUE(mpack_tree_error(&tree) == mpack_ok, "tree parsing failed: %s",
                     mpack_error_to_string(mpack_tree_error(&tree)));
@@ -921,7 +932,8 @@ static bool test_file_node_failure(void) {
     }
 
     node = mpack_node_array_at(root, 1);
-    for (int i = 0; i < nesting_depth; ++i)
+    int i;
+    for (i = 0; i < nesting_depth; ++i)
         node = mpack_node_array_at(node, 0);
     TEST_TRUE(mpack_ok == mpack_node_error(node));
     mpack_node_nil(node);

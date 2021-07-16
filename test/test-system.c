@@ -68,7 +68,8 @@ void test_system_fail_until_ok(bool (*test)(void)) {
     TEST_TRUE(test_files_count() == 0, "files are open before starting failure test");
     #endif
 
-    for (int i = 0; i < test_system_fail_until_max; ++i) {
+    int i;
+    for (i = 0; i < test_system_fail_until_max; ++i) {
         test_system_fail_after((size_t)i, false);
         bool ok = test();
 

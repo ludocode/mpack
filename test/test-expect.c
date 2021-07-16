@@ -1216,7 +1216,8 @@ static void test_expect_streaming() {
         "hello\x93\xc3\xa6""world!\xc2\xce\xff\xff\xff\xff";
 
     size_t sizes[] = {1, 2, 3, 5, 7, 11};
-    for (size_t i = 0; i < sizeof(sizes) / sizeof(*sizes); ++i) {
+    size_t i;
+    for (i = 0; i < sizeof(sizes) / sizeof(*sizes); ++i) {
 
         test_expect_stream_t context = {data, sizeof(data) - 1, sizes[i]};
         mpack_reader_t reader;

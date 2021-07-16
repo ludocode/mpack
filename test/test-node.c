@@ -1060,7 +1060,8 @@ static void test_node_read_deep_stack(void) {
     char buf[4096];
 
     uint8_t* p = (uint8_t*)buf;
-    for (int i = 0; i < depth; ++i) {
+    int i;
+    for (i = 0; i < depth; ++i) {
         *p++ = 0x81; // one pair map
         *p++ = 0x04; // key four
         *p++ = 0x91; // value one element array
@@ -1073,7 +1074,7 @@ static void test_node_read_deep_stack(void) {
 
     #ifdef MPACK_MALLOC
     mpack_node_t node = mpack_tree_root(&tree);
-    for (int i = 0; i < depth; ++i) {
+    for (i = 0; i < depth; ++i) {
         TEST_TRUE(mpack_tree_error(&tree) == mpack_ok, "error at depth %i", i);
         TEST_TRUE(mpack_node_map_count(node) == 1, "error at depth %i", i);
         TEST_TRUE(mpack_node_u8(mpack_node_map_key_at(node, 0)) == 4, "error at depth %i", i);
@@ -1177,7 +1178,8 @@ static bool test_node_multiple_allocs(bool stream, size_t stream_read_size) {
     TEST_TRUE(mpack_tree_error(&tree) == mpack_ok);
 
     TEST_TRUE(10 == mpack_node_array_length(mpack_tree_root(&tree)));
-    for (size_t i = 0; i < 10; ++i)
+    size_t i;
+    for (i = 0; i < 10; ++i)
         TEST_TRUE(i + 1 == mpack_node_uint(mpack_node_array_at(mpack_tree_root(&tree), i)));
     TEST_TRUE(mpack_tree_error(&tree) == mpack_ok);
 

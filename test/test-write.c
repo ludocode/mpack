@@ -418,6 +418,7 @@ static void test_write_basic_structures() {
     char* buf;
     size_t size;
     mpack_writer_t writer;
+    int i;
 
     // we use a mix of int writers below to test their tracking.
 
@@ -437,7 +438,7 @@ static void test_write_basic_structures() {
     // range(15)
     mpack_writer_init_growable(&writer, &buf, &size);
     mpack_start_array(&writer, 15);
-        for (int i = 0; i < 15; ++i)
+        for (i = 0; i < 15; ++i)
             mpack_write_i32(&writer, i);
     mpack_finish_array(&writer);
     TEST_DESTROY_MATCH(
@@ -447,7 +448,7 @@ static void test_write_basic_structures() {
     // range(16) (larger than infix)
     mpack_writer_init_growable(&writer, &buf, &size);
     mpack_start_array(&writer, 16);
-        for (int i = 0; i < 16; ++i)
+        for (i = 0; i < 16; ++i)
             mpack_write_u32(&writer, (uint32_t)i);
     mpack_finish_array(&writer);
     TEST_DESTROY_MATCH(
@@ -458,7 +459,7 @@ static void test_write_basic_structures() {
     // UINT16_MAX nils
     mpack_writer_init_growable(&writer, &buf, &size);
     mpack_start_array(&writer, UINT16_MAX);
-        for (int i = 0; i < UINT16_MAX; ++i)
+        for (i = 0; i < UINT16_MAX; ++i)
             mpack_write_nil(&writer);
     mpack_finish_array(&writer);
     {
@@ -473,7 +474,7 @@ static void test_write_basic_structures() {
     // UINT16_MAX+1 nils (largest category)
     mpack_writer_init_growable(&writer, &buf, &size);
     mpack_start_array(&writer, UINT16_MAX+1);
-        for (int i = 0; i < UINT16_MAX+1; ++i)
+        for (i = 0; i < UINT16_MAX+1; ++i)
             mpack_write_nil(&writer);
     mpack_finish_array(&writer);
     {
@@ -512,7 +513,7 @@ static void test_write_basic_structures() {
     // {0:1, 2:3, ..., 28:29}
     mpack_writer_init_growable(&writer, &buf, &size);
     mpack_start_map(&writer, 15);
-        for (int i = 0; i < 30; ++i)
+        for (i = 0; i < 30; ++i)
             mpack_write_i8(&writer, (int8_t)i);
     mpack_finish_map(&writer);
     TEST_DESTROY_MATCH(
@@ -523,7 +524,7 @@ static void test_write_basic_structures() {
     // {0:1, 2:3, ..., 28:29, 30:31} (larger than infix)
     mpack_writer_init_growable(&writer, &buf, &size);
     mpack_start_map(&writer, 16);
-        for (int i = 0; i < 32; ++i)
+        for (i = 0; i < 32; ++i)
             mpack_write_int(&writer, i);
     mpack_finish_map(&writer);
     TEST_DESTROY_MATCH(
@@ -535,7 +536,7 @@ static void test_write_basic_structures() {
     // UINT16_MAX nil:nils
     mpack_writer_init_growable(&writer, &buf, &size);
     mpack_start_map(&writer, UINT16_MAX);
-        for (int i = 0; i < UINT16_MAX*2; ++i)
+        for (i = 0; i < UINT16_MAX*2; ++i)
             mpack_write_nil(&writer);
     mpack_finish_map(&writer);
     {
@@ -550,7 +551,7 @@ static void test_write_basic_structures() {
     // UINT16_MAX+1 nil:nils (largest category)
     mpack_writer_init_growable(&writer, &buf, &size);
     mpack_start_map(&writer, UINT16_MAX+1);
-        for (int i = 0; i < (UINT16_MAX+1)*2; ++i)
+        for (i = 0; i < (UINT16_MAX+1)*2; ++i)
             mpack_write_nil(&writer);
     mpack_finish_map(&writer);
     {
@@ -567,6 +568,7 @@ static void test_write_small_structure_trees() {
     char* buf;
     size_t size;
     mpack_writer_t writer;
+    int i;
 
     // [[]]
     mpack_writer_init_growable(&writer, &buf, &size);
@@ -611,12 +613,12 @@ static void test_write_small_structure_trees() {
         mpack_finish_array(&writer);
 
         mpack_start_array(&writer, 15);
-            for (int i = 0; i < 15; ++i)
+            for (i = 0; i < 15; ++i)
                 mpack_write_int(&writer, i);
         mpack_finish_array(&writer);
 
         mpack_start_array(&writer, 16);
-            for (int i = 0; i < 16; ++i)
+            for (i = 0; i < 16; ++i)
                 mpack_write_int(&writer, i);
         mpack_finish_array(&writer);
 
@@ -657,7 +659,7 @@ static void test_write_small_structure_trees() {
 
         mpack_write_int(&writer, 3);
         mpack_start_map(&writer, 15);
-            for (int i = 0; i < 15; ++i) {
+            for (i = 0; i < 15; ++i) {
                 mpack_write_int(&writer, i);
                 mpack_write_int(&writer, i);
             }
@@ -665,7 +667,7 @@ static void test_write_small_structure_trees() {
 
         mpack_write_int(&writer, 4);
         mpack_start_map(&writer, 16);
-            for (int i = 0; i < 16; ++i) {
+            for (i = 0; i < 16; ++i) {
                 mpack_write_int(&writer, i);
                 mpack_write_int(&writer, i);
             }
@@ -764,21 +766,22 @@ static bool test_write_deep_growth(void) {
     const int depth = 40;
     const int nums = 1000;
 
-    for (int i = 0; i < depth; ++i) {
+    int i;
+    for (i = 0; i < depth; ++i) {
         mpack_start_array(&writer, 1);
         TEST_POSSIBLE_FAILURE();
     }
 
     mpack_start_array(&writer, (uint32_t)nums);
     TEST_POSSIBLE_FAILURE();
-    for (int i = 0; i < nums; ++i) {
+    for (i = 0; i < nums; ++i) {
         mpack_write_u64(&writer, UINT64_MAX);
         TEST_POSSIBLE_FAILURE();
     }
     mpack_finish_array(&writer);
     TEST_POSSIBLE_FAILURE();
 
-    for (int i = 0; i < depth; ++i) {
+    for (i = 0; i < depth; ++i) {
         mpack_finish_array(&writer);
         TEST_POSSIBLE_FAILURE();
     }
@@ -1167,7 +1170,8 @@ static void test_write_compatibility() {
         mpack_version_current,
     };
 
-    for (size_t i = 0; i < sizeof(versions) / sizeof(versions[0]); ++i) {
+    size_t i;
+    for (i = 0; i < sizeof(versions) / sizeof(versions[0]); ++i) {
         mpack_version_t version = versions[i];
         mpack_writer_init(&writer, buf, sizeof(buf));
         mpack_writer_set_version(&writer, version);

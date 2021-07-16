@@ -246,7 +246,8 @@ static void test_write_buffer_values(mpack_writer_t* writer) {
 
 #if MPACK_EXPECT
 static void test_expect_buffer(void) {
-    for (size_t i = 0; i < sizeof(test_buffer_sizes) / sizeof(test_buffer_sizes[0]); ++i) {
+    size_t i;
+    for (i = 0; i < sizeof(test_buffer_sizes) / sizeof(test_buffer_sizes[0]); ++i) {
 
         // initialize the reader with our buffer reader function
         mpack_reader_t reader;
@@ -268,7 +269,8 @@ static void test_expect_buffer(void) {
 
 #if MPACK_WRITER
 static void test_write_buffer(void) {
-    for (size_t i = 0; i < sizeof(test_buffer_sizes) / sizeof(test_buffer_sizes[0]); ++i) {
+    size_t i;
+    for (i = 0; i < sizeof(test_buffer_sizes) / sizeof(test_buffer_sizes[0]); ++i) {
         size_t size = test_buffer_sizes[i];
         size_t output_size = 0xffff;
         char* output = (char*)malloc(output_size);
@@ -300,7 +302,8 @@ static void test_write_buffer(void) {
 
 #if MPACK_READER
 static void test_inplace_buffer(void) {
-    for (size_t i = 0; i < sizeof(test_buffer_sizes) / sizeof(test_buffer_sizes[0]); ++i) {
+    size_t i;
+    for (i = 0; i < sizeof(test_buffer_sizes) / sizeof(test_buffer_sizes[0]); ++i) {
 
         // initialize the reader with our buffer reader function
         mpack_reader_t reader;
@@ -321,7 +324,8 @@ static void test_inplace_buffer(void) {
         static const char* ref = "abcdefghijklmn";
         const char* val;
         char r[15];
-        for (size_t j = 0; j < 15; ++j) {
+        size_t j;
+        for (j = 0; j < 15; ++j) {
             mpack_tag_t peek = mpack_peek_tag(&reader);
             tag = mpack_read_tag(&reader);
             TEST_TRUE(mpack_tag_equal(peek, tag), "peeked tag does not match read tag");
