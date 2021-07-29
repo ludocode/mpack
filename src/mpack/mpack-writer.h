@@ -153,7 +153,7 @@ typedef struct mpack_builder_t {
     mpack_builder_page_t* current_page;
     mpack_builder_page_t* pages;
     char* stash_buffer;
-    char* stash_current;
+    char* stash_position;
     char* stash_end;
     #if MPACK_BUILDER_INTERNAL_STORAGE
     char internal[MPACK_BUILDER_INTERNAL_STORAGE_SIZE];
@@ -171,7 +171,7 @@ struct mpack_writer_t {
     void* context;                    /* Context for writer callbacks */
 
     char* buffer;         /* Byte buffer */
-    char* curr;           /* Current position within the buffer */
+    char* position;       /* Current position within the buffer */
     char* end;            /* The end of the buffer */
     mpack_error_t error;  /* Error state */
 
@@ -482,7 +482,7 @@ void mpack_writer_flush_message(mpack_writer_t* writer);
  * been flushed to an underlying stream.
  */
 MPACK_INLINE size_t mpack_writer_buffer_used(mpack_writer_t* writer) {
-    return (size_t)(writer->curr - writer->buffer);
+    return (size_t)(writer->position - writer->buffer);
 }
 
 /**
@@ -490,7 +490,7 @@ MPACK_INLINE size_t mpack_writer_buffer_used(mpack_writer_t* writer) {
  * after a write if bytes are flushed to an underlying stream.
  */
 MPACK_INLINE size_t mpack_writer_buffer_left(mpack_writer_t* writer) {
-    return (size_t)(writer->end - writer->curr);
+    return (size_t)(writer->end - writer->position);
 }
 
 /**
