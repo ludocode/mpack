@@ -190,12 +190,8 @@ typedef enum mpack_type_t {
     mpack_type_bool,        /**< A boolean (true or false.) */
     mpack_type_int,         /**< A 64-bit signed integer. */
     mpack_type_uint,        /**< A 64-bit unsigned integer. */
-    #if MPACK_FLOAT
     mpack_type_float,       /**< A 32-bit IEEE 754 floating point number. */
-    #endif
-    #if MPACK_DOUBLE
     mpack_type_double,      /**< A 64-bit IEEE 754 floating point number. */
-    #endif
     mpack_type_str,         /**< A string. */
     mpack_type_bin,         /**< A chunk of binary data. */
     mpack_type_array,       /**< An array of MessagePack objects. */
@@ -258,11 +254,16 @@ struct mpack_tag_t {
         int64_t  i; /*< The value if the type is signed int. */
         bool     b; /*< The value if the type is bool. */
 
-        #if MPACK_DOUBLE
-        double   d; /*< The value if the type is double. */
-        #endif
         #if MPACK_FLOAT
         float    f; /*< The value if the type is float. */
+        #else
+        uint32_t f; /*< The raw value if the type is float. */
+        #endif
+
+        #if MPACK_DOUBLE
+        double   d; /*< The value if the type is double. */
+        #else
+        uint64_t d; /*< The raw value if the type is double. */
         #endif
 
         /* The number of bytes if the type is str, bin or ext. */
@@ -343,23 +344,31 @@ MPACK_INLINE mpack_tag_t mpack_tag_make_uint(uint64_t value) {
 
 #if MPACK_FLOAT
 /** Generates a float tag. */
-MPACK_INLINE mpack_tag_t mpack_tag_make_float(float value) {
+MPACK_INLINE mpack_tag_t mpack_tag_make_float(float value)
+#else
+/** Generates a float tag from a raw uint32_t. */
+MPACK_INLINE mpack_tag_t mpack_tag_make_raw_float(uint32_t value)
+#endif
+{
     mpack_tag_t ret = MPACK_TAG_ZERO;
     ret.type = mpack_type_float;
     ret.v.f = value;
     return ret;
 }
-#endif
 
 #if MPACK_DOUBLE
 /** Generates a double tag. */
-MPACK_INLINE mpack_tag_t mpack_tag_make_double(double value) {
+MPACK_INLINE mpack_tag_t mpack_tag_make_double(double value)
+#else
+/** Generates a double tag from a raw uint64_t. */
+MPACK_INLINE mpack_tag_t mpack_tag_make_raw_double(uint64_t value)
+#endif
+{
     mpack_tag_t ret = MPACK_TAG_ZERO;
     ret.type = mpack_type_double;
     ret.v.d = value;
     return ret;
 }
-#endif
 
 /** Generates an array tag. */
 MPACK_INLINE mpack_tag_t mpack_tag_make_array(uint32_t count) {
@@ -472,7 +481,6 @@ MPACK_INLINE uint64_t mpack_tag_uint_value(mpack_tag_t* tag) {
     return tag->v.u;
 }
 
-#if MPACK_FLOAT
 /**
  * Gets the float value of a float-type tag.
  *
@@ -484,13 +492,17 @@ MPACK_INLINE uint64_t mpack_tag_uint_value(mpack_tag_t* tag) {
  *
  * @see mpack_type_float
  */
-MPACK_INLINE float mpack_tag_float_value(mpack_tag_t* tag) {
+MPACK_INLINE
+#if MPACK_FLOAT
+float mpack_tag_float_value(mpack_tag_t* tag)
+#else
+uint32_t mpack_tag_raw_float_value(mpack_tag_t* tag)
+#endif
+{
     mpack_assert(tag->type == mpack_type_float, "tag is not a float!");
     return tag->v.f;
 }
-#endif
 
-#if MPACK_DOUBLE
 /**
  * Gets the double value of a double-type tag.
  *
@@ -502,11 +514,16 @@ MPACK_INLINE float mpack_tag_float_value(mpack_tag_t* tag) {
  *
  * @see mpack_type_double
  */
-MPACK_INLINE double mpack_tag_double_value(mpack_tag_t* tag) {
+MPACK_INLINE
+#if MPACK_DOUBLE
+double mpack_tag_double_value(mpack_tag_t* tag)
+#else
+uint64_t mpack_tag_raw_double_value(mpack_tag_t* tag)
+#endif
+{
     mpack_assert(tag->type == mpack_type_double, "tag is not a double!");
     return tag->v.d;
 }
-#endif
 
 /**
  * Gets the number of elements in an array tag.
@@ -974,6 +991,71 @@ MPACK_INLINE void mpack_store_double(char* p, double value) {
     } v;
     v.d = value;
     mpack_store_u64(p, v.u);
+}
+#endif
+
+#if MPACK_FLOAT && !MPACK_DOUBLE
+/**
+ * Performs a manual shortening conversion on the raw 64-bit representation of
+ * a double. This is useful for parsing doubles on platforms that only support
+ * floats (such as AVR.)
+ *
+ * The significand is truncated rather than rounded and subnormal numbers are
+ * set to 0 so this may not be quite as accurate as a real double-to-float
+ * conversion.
+ */
+MPACK_INLINE float mpack_shorten_raw_double_to_float(uint64_t d) {
+    MPACK_CHECK_FLOAT_ORDER();
+    union {
+        float f;
+        uint32_t u;
+    } v;
+
+    // float has  1 bit sign,  8 bits exponent, 23 bits significand
+    // double has 1 bit sign, 11 bits exponent, 52 bits significand
+
+    uint64_t d_sign = (uint64_t)(d >> 63);
+    uint64_t d_exponent = (uint32_t)(d >> 52) & ((1 << 11) - 1);
+    uint64_t d_significand = d & (((uint64_t)1 << 52) - 1);
+
+    uint32_t f_sign = (uint32_t)d_sign;
+    uint32_t f_exponent;
+    uint32_t f_significand;
+
+    if (MPACK_UNLIKELY(d_exponent == ((1 << 11) - 1))) {
+        // infinity or NAN. shift down to preserve the top bit since it
+        // indicates signaling NAN, but also set the low bit if any bits were
+        // set (that way we can't shift NAN to infinity.)
+        f_exponent = ((1 << 8) - 1);
+        f_significand = (uint32_t)(d_significand >> 29) | (d_significand ? 1 : 0);
+
+    } else {
+        int fix_bias = (int)d_exponent - ((1 << 10) - 1) + ((1 << 7) - 1);
+        if (MPACK_UNLIKELY(fix_bias <= 0)) {
+            // we don't currently handle subnormal numbers. just set it to zero.
+            f_exponent = 0;
+            f_significand = 0;
+        } else if (MPACK_UNLIKELY(fix_bias > 0xff)) {
+            // exponent is too large; saturate to infinity
+            f_exponent = 0xff;
+            f_significand = 0;
+        } else {
+            // a normal number that fits in a float. this is the usual case.
+            f_exponent = (uint32_t)fix_bias;
+            f_significand = (uint32_t)(d_significand >> 29);
+        }
+    }
+
+    #if 0
+    printf("\n===============\n");
+    for (size_t i = 0; i < 64; ++i)
+        printf("%i%s",(int)((d>>(63-i))&1),((i%8)==7)?" ":"");
+    printf("\n%lu %lu %lu\n", d_sign, d_exponent, d_significand);
+    printf("%u %u %u\n", f_sign, f_exponent, f_significand);
+    #endif
+
+    v.u = (f_sign << 31) | (f_exponent << 23) | f_significand;
+    return v.f;
 }
 #endif
 

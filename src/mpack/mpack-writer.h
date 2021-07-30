@@ -602,11 +602,17 @@ MPACK_INLINE void mpack_write_uint(mpack_writer_t* writer, uint64_t value) {
 #if MPACK_FLOAT
 /** Writes a float. */
 void mpack_write_float(mpack_writer_t* writer, float value);
+#else
+/** Writes a float from a raw uint32_t. */
+void mpack_write_raw_float(mpack_writer_t* writer, uint32_t raw_value);
 #endif
 
 #if MPACK_DOUBLE
 /** Writes a double. */
 void mpack_write_double(mpack_writer_t* writer, double value);
+#else
+/** Writes a double from a raw uint64_t. */
+void mpack_write_raw_double(mpack_writer_t* writer, uint64_t raw_value);
 #endif
 
 /** Writes a boolean. */

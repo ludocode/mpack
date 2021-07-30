@@ -7,7 +7,7 @@ New Features:
 
 - Maps and arrays can now be built dynamically without specifying their size up front. See `mpack_build_map()` and `mpack_build_array()`.
 
-- `float` and/or `double` can now be disabled individually on platforms with limited floating point support. AVR and the Linux kernel are detected automatically.
+- `float` and/or `double` can now be disabled individually on platforms with limited floating point support. AVR and the Linux kernel are detected automatically. If `float` is supported but not `double`, MessagePack doubles can be converted to `float`. (See #79)
 
 Bug Fixes and Other Changes:
 

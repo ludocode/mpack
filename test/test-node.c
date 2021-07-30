@@ -457,9 +457,7 @@ static void test_node_read_floats() {
     TEST_SIMPLE_TREE_READ("\x00", 0.0f == mpack_node_float(node));
     TEST_SIMPLE_TREE_READ("\xd0\x00", 0.0f == mpack_node_float(node));
     TEST_SIMPLE_TREE_READ("\xca\x00\x00\x00\x00", 0.0f == mpack_node_float(node));
-    #if MPACK_DOUBLE
     TEST_SIMPLE_TREE_READ("\xcb\x00\x00\x00\x00\x00\x00\x00\x00", 0.0f == mpack_node_float(node));
-    #endif
     #endif
 
     #if MPACK_DOUBLE
@@ -485,9 +483,7 @@ static void test_node_read_floats() {
     #if MPACK_FLOAT
     TEST_SIMPLE_TREE_READ("\xca\xff\xff\xff\xff", isnanf(mpack_node_float(node)) != 0);
     TEST_SIMPLE_TREE_READ("\xca\xff\xff\xff\xff", isnanf(mpack_node_float_strict(node)) != 0);
-    #if MPACK_DOUBLE
     TEST_SIMPLE_TREE_READ("\xcb\xff\xff\xff\xff\xff\xff\xff\xff", isnanf(mpack_node_float(node)) != 0);
-    #endif
     #endif
     #if MPACK_DOUBLE
     TEST_SIMPLE_TREE_READ("\xca\xff\xff\xff\xff", isnan(mpack_node_double(node)) != 0);
@@ -500,9 +496,7 @@ static void test_node_read_floats() {
     #if MPACK_FLOAT
     TEST_SIMPLE_TREE_READ_ERROR("\x00", 0.0f == mpack_node_float_strict(node), mpack_error_type);
     TEST_SIMPLE_TREE_READ_ERROR("\xd0\x00", 0.0f == mpack_node_float_strict(node), mpack_error_type);
-    #if MPACK_DOUBLE
     TEST_SIMPLE_TREE_READ_ERROR("\xcb\x00\x00\x00\x00\x00\x00\x00\x00", 0.0f == mpack_node_float_strict(node), mpack_error_type);
-    #endif
     #endif
 
     #if MPACK_DOUBLE

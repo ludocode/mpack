@@ -524,9 +524,7 @@ static void test_expect_reals() {
     TEST_SIMPLE_READ("\x00", 0.0f == mpack_expect_float(&reader));
     TEST_SIMPLE_READ("\xd0\x00", 0.0f == mpack_expect_float(&reader));
     TEST_SIMPLE_READ("\xca\x00\x00\x00\x00", 0.0f == mpack_expect_float(&reader));
-    #if MPACK_DOUBLE
     TEST_SIMPLE_READ("\xcb\x00\x00\x00\x00\x00\x00\x00\x00", 0.0f == mpack_expect_float(&reader));
-    #endif
     #endif
 
     #if MPACK_DOUBLE
@@ -552,9 +550,7 @@ static void test_expect_reals() {
     #if MPACK_FLOAT
     TEST_SIMPLE_READ("\xca\xff\xff\xff\xff", isnanf(mpack_expect_float(&reader)) != 0);
     TEST_SIMPLE_READ("\xca\xff\xff\xff\xff", 0 != isnanf(mpack_expect_float_strict(&reader)));
-    #if MPACK_DOUBLE
     TEST_SIMPLE_READ("\xcb\xff\xff\xff\xff\xff\xff\xff\xff", isnanf(mpack_expect_float(&reader)) != 0);
-    #endif
     #endif
     #if MPACK_DOUBLE
     TEST_SIMPLE_READ("\xca\xff\xff\xff\xff", isnan(mpack_expect_double(&reader)) != 0);
@@ -567,9 +563,7 @@ static void test_expect_reals() {
     #if MPACK_FLOAT
     TEST_SIMPLE_READ_ERROR("\x00", 0.0f == mpack_expect_float_strict(&reader), mpack_error_type);
     TEST_SIMPLE_READ_ERROR("\xd0\x00", 0.0f == mpack_expect_float_strict(&reader), mpack_error_type);
-    #if MPACK_DOUBLE
     TEST_SIMPLE_READ_ERROR("\xcb\x00\x00\x00\x00\x00\x00\x00\x00", 0.0f == mpack_expect_float_strict(&reader), mpack_error_type);
-    #endif
     #endif
 
     #if MPACK_DOUBLE

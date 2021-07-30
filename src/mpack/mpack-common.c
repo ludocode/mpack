@@ -60,12 +60,8 @@ const char* mpack_type_to_string(mpack_type_t type) {
         MPACK_TYPE_STRING_CASE(mpack_type_missing);
         MPACK_TYPE_STRING_CASE(mpack_type_nil);
         MPACK_TYPE_STRING_CASE(mpack_type_bool);
-        #if MPACK_FLOAT
         MPACK_TYPE_STRING_CASE(mpack_type_float);
-        #endif
-        #if MPACK_DOUBLE
         MPACK_TYPE_STRING_CASE(mpack_type_double);
-        #endif
         MPACK_TYPE_STRING_CASE(mpack_type_int);
         MPACK_TYPE_STRING_CASE(mpack_type_uint);
         MPACK_TYPE_STRING_CASE(mpack_type_str);
@@ -151,14 +147,10 @@ int mpack_tag_cmp(mpack_tag_t left, mpack_tag_t right) {
         // note also that we don't convert floats to doubles, so when this is
         // used for ordering purposes, all floats are ordered before all
         // doubles.
-        #if MPACK_FLOAT
         case mpack_type_float:
             return mpack_memcmp(&left.v.f, &right.v.f, sizeof(left.v.f));
-        #endif
-        #if MPACK_DOUBLE
         case mpack_type_double:
             return mpack_memcmp(&left.v.d, &right.v.d, sizeof(left.v.d));
-        #endif
     }
 
     mpack_assert(0, "unrecognized type %i", (int)left.type);
@@ -249,16 +241,20 @@ static void mpack_tag_debug_pseudo_json_impl(mpack_tag_t tag, char* buffer, size
         case mpack_type_uint:
             mpack_snprintf(buffer, buffer_size, "%" PRIu64, tag.v.u);
             return;
-        #if MPACK_FLOAT
         case mpack_type_float:
+            #if MPACK_FLOAT
             mpack_snprintf(buffer, buffer_size, "%f", tag.v.f);
+            #else
+            mpack_snprintf(buffer, buffer_size, "<float>");
+            #endif
             return;
-        #endif
-        #if MPACK_DOUBLE
         case mpack_type_double:
+            #if MPACK_DOUBLE
             mpack_snprintf(buffer, buffer_size, "%f", tag.v.d);
+            #else
+            mpack_snprintf(buffer, buffer_size, "<double>");
+            #endif
             return;
-        #endif
 
         case mpack_type_str:
             mpack_snprintf(buffer, buffer_size, "<string of %u bytes>", tag.v.l);
@@ -313,16 +309,20 @@ static void mpack_tag_debug_describe_impl(mpack_tag_t tag, char* buffer, size_t 
         case mpack_type_uint:
             mpack_snprintf(buffer, buffer_size, "uint %" PRIu64, tag.v.u);
             return;
-        #if MPACK_FLOAT
         case mpack_type_float:
+            #if MPACK_FLOAT
             mpack_snprintf(buffer, buffer_size, "float %f", tag.v.f);
+            #else
+            mpack_snprintf(buffer, buffer_size, "float");
+            #endif
             return;
-        #endif
-        #if MPACK_DOUBLE
         case mpack_type_double:
+            #if MPACK_DOUBLE
             mpack_snprintf(buffer, buffer_size, "double %f", tag.v.d);
+            #else
+            mpack_snprintf(buffer, buffer_size, "double");
+            #endif
             return;
-        #endif
         case mpack_type_str:
             mpack_snprintf(buffer, buffer_size, "str of %u bytes", tag.v.l);
             return;

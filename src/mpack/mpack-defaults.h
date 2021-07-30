@@ -437,6 +437,10 @@
 
 /**
  * Whether the 'float' type and floating point operations are supported.
+ *
+ * If MPACK_FLOAT is disabled, floats are read and written as uint32_t instead.
+ * This way messages with floats do not result in errors and you can still
+ * perform manual float parsing yourself.
  */
 #ifndef MPACK_FLOAT
     #ifdef __KERNEL__
@@ -449,6 +453,14 @@
 
 /**
  * Whether the 'double' type is supported. This requires support for 'float'.
+ *
+ * If MPACK_DOUBLE is disabled, doubles are read and written as uint32_t
+ * instead. This way messages with doubles do not result in errors and you can
+ * still perform manual doubles parsing yourself.
+ *
+ * If MPACK_FLOAT is enabled but MPACK_DOUBLE is not, doubles can be read as
+ * floats using the shortening conversion functions, e.g. mpack_expect_float()
+ * or mpack_node_float().
  */
 #ifndef MPACK_DOUBLE
     #if !MPACK_FLOAT || defined(__AVR__)

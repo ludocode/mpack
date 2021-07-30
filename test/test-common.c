@@ -447,6 +447,53 @@ static void test_utf8_check(void) {
     TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("test\xFF""testtesttest")));
 }
 
+static void test_shorten_raw_double_to_float() {
+    #if MPACK_FLOAT && !MPACK_DOUBLE && !defined(__AVR__)
+    TEST_DOUBLE doubles[] = {
+        0.0,
+        3.141592653589793238462643,
+        -1.0,
+        (TEST_DOUBLE)INFINITY,
+        -(TEST_DOUBLE)INFINITY,
+        1.234567890123456789e-50,
+        -1.234567890123456789e-25,
+        1.234567890123456789e-10,
+        -1.234567890123456789e10,
+        1.234567890123456789e25,
+        -1.234567890123456789e50,
+        1.234567890123456789e100,
+    };
+
+    size_t i;
+    for (i = 0; i < sizeof(doubles)/sizeof(*doubles); ++i) {
+        union {
+            TEST_DOUBLE d;
+            uint64_t u;
+        } u;
+        u.d = doubles[i];
+
+        // Proper float conversion
+        float f = (float)u.d;
+
+        // Our shortening conversion
+        float s = mpack_shorten_raw_double_to_float(u.u);
+
+        // Make sure they are close enough
+        if (isnan(f) || isnan(s)) {
+            TEST_TRUE(isnan(f) && isnan(s));
+        } else if (isinf(f) || isinf(s)) {
+            TEST_TRUE(isinf(f) && isinf(s));
+        } else {
+            TEST_DOUBLE diff = ((TEST_DOUBLE)f - (TEST_DOUBLE)s) / (u.d + 0.0000001);
+            TEST_TRUE(diff < 0.00001);
+            #if 0
+            printf("%.20f %.20f %.20f diff: %.20f\n", u.d, f, s, diff);
+            #endif
+        }
+    }
+    #endif
+}
+
 void test_common() {
     test_tags_special();
     test_tags_simple();
@@ -455,5 +502,6 @@ void test_common() {
 
     test_strings();
     test_utf8_check();
+    test_shorten_raw_double_to_float();
 }
 

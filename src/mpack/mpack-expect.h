@@ -192,6 +192,26 @@ float mpack_expect_float_strict(mpack_reader_t* reader);
 double mpack_expect_double_strict(mpack_reader_t* reader);
 #endif
 
+#if !MPACK_FLOAT
+/**
+ * Reads a float as a raw uint32_t. The underlying value must be a float, not a
+ * double or an integer.
+ *
+ * @throws mpack_error_type if the underlying value is not a float.
+ */
+uint32_t mpack_expect_raw_float(mpack_reader_t* reader);
+#endif
+
+#if !MPACK_DOUBLE
+/**
+ * Reads a double as a raw uint64_t. The underlying value must be a double, not a
+ * float or an integer.
+ *
+ * @throws mpack_error_type if the underlying value is not a double.
+ */
+uint64_t mpack_expect_raw_double(mpack_reader_t* reader);
+#endif
+
 /**
  * @}
  */

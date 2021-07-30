@@ -155,18 +155,25 @@ struct mpack_node_data_t {
      */
     uint32_t len;
 
-    union
-    {
+    union {
         bool     b; /* The value if the type is bool. */
+
         #if MPACK_FLOAT
         float    f; /* The value if the type is float. */
+        #else
+        uint32_t f; /*< The raw value if the type is float. */
         #endif
+
         #if MPACK_DOUBLE
         double   d; /* The value if the type is double. */
+        #else
+        uint64_t d; /*< The raw value if the type is double. */
         #endif
+
         int64_t  i; /* The value if the type is signed int. */
         uint64_t u; /* The value if the type is unsigned int. */
         size_t offset; /* The byte offset for str, bin and ext */
+
         mpack_node_data_t* children; /* The children for map or array */
     } value;
 };
@@ -852,6 +859,27 @@ float mpack_node_float_strict(mpack_node_t node);
  */
 double mpack_node_double_strict(mpack_node_t node);
 #endif
+
+#if !MPACK_FLOAT
+/**
+ * Returns the float value of the node as a raw uint32_t. The underlying value
+ * must be a float, not a double or an integer.
+ *
+ * @throws mpack_error_type if the underlying value is not a float.
+ */
+uint32_t mpack_node_raw_float(mpack_node_t node);
+#endif
+
+#if !MPACK_DOUBLE
+/**
+ * Returns the double value of the node as a raw uint64_t. The underlying value
+ * must be a double, not a float or an integer.
+ *
+ * @throws mpack_error_type if the underlying value is not a float or double.
+ */
+uint64_t mpack_node_raw_double(mpack_node_t node);
+#endif
+
 
 #if MPACK_EXTENSIONS
 /**

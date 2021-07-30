@@ -552,12 +552,13 @@ static bool mpack_tree_parse_node_contents(mpack_tree_t* tree, mpack_node_data_t
             if (!mpack_tree_reserve_bytes(tree, sizeof(float)))
                 return false;
             node->value.f = mpack_load_float(tree->data + tree->size + 1);
+            #else
+            if (!mpack_tree_reserve_bytes(tree, sizeof(uint32_t)))
+                return false;
+            node->value.f = mpack_load_u32(tree->data + tree->size + 1);
+            #endif
             node->type = mpack_type_float;
             return true;
-            #else
-            mpack_tree_flag_error(tree, mpack_error_unsupported);
-            return false;
-            #endif
 
         // double
         case 0xcb:
@@ -565,12 +566,13 @@ static bool mpack_tree_parse_node_contents(mpack_tree_t* tree, mpack_node_data_t
             if (!mpack_tree_reserve_bytes(tree, sizeof(double)))
                 return false;
             node->value.d = mpack_load_double(tree->data + tree->size + 1);
+            #else
+            if (!mpack_tree_reserve_bytes(tree, sizeof(uint64_t)))
+                return false;
+            node->value.d = mpack_load_u64(tree->data + tree->size + 1);
+            #endif
             node->type = mpack_type_double;
             return true;
-            #else
-            mpack_tree_flag_error(tree, mpack_error_unsupported);
-            return false;
-            #endif
 
         // uint8
         case 0xcc:
@@ -1264,12 +1266,8 @@ mpack_tag_t mpack_node_tag(mpack_node_t node) {
             break;
         case mpack_type_nil:                                            break;
         case mpack_type_bool:    tag.v.b = node.data->value.b;          break;
-        #if MPACK_FLOAT
         case mpack_type_float:   tag.v.f = node.data->value.f;          break;
-        #endif
-        #if MPACK_DOUBLE
         case mpack_type_double:  tag.v.d = node.data->value.d;          break;
-        #endif
         case mpack_type_int:     tag.v.i = node.data->value.i;          break;
         case mpack_type_uint:    tag.v.u = node.data->value.u;          break;
 
@@ -2153,14 +2151,18 @@ float mpack_node_float(mpack_node_t node) {
 
     if (node.data->type == mpack_type_uint)
         return (float)node.data->value.u;
-    else if (node.data->type == mpack_type_int)
+    if (node.data->type == mpack_type_int)
         return (float)node.data->value.i;
-    else if (node.data->type == mpack_type_float)
+    if (node.data->type == mpack_type_float)
         return node.data->value.f;
-    #if MPACK_DOUBLE
-    else if (node.data->type == mpack_type_double)
+
+    if (node.data->type == mpack_type_double) {
+        #if MPACK_DOUBLE
         return (float)node.data->value.d;
-    #endif
+        #else
+        return mpack_shorten_raw_double_to_float(node.data->value.d);
+        #endif
+    }
 
     mpack_node_flag_error(node, mpack_error_type);
     return 0.0f;
@@ -2211,6 +2213,32 @@ double mpack_node_double_strict(mpack_node_t node) {
 
     mpack_node_flag_error(node, mpack_error_type);
     return 0.0;
+}
+#endif
+
+#if !MPACK_FLOAT
+uint32_t mpack_node_raw_float(mpack_node_t node) {
+    if (mpack_node_error(node) != mpack_ok)
+        return 0;
+
+    if (node.data->type == mpack_type_float)
+        return node.data->value.f;
+
+    mpack_node_flag_error(node, mpack_error_type);
+    return 0;
+}
+#endif
+
+#if !MPACK_DOUBLE
+uint64_t mpack_node_raw_double(mpack_node_t node) {
+    if (mpack_node_error(node) != mpack_ok)
+        return 0;
+
+    if (node.data->type == mpack_type_double)
+        return node.data->value.d;
+
+    mpack_node_flag_error(node, mpack_error_type);
+    return 0;
 }
 #endif
 

@@ -180,14 +180,19 @@ float mpack_expect_float(mpack_reader_t* reader) {
     mpack_tag_t var = mpack_read_tag(reader);
     if (var.type == mpack_type_uint)
         return (float)var.v.u;
-    else if (var.type == mpack_type_int)
+    if (var.type == mpack_type_int)
         return (float)var.v.i;
-    else if (var.type == mpack_type_float)
+    if (var.type == mpack_type_float)
         return var.v.f;
-    #if MPACK_DOUBLE
-    else if (var.type == mpack_type_double)
+
+    if (var.type == mpack_type_double) {
+        #if MPACK_DOUBLE
         return (float)var.v.d;
-    #endif
+        #else
+        return mpack_shorten_raw_double_to_float(var.v.d);
+        #endif
+    }
+
     mpack_reader_flag_error(reader, mpack_error_type);
     return 0.0f;
 }
@@ -228,6 +233,26 @@ double mpack_expect_double_strict(mpack_reader_t* reader) {
         return var.v.d;
     mpack_reader_flag_error(reader, mpack_error_type);
     return 0.0;
+}
+#endif
+
+#if !MPACK_FLOAT
+uint32_t mpack_expect_raw_float(mpack_reader_t* reader) {
+    mpack_tag_t var = mpack_read_tag(reader);
+    if (var.type == mpack_type_float)
+        return var.v.f;
+    mpack_reader_flag_error(reader, mpack_error_type);
+    return 0;
+}
+#endif
+
+#if !MPACK_DOUBLE
+uint64_t mpack_expect_raw_double(mpack_reader_t* reader) {
+    mpack_tag_t var = mpack_read_tag(reader);
+    if (var.type == mpack_type_double)
+        return var.v.d;
+    mpack_reader_flag_error(reader, mpack_error_type);
+    return 0;
 }
 #endif
 

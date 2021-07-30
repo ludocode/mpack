@@ -44,6 +44,10 @@
 #include <sys/types.h>
 #endif
 
+// mpack poisons double when MPACK_DOUBLE is disabled so we give ourselves a
+// macro to use it manually in tests
+#define TEST_DOUBLE double
+
 #include "mpack/mpack.h"
 
 // We use declarations after statements across the entire unit test suite.
