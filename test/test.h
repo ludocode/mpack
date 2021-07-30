@@ -29,24 +29,29 @@
 #define _CRT_SECURE_NO_WARNINGS 1
 #endif
 
-#include <stdio.h>
+// mpack poisons double when MPACK_DOUBLE is disabled so we give ourselves a
+// macro to use it manually in tests
+#define TEST_DOUBLE double
+
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
 #include <setjmp.h>
 
-#ifdef WIN32
-#include <direct.h>
-#define mkdir(path, mode) ((void)(mode), _mkdir(path))
-#define rmdir _rmdir
-#else
-#include <sys/stat.h>
-#include <sys/types.h>
-#endif
+#include "mpack/mpack.h"
 
-// mpack poisons double when MPACK_DOUBLE is disabled so we give ourselves a
-// macro to use it manually in tests
-#define TEST_DOUBLE double
+#include <stdio.h>
+
+#if MPACK_STDIO
+    #ifdef WIN32
+        #include <direct.h>
+        #define mkdir(path, mode) ((void)(mode), _mkdir(path))
+        #define rmdir _rmdir
+    #else
+        #include <sys/stat.h>
+        #include <sys/types.h>
+    #endif
+#endif
 
 #include "mpack/mpack.h"
 

@@ -32,6 +32,11 @@
     #ifndef MPACK_STDIO
     #define MPACK_STDIO 0
     #endif
+
+#elif defined(__AVR__)
+    #define MPACK_STDLIB 0
+    #define MPACK_STDIO 0
+
 #else
     // For other platforms, we currently only test in a single configuration,
     // so we enable everything and otherwise use the default for most settings.
@@ -45,11 +50,8 @@
     // We need MPACK_STDLIB and MPACK_STDIO defined before test-system.h to
     // override their functions.
     #define MPACK_STDLIB 1
-    #ifndef __AVR__
-        #define MPACK_STDIO 1
-    #else
-        #define MPACK_STDIO 0
-    #endif
+    #define MPACK_STDIO 1
+
 #endif
 
 // We've disabled the unit test for single inline under tcc.

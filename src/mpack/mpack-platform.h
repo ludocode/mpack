@@ -223,6 +223,15 @@
     #define MPACK_SILENCE_WARNINGS_SHADOW /*nothing*/
 #endif
 
+// On platforms with small size_t (e.g. AVR) we get type limits warnings where
+// we compare a size_t to e.g. UINT32_MAX.
+#ifdef __AVR__
+    #define MPACK_SILENCE_WARNINGS_TYPE_LIMITS \
+        _Pragma ("GCC diagnostic ignored \"-Wtype-limits\"")
+#else
+    #define MPACK_SILENCE_WARNINGS_TYPE_LIMITS /*nothing*/
+#endif
+
 // MPack uses declarations after statements. This silences warnings about it
 // (e.g. when using MPack in a Linux kernel module.)
 #if defined(__GNUC__) && !defined(__cplusplus)
@@ -237,6 +246,7 @@
         MPACK_SILENCE_WARNINGS_PUSH \
         MPACK_SILENCE_WARNINGS_MISSING_PROTOTYPES \
         MPACK_SILENCE_WARNINGS_SHADOW \
+        MPACK_SILENCE_WARNINGS_TYPE_LIMITS \
         MPACK_SILENCE_WARNINGS_DECLARATION_AFTER_STATEMENT
 
     #define MPACK_SILENCE_WARNINGS_END \

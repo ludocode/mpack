@@ -148,7 +148,11 @@
  * reading/writing C files and makes debugging easier.
  */
 #ifndef MPACK_STDIO
-#define MPACK_STDIO 1
+    #ifdef __AVR__
+        #define MPACK_STDIO 0
+    #else
+        #define MPACK_STDIO 1
+    #endif
 #endif
 
 /**
@@ -231,7 +235,11 @@
  * mpack_error_to_string() and mpack_type_to_string() return an empty string.
  */
 #ifndef MPACK_STRINGS
-#define MPACK_STRINGS 1
+    #ifdef __AVR__
+        #define MPACK_STRINGS 0
+    #else
+        #define MPACK_STRINGS 1
+    #endif
 #endif
 
 /**

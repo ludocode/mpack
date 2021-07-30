@@ -101,8 +101,10 @@ static const size_t test_buffer_sizes[] = {
     129, 131, 160, 163, 191, 192, 193,
     251, 256, 257, 509, 512, 521,
     1021, 1024, 1031, 2039, 2048, 2053,
+    #ifndef __AVR__
     4093, 4096, 4099, 7919, 8192,
-    16384, 32768
+    6384, 32768,
+    #endif
 };
 
 #if MPACK_READER
@@ -272,7 +274,13 @@ static void test_write_buffer(void) {
     size_t i;
     for (i = 0; i < sizeof(test_buffer_sizes) / sizeof(test_buffer_sizes[0]); ++i) {
         size_t size = test_buffer_sizes[i];
-        size_t output_size = 0xffff;
+        size_t output_size = 
+            #ifdef __AVR__
+            0xfff
+            #else
+            0xfffff
+            #endif
+            ;
         char* output = (char*)malloc(output_size);
 
         // initialize the writer with our buffer writer function

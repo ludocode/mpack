@@ -253,7 +253,11 @@ static void test_node_read_uint_signed() {
 
     TEST_SIMPLE_TREE_READ("\xcd\xff\xff", 0xffff == mpack_node_i32(node));
     TEST_SIMPLE_TREE_READ("\xcd\xff\xff", 0xffff == mpack_node_i64(node));
-    TEST_SIMPLE_TREE_READ("\xcd\xff\xff", 0xffff == mpack_node_int(node));
+
+    if (sizeof(int) >= 4)
+        TEST_SIMPLE_TREE_READ("\xcd\xff\xff", (int)0xffff == mpack_node_int(node));
+    else if (sizeof(int) < 4)
+        TEST_SIMPLE_TREE_READ_ERROR("\xcd\xff\xff", mpack_node_int(node), mpack_error_type);
 
     TEST_SIMPLE_TREE_READ("\xce\x00\x01\x00\x00", 0x10000 == mpack_node_i32(node));
     TEST_SIMPLE_TREE_READ("\xce\x00\x01\x00\x00", 0x10000 == mpack_node_i64(node));
@@ -290,9 +294,9 @@ static void test_node_read_int() {
     TEST_SIMPLE_TREE_READ("\xd1\x80\x00", INT16_MIN == mpack_node_i64(node));
     TEST_SIMPLE_TREE_READ("\xd1\x80\x00", INT16_MIN == mpack_node_int(node));
 
-    TEST_SIMPLE_TREE_READ("\xd2\xff\xff\x7f\xff", INT16_MIN - 1 == mpack_node_i32(node));
-    TEST_SIMPLE_TREE_READ("\xd2\xff\xff\x7f\xff", INT16_MIN - 1 == mpack_node_i64(node));
-    TEST_SIMPLE_TREE_READ("\xd2\xff\xff\x7f\xff", INT16_MIN - 1 == mpack_node_int(node));
+    TEST_SIMPLE_TREE_READ("\xd2\xff\xff\x7f\xff", (int32_t)INT16_MIN - 1 == mpack_node_i32(node));
+    TEST_SIMPLE_TREE_READ("\xd2\xff\xff\x7f\xff", (int32_t)INT16_MIN - 1 == mpack_node_i64(node));
+    TEST_SIMPLE_TREE_READ("\xd2\xff\xff\x7f\xff", (int32_t)INT16_MIN - 1 == mpack_node_int(node));
 
     TEST_SIMPLE_TREE_READ("\xd2\x80\x00\x00\x00", INT32_MIN == mpack_node_i32(node));
     TEST_SIMPLE_TREE_READ("\xd2\x80\x00\x00\x00", INT32_MIN == mpack_node_i64(node));
@@ -339,7 +343,7 @@ static void test_node_read_ints_dynamic_int() {
     TEST_SIMPLE_TREE_READ("\xd0\x80", mpack_tag_equal(mpack_tag_int(INT8_MIN), mpack_node_tag(node)));
     TEST_SIMPLE_TREE_READ("\xd1\xff\x7f", mpack_tag_equal(mpack_tag_int(INT8_MIN - 1), mpack_node_tag(node)));
     TEST_SIMPLE_TREE_READ("\xd1\x80\x00", mpack_tag_equal(mpack_tag_int(INT16_MIN), mpack_node_tag(node)));
-    TEST_SIMPLE_TREE_READ("\xd2\xff\xff\x7f\xff", mpack_tag_equal(mpack_tag_int(INT16_MIN - 1), mpack_node_tag(node)));
+    TEST_SIMPLE_TREE_READ("\xd2\xff\xff\x7f\xff", mpack_tag_equal(mpack_tag_int((int32_t)INT16_MIN - 1), mpack_node_tag(node)));
 
     TEST_SIMPLE_TREE_READ("\xd2\x80\x00\x00\x00", mpack_tag_equal(mpack_tag_int(INT32_MIN), mpack_node_tag(node)));
     TEST_SIMPLE_TREE_READ("\xd3\xff\xff\xff\xff\x7f\xff\xff\xff", mpack_tag_equal(mpack_tag_int((int64_t)INT32_MIN - 1), mpack_node_tag(node)));
