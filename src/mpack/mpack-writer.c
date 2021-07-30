@@ -675,10 +675,12 @@ MPACK_STATIC_INLINE void mpack_encode_float(char* p, float value) {
     mpack_store_float(p + 1, value);
 }
 
+#if MPACK_DOUBLES
 MPACK_STATIC_INLINE void mpack_encode_double(char* p, double value) {
     mpack_store_u8(p, 0xcb);
     mpack_store_double(p + 1, value);
 }
+#endif
 
 MPACK_STATIC_INLINE void mpack_encode_fixarray(char* p, uint8_t count) {
     mpack_assert(count <= 15);
