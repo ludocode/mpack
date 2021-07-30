@@ -30,8 +30,8 @@
 
 #include "mpack-common.h"
 
-MPACK_HEADER_START
-MPACK_EXTERN_C_START
+MPACK_SILENCE_WARNINGS_BEGIN
+MPACK_EXTERN_C_BEGIN
 
 #if MPACK_READER
 
@@ -958,7 +958,7 @@ MPACK_INLINE mpack_error_t mpack_reader_track_str_bytes_all(mpack_reader_t* read
 #endif
 
 MPACK_EXTERN_C_END
-MPACK_HEADER_END
+MPACK_SILENCE_WARNINGS_END
 
 #endif
 

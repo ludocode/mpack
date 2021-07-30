@@ -23,6 +23,8 @@
 
 #include "mpack-writer.h"
 
+MPACK_SILENCE_WARNINGS_BEGIN
+
 #if MPACK_WRITER
 
 #if MPACK_BUILDER
@@ -1726,3 +1728,5 @@ void mpack_complete_array(mpack_writer_t* writer) {
 
 #endif // MPACK_BUILDER
 #endif // MPACK_WRITER
+
+MPACK_SILENCE_WARNINGS_END

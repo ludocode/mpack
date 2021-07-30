@@ -46,6 +46,9 @@
 
 #include "mpack/mpack.h"
 
+// We use declarations after statements across the entire unit test suite.
+MPACK_SILENCE_WARNINGS_DECLARATION_AFTER_STATEMENT
+
 
 
 /**

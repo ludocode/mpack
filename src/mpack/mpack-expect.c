@@ -23,6 +23,8 @@
 
 #include "mpack-expect.h"
 
+MPACK_SILENCE_WARNINGS_BEGIN
+
 #if MPACK_EXPECT
 
 
@@ -824,3 +826,4 @@ size_t mpack_expect_key_cstr(mpack_reader_t* reader, const char* keys[], bool fo
 
 #endif
 
+MPACK_SILENCE_WARNINGS_END

@@ -23,6 +23,8 @@
 
 #include "mpack-reader.h"
 
+MPACK_SILENCE_WARNINGS_BEGIN
+
 #if MPACK_READER
 
 static void mpack_reader_skip_using_fill(mpack_reader_t* reader, size_t count);
@@ -1273,3 +1275,5 @@ void mpack_print_stdfile_to_callback(FILE* file, mpack_print_callback_t callback
 #endif
 
 #endif
+
+MPACK_SILENCE_WARNINGS_END

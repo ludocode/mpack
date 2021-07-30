@@ -140,71 +140,89 @@
 
 
 /*
- * Header configuration
+ * extern C
  */
 
 #ifdef __cplusplus
-    #define MPACK_EXTERN_C_START extern "C" {
+    #define MPACK_EXTERN_C_BEGIN extern "C" {
     #define MPACK_EXTERN_C_END   }
 #else
-    #define MPACK_EXTERN_C_START /* nothing */
-    #define MPACK_EXTERN_C_END   /* nothing */
+    #define MPACK_EXTERN_C_BEGIN /*nothing*/
+    #define MPACK_EXTERN_C_END   /*nothing*/
 #endif
+
+
+
+/*
+ * Warnings
+ */
 
 /* We can't push/pop diagnostics before GCC 4.6, so if you're on a really old
- * compiler, MPack does not support the below warning flags. You will have to
- * manually disable them to use MPack. */
+ * compiler, MPack does not automatically silence any warning flags. You will
+ * have to manually disable them to use MPack. */
 
-/* GCC versions before 5.1 warn about defining a C99 non-static inline function
- * before declaring it (see issue #20). Diagnostic push is not supported before
- * GCC 4.6. */
-#if defined(__GNUC__) && !defined(__clang__)
-    #if (__GNUC__ == 4 && __GNUC_MINOR__ >= 6) || (__GNUC__ == 5 && __GNUC_MINOR__ < 1)
-        #ifdef __cplusplus
-            #define MPACK_DECLARED_INLINE_WARNING_START \
-                _Pragma ("GCC diagnostic push") \
-                _Pragma ("GCC diagnostic ignored \"-Wmissing-declarations\"")
-        #else
-            #define MPACK_DECLARED_INLINE_WARNING_START \
-                _Pragma ("GCC diagnostic push") \
-                _Pragma ("GCC diagnostic ignored \"-Wmissing-prototypes\"")
-        #endif
-        #define MPACK_DECLARED_INLINE_WARNING_END \
-            _Pragma ("GCC diagnostic pop")
+// Diagnostic push is not supported before GCC 4.6.
+#if defined(__GNUC__)
+    #if defined(__clang__) || __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
+        #define MPACK_SILENCE_WARNINGS_PUSH _Pragma ("GCC diagnostic push")
+        #define MPACK_SILENCE_WARNINGS_POP _Pragma ("GCC diagnostic pop")
     #endif
 #endif
-#ifndef MPACK_DECLARED_INLINE_WARNING_START
-    #define MPACK_DECLARED_INLINE_WARNING_START /* nothing */
-    #define MPACK_DECLARED_INLINE_WARNING_END /* nothing */
+
+/* GCC versions before 5.1 warn about defining a C99 non-static inline function
+ * before declaring it (see issue #20). */
+#if defined(__GNUC__) && !defined(__clang__)
+    #if __GNUC__ < 5 || (__GNUC__ == 5 && __GNUC_MINOR__ < 1)
+        #ifdef __cplusplus
+            #define MPACK_SILENCE_WARNINGS_MISSING_PROTOTYPES \
+                _Pragma ("GCC diagnostic ignored \"-Wmissing-declarations\"")
+        #else
+            #define MPACK_SILENCE_WARNINGS_MISSING_PROTOTYPES \
+                _Pragma ("GCC diagnostic ignored \"-Wmissing-prototypes\"")
+        #endif
+    #endif
+#endif
+#ifndef MPACK_SILENCE_WARNINGS_MISSING_PROTOTYPES
+    #define MPACK_SILENCE_WARNINGS_MISSING_PROTOTYPES /*nothing*/
 #endif
 
 /* GCC versions before 4.8 warn about shadowing a function with a variable that
- * isn't a function or function pointer (like "index"). Diagnostic push is not
- * supported before GCC 4.6. */
+ * isn't a function or function pointer (like "index"). */
 #if defined(__GNUC__) && !defined(__clang__)
-    #if __GNUC__ == 4 && __GNUC_MINOR__ >= 6 && __GNUC_MINOR__ < 8
-        #define MPACK_WSHADOW_WARNING_START \
-            _Pragma ("GCC diagnostic push") \
+    #if __GNUC__ == 4 && __GNUC_MINOR__ < 8
+        #define MPACK_SILENCE_WARNINGS_SHADOW \
             _Pragma ("GCC diagnostic ignored \"-Wshadow\"")
-        #define MPACK_WSHADOW_WARNING_END \
-            _Pragma ("GCC diagnostic pop")
     #endif
 #endif
-#ifndef MPACK_WSHADOW_WARNING_START
-    #define MPACK_WSHADOW_WARNING_START /* nothing */
-    #define MPACK_WSHADOW_WARNING_END /* nothing */
+#ifndef MPACK_SILENCE_WARNINGS_SHADOW
+    #define MPACK_SILENCE_WARNINGS_SHADOW /*nothing*/
 #endif
 
-#define MPACK_HEADER_START \
-    MPACK_WSHADOW_WARNING_START \
-    MPACK_DECLARED_INLINE_WARNING_START
+// MPack uses declarations after statements. This silences warnings about it
+// (e.g. when using MPack in a Linux kernel module.)
+#if defined(__GNUC__) && !defined(__cplusplus)
+    #define MPACK_SILENCE_WARNINGS_DECLARATION_AFTER_STATEMENT \
+        _Pragma ("GCC diagnostic ignored \"-Wdeclaration-after-statement\"")
+#else
+    #define MPACK_SILENCE_WARNINGS_DECLARATION_AFTER_STATEMENT /*nothing*/
+#endif
 
-#define MPACK_HEADER_END \
-    MPACK_DECLARED_INLINE_WARNING_END \
-    MPACK_WSHADOW_WARNING_END
+#ifdef MPACK_SILENCE_WARNINGS_PUSH
+    #define MPACK_SILENCE_WARNINGS_BEGIN \
+        MPACK_SILENCE_WARNINGS_PUSH \
+        MPACK_SILENCE_WARNINGS_MISSING_PROTOTYPES \
+        MPACK_SILENCE_WARNINGS_SHADOW \
+        MPACK_SILENCE_WARNINGS_DECLARATION_AFTER_STATEMENT
 
-MPACK_HEADER_START
-MPACK_EXTERN_C_START
+    #define MPACK_SILENCE_WARNINGS_END \
+        MPACK_SILENCE_WARNINGS_POP
+#else
+    #define MPACK_SILENCE_WARNINGS_BEGIN /*nothing*/
+    #define MPACK_SILENCE_WARNINGS_END /*nothing*/
+#endif
+
+MPACK_SILENCE_WARNINGS_BEGIN
+MPACK_EXTERN_C_BEGIN
 
 
 
@@ -910,7 +928,7 @@ size_t mpack_strlen(const char* s);
  */
 
 MPACK_EXTERN_C_END
-MPACK_HEADER_END
+MPACK_SILENCE_WARNINGS_END
 
 #endif
 

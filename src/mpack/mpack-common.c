@@ -27,6 +27,8 @@
 #include <stdarg.h>
 #endif
 
+MPACK_SILENCE_WARNINGS_BEGIN
+
 const char* mpack_error_to_string(mpack_error_t error) {
     #if MPACK_STRINGS
     switch (error) {
@@ -733,3 +735,5 @@ void mpack_print_file_callback(void* context, const char* data, size_t count) {
     fwrite(data, 1, count, file);
 }
 #endif
+
+MPACK_SILENCE_WARNINGS_END

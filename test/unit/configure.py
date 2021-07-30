@@ -363,8 +363,10 @@ elif compiler != "TinyCC":
 
     # MPack is really C11 code with C++ support. We need lots of compiler
     # extensions to build as ANSI C. We technically only support gnu89 so we
-    # need to disable pedantic C89 warnings.
-    gnu89flags = ["-std=gnu89", "-Wno-pedantic"]
+    # need to disable pedantic C89 warnings. We add
+    # -Wdeclaration-after-statement even though MPack mixes declarations and
+    # code just to make sure MPack disables the warning properly.
+    gnu89flags = ["-std=gnu89", "-Wno-pedantic", "-Wdeclaration-after-statement"]
     if checkFlags(gnu89flags):
         addDebugReleaseBuilds('gnu89', allfeatures + allconfigs + gnu89flags)
 

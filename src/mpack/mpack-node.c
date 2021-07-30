@@ -23,6 +23,8 @@
 
 #include "mpack-node.h"
 
+MPACK_SILENCE_WARNINGS_BEGIN
+
 #if MPACK_NODE
 
 MPACK_STATIC_INLINE const char* mpack_node_data_unchecked(mpack_node_t node) {
@@ -2346,3 +2348,5 @@ mpack_node_t mpack_node_map_value_at(mpack_node_t node, size_t index) {
 }
 
 #endif
+
+MPACK_SILENCE_WARNINGS_END

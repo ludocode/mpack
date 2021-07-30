@@ -32,8 +32,8 @@
 
 #if MPACK_WRITER
 
-MPACK_HEADER_START
-MPACK_EXTERN_C_START
+MPACK_SILENCE_WARNINGS_BEGIN
+MPACK_EXTERN_C_BEGIN
 
 #if MPACK_WRITE_TRACKING
 struct mpack_track_t;
@@ -1291,7 +1291,7 @@ MPACK_INLINE void mpack_write_kv(mpack_writer_t* writer, const char *key, const 
  * @}
  */
 
-MPACK_HEADER_END
+MPACK_SILENCE_WARNINGS_END
 
 #endif // MPACK_WRITER
 

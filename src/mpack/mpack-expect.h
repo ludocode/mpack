@@ -30,8 +30,8 @@
 
 #include "mpack-reader.h"
 
-MPACK_HEADER_START
-MPACK_EXTERN_C_START
+MPACK_SILENCE_WARNINGS_BEGIN
+MPACK_EXTERN_C_BEGIN
 
 #if MPACK_EXPECT
 
@@ -1446,7 +1446,7 @@ size_t mpack_expect_key_cstr(mpack_reader_t* reader, const char* keys[],
 #endif
 
 MPACK_EXTERN_C_END
-MPACK_HEADER_END
+MPACK_SILENCE_WARNINGS_END
 
 #endif
 

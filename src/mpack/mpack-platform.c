@@ -36,6 +36,8 @@
 
 
 
+MPACK_SILENCE_WARNINGS_BEGIN
+
 #if MPACK_DEBUG
 
 #if MPACK_STDIO
@@ -222,3 +224,5 @@ void* mpack_realloc(void* old_ptr, size_t used_size, size_t new_size) {
     return new_ptr;
 }
 #endif
+
+MPACK_SILENCE_WARNINGS_END

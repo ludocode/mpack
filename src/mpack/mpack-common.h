@@ -34,8 +34,8 @@
 #define MPACK_PRINT_BYTE_COUNT 12
 #endif
 
-MPACK_HEADER_START
-MPACK_EXTERN_C_START
+MPACK_SILENCE_WARNINGS_BEGIN
+MPACK_EXTERN_C_BEGIN
 
 
 
@@ -1081,7 +1081,7 @@ bool mpack_str_check_no_null(const char* str, size_t bytes);
  */
 
 MPACK_EXTERN_C_END
-MPACK_HEADER_END
+MPACK_SILENCE_WARNINGS_END
 
 #endif
 
