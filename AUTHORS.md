@@ -11,3 +11,4 @@
 | Tim Gates                       | https://github.com/timgates42              |
 | Dirkson                         | https://github.com/dirkson                 |
 | Ethan Li                        | https://github.com/ethanjli                |
+| Danny Povolotski                | https://github.com/israelidanny            |
