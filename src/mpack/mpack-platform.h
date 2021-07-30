@@ -38,8 +38,10 @@
 #error "In Visual Studio 2012 and earlier, MPack must be compiled as C++. Enable the /Tp compiler flag."
 #endif
 
-#if defined(_WIN32) && defined(MPACK_INTERNAL) && MPACK_INTERNAL
-#define _CRT_SECURE_NO_WARNINGS 1
+#if defined(_WIN32) && defined(MPACK_INTERNAL)
+    #if MPACK_INTERNAL
+        #define _CRT_SECURE_NO_WARNINGS 1
+    #endif
 #endif
 
 
@@ -135,6 +137,29 @@
 #if MPACK_STDIO
 #include <stdio.h>
 #include <errno.h>
+#endif
+
+
+
+/*
+ * Floating point support
+ */
+
+#if MPACK_DOUBLE && !MPACK_FLOAT
+    #error "MPACK_DOUBLE requires MPACK_FLOAT."
+#endif
+
+// If we don't have support for float or double, we poison the identifiers to
+// make sure we don't define anything related to them.
+#if MPACK_INTERNAL
+    #ifdef __GNUC__
+        #if !MPACK_FLOAT
+            #pragma GCC poison float
+        #endif
+        #if !MPACK_DOUBLE
+            #pragma GCC poison double
+        #endif
+    #endif
 #endif
 
 

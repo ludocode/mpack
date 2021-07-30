@@ -7,6 +7,8 @@ New Features:
 
 - Maps and arrays can now be built dynamically without specifying their size up front. See `mpack_build_map()` and `mpack_build_array()`.
 
+- `float` and/or `double` can now be disabled individually on platforms with limited floating point support. AVR and the Linux kernel are detected automatically.
+
 Bug Fixes and Other Changes:
 
 - Replaced SCons unit test buildsystem and XCode/VS projects with Python+Ninja.

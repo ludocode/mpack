@@ -436,10 +436,27 @@
 #endif
 
 /**
- * Whether to support reading/writing doubles (disable on 8-bit microcontrollers).
+ * Whether the 'float' type and floating point operations are supported.
  */
-#ifndef MPACK_DOUBLES
-#define MPACK_DOUBLES 1
+#ifndef MPACK_FLOAT
+    #ifdef __KERNEL__
+        // No floating point support in the Linux kernel.
+        #define MPACK_FLOAT 0
+    #else
+        #define MPACK_FLOAT 1
+    #endif
+#endif
+
+/**
+ * Whether the 'double' type is supported. This requires support for 'float'.
+ */
+#ifndef MPACK_DOUBLE
+    #if !MPACK_FLOAT || defined(__AVR__)
+        // AVR supports only float, not double.
+        #define MPACK_DOUBLE 0
+    #else
+        #define MPACK_DOUBLE 1
+    #endif
 #endif
 
 /**

@@ -45,7 +45,11 @@
     // We need MPACK_STDLIB and MPACK_STDIO defined before test-system.h to
     // override their functions.
     #define MPACK_STDLIB 1
-    #define MPACK_STDIO 1
+    #ifndef __AVR__
+        #define MPACK_STDIO 1
+    #else
+        #define MPACK_STDIO 0
+    #endif
 #endif
 
 // We've disabled the unit test for single inline under tcc.

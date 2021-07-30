@@ -322,6 +322,8 @@ addDebugReleaseBuilds('expect', ["-DMPACK_READER=1", "-DMPACK_EXPECT=1"] + allco
 addDebugReleaseBuilds('node', ["-DMPACK_NODE=1"] + allconfigs + cflags)
 addDebugReleaseBuilds('compatibility', defaultfeatures + ["-DMPACK_COMPATIBILITY=1"] + allconfigs + cflags)
 addDebugReleaseBuilds('extensions', defaultfeatures + ["-DMPACK_EXTENSIONS=1"] + allconfigs + cflags)
+addDebugReleaseBuilds('no-float', allfeatures + allconfigs + cflags + ["-DMPACK_FLOAT=0"])
+addDebugReleaseBuilds('no-double', allfeatures + allconfigs + cflags + ["-DMPACK_DOUBLE=0"])
 
 # writer builds
 addDebugReleaseBuilds('writer-only',
@@ -566,6 +568,7 @@ with open(ninja, "w") as out:
         "run-everything-release",
         "run-embed-debug",
         "run-embed-release",
+        "run-no-float-release",
     ]
     if "gnu89-debug" in builds:
         more += [

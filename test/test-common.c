@@ -19,12 +19,14 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+// include math first since mpack poisons floats
+#include <math.h>
+
 // we need internal to access the utf-8 check functions
 #define MPACK_INTERNAL 1
 
 #include "test-common.h"
 
-#include <math.h>
 #include "test.h"
 
 static void test_tags_special(void) {
@@ -132,12 +134,17 @@ static void test_tags_simple(void) {
 static void test_tags_reals(void) {
 
     // types
+    #if MPACK_FLOAT
     TEST_TRUE(mpack_tag_float(0.0f).type == mpack_type_float);
-    TEST_TRUE(mpack_tag_double(0.0).type == mpack_type_double);
     TEST_TRUE(mpack_tag_float((float)NAN).type == mpack_type_float);
+    #endif
+    #if MPACK_DOUBLE
+    TEST_TRUE(mpack_tag_double(0.0).type == mpack_type_double);
     TEST_TRUE(mpack_tag_double((double)NAN).type == mpack_type_double);
+    #endif
 
     // float comparisons
+    #if MPACK_FLOAT
     TEST_TRUE(true == mpack_tag_equal(mpack_tag_float(0), mpack_tag_float(0)));
     TEST_TRUE(true == mpack_tag_equal(mpack_tag_float(1), mpack_tag_float(1)));
     TEST_TRUE(true == mpack_tag_equal(mpack_tag_float(MPACK_FLOAT_POSITIVE_INFINITY), mpack_tag_float(MPACK_FLOAT_POSITIVE_INFINITY)));
@@ -147,8 +154,10 @@ static void test_tags_reals(void) {
     TEST_TRUE(false == mpack_tag_equal(mpack_tag_float(MPACK_FLOAT_POSITIVE_INFINITY), mpack_tag_float(MPACK_FLOAT_NEGATIVE_INFINITY)));
     TEST_TRUE(false == mpack_tag_equal(mpack_tag_float(0), mpack_tag_float(NAN)));
     TEST_TRUE(false == mpack_tag_equal(mpack_tag_float(MPACK_FLOAT_POSITIVE_INFINITY), mpack_tag_float(NAN)));
+    #endif
 
     // double comparisons
+    #if MPACK_DOUBLE
     TEST_TRUE(true == mpack_tag_equal(mpack_tag_double(0), mpack_tag_double(0)));
     TEST_TRUE(true == mpack_tag_equal(mpack_tag_double(1), mpack_tag_double(1)));
     TEST_TRUE(true == mpack_tag_equal(mpack_tag_double(MPACK_DOUBLE_POSITIVE_INFINITY), mpack_tag_double(MPACK_DOUBLE_POSITIVE_INFINITY)));
@@ -158,18 +167,23 @@ static void test_tags_reals(void) {
     TEST_TRUE(false == mpack_tag_equal(mpack_tag_double(MPACK_DOUBLE_POSITIVE_INFINITY), mpack_tag_double(MPACK_DOUBLE_NEGATIVE_INFINITY)));
     TEST_TRUE(false == mpack_tag_equal(mpack_tag_double(0), mpack_tag_double(NAN)));
     TEST_TRUE(false == mpack_tag_equal(mpack_tag_double(MPACK_DOUBLE_POSITIVE_INFINITY), mpack_tag_double(NAN)));
+    #endif
 
     // float/double comparisons
+    #if MPACK_FLOAT && MPACK_DOUBLE
     TEST_TRUE(false == mpack_tag_equal(mpack_tag_double(0), mpack_tag_float(0)));
     TEST_TRUE(false == mpack_tag_equal(mpack_tag_double(1), mpack_tag_float(1)));
     TEST_TRUE(false == mpack_tag_equal(mpack_tag_double(MPACK_DOUBLE_POSITIVE_INFINITY), mpack_tag_float(MPACK_FLOAT_POSITIVE_INFINITY)));
     TEST_TRUE(false == mpack_tag_equal(mpack_tag_double(MPACK_DOUBLE_NEGATIVE_INFINITY), mpack_tag_float(MPACK_FLOAT_NEGATIVE_INFINITY)));
+    #endif
 
     // here we're comparing NaNs and we expect true. this is because we compare
     // floats bit-for-bit, not using operator==
+    #if MPACK_FLOAT && MPACK_DOUBLE
     TEST_TRUE(true == mpack_tag_equal(mpack_tag_float(NAN), mpack_tag_float(NAN)));
     TEST_TRUE(true == mpack_tag_equal(mpack_tag_double(NAN), mpack_tag_double(NAN)));
     TEST_TRUE(false == mpack_tag_equal(mpack_tag_float(NAN), mpack_tag_double(NAN)));
+    #endif
 
 }
 
@@ -272,8 +286,12 @@ static void test_strings() {
     #define TEST_ERROR_TYPE(type) test_string(mpack_type_to_string(mpack_type_##type), #type)
     TEST_ERROR_TYPE(nil);
     TEST_ERROR_TYPE(bool);
+    #if MPACK_FLOAT
     TEST_ERROR_TYPE(float);
+    #endif
+    #if MPACK_DOUBLE
     TEST_ERROR_TYPE(double);
+    #endif
     TEST_ERROR_TYPE(int);
     TEST_ERROR_TYPE(uint);
     TEST_ERROR_TYPE(str);

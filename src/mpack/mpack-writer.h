@@ -599,11 +599,15 @@ MPACK_INLINE void mpack_write_uint(mpack_writer_t* writer, uint64_t value) {
  * @{
  */
 
+#if MPACK_FLOAT
 /** Writes a float. */
 void mpack_write_float(mpack_writer_t* writer, float value);
+#endif
 
+#if MPACK_DOUBLE
 /** Writes a double. */
 void mpack_write_double(mpack_writer_t* writer, double value);
+#endif
 
 /** Writes a boolean. */
 void mpack_write_bool(mpack_writer_t* writer, bool value);
@@ -1099,6 +1103,16 @@ MPACK_INLINE void mpack_finish_type(mpack_writer_t* writer, mpack_type_t type) {
  * all of type `int`, not `bool` or `void*`! They will emit unexpected
  * types when passed uncast, so be careful when using them.
  */
+#if MPACK_FLOAT
+    #define MPACK_WRITE_GENERIC_FLOAT float: mpack_write_float,
+#else
+    #define MPACK_WRITE_GENERIC_FLOAT /*nothing*/
+#endif
+#if MPACK_DOUBLE
+    #define MPACK_WRITE_GENERIC_DOUBLE double: mpack_write_double,
+#else
+    #define MPACK_WRITE_GENERIC_DOUBLE /*nothing*/
+#endif
 #define mpack_write(writer, value) \
     _Generic(((void)0, value),                      \
               int8_t: mpack_write_i8,               \
@@ -1110,8 +1124,8 @@ MPACK_INLINE void mpack_finish_type(mpack_writer_t* writer, mpack_type_t type) {
             uint32_t: mpack_write_u32,              \
             uint64_t: mpack_write_u64,              \
                 bool: mpack_write_bool,             \
-               float: mpack_write_float,            \
-              double: mpack_write_double,           \
+            MPACK_WRITE_GENERIC_FLOAT               \
+            MPACK_WRITE_GENERIC_DOUBLE              \
               char *: mpack_write_cstr_or_nil,      \
         const char *: mpack_write_cstr_or_nil       \
     )(writer, value)

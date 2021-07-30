@@ -737,19 +737,25 @@ static size_t mpack_parse_tag(mpack_reader_t* reader, mpack_tag_t* tag) {
 
         // float
         case 0xca:
+            #if MPACK_FLOAT
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_FLOAT))
                 return 0;
             *tag = mpack_tag_make_float(mpack_load_float(reader->data + 1));
             return MPACK_TAG_SIZE_FLOAT;
+            #else
+            mpack_reader_flag_error(reader, mpack_error_unsupported);
+            return 0;
+            #endif
 
         // double
         case 0xcb:
+            #if MPACK_DOUBLE
             if (!mpack_reader_ensure(reader, MPACK_TAG_SIZE_DOUBLE))
                 return 0;
-            #if MPACK_DOUBLES
             *tag = mpack_tag_make_double(mpack_load_double(reader->data + 1));
             return MPACK_TAG_SIZE_DOUBLE;
             #else
+            mpack_reader_flag_error(reader, mpack_error_unsupported);
             return 0;
             #endif
 

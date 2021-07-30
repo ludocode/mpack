@@ -190,8 +190,12 @@ typedef enum mpack_type_t {
     mpack_type_bool,        /**< A boolean (true or false.) */
     mpack_type_int,         /**< A 64-bit signed integer. */
     mpack_type_uint,        /**< A 64-bit unsigned integer. */
+    #if MPACK_FLOAT
     mpack_type_float,       /**< A 32-bit IEEE 754 floating point number. */
+    #endif
+    #if MPACK_DOUBLE
     mpack_type_double,      /**< A 64-bit IEEE 754 floating point number. */
+    #endif
     mpack_type_str,         /**< A string. */
     mpack_type_bin,         /**< A chunk of binary data. */
     mpack_type_array,       /**< An array of MessagePack objects. */
@@ -252,9 +256,14 @@ struct mpack_tag_t {
     union {
         uint64_t u; /*< The value if the type is unsigned int. */
         int64_t  i; /*< The value if the type is signed int. */
-        double   d; /*< The value if the type is double. */
-        float    f; /*< The value if the type is float. */
         bool     b; /*< The value if the type is bool. */
+
+        #if MPACK_DOUBLE
+        double   d; /*< The value if the type is double. */
+        #endif
+        #if MPACK_FLOAT
+        float    f; /*< The value if the type is float. */
+        #endif
 
         /* The number of bytes if the type is str, bin or ext. */
         uint32_t l;
@@ -332,6 +341,7 @@ MPACK_INLINE mpack_tag_t mpack_tag_make_uint(uint64_t value) {
     return ret;
 }
 
+#if MPACK_FLOAT
 /** Generates a float tag. */
 MPACK_INLINE mpack_tag_t mpack_tag_make_float(float value) {
     mpack_tag_t ret = MPACK_TAG_ZERO;
@@ -339,7 +349,9 @@ MPACK_INLINE mpack_tag_t mpack_tag_make_float(float value) {
     ret.v.f = value;
     return ret;
 }
+#endif
 
+#if MPACK_DOUBLE
 /** Generates a double tag. */
 MPACK_INLINE mpack_tag_t mpack_tag_make_double(double value) {
     mpack_tag_t ret = MPACK_TAG_ZERO;
@@ -347,6 +359,7 @@ MPACK_INLINE mpack_tag_t mpack_tag_make_double(double value) {
     ret.v.d = value;
     return ret;
 }
+#endif
 
 /** Generates an array tag. */
 MPACK_INLINE mpack_tag_t mpack_tag_make_array(uint32_t count) {
@@ -459,6 +472,7 @@ MPACK_INLINE uint64_t mpack_tag_uint_value(mpack_tag_t* tag) {
     return tag->v.u;
 }
 
+#if MPACK_FLOAT
 /**
  * Gets the float value of a float-type tag.
  *
@@ -474,7 +488,9 @@ MPACK_INLINE float mpack_tag_float_value(mpack_tag_t* tag) {
     mpack_assert(tag->type == mpack_type_float, "tag is not a float!");
     return tag->v.f;
 }
+#endif
 
+#if MPACK_DOUBLE
 /**
  * Gets the double value of a double-type tag.
  *
@@ -490,6 +506,7 @@ MPACK_INLINE double mpack_tag_double_value(mpack_tag_t* tag) {
     mpack_assert(tag->type == mpack_type_double, "tag is not a double!");
     return tag->v.d;
 }
+#endif
 
 /**
  * Gets the number of elements in an array tag.
@@ -754,15 +771,19 @@ MPACK_INLINE mpack_tag_t mpack_tag_uint(uint64_t value) {
     return mpack_tag_make_uint(value);
 }
 
+#if MPACK_FLOAT
 /** \deprecated Renamed to mpack_tag_make_float(). */
 MPACK_INLINE mpack_tag_t mpack_tag_float(float value) {
     return mpack_tag_make_float(value);
 }
+#endif
 
+#if MPACK_DOUBLE
 /** \deprecated Renamed to mpack_tag_make_double(). */
 MPACK_INLINE mpack_tag_t mpack_tag_double(double value) {
     return mpack_tag_make_double(value);
 }
+#endif
 
 /** \deprecated Renamed to mpack_tag_make_array(). */
 MPACK_INLINE mpack_tag_t mpack_tag_array(int32_t count) {
@@ -906,6 +927,7 @@ MPACK_INLINE void mpack_store_i16(char* p, int16_t val) {mpack_store_u16(p, (uin
 MPACK_INLINE void mpack_store_i32(char* p, int32_t val) {mpack_store_u32(p, (uint32_t)val);}
 MPACK_INLINE void mpack_store_i64(char* p, int64_t val) {mpack_store_u64(p, (uint64_t)val);}
 
+#if MPACK_FLOAT
 MPACK_INLINE float mpack_load_float(const char* p) {
     MPACK_CHECK_FLOAT_ORDER();
     MPACK_STATIC_ASSERT(sizeof(float) == sizeof(uint32_t), "float is wrong size??");
@@ -916,8 +938,9 @@ MPACK_INLINE float mpack_load_float(const char* p) {
     v.u = mpack_load_u32(p);
     return v.f;
 }
+#endif
 
-#if MPACK_DOUBLES
+#if MPACK_DOUBLE
 MPACK_INLINE double mpack_load_double(const char* p) {
     MPACK_CHECK_FLOAT_ORDER();
     MPACK_STATIC_ASSERT(sizeof(double) == sizeof(uint64_t), "double is wrong size??");
@@ -930,6 +953,7 @@ MPACK_INLINE double mpack_load_double(const char* p) {
 }
 #endif
 
+#if MPACK_FLOAT
 MPACK_INLINE void mpack_store_float(char* p, float value) {
     MPACK_CHECK_FLOAT_ORDER();
     union {
@@ -939,8 +963,9 @@ MPACK_INLINE void mpack_store_float(char* p, float value) {
     v.f = value;
     mpack_store_u32(p, v.u);
 }
+#endif
 
-#if MPACK_DOUBLES
+#if MPACK_DOUBLE
 MPACK_INLINE void mpack_store_double(char* p, double value) {
     MPACK_CHECK_FLOAT_ORDER();
     union {

@@ -558,8 +558,12 @@ void mpack_write_tag(mpack_writer_t* writer, mpack_tag_t value) {
 
         case mpack_type_nil:    mpack_write_nil   (writer);            return;
         case mpack_type_bool:   mpack_write_bool  (writer, value.v.b); return;
+        #if MPACK_FLOAT
         case mpack_type_float:  mpack_write_float (writer, value.v.f); return;
+        #endif
+        #if MPACK_DOUBLE
         case mpack_type_double: mpack_write_double(writer, value.v.d); return;
+        #endif
         case mpack_type_int:    mpack_write_int   (writer, value.v.i); return;
         case mpack_type_uint:   mpack_write_uint  (writer, value.v.u); return;
 
@@ -670,12 +674,14 @@ MPACK_STATIC_INLINE void mpack_encode_i64(char* p, int64_t value) {
     mpack_store_i64(p + 1, value);
 }
 
+#if MPACK_FLOAT
 MPACK_STATIC_INLINE void mpack_encode_float(char* p, float value) {
     mpack_store_u8(p, 0xca);
     mpack_store_float(p + 1, value);
 }
+#endif
 
-#if MPACK_DOUBLES
+#if MPACK_DOUBLE
 MPACK_STATIC_INLINE void mpack_encode_double(char* p, double value) {
     mpack_store_u8(p, 0xcb);
     mpack_store_double(p + 1, value);
@@ -1001,15 +1007,19 @@ void mpack_write_i64(mpack_writer_t* writer, int64_t value) {
     }
 }
 
+#if MPACK_FLOAT
 void mpack_write_float(mpack_writer_t* writer, float value) {
     mpack_writer_track_element(writer);
     MPACK_WRITE_ENCODED(mpack_encode_float, MPACK_TAG_SIZE_FLOAT, value);
 }
+#endif
 
+#if MPACK_DOUBLE
 void mpack_write_double(mpack_writer_t* writer, double value) {
     mpack_writer_track_element(writer);
     MPACK_WRITE_ENCODED(mpack_encode_double, MPACK_TAG_SIZE_DOUBLE, value);
 }
+#endif
 
 #if MPACK_EXTENSIONS
 void mpack_write_timestamp(mpack_writer_t* writer, int64_t seconds, uint32_t nanoseconds) {

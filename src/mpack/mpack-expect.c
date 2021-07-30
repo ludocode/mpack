@@ -175,6 +175,7 @@ int64_t mpack_expect_i64(mpack_reader_t* reader) {
     return 0;
 }
 
+#if MPACK_FLOAT
 float mpack_expect_float(mpack_reader_t* reader) {
     mpack_tag_t var = mpack_read_tag(reader);
     if (var.type == mpack_type_uint)
@@ -183,12 +184,16 @@ float mpack_expect_float(mpack_reader_t* reader) {
         return (float)var.v.i;
     else if (var.type == mpack_type_float)
         return var.v.f;
+    #if MPACK_DOUBLE
     else if (var.type == mpack_type_double)
         return (float)var.v.d;
+    #endif
     mpack_reader_flag_error(reader, mpack_error_type);
     return 0.0f;
 }
+#endif
 
+#if MPACK_DOUBLE
 double mpack_expect_double(mpack_reader_t* reader) {
     mpack_tag_t var = mpack_read_tag(reader);
     if (var.type == mpack_type_uint)
@@ -202,7 +207,9 @@ double mpack_expect_double(mpack_reader_t* reader) {
     mpack_reader_flag_error(reader, mpack_error_type);
     return 0.0;
 }
+#endif
 
+#if MPACK_FLOAT
 float mpack_expect_float_strict(mpack_reader_t* reader) {
     mpack_tag_t var = mpack_read_tag(reader);
     if (var.type == mpack_type_float)
@@ -210,7 +217,9 @@ float mpack_expect_float_strict(mpack_reader_t* reader) {
     mpack_reader_flag_error(reader, mpack_error_type);
     return 0.0f;
 }
+#endif
 
+#if MPACK_DOUBLE
 double mpack_expect_double_strict(mpack_reader_t* reader) {
     mpack_tag_t var = mpack_read_tag(reader);
     if (var.type == mpack_type_float)
@@ -220,6 +229,7 @@ double mpack_expect_double_strict(mpack_reader_t* reader) {
     mpack_reader_flag_error(reader, mpack_error_type);
     return 0.0;
 }
+#endif
 
 
 // Ranged Number Functions
@@ -258,8 +268,12 @@ int16_t mpack_expect_i16_range(mpack_reader_t* reader, int16_t min_value, int16_
 int32_t mpack_expect_i32_range(mpack_reader_t* reader, int32_t min_value, int32_t max_value) {MPACK_EXPECT_RANGE_IMPL(i32, int32_t)}
 int64_t mpack_expect_i64_range(mpack_reader_t* reader, int64_t min_value, int64_t max_value) {MPACK_EXPECT_RANGE_IMPL(i64, int64_t)}
 
+#if MPACK_FLOAT
 float mpack_expect_float_range(mpack_reader_t* reader, float min_value, float max_value) {MPACK_EXPECT_RANGE_IMPL(float, float)}
+#endif
+#if MPACK_DOUBLE
 double mpack_expect_double_range(mpack_reader_t* reader, double min_value, double max_value) {MPACK_EXPECT_RANGE_IMPL(double, double)}
+#endif
 
 uint32_t mpack_expect_map_range(mpack_reader_t* reader, uint32_t min_value, uint32_t max_value) {MPACK_EXPECT_RANGE_IMPL(map, uint32_t)}
 uint32_t mpack_expect_array_range(mpack_reader_t* reader, uint32_t min_value, uint32_t max_value) {MPACK_EXPECT_RANGE_IMPL(array, uint32_t)}

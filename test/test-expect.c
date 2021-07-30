@@ -520,53 +520,80 @@ static void test_expect_reals() {
     // these are some very simple floats that don't really test IEEE 742 conformance;
     // this section could use some improvement
 
+    #if MPACK_FLOAT
     TEST_SIMPLE_READ("\x00", 0.0f == mpack_expect_float(&reader));
     TEST_SIMPLE_READ("\xd0\x00", 0.0f == mpack_expect_float(&reader));
     TEST_SIMPLE_READ("\xca\x00\x00\x00\x00", 0.0f == mpack_expect_float(&reader));
+    #if MPACK_DOUBLE
     TEST_SIMPLE_READ("\xcb\x00\x00\x00\x00\x00\x00\x00\x00", 0.0f == mpack_expect_float(&reader));
+    #endif
+    #endif
 
+    #if MPACK_DOUBLE
     TEST_SIMPLE_READ("\x00", 0.0 == mpack_expect_double(&reader));
     TEST_SIMPLE_READ("\xd0\x00", 0.0 == mpack_expect_double(&reader));
     TEST_SIMPLE_READ("\xca\x00\x00\x00\x00", 0.0 == mpack_expect_double(&reader));
     TEST_SIMPLE_READ("\xcb\x00\x00\x00\x00\x00\x00\x00\x00", 0.0 == mpack_expect_double(&reader));
+    #endif
 
+    #if MPACK_FLOAT
     TEST_SIMPLE_READ("\xca\x00\x00\x00\x00", 0.0f == mpack_expect_float_strict(&reader));
+    #endif
+    #if MPACK_DOUBLE
+    // reading float as strict double is allowed, not the other way around
     TEST_SIMPLE_READ("\xca\x00\x00\x00\x00", 0.0 == mpack_expect_double_strict(&reader));
     TEST_SIMPLE_READ("\xcb\x00\x00\x00\x00\x00\x00\x00\x00", 0.0 == mpack_expect_double_strict(&reader));
+    #endif
 
     // when -ffinite-math-only is enabled, isnan() can always return false.
     // TODO: we should probably add at least a reader option to
     // generate an error on non-finite reals.
     #if !MPACK_FINITE_MATH
+    #if MPACK_FLOAT
     TEST_SIMPLE_READ("\xca\xff\xff\xff\xff", isnanf(mpack_expect_float(&reader)) != 0);
+    TEST_SIMPLE_READ("\xca\xff\xff\xff\xff", 0 != isnanf(mpack_expect_float_strict(&reader)));
+    #if MPACK_DOUBLE
     TEST_SIMPLE_READ("\xcb\xff\xff\xff\xff\xff\xff\xff\xff", isnanf(mpack_expect_float(&reader)) != 0);
+    #endif
+    #endif
+    #if MPACK_DOUBLE
     TEST_SIMPLE_READ("\xca\xff\xff\xff\xff", isnan(mpack_expect_double(&reader)) != 0);
     TEST_SIMPLE_READ("\xcb\xff\xff\xff\xff\xff\xff\xff\xff", isnan(mpack_expect_double(&reader)) != 0);
-    TEST_SIMPLE_READ("\xca\xff\xff\xff\xff", 0 != isnanf(mpack_expect_float_strict(&reader)));
     TEST_SIMPLE_READ("\xca\xff\xff\xff\xff", 0 != isnan(mpack_expect_double_strict(&reader)));
     TEST_SIMPLE_READ("\xcb\xff\xff\xff\xff\xff\xff\xff\xff", isnan(mpack_expect_double_strict(&reader)));
     #endif
+    #endif
 
+    #if MPACK_FLOAT
     TEST_SIMPLE_READ_ERROR("\x00", 0.0f == mpack_expect_float_strict(&reader), mpack_error_type);
     TEST_SIMPLE_READ_ERROR("\xd0\x00", 0.0f == mpack_expect_float_strict(&reader), mpack_error_type);
+    #if MPACK_DOUBLE
     TEST_SIMPLE_READ_ERROR("\xcb\x00\x00\x00\x00\x00\x00\x00\x00", 0.0f == mpack_expect_float_strict(&reader), mpack_error_type);
+    #endif
+    #endif
 
+    #if MPACK_DOUBLE
     TEST_SIMPLE_READ_ERROR("\x00", 0.0 == mpack_expect_double_strict(&reader), mpack_error_type);
     TEST_SIMPLE_READ_ERROR("\xd0\x00", 0.0 == mpack_expect_double_strict(&reader), mpack_error_type);
+    #endif
 }
 
 static void test_expect_reals_range() {
+    #if MPACK_FLOAT
     TEST_SIMPLE_READ("\x00", 0.0f == mpack_expect_float_range(&reader, 0.0f, 0.0f));
     TEST_SIMPLE_READ("\x00", 0.0f == mpack_expect_float_range(&reader, 0.0f, 1.0f));
     TEST_SIMPLE_READ("\x00", 0.0f == mpack_expect_float_range(&reader, -1.0f, 0.0f));
     TEST_SIMPLE_READ_ERROR("\x00", 1.0f == mpack_expect_float_range(&reader, 1.0f, 2.0f), mpack_error_type);
     TEST_SIMPLE_READ_ASSERT("\x00", mpack_expect_float_range(reader, 1.0f, -1.0f));
+    #endif
 
+    #if MPACK_DOUBLE
     TEST_SIMPLE_READ("\x00", 0.0 == mpack_expect_double_range(&reader, 0.0, 0.0f));
     TEST_SIMPLE_READ("\x00", 0.0 == mpack_expect_double_range(&reader, 0.0, 1.0f));
     TEST_SIMPLE_READ("\x00", 0.0 == mpack_expect_double_range(&reader, -1.0, 0.0f));
     TEST_SIMPLE_READ_ERROR("\x00", 1.0 == mpack_expect_double_range(&reader, 1.0, 2.0f), mpack_error_type);
     TEST_SIMPLE_READ_ASSERT("\x00", mpack_expect_double_range(reader, 1.0, -1.0));
+    #endif
 }
 
 static void test_expect_bad_type() {
@@ -581,10 +608,14 @@ static void test_expect_bad_type() {
     TEST_SIMPLE_READ_ERROR("\xc0", 0 == mpack_expect_i16(&reader), mpack_error_type);
     TEST_SIMPLE_READ_ERROR("\xc0", 0 == mpack_expect_i32(&reader), mpack_error_type);
     TEST_SIMPLE_READ_ERROR("\xc0", 0 == mpack_expect_i64(&reader), mpack_error_type);
+    #if MPACK_FLOAT
     TEST_SIMPLE_READ_ERROR("\xc0", 0.0f == mpack_expect_float(&reader), mpack_error_type);
-    TEST_SIMPLE_READ_ERROR("\xc0", 0.0 == mpack_expect_double(&reader), mpack_error_type);
     TEST_SIMPLE_READ_ERROR("\xc0", 0.0f == mpack_expect_float_strict(&reader), mpack_error_type);
+    #endif
+    #if MPACK_DOUBLE
+    TEST_SIMPLE_READ_ERROR("\xc0", 0.0 == mpack_expect_double(&reader), mpack_error_type);
     TEST_SIMPLE_READ_ERROR("\xc0", 0.0 == mpack_expect_double_strict(&reader), mpack_error_type);
+    #endif
 }
 
 static void test_expect_pre_error() {
@@ -599,10 +630,14 @@ static void test_expect_pre_error() {
     TEST_SIMPLE_READ_ERROR("", 0 == mpack_expect_i16(&reader), mpack_error_invalid);
     TEST_SIMPLE_READ_ERROR("", 0 == mpack_expect_i32(&reader), mpack_error_invalid);
     TEST_SIMPLE_READ_ERROR("", 0 == mpack_expect_i64(&reader), mpack_error_invalid);
+    #if MPACK_FLOAT
     TEST_SIMPLE_READ_ERROR("", 0.0f == mpack_expect_float(&reader), mpack_error_invalid);
-    TEST_SIMPLE_READ_ERROR("", 0.0 == mpack_expect_double(&reader), mpack_error_invalid);
     TEST_SIMPLE_READ_ERROR("", 0.0f == mpack_expect_float_strict(&reader), mpack_error_invalid);
+    #endif
+    #if MPACK_DOUBLE
+    TEST_SIMPLE_READ_ERROR("", 0.0 == mpack_expect_double(&reader), mpack_error_invalid);
     TEST_SIMPLE_READ_ERROR("", 0.0 == mpack_expect_double_strict(&reader), mpack_error_invalid);
+    #endif
 }
 
 static void test_expect_str() {

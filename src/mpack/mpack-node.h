@@ -158,8 +158,12 @@ struct mpack_node_data_t {
     union
     {
         bool     b; /* The value if the type is bool. */
+        #if MPACK_FLOAT
         float    f; /* The value if the type is float. */
+        #endif
+        #if MPACK_DOUBLE
         double   d; /* The value if the type is double. */
+        #endif
         int64_t  i; /* The value if the type is signed int. */
         uint64_t u; /* The value if the type is unsigned int. */
         size_t offset; /* The byte offset for str, bin and ext */
@@ -803,6 +807,7 @@ unsigned int mpack_node_uint(mpack_node_t node);
  */
 int mpack_node_int(mpack_node_t node);
 
+#if MPACK_FLOAT
 /**
  * Returns the float value of the node. The underlying value can be an
  * integer, float or double; the value is converted to a float.
@@ -813,7 +818,9 @@ int mpack_node_int(mpack_node_t node);
  * @throws mpack_error_type if the underlying value is not a float, double or integer.
  */
 float mpack_node_float(mpack_node_t node);
+#endif
 
+#if MPACK_DOUBLE
 /**
  * Returns the double value of the node. The underlying value can be an
  * integer, float or double; the value is converted to a double.
@@ -824,7 +831,9 @@ float mpack_node_float(mpack_node_t node);
  * @throws mpack_error_type if the underlying value is not a float, double or integer.
  */
 double mpack_node_double(mpack_node_t node);
+#endif
 
+#if MPACK_FLOAT
 /**
  * Returns the float value of the node. The underlying value must be a float,
  * not a double or an integer. This ensures no loss of precision can occur.
@@ -832,7 +841,9 @@ double mpack_node_double(mpack_node_t node);
  * @throws mpack_error_type if the underlying value is not a float.
  */
 float mpack_node_float_strict(mpack_node_t node);
+#endif
 
+#if MPACK_DOUBLE
 /**
  * Returns the double value of the node. The underlying value must be a float
  * or double, not an integer. This ensures no loss of precision can occur.
@@ -840,6 +851,7 @@ float mpack_node_float_strict(mpack_node_t node);
  * @throws mpack_error_type if the underlying value is not a float or double.
  */
 double mpack_node_double_strict(mpack_node_t node);
+#endif
 
 #if MPACK_EXTENSIONS
 /**
