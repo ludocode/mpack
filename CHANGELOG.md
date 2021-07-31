@@ -3,11 +3,15 @@ MPack v1.1
 
 New Features:
 
-- Compiling as gnu89 is now supported. (See #68, #69)
-
 - Maps and arrays can now be built dynamically without specifying their size up front. See `mpack_build_map()` and `mpack_build_array()`.
 
-- `float` and/or `double` can now be disabled individually on platforms with limited floating point support. AVR and the Linux kernel are detected automatically. If `float` is supported but not `double`, MessagePack doubles can be converted to `float`. (See #79)
+New Platforms:
+
+- Compiling as gnu89 is now supported. (See #68, #69)
+
+- Compiling for AVR (e.g. Arduino) and other microcontrollers is now supported. MPack should now compile cleanly on platforms with 16-bit `int` and `size_t`. (See #74, #79)
+
+- `float` and/or `double` can now be disabled individually on platforms with limited floating point support. AVR and the Linux kernel are detected automatically. If `float` is supported but not `double`, MessagePack doubles can be converted to `float`. (See #74, #79)
 
 Bug Fixes and Other Changes:
 
