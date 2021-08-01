@@ -187,6 +187,9 @@ global_cppflags = []
 if msvc:
     global_cppflags += [
         "/W3", "/WX",
+        # debug to PDB with synchronous writes since we're doing parallel builds
+        # (we specify a per-build PDB path during build generation below)
+        "/Zi", "/FS"
     ]
 else:
     global_cppflags += [
@@ -238,7 +241,7 @@ releaseflags.append("-DNDEBUG")
 cxxlinkflags = []
 if msvc:
     cflags = ["/TC"]
-    cxxflags = ["/TP"]
+    cxxflags = ["/TP", "/EHsc"]
 else:
     cflags = [
         checkFlags("-std=c11") and "-std=c11" or "-std=c99",
@@ -262,7 +265,7 @@ else:
 # Variable Flags
 ###################################################
 
-if not os.getenv("CI"):
+if not os.getenv("CI") and not msvc:
     # we have to force color diagnostics to get color output from ninja
     # (ninja will strip the colors if it's being piped)
     if checkFlags("-fdiagnostics-color=always"):
@@ -281,8 +284,10 @@ extra_warnings_to_test = [
     "-Wpedantic",
     "-Wmissing-variable-declarations",
     "-Wfloat-conversion",
-    "-fstrict-aliasing",
 ]
+if not msvc:
+    extra_warnings_to_test += ["-fstrict-aliasing"]
+
 for flag in extra_warnings_to_test:
     global_cppflags += flagsIfSupported(flag)
 
@@ -449,9 +454,8 @@ if not msvc and compiler != "TinyCC":
 # sanitizers
 if msvc:
     # https://devblogs.microsoft.com/cppblog/asan-for-windows-x64-and-debug-build-support/
-    addDebugReleaseBuilds('sanitize-address', allfeatures + allconfigs + cflags + ["/fsanitize=address"],
-            ["/wholearchive:clang_rt.asan_dynamic-x86_64.lib",
-            "/wholearchive:clang_rt.asan_dynamic_runtime_thunk-x86_64.lib"])
+    # /INFERASANLIBS is enabled by default, no need to specify them anymore
+    addDebugReleaseBuilds('sanitize-address', allfeatures + allconfigs + cflags + ["/fsanitize=address"])
 elif compiler != "TinyCC":
     def addSanitizerBuilds(name, cppflags, ldflags=[]):
         if checkFlags(cppflags):
@@ -530,6 +534,12 @@ with open(ninja, "w") as out:
         cppflags = global_cppflags + build.cppflags
         ldflags = build.ldflags
         objs = []
+
+        if msvc:
+            # Specify a per-build PDB path so that we don't try to link at the
+            # same time a PDB file is being written
+            cppflags.append("/Fd" + buildfolder)
+            ldflags.append("/DEBUG")
 
         for src in srcs:
             obj = path.join(buildfolder, "objs", src[:-2] + obj_extension)

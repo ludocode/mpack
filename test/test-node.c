@@ -254,14 +254,15 @@ static void test_node_read_uint_signed() {
     TEST_SIMPLE_TREE_READ("\xcd\xff\xff", 0xffff == mpack_node_i32(node));
     TEST_SIMPLE_TREE_READ("\xcd\xff\xff", 0xffff == mpack_node_i64(node));
 
-    if (sizeof(int) >= 4)
+    if (sizeof(int) >= 4) {
         TEST_SIMPLE_TREE_READ("\xcd\xff\xff", (int)0xffff == mpack_node_int(node));
-    else if (sizeof(int) < 4)
-        TEST_SIMPLE_TREE_READ_ERROR("\xcd\xff\xff", mpack_node_int(node), mpack_error_type);
+        TEST_SIMPLE_TREE_READ("\xce\x00\x01\x00\x00", 0x10000 == mpack_node_int(node));
+    } else if (sizeof(int) < 4) {
+        TEST_SIMPLE_TREE_READ_ERROR("\xcd\xff\xff", 0 == mpack_node_int(node), mpack_error_type);
+    }
 
     TEST_SIMPLE_TREE_READ("\xce\x00\x01\x00\x00", 0x10000 == mpack_node_i32(node));
     TEST_SIMPLE_TREE_READ("\xce\x00\x01\x00\x00", 0x10000 == mpack_node_i64(node));
-    TEST_SIMPLE_TREE_READ("\xce\x00\x01\x00\x00", 0x10000 == mpack_node_int(node));
 
     TEST_SIMPLE_TREE_READ("\xce\xff\xff\xff\xff", 0xffffffff == mpack_node_i64(node));
 
@@ -296,11 +297,13 @@ static void test_node_read_int() {
 
     TEST_SIMPLE_TREE_READ("\xd2\xff\xff\x7f\xff", (int32_t)INT16_MIN - 1 == mpack_node_i32(node));
     TEST_SIMPLE_TREE_READ("\xd2\xff\xff\x7f\xff", (int32_t)INT16_MIN - 1 == mpack_node_i64(node));
-    TEST_SIMPLE_TREE_READ("\xd2\xff\xff\x7f\xff", (int32_t)INT16_MIN - 1 == mpack_node_int(node));
+    if (sizeof(int) >= 4)
+        TEST_SIMPLE_TREE_READ("\xd2\xff\xff\x7f\xff", (int32_t)INT16_MIN - 1 == mpack_node_int(node));
 
     TEST_SIMPLE_TREE_READ("\xd2\x80\x00\x00\x00", INT32_MIN == mpack_node_i32(node));
     TEST_SIMPLE_TREE_READ("\xd2\x80\x00\x00\x00", INT32_MIN == mpack_node_i64(node));
-    TEST_SIMPLE_TREE_READ("\xd2\x80\x00\x00\x00", INT32_MIN == mpack_node_int(node));
+    if (sizeof(int) >= 4)
+        TEST_SIMPLE_TREE_READ("\xd2\x80\x00\x00\x00", INT32_MIN == mpack_node_int(node));
 
     TEST_SIMPLE_TREE_READ("\xd3\xff\xff\xff\xff\x7f\xff\xff\xff", (int64_t)INT32_MIN - 1 == mpack_node_i64(node));
 

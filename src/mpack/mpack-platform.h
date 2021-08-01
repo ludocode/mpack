@@ -399,26 +399,53 @@ MPACK_EXTERN_C_BEGIN
 
 
 
+/* restrict */
+
+// We prefer the builtins even though e.g. MSVC's __restrict may not have
+// exactly the same behaviour as the proper C99 restrict keyword because the
+// builtins work in C++, so using the same keyword in both C and C++ prevents
+// any incompatibilities when using MPack compiled as C in C++ code.
+#if !MPACK_NO_BUILTINS
+    #if defined(__GNUC__)
+        #define MPACK_RESTRICT __restrict__
+    #elif defined(_MSC_VER)
+        #define MPACK_RESTRICT __restrict
+    #endif
+#endif
+
+#ifndef MPACK_RESTRICT
+    #ifdef __cplusplus
+        #define MPACK_RESTRICT /* nothing, unavailable in C++ */
+    #endif
+#endif
+
+#ifndef MPACK_RESTRICT
+    #ifdef _MSC_VER
+        // MSVC 2015 apparently doesn't properly support the restrict keyword
+        // in C. We're using builtins above which do work on 2015, but when
+        // MPACK_NO_BUILTINS is enabled we can't use it.
+        #if _MSC_VER < 1910
+            #define MPACK_RESTRICT /*nothing*/
+        #endif
+    #endif
+#endif
+
+#ifndef MPACK_RESTRICT
+    #define MPACK_RESTRICT restrict /* required in C99 */
+#endif
+
+
+
 /* Some compiler-specific keywords and builtins */
 
 #if !MPACK_NO_BUILTINS
     #if defined(__GNUC__) || defined(__clang__)
         #define MPACK_UNREACHABLE __builtin_unreachable()
         #define MPACK_NORETURN(fn) fn __attribute__((noreturn))
-        #define MPACK_RESTRICT __restrict__
     #elif defined(_MSC_VER)
         #define MPACK_UNREACHABLE __assume(0)
         #define MPACK_NORETURN(fn) __declspec(noreturn) fn
-        #define MPACK_RESTRICT __restrict
     #endif
-#endif
-
-#ifndef MPACK_RESTRICT
-#ifdef __cplusplus
-#define MPACK_RESTRICT /* nothing, unavailable in C++ */
-#else
-#define MPACK_RESTRICT restrict /* required in C99 */
-#endif
 #endif
 
 #ifndef MPACK_UNREACHABLE

@@ -222,14 +222,15 @@ static void test_expect_uint_signed() {
     TEST_SIMPLE_READ("\xcd\xff\xff", 0xffff == mpack_expect_i32(&reader));
     TEST_SIMPLE_READ("\xcd\xff\xff", 0xffff == mpack_expect_i64(&reader));
 
-    if (sizeof(int) >= 4)
+    if (sizeof(int) >= 4) {
         TEST_SIMPLE_READ("\xcd\xff\xff", (int)0xffff == mpack_expect_int(&reader));
-    else if (sizeof(int) < 4)
-        TEST_SIMPLE_READ_ERROR("\xcd\xff\xff", mpack_expect_int(&reader), mpack_error_type);
+        TEST_SIMPLE_READ("\xce\x00\x01\x00\x00", 0x10000 == mpack_expect_int(&reader));
+    } else if (sizeof(int) < 4) {
+        TEST_SIMPLE_READ_ERROR("\xcd\xff\xff", 0 == mpack_expect_int(&reader), mpack_error_type);
+    }
 
     TEST_SIMPLE_READ("\xce\x00\x01\x00\x00", 0x10000 == mpack_expect_i32(&reader));
     TEST_SIMPLE_READ("\xce\x00\x01\x00\x00", 0x10000 == mpack_expect_i64(&reader));
-    TEST_SIMPLE_READ("\xce\x00\x01\x00\x00", 0x10000 == mpack_expect_int(&reader));
 
     TEST_SIMPLE_READ("\xce\xff\xff\xff\xff", 0xffffffff == mpack_expect_i64(&reader));
 
@@ -263,11 +264,13 @@ static void test_expect_int() {
 
     TEST_SIMPLE_READ("\xd2\xff\xff\x7f\xff", (int32_t)INT16_MIN - 1 == mpack_expect_i32(&reader));
     TEST_SIMPLE_READ("\xd2\xff\xff\x7f\xff", (int32_t)INT16_MIN - 1 == mpack_expect_i64(&reader));
-    TEST_SIMPLE_READ("\xd2\xff\xff\x7f\xff", (int32_t)INT16_MIN - 1 == mpack_expect_int(&reader));
+    if (sizeof(int) >= 4)
+        TEST_SIMPLE_READ("\xd2\xff\xff\x7f\xff", (int32_t)INT16_MIN - 1 == mpack_expect_int(&reader));
 
     TEST_SIMPLE_READ("\xd2\x80\x00\x00\x00", INT32_MIN == mpack_expect_i32(&reader));
     TEST_SIMPLE_READ("\xd2\x80\x00\x00\x00", INT32_MIN == mpack_expect_i64(&reader));
-    TEST_SIMPLE_READ("\xd2\x80\x00\x00\x00", INT32_MIN == mpack_expect_int(&reader));
+    if (sizeof(int) >= 4)
+        TEST_SIMPLE_READ("\xd2\x80\x00\x00\x00", INT32_MIN == mpack_expect_int(&reader));
 
     TEST_SIMPLE_READ("\xd3\xff\xff\xff\xff\x7f\xff\xff\xff", (int64_t)INT32_MIN - 1 == mpack_expect_i64(&reader));
 
