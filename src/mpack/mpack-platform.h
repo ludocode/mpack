@@ -182,16 +182,27 @@
  * Warnings
  */
 
-/* We can't push/pop diagnostics before GCC 4.6, so if you're on a really old
- * compiler, MPack does not automatically silence any warning flags. You will
- * have to manually disable them to use MPack. */
-
-// Diagnostic push is not supported before GCC 4.6.
 #if defined(__GNUC__)
+    // Diagnostic push is not supported before GCC 4.6.
     #if defined(__clang__) || __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 6)
         #define MPACK_SILENCE_WARNINGS_PUSH _Pragma ("GCC diagnostic push")
         #define MPACK_SILENCE_WARNINGS_POP _Pragma ("GCC diagnostic pop")
     #endif
+#elif defined(_MSC_VER)
+    // To support VS2017 and earlier we need to use __pragma and not _Pragma
+    #define MPACK_SILENCE_WARNINGS_PUSH __pragma(warning(push))
+    #define MPACK_SILENCE_WARNINGS_POP __pragma(warning(pop))
+#endif
+
+#if defined(_MSC_VER)
+    // These are a bunch of mostly useless warnings emitted under MSVC /W4,
+    // some as a result of the expansion of macros.
+    #define MPACK_SILENCE_WARNINGS_MSVC_W4 \
+            __pragma(warning(disable:4127)) /* comparison is constant */ \
+            __pragma(warning(disable:4702)) /* unreachable code */ \
+            __pragma(warning(disable:4310)) /* cast truncates constant value */
+#else
+    #define MPACK_SILENCE_WARNINGS_MSVC_W4 /*nothing*/
 #endif
 
 /* GCC versions before 5.1 warn about defining a C99 non-static inline function
@@ -242,8 +253,14 @@
 #endif
 
 #ifdef MPACK_SILENCE_WARNINGS_PUSH
+    // We only silence warnings if push/pop is supported, that way we aren't
+    // silencing warnings in code that uses MPack. If your compiler doesn't
+    // support push/pop silencing of warnings, you'll have to turn off
+    // conflicting warnings manually.
+
     #define MPACK_SILENCE_WARNINGS_BEGIN \
         MPACK_SILENCE_WARNINGS_PUSH \
+        MPACK_SILENCE_WARNINGS_MSVC_W4 \
         MPACK_SILENCE_WARNINGS_MISSING_PROTOTYPES \
         MPACK_SILENCE_WARNINGS_SHADOW \
         MPACK_SILENCE_WARNINGS_TYPE_LIMITS \

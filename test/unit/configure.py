@@ -186,7 +186,7 @@ global_cppflags = []
 
 if msvc:
     global_cppflags += [
-        "/W3", "/WX",
+        "/W4", "/WX",
         # debug to PDB with synchronous writes since we're doing parallel builds
         # (we specify a per-build PDB path during build generation below)
         "/Zi", "/FS"
@@ -313,7 +313,7 @@ class Build:
         self.exclude = False
 
 def addBuild(name, cppflags, ldflags=[]):
-    builds[name] = Build(name, cppflags, ldflags)
+    builds[name] = Build(name, cppflags[:], ldflags[:])
 
 def addDebugReleaseBuilds(name, cppflags, ldflags = []):
     addBuild(name + "-debug", cppflags + debugflags, ldflags)

@@ -55,8 +55,16 @@
 
 #include "mpack/mpack.h"
 
-// We use declarations after statements across the entire unit test suite.
-MPACK_SILENCE_WARNINGS_DECLARATION_AFTER_STATEMENT
+// We silence the same warnings as MPack across the entire unit test suite.
+// There's no MPACK_SILENCE_WARNINGS_END to match this.
+MPACK_SILENCE_WARNINGS_BEGIN
+
+// We also silence warnings specifically for unit tests
+#ifdef _MSC_VER
+    #pragma warning(disable:4611) // interaction between '_setjmp' and C++ object destruction is non-portable
+    #pragma warning(disable:4204) // nonstandard extension used: non-constant aggregate initializer
+    #pragma warning(disable:4221) // nonstandard extension used: cannot be initialized using address of automatic variable
+#endif
 
 
 
