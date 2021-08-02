@@ -284,7 +284,6 @@ extra_warnings_to_test = [
     "-Wpedantic",
     "-Wmissing-variable-declarations",
     "-Wfloat-conversion",
-    "-Wstrict-prototypes",
 ]
 if not msvc:
     extra_warnings_to_test += ["-fstrict-aliasing"]
@@ -293,6 +292,7 @@ for flag in extra_warnings_to_test:
     global_cppflags += flagsIfSupported(flag)
 
 cflags += flagsIfSupported("-Wmissing-prototypes")
+cflags += flagsIfSupported("-Wstrict-prototypes")
 
 #TODO
 ltoflags = []
