@@ -36,7 +36,7 @@ void test_write_error_handler(mpack_writer_t* writer, mpack_error_t error) {
 }
 
 // writes ints using the auto int()/uint() functions
-static void test_write_simple_auto_int() {
+static void test_write_simple_auto_int(void) {
     char buf[4096];
 
     // positive fixnums
@@ -101,7 +101,7 @@ static void test_write_simple_auto_int() {
 }
 
 // writes ints using the sized iXX()/uXX() functions
-static void test_write_simple_size_int_fixnums() {
+static void test_write_simple_size_int_fixnums(void) {
     char buf[4096];
 
     // positive fixnums
@@ -175,7 +175,7 @@ static void test_write_simple_size_int_fixnums() {
     TEST_SIMPLE_WRITE("\xe0", mpack_write_i64(&writer, -32));
 }
 
-static void test_write_simple_size_int() {
+static void test_write_simple_size_int(void) {
     char buf[4096];
 
     // uints
@@ -252,7 +252,7 @@ static void test_write_simple_size_int() {
 }
 
 // writes ints using the dynamic tag writer function
-static void test_write_simple_tag_int() {
+static void test_write_simple_tag_int(void) {
     char buf[4096];
 
     // positive fixnums
@@ -313,7 +313,7 @@ static void test_write_simple_tag_int() {
 
 }
 
-static void test_write_simple_misc() {
+static void test_write_simple_misc(void) {
     char buf[4096];
 
     TEST_SIMPLE_WRITE("\xc0", mpack_write_nil(&writer));
@@ -362,7 +362,7 @@ static void test_write_simple_misc() {
 }
 
 #if MPACK_EXTENSIONS
-static void test_write_timestamp() {
+static void test_write_timestamp(void) {
     char buf[4096];
 
     TEST_SIMPLE_WRITE("\xd6\xff\x00\x00\x00\x00", mpack_write_timestamp_seconds(&writer, 0));
@@ -394,7 +394,7 @@ static void test_write_timestamp() {
 #endif
 
 #ifdef MPACK_MALLOC
-static void test_write_tag_tracking() {
+static void test_write_tag_tracking(void) {
     char* buf;
     size_t size;
     mpack_writer_t writer;
@@ -418,7 +418,7 @@ static void test_write_tag_tracking() {
     TEST_DESTROY_MATCH("\x98\xC0\xC3\xC2\x04\xFD\xA0\xC4\x00\x91\xC0");
 }
 
-static void test_write_basic_structures() {
+static void test_write_basic_structures(void) {
     char* buf;
     size_t size;
     mpack_writer_t writer;
@@ -568,7 +568,7 @@ static void test_write_basic_structures() {
         MPACK_FREE(buf);
 }
 
-static void test_write_small_structure_trees() {
+static void test_write_small_structure_trees(void) {
     char* buf;
     size_t size;
     mpack_writer_t writer;
@@ -808,7 +808,7 @@ static bool test_write_deep_growth(void) {
 #endif
 
 #if MPACK_WRITE_TRACKING
-static void test_write_tracking() {
+static void test_write_tracking(void) {
     char buf[4096];
     mpack_writer_t writer;
 
@@ -1170,7 +1170,7 @@ static void test_misc(void) {
 }
 
 #if MPACK_COMPATIBILITY
-static void test_write_compatibility() {
+static void test_write_compatibility(void) {
     char buf[4096];
     mpack_writer_t writer;
 

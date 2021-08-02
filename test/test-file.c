@@ -279,7 +279,7 @@ static bool test_file_write_failure(void) {
 }
 
 // compares the test filename to the expected debug output
-static void test_compare_print() {
+static void test_compare_print(void) {
     size_t expected_size;
     char* expected_data = test_file_fetch(TEST_FILE_PSEUDOJSON, &expected_size);
     size_t actual_size;
@@ -828,7 +828,7 @@ static size_t test_file_stream_read(mpack_tree_t* tree, char* buffer, size_t cou
     return count;
 }
 
-static void test_file_node_stream() {
+static void test_file_node_stream(void) {
     test_file_stream_t stream;
     stream.data = test_file_fetch(test_filename, &stream.length);
 

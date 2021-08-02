@@ -35,7 +35,7 @@ void test_read_error_handler(mpack_reader_t* reader, mpack_error_t error) {
 // almost all reader functions are tested by the expect tests.
 // minor miscellaneous read tests are added here.
 
-static void test_reader_should_inplace() {
+static void test_reader_should_inplace(void) {
     char buf[4096];
     mpack_reader_t reader;
     mpack_reader_init(&reader, buf, sizeof(buf), 0);
@@ -49,7 +49,7 @@ static void test_reader_should_inplace() {
     mpack_reader_destroy(&reader);
 }
 
-static void test_reader_miscellaneous() {
+static void test_reader_miscellaneous(void) {
 
     // 0xc1 is reserved; it should always raise mpack_error_invalid
     TEST_SIMPLE_READ_ERROR("\xc1", mpack_tag_equal(mpack_read_tag(&reader), mpack_tag_nil()), mpack_error_invalid);
@@ -83,7 +83,7 @@ static void test_reader_miscellaneous() {
 }
 
 #if MPACK_DEBUG && MPACK_STDIO
-static void test_print_buffer() {
+static void test_print_buffer(void) {
     static const char test[] = "\x82\xA7""compact\xC3\xA6""schema\x00";
 
     char buffer[1024];
@@ -98,7 +98,7 @@ static void test_print_buffer() {
     TEST_TRUE(0 == strcmp(buffer, expected));
 }
 
-static void test_print_buffer_bounds() {
+static void test_print_buffer_bounds(void) {
     static const char test[] = "\x82\xA7""compact\xC3\xA6""schema\x00";
 
     char buffer[10];
@@ -110,7 +110,7 @@ static void test_print_buffer_bounds() {
     TEST_TRUE(0 == strcmp(buffer, expected));
 }
 
-static void test_print_buffer_hexdump() {
+static void test_print_buffer_hexdump(void) {
     static const char test[] = "\xc4\x03""abc";
 
     char buffer[64];
@@ -122,7 +122,7 @@ static void test_print_buffer_hexdump() {
     TEST_TRUE(0 == strcmp(buffer, expected));
 }
 
-static void test_print_buffer_no_hexdump() {
+static void test_print_buffer_no_hexdump(void) {
     static const char test[] = "\xc4\x00";
 
     char buffer[64];

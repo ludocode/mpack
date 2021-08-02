@@ -284,6 +284,7 @@ extra_warnings_to_test = [
     "-Wpedantic",
     "-Wmissing-variable-declarations",
     "-Wfloat-conversion",
+    "-Wstrict-prototypes",
 ]
 if not msvc:
     extra_warnings_to_test += ["-fstrict-aliasing"]

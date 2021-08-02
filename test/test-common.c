@@ -187,7 +187,7 @@ static void test_tags_reals(void) {
 
 }
 
-static void test_tags_compound() {
+static void test_tags_compound(void) {
     TEST_TRUE(mpack_tag_array(0).type == mpack_type_array);
     TEST_TRUE(mpack_tag_map(0).type == mpack_type_map);
     TEST_TRUE(mpack_tag_str(0).type == mpack_type_str);
@@ -271,7 +271,7 @@ static void test_string(const char* str, const char* content) {
     #endif
 }
 
-static void test_strings() {
+static void test_strings(void) {
     test_string(mpack_error_to_string(mpack_ok), "ok");
     #define TEST_ERROR_STRING(error) test_string(mpack_error_to_string(mpack_error_##error), #error)
     TEST_ERROR_STRING(io);
@@ -447,7 +447,7 @@ static void test_utf8_check(void) {
     TEST_TRUE(false == mpack_utf8_check(EXPAND_STR_ARGS("test\xFF""testtesttest")));
 }
 
-static void test_shorten_raw_double_to_float() {
+static void test_shorten_raw_double_to_float(void) {
     #if MPACK_FLOAT && !MPACK_DOUBLE && !defined(__AVR__)
     TEST_DOUBLE doubles[] = {
         0.0,
