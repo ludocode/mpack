@@ -32,6 +32,8 @@ void test_tree_error_handler(mpack_tree_t* tree, mpack_error_t error) {
     test_tree_error = error;
 }
 
+static mpack_node_data_t pool[128];
+
 // tests the example on the messagepack homepage
 static void test_example_node(void) {
     // add a junk byte at the end to test mpack_tree_size()
@@ -40,7 +42,6 @@ static void test_example_node(void) {
 
     // this is a node pool test even if we have malloc. the rest of the
     // non-simple tests use paging unless malloc is unavailable.
-    mpack_node_data_t pool[128];
     mpack_tree_init_pool(&tree, test, sizeof(test) - 1, pool, sizeof(pool) / sizeof(*pool));
     mpack_tree_parse(&tree);
     TEST_TRUE(mpack_tree_error(&tree) == mpack_ok);
@@ -54,7 +55,7 @@ static void test_example_node(void) {
 }
 
 static void test_node_read_uint_fixnum(void) {
-    mpack_node_data_t pool[128];
+    mpack_tree_t tree;
 
     // positive fixnums with u8
     TEST_SIMPLE_TREE_READ("\x00", 0 == mpack_node_u8(node));
@@ -99,7 +100,7 @@ static void test_node_read_uint_fixnum(void) {
 }
 
 static void test_node_read_uint_signed_fixnum(void) {
-    mpack_node_data_t pool[128];
+    mpack_tree_t tree;
 
     // positive fixnums with i8
     TEST_SIMPLE_TREE_READ("\x00", 0 == mpack_node_i8(node));
@@ -144,7 +145,7 @@ static void test_node_read_uint_signed_fixnum(void) {
 }
 
 static void test_node_read_negative_fixnum(void) {
-    mpack_node_data_t pool[128];
+    mpack_tree_t tree;
 
     // negative fixnums with i8
     TEST_SIMPLE_TREE_READ("\xff", -1 == mpack_node_i8(node));
@@ -179,7 +180,7 @@ static void test_node_read_negative_fixnum(void) {
 }
 
 static void test_node_read_uint(void) {
-    mpack_node_data_t pool[128];
+    mpack_tree_t tree;
 
     // positive signed into u8
     TEST_SIMPLE_TREE_READ("\xd0\x7f", 0x7f == mpack_node_u8(node));
@@ -234,7 +235,7 @@ static void test_node_read_uint(void) {
 }
 
 static void test_node_read_uint_signed(void) {
-    mpack_node_data_t pool[128];
+    mpack_tree_t tree;
 
     TEST_SIMPLE_TREE_READ("\xcc\x80", 0x80 == mpack_node_i16(node));
     TEST_SIMPLE_TREE_READ("\xcc\x80", 0x80 == mpack_node_i32(node));
@@ -271,7 +272,7 @@ static void test_node_read_uint_signed(void) {
 }
 
 static void test_node_read_int(void) {
-    mpack_node_data_t pool[128];
+    mpack_tree_t tree;
 
     TEST_SIMPLE_TREE_READ("\xd0\xdf", -33 == mpack_node_i8(node));
     TEST_SIMPLE_TREE_READ("\xd0\xdf", -33 == mpack_node_i16(node));
@@ -312,7 +313,7 @@ static void test_node_read_int(void) {
 }
 
 static void test_node_read_ints_dynamic_int(void) {
-    mpack_node_data_t pool[128];
+    mpack_tree_t tree;
 
     // we don't bother to test with different signed/unsigned value
     // functions; they are tested for equality in test-value.c
@@ -356,7 +357,7 @@ static void test_node_read_ints_dynamic_int(void) {
 }
 
 static void test_node_read_int_bounds(void) {
-    mpack_node_data_t pool[128];
+    mpack_tree_t tree;
 
     TEST_SIMPLE_TREE_READ_ERROR("\xd1\xff\x7f", 0 == mpack_node_i8(node), mpack_error_type); 
     TEST_SIMPLE_TREE_READ_ERROR("\xd1\x80\x00", 0 == mpack_node_i8(node), mpack_error_type);
@@ -378,7 +379,7 @@ static void test_node_read_int_bounds(void) {
 }
 
 static void test_node_read_uint_bounds(void) {
-    mpack_node_data_t pool[128];
+    mpack_tree_t tree;
 
     TEST_SIMPLE_TREE_READ_ERROR("\xcd\x01\x00", 0 == mpack_node_u8(node), mpack_error_type);
     TEST_SIMPLE_TREE_READ_ERROR("\xcd\xff\xff", 0 == mpack_node_u8(node), mpack_error_type);
@@ -396,7 +397,7 @@ static void test_node_read_uint_bounds(void) {
 }
 
 static void test_node_read_misc(void) {
-    mpack_node_data_t pool[128];
+    mpack_tree_t tree;
 
     TEST_SIMPLE_TREE_READ("\xc0", (mpack_node_nil(node), true));
 
@@ -425,7 +426,6 @@ static void test_node_read_misc(void) {
     #endif
 
     // test missing space for cstr null-terminator
-    mpack_tree_t tree;
     mpack_tree_init_pool(&tree, "\xa0", 1, pool, sizeof(pool) / sizeof(*pool));
     mpack_tree_parse(&tree);
     #if MPACK_DEBUG
@@ -454,8 +454,8 @@ static void test_node_read_misc(void) {
 }
 
 static void test_node_read_floats(void) {
-    mpack_node_data_t pool[128];
-    (void)pool;
+    mpack_tree_t tree;
+    (void)tree;
 
     // these are some very simple floats that don't really test IEEE 742 conformance;
     // this section could use some improvement
@@ -513,7 +513,7 @@ static void test_node_read_floats(void) {
 }
 
 static void test_node_read_bad_type(void) {
-    mpack_node_data_t pool[128];
+    mpack_tree_t tree;
 
     // test that non-compound node functions correctly handle badly typed data
     TEST_SIMPLE_TREE_READ_ERROR("\xc2", (mpack_node_nil(node), true), mpack_error_type);
@@ -541,7 +541,7 @@ static void test_node_read_bad_type(void) {
 static void test_node_read_possible(void) {
     // test early exit for data that contains impossible node numbers
 
-    mpack_node_data_t pool[128];
+    mpack_tree_t tree;
     TEST_SIMPLE_TREE_READ_ERROR("\xcc", (MPACK_UNUSED(node), true), mpack_error_invalid); // truncated u8
     TEST_SIMPLE_TREE_READ_ERROR("\xcd", (MPACK_UNUSED(node), true), mpack_error_invalid); // truncated u16
     TEST_SIMPLE_TREE_READ_ERROR("\xce", (MPACK_UNUSED(node), true), mpack_error_invalid); // truncated u32
@@ -583,7 +583,6 @@ static void test_node_read_possible(void) {
             "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff"
             "\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff\xdd\xff\xff\xff\xff";
     size_t allocation_count = test_malloc_total_count();
-    mpack_tree_t tree;
     mpack_tree_init(&tree, attack, strlen(attack));
     mpack_tree_parse(&tree);
     allocation_count = test_malloc_total_count() - allocation_count;
@@ -593,7 +592,7 @@ static void test_node_read_possible(void) {
 }
 
 static void test_node_read_pre_error(void) {
-    mpack_node_data_t pool[128];
+    mpack_tree_t tree;
     char buf[1];
 
     // test that all node functions correctly handle pre-existing errors
@@ -655,8 +654,8 @@ static void test_node_read_pre_error(void) {
 }
 
 static void test_node_read_strings(void) {
+    mpack_tree_t tree;
     char buf[256];
-    mpack_node_data_t pool[128];
     #ifdef MPACK_MALLOC
     char* test = NULL;
     #endif
@@ -794,7 +793,7 @@ static void test_node_read_strings(void) {
 }
 
 static void test_node_read_enum(void) {
-    mpack_node_data_t pool[128];
+    mpack_tree_t tree;
 
     typedef enum           { APPLE ,  BANANA ,  ORANGE , COUNT} fruit_t;
     const char* fruits[] = {"apple", "banana", "orange"};
@@ -817,7 +816,10 @@ static void test_node_read_enum(void) {
 
 #if MPACK_EXTENSIONS
 static void test_node_read_timestamp(void) {
+    mpack_tree_t tree;
+    TEST_MPACK_SILENCE_SHADOW_BEGIN
     mpack_node_data_t pool[1];
+    TEST_MPACK_SILENCE_SHADOW_END
 
     TEST_SIMPLE_TREE_READ("\xd6\xff\x00\x00\x00\x00",
             0 == mpack_node_timestamp_seconds(node) &&
@@ -954,7 +956,7 @@ static void test_node_read_map_search(void) {
             "\x89\x00\x01\xd0\x7f\x02\xfe\x03\xa5""alice\x04\xa3"
             "bob\x05\xa4""carl\x06\xa4""carl\x07\x10\x08\x10\x09";
 
-    mpack_node_data_t pool[128];
+    mpack_tree_t tree;
 
     TEST_SIMPLE_TREE_READ(test, 1 == mpack_node_i32(mpack_node_map_uint(node, 0)));
     TEST_SIMPLE_TREE_READ(test, 1 == mpack_node_i32(mpack_node_map_int(node, 0)));
@@ -982,7 +984,7 @@ static void test_node_read_map_search(void) {
 }
 
 static void test_node_read_compound_errors(void) {
-    mpack_node_data_t pool[128];
+    mpack_tree_t tree;
 
     TEST_SIMPLE_TREE_READ_ERROR("\x00", 0 == mpack_node_array_length(node), mpack_error_type);
     TEST_SIMPLE_TREE_READ_ERROR("\x00", 0 == mpack_node_map_count(node), mpack_error_type);
@@ -1087,9 +1089,10 @@ static void test_node_read_data(void) {
     TEST_TREE_DESTROY_NOERROR(&tree);
 }
 
+
 static void test_node_read_deep_stack(void) {
     static const int depth = 1200;
-    char buf[4096];
+    static char buf[4096];
 
     uint8_t* p = (uint8_t*)buf;
     int i;
@@ -1124,7 +1127,9 @@ static void test_node_multiple_simple(void) {
     static const char test[] = "\x00\xa5""hello\xd1\x80\x00\xc0";
     mpack_tree_t tree;
 
+    TEST_MPACK_SILENCE_SHADOW_BEGIN
     mpack_node_data_t pool[1];
+    TEST_MPACK_SILENCE_SHADOW_END
     mpack_tree_init_pool(&tree, test, sizeof(test) - 1, pool, sizeof(pool) / sizeof(*pool));
 
     mpack_tree_parse(&tree);

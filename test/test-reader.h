@@ -80,7 +80,6 @@ void test_read_error_handler(mpack_reader_t* reader, mpack_error_t error);
 
 // runs a simple reader test, ensuring the expression is true and no errors occur
 #define TEST_SIMPLE_READ(data, read_expr) do { \
-    mpack_reader_t reader; \
     TEST_READER_INIT_STR(&reader, data); \
     mpack_reader_set_error_handler(&reader, test_read_error_handler); \
     TEST_TRUE((read_expr), "simple read test did not pass: " #read_expr); \
@@ -91,7 +90,6 @@ void test_read_error_handler(mpack_reader_t* reader, mpack_error_t error);
 
 // runs a simple reader test, ensuring the expression is true and no errors occur, cancelling to ignore tracking info
 #define TEST_SIMPLE_READ_CANCEL(data, read_expr) do { \
-    mpack_reader_t reader; \
     TEST_READER_INIT_STR(&reader, data); \
     TEST_TRUE((read_expr), "simple read test did not pass: " #read_expr); \
     mpack_reader_flag_error(&reader, mpack_error_data); \
@@ -100,7 +98,6 @@ void test_read_error_handler(mpack_reader_t* reader, mpack_error_t error);
 
 // runs a simple reader test, ensuring the expression is true and the given error is raised
 #define TEST_SIMPLE_READ_ERROR(data, read_expr, error) do { \
-    mpack_reader_t reader; \
     TEST_READER_INIT_STR(&reader, data); \
     mpack_reader_set_error_handler(&reader, test_read_error_handler); \
     TEST_TRUE((read_expr), "simple read error test did not pass: " #read_expr); \
@@ -120,7 +117,9 @@ void test_read_error_handler(mpack_reader_t* reader, mpack_error_t error);
 // (note about volatile, see TEST_ASSERT())
 #define TEST_SIMPLE_READ_ASSERT(data, read_expr) do { \
     volatile mpack_reader_t v_reader; \
+    TEST_MPACK_SILENCE_SHADOW_BEGIN \
     mpack_reader_t* reader = (mpack_reader_t*)(uintptr_t)&v_reader; \
+    TEST_MPACK_SILENCE_SHADOW_END \
     mpack_reader_init_data(reader, data, sizeof(data) - 1); \
     TEST_ASSERT(read_expr); \
     mpack_reader_flag_error(reader, mpack_error_data); \
@@ -139,7 +138,6 @@ void test_read_error_handler(mpack_reader_t* reader, mpack_error_t error);
 // runs a simple reader test, ensuring it causes a break in
 // debug mode and flags mpack_error_bug in both debug and release.
 #define TEST_SIMPLE_READ_BREAK(data, read_expr) do { \
-    mpack_reader_t reader; \
     mpack_reader_init_data(&reader, data, sizeof(data) - 1); \
     TEST_BREAK(read_expr); \
     TEST_READER_DESTROY_ERROR(&reader, mpack_error_bug); \

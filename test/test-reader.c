@@ -36,7 +36,7 @@ void test_read_error_handler(mpack_reader_t* reader, mpack_error_t error) {
 // minor miscellaneous read tests are added here.
 
 static void test_reader_should_inplace(void) {
-    char buf[4096];
+    static char buf[4096];
     mpack_reader_t reader;
     mpack_reader_init(&reader, buf, sizeof(buf), 0);
 
@@ -50,6 +50,7 @@ static void test_reader_should_inplace(void) {
 }
 
 static void test_reader_miscellaneous(void) {
+    mpack_reader_t reader;
 
     // 0xc1 is reserved; it should always raise mpack_error_invalid
     TEST_SIMPLE_READ_ERROR("\xc1", mpack_tag_equal(mpack_read_tag(&reader), mpack_tag_nil()), mpack_error_invalid);

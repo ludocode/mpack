@@ -24,30 +24,30 @@
 
 #if MPACK_BUILDER
 static void test_builder_basic(void) {
-    char buf[4096];
+    static char buf[4096];
     mpack_writer_t writer;
 
     mpack_writer_init(&writer, buf, sizeof(buf));
     mpack_build_array(&writer);
     mpack_complete_array(&writer);
-    TEST_DESTROY_MATCH_IMPL("\x90");
+    TEST_DESTROY_MATCH_IMPL(buf, "\x90");
 
     mpack_writer_init(&writer, buf, sizeof(buf));
     mpack_build_array(&writer);
     mpack_write_u8(&writer, 2);
     mpack_complete_array(&writer);
-    TEST_DESTROY_MATCH_IMPL("\x91\x02");
+    TEST_DESTROY_MATCH_IMPL(buf, "\x91\x02");
 
     mpack_writer_init(&writer, buf, sizeof(buf));
     mpack_build_map(&writer);
     mpack_write_cstr(&writer, "hello");
     mpack_write_cstr(&writer, "world");
     mpack_complete_map(&writer);
-    TEST_DESTROY_MATCH_IMPL("\x81\xa5hello\xa5world");
+    TEST_DESTROY_MATCH_IMPL(buf, "\x81\xa5hello\xa5world");
 }
 
 static void test_builder_repeat(void) {
-    char buf[4096];
+    static char buf[4096];
     mpack_writer_t writer;
 
     mpack_writer_init(&writer, buf, sizeof(buf));
@@ -65,11 +65,11 @@ static void test_builder_repeat(void) {
     mpack_complete_map(&writer);
     mpack_finish_array(&writer);
 
-    TEST_DESTROY_MATCH_IMPL("\x94\x90\x80\x91\x02\x81\xa5hello\xa5world");
+    TEST_DESTROY_MATCH_IMPL(buf, "\x94\x90\x80\x91\x02\x81\xa5hello\xa5world");
 }
 
 static void test_builder_nested(void) {
-    char buf[4096];
+    static char buf[4096];
     mpack_writer_t writer;
 
     mpack_writer_init(&writer, buf, sizeof(buf));
@@ -83,7 +83,7 @@ static void test_builder_nested(void) {
     mpack_write_cstr(&writer, "nil");
     mpack_write_nil(&writer);
     mpack_complete_map(&writer);
-    TEST_DESTROY_MATCH_IMPL("\x82\xa4nums\x93\x01\x02\x03\xa3nil\xc0");
+    TEST_DESTROY_MATCH_IMPL(buf, "\x82\xa4nums\x93\x01\x02\x03\xa3nil\xc0");
 
     mpack_writer_init(&writer, buf, sizeof(buf));
     mpack_build_array(&writer);
@@ -95,11 +95,11 @@ static void test_builder_nested(void) {
     mpack_complete_array(&writer);
     mpack_complete_array(&writer);
     mpack_complete_array(&writer);
-    TEST_DESTROY_MATCH_IMPL("\x91\x91\x93\x01\x02\x03");
+    TEST_DESTROY_MATCH_IMPL(buf, "\x91\x91\x93\x01\x02\x03");
 }
 
 static void test_builder_deep(void) {
-    char buf[16*1024];
+    static char buf[16*1024];
     mpack_writer_t writer;
     mpack_writer_init(&writer, buf, sizeof(buf));
 
@@ -165,7 +165,7 @@ static void test_builder_deep(void) {
 }
 
 static void test_builder_large(void) {
-    char buf[16*1024];
+    static char buf[16*1024];
     mpack_writer_t writer;
     mpack_writer_init(&writer, buf, sizeof(buf));
 
@@ -201,7 +201,7 @@ static void test_builder_large(void) {
 }
 
 static void test_builder_content(void) {
-    char buf[16*1024];
+    static char buf[16*1024];
     mpack_writer_t writer;
     mpack_writer_init(&writer, buf, sizeof(buf));
 
@@ -347,14 +347,14 @@ static void test_builder_add_expected_str(char* expected, size_t* pos, const cha
 }
 
 static void test_builder_strings_length(uint32_t length) {
-    char buf[16*1024];
+    static char buf[16*1024];
     mpack_writer_t writer;
     mpack_writer_init(&writer, buf, sizeof(buf));
 
     char expected[sizeof(buf)];
     size_t pos = 0;
 
-    char str[1024];
+    static char str[1024];
     TEST_TRUE(length <= sizeof(str));
     memset(str, 'a', length);
     size_t depth = 2;

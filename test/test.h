@@ -66,6 +66,27 @@ MPACK_SILENCE_WARNINGS_BEGIN
     #pragma warning(disable:4221) // nonstandard extension used: cannot be initialized using address of automatic variable
 #endif
 
+// We shadow variables in some macros
+#if defined(MPACK_SILENCE_WARNINGS_PUSH)
+    #ifdef __GNUC__
+        #define TEST_MPACK_SILENCE_SHADOW_BEGIN \
+            MPACK_SILENCE_WARNINGS_PUSH \
+            _Pragma ("GCC diagnostic ignored \"-Wshadow\"")
+        #define TEST_MPACK_SILENCE_SHADOW_END \
+            MPACK_SILENCE_WARNINGS_POP
+    #elif defined(_MSC_VER)
+        #define TEST_MPACK_SILENCE_SHADOW_BEGIN \
+            MPACK_SILENCE_WARNINGS_PUSH \
+            __pragma(warning(disable:4456))
+        #define TEST_MPACK_SILENCE_SHADOW_END \
+            MPACK_SILENCE_WARNINGS_POP
+    #endif
+#endif
+#ifndef TEST_MPACK_SILENCE_SHADOW_BEGIN
+    #define TEST_MPACK_SILENCE_SHADOW_BEGIN /*nothing*/
+    #define TEST_MPACK_SILENCE_SHADOW_END /*nothing*/
+#endif
+
 
 
 /**

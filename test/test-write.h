@@ -62,7 +62,7 @@ void test_write_error_handler(mpack_writer_t* writer, mpack_error_t error);
             (int)error, mpack_error_to_string(error)); \
 } while (0)
 
-#define TEST_DESTROY_MATCH_IMPL(expect) do { \
+#define TEST_DESTROY_MATCH_IMPL(buf, expect) do { \
     static const char data[] = expect; \
     size_t used = mpack_writer_buffer_used(&writer); \
     TEST_WRITER_DESTROY_NOERROR(&writer); \
@@ -71,25 +71,23 @@ void test_write_error_handler(mpack_writer_t* writer, mpack_error_t error);
             (int)used, (int)(sizeof(data)-1)); \
 } while (0)
 
-#define TEST_DESTROY_MATCH(expect) do { \
-    TEST_DESTROY_MATCH_IMPL(expect); \
+#define TEST_DESTROY_MATCH(buf, expect) do { \
+    TEST_DESTROY_MATCH_IMPL(buf, expect); \
     if (buf) MPACK_FREE(buf); \
 } while (0)
 
 // runs a simple writer test, ensuring it matches the given data
 #define TEST_SIMPLE_WRITE(expect, write_op) do { \
-    mpack_writer_t writer; \
     mpack_writer_init(&writer, buf, sizeof(buf)); \
     mpack_writer_set_error_handler(&writer, test_write_error_handler); \
     write_op; \
-    TEST_DESTROY_MATCH_IMPL(expect); \
+    TEST_DESTROY_MATCH_IMPL(buf, expect); \
     TEST_TRUE(test_write_error == mpack_ok); \
     test_write_error = mpack_ok; \
 } while (0)
 
 // runs a simple writer test, ensuring it does not cause an error and ignoring the result
 #define TEST_SIMPLE_WRITE_NOERROR(write_op) do { \
-    mpack_writer_t writer; \
     mpack_writer_init(&writer, buf, sizeof(buf)); \
     mpack_writer_set_error_handler(&writer, test_write_error_handler); \
     (write_op); \
@@ -101,7 +99,6 @@ void test_write_error_handler(mpack_writer_t* writer, mpack_error_t error);
 // runs a simple writer test, ensuring it does causes the given error
 #define TEST_SIMPLE_WRITE_ERROR(write_op, error) do { \
     mpack_error_t expected2 = (error); \
-    mpack_writer_t writer; \
     mpack_writer_init(&writer, buf, sizeof(buf)); \
     mpack_writer_set_error_handler(&writer, test_write_error_handler); \
     (write_op); \

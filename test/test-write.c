@@ -24,6 +24,8 @@
 
 #if MPACK_WRITER
 
+static char buf[4096];
+
 static const char* quick_brown_fox = "The quick brown fox jumps over a lazy dog.";
 
 mpack_error_t test_write_error = mpack_ok;
@@ -37,7 +39,7 @@ void test_write_error_handler(mpack_writer_t* writer, mpack_error_t error) {
 
 // writes ints using the auto int()/uint() functions
 static void test_write_simple_auto_int(void) {
-    char buf[4096];
+    mpack_writer_t writer;
 
     // positive fixnums
     TEST_SIMPLE_WRITE("\x00", mpack_write_uint(&writer, 0));
@@ -102,7 +104,7 @@ static void test_write_simple_auto_int(void) {
 
 // writes ints using the sized iXX()/uXX() functions
 static void test_write_simple_size_int_fixnums(void) {
-    char buf[4096];
+    mpack_writer_t writer;
 
     // positive fixnums
     TEST_SIMPLE_WRITE("\x00", mpack_write_u8(&writer, 0));
@@ -176,7 +178,7 @@ static void test_write_simple_size_int_fixnums(void) {
 }
 
 static void test_write_simple_size_int(void) {
-    char buf[4096];
+    mpack_writer_t writer;
 
     // uints
     TEST_SIMPLE_WRITE("\xcc\x80", mpack_write_u8(&writer, 0x80));
@@ -253,7 +255,7 @@ static void test_write_simple_size_int(void) {
 
 // writes ints using the dynamic tag writer function
 static void test_write_simple_tag_int(void) {
-    char buf[4096];
+    mpack_writer_t writer;
 
     // positive fixnums
     TEST_SIMPLE_WRITE("\x00", mpack_write_tag(&writer, mpack_tag_uint(0)));
@@ -314,7 +316,7 @@ static void test_write_simple_tag_int(void) {
 }
 
 static void test_write_simple_misc(void) {
-    char buf[4096];
+    mpack_writer_t writer;
 
     TEST_SIMPLE_WRITE("\xc0", mpack_write_nil(&writer));
     TEST_SIMPLE_WRITE("\xc2", mpack_write_bool(&writer, false));
@@ -341,7 +343,6 @@ static void test_write_simple_misc(void) {
     // test writing nothing
     char* growable_buf;
     size_t size;
-    mpack_writer_t writer;
     mpack_writer_init_growable(&writer, &growable_buf, &size);
     TEST_WRITER_DESTROY_NOERROR(&writer);
     TEST_TRUE(size == 0);
@@ -363,7 +364,7 @@ static void test_write_simple_misc(void) {
 
 #if MPACK_EXTENSIONS
 static void test_write_timestamp(void) {
-    char buf[4096];
+    mpack_writer_t writer;
 
     TEST_SIMPLE_WRITE("\xd6\xff\x00\x00\x00\x00", mpack_write_timestamp_seconds(&writer, 0));
     TEST_SIMPLE_WRITE("\xd6\xff\x00\x00\x01\x00", mpack_write_timestamp(&writer, 256, 0));
@@ -385,7 +386,6 @@ static void test_write_timestamp(void) {
     TEST_SIMPLE_WRITE("\xc7\x0c\xff\x3b\x9a\xc9\xff\x80\x00\x00\x00\x00\x00\x00\x00",
             mpack_write_timestamp(&writer, MPACK_INT64_MIN, MPACK_TIMESTAMP_NANOSECONDS_MAX));
 
-    mpack_writer_t writer;
     mpack_writer_init(&writer, buf, sizeof(buf));
     TEST_BREAK((mpack_write_timestamp(&writer, 0, 1000000000), true));
     TEST_BREAK((mpack_write_timestamp(&writer, 0, MPACK_UINT32_MAX), true));
@@ -395,10 +395,10 @@ static void test_write_timestamp(void) {
 
 #ifdef MPACK_MALLOC
 static void test_write_tag_tracking(void) {
-    char* buf;
+    char* out;
     size_t size;
     mpack_writer_t writer;
-    mpack_writer_init_growable(&writer, &buf, &size);
+    mpack_writer_init_growable(&writer, &out, &size);
 
     mpack_start_array(&writer, 8);
         mpack_write_tag(&writer, mpack_tag_nil());
@@ -415,11 +415,11 @@ static void test_write_tag_tracking(void) {
         mpack_finish_array(&writer);
     mpack_finish_array(&writer);
 
-    TEST_DESTROY_MATCH("\x98\xC0\xC3\xC2\x04\xFD\xA0\xC4\x00\x91\xC0");
+    TEST_DESTROY_MATCH(out, "\x98\xC0\xC3\xC2\x04\xFD\xA0\xC4\x00\x91\xC0");
 }
 
 static void test_write_basic_structures(void) {
-    char* buf;
+    char* out;
     size_t size;
     mpack_writer_t writer;
     int i;
@@ -427,41 +427,41 @@ static void test_write_basic_structures(void) {
     // we use a mix of int writers below to test their tracking.
 
     // []
-    mpack_writer_init_growable(&writer, &buf, &size);
+    mpack_writer_init_growable(&writer, &out, &size);
     mpack_start_array(&writer, 0);
     mpack_finish_array(&writer);
-    TEST_DESTROY_MATCH("\x90");
+    TEST_DESTROY_MATCH(out, "\x90");
 
     // [nil]
-    mpack_writer_init_growable(&writer, &buf, &size);
+    mpack_writer_init_growable(&writer, &out, &size);
     mpack_start_array(&writer, 1);
     mpack_write_nil(&writer);
     mpack_finish_array(&writer);
-    TEST_DESTROY_MATCH("\x91\xc0");
+    TEST_DESTROY_MATCH(out, "\x91\xc0");
 
     // range(15)
-    mpack_writer_init_growable(&writer, &buf, &size);
+    mpack_writer_init_growable(&writer, &out, &size);
     mpack_start_array(&writer, 15);
         for (i = 0; i < 15; ++i)
             mpack_write_i32(&writer, i);
     mpack_finish_array(&writer);
-    TEST_DESTROY_MATCH(
+    TEST_DESTROY_MATCH(out,
         "\x9f\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e"
         );
 
     // range(16) (larger than infix)
-    mpack_writer_init_growable(&writer, &buf, &size);
+    mpack_writer_init_growable(&writer, &out, &size);
     mpack_start_array(&writer, 16);
         for (i = 0; i < 16; ++i)
             mpack_write_u32(&writer, (uint32_t)i);
     mpack_finish_array(&writer);
-    TEST_DESTROY_MATCH(
+    TEST_DESTROY_MATCH(out,
         "\xdc\x00\x10\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c"
         "\x0d\x0e\x0f"
         );
 
     // MPACK_UINT16_MAX nils
-    mpack_writer_init_growable(&writer, &buf, &size);
+    mpack_writer_init_growable(&writer, &out, &size);
     mpack_start_array(&writer, MPACK_UINT16_MAX);
         for (i = 0; i < MPACK_UINT16_MAX; ++i)
             mpack_write_nil(&writer);
@@ -469,14 +469,14 @@ static void test_write_basic_structures(void) {
     {
         const char prefix[] = "\xdc\xff\xff";
         TEST_WRITER_DESTROY_NOERROR(&writer);
-        TEST_TRUE(memcmp(prefix, buf, sizeof(prefix)-1) == 0, "array prefix is incorrect");
+        TEST_TRUE(memcmp(prefix, out, sizeof(prefix)-1) == 0, "array prefix is incorrect");
         TEST_TRUE(size == MPACK_UINT16_MAX + sizeof(prefix)-1);
     }
-    if (buf)
-        MPACK_FREE(buf);
+    if (out)
+        MPACK_FREE(out);
 
     // MPACK_UINT16_MAX+1 nils (largest category)
-    mpack_writer_init_growable(&writer, &buf, &size);
+    mpack_writer_init_growable(&writer, &out, &size);
     mpack_start_array(&writer, MPACK_UINT16_MAX+1);
         for (i = 0; i < MPACK_UINT16_MAX+1; ++i)
             mpack_write_nil(&writer);
@@ -484,61 +484,61 @@ static void test_write_basic_structures(void) {
     {
         const char prefix[] = "\xdd\x00\x01\x00\x00";
         TEST_WRITER_DESTROY_NOERROR(&writer);
-        TEST_TRUE(memcmp(prefix, buf, sizeof(prefix)-1) == 0, "array prefix is incorrect");
+        TEST_TRUE(memcmp(prefix, out, sizeof(prefix)-1) == 0, "array prefix is incorrect");
         TEST_TRUE(size == MPACK_UINT16_MAX+1 + sizeof(prefix)-1);
     }
-    if (buf)
-        MPACK_FREE(buf);
+    if (out)
+        MPACK_FREE(out);
 
     // {}
-    mpack_writer_init_growable(&writer, &buf, &size);
+    mpack_writer_init_growable(&writer, &out, &size);
     mpack_start_map(&writer, 0);
     mpack_finish_map(&writer);
-    TEST_DESTROY_MATCH("\x80");
+    TEST_DESTROY_MATCH(out, "\x80");
 
     // {nil:nil}
-    mpack_writer_init_growable(&writer, &buf, &size);
+    mpack_writer_init_growable(&writer, &out, &size);
     mpack_start_map(&writer, 1);
         mpack_write_nil(&writer);
         mpack_write_nil(&writer);
     mpack_finish_map(&writer);
-    TEST_DESTROY_MATCH("\x81\xc0\xc0");
+    TEST_DESTROY_MATCH(out, "\x81\xc0\xc0");
 
     // {0:0,1:1}
-    mpack_writer_init_growable(&writer, &buf, &size);
+    mpack_writer_init_growable(&writer, &out, &size);
     mpack_start_map(&writer, 2);
         mpack_write_i8(&writer, 0);
         mpack_write_i16(&writer, 0);
         mpack_write_u8(&writer, 1);
         mpack_write_u16(&writer, 1);
     mpack_finish_map(&writer);
-    TEST_DESTROY_MATCH("\x82\x00\x00\x01\x01");
+    TEST_DESTROY_MATCH(out, "\x82\x00\x00\x01\x01");
 
     // {0:1, 2:3, ..., 28:29}
-    mpack_writer_init_growable(&writer, &buf, &size);
+    mpack_writer_init_growable(&writer, &out, &size);
     mpack_start_map(&writer, 15);
         for (i = 0; i < 30; ++i)
             mpack_write_i8(&writer, (int8_t)i);
     mpack_finish_map(&writer);
-    TEST_DESTROY_MATCH(
+    TEST_DESTROY_MATCH(out,
         "\x8f\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e"
         "\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c\x1d"
         );
 
     // {0:1, 2:3, ..., 28:29, 30:31} (larger than infix)
-    mpack_writer_init_growable(&writer, &buf, &size);
+    mpack_writer_init_growable(&writer, &out, &size);
     mpack_start_map(&writer, 16);
         for (i = 0; i < 32; ++i)
             mpack_write_int(&writer, i);
     mpack_finish_map(&writer);
-    TEST_DESTROY_MATCH(
+    TEST_DESTROY_MATCH(out,
         "\xde\x00\x10\x00\x01\x02\x03\x04\x05\x06\x07\x08\x09\x0a\x0b\x0c"
         "\x0d\x0e\x0f\x10\x11\x12\x13\x14\x15\x16\x17\x18\x19\x1a\x1b\x1c"
         "\x1d\x1e\x1f"
         );
 
     // MPACK_UINT16_MAX nil:nils
-    mpack_writer_init_growable(&writer, &buf, &size);
+    mpack_writer_init_growable(&writer, &out, &size);
     mpack_start_map(&writer, MPACK_UINT16_MAX);
         for (i = 0; i < MPACK_UINT16_MAX*2; ++i)
             mpack_write_nil(&writer);
@@ -546,14 +546,14 @@ static void test_write_basic_structures(void) {
     {
         const char prefix[] = "\xde\xff\xff";
         TEST_WRITER_DESTROY_NOERROR(&writer);
-        TEST_TRUE(memcmp(prefix, buf, sizeof(prefix)-1) == 0, "map prefix is incorrect");
+        TEST_TRUE(memcmp(prefix, out, sizeof(prefix)-1) == 0, "map prefix is incorrect");
         TEST_TRUE(size == MPACK_UINT16_MAX*2 + sizeof(prefix)-1);
     }
-    if (buf)
-        MPACK_FREE(buf);
+    if (out)
+        MPACK_FREE(out);
 
     // MPACK_UINT16_MAX+1 nil:nils (largest category)
-    mpack_writer_init_growable(&writer, &buf, &size);
+    mpack_writer_init_growable(&writer, &out, &size);
     mpack_start_map(&writer, MPACK_UINT16_MAX+1);
         for (i = 0; i < (MPACK_UINT16_MAX+1)*2; ++i)
             mpack_write_nil(&writer);
@@ -561,29 +561,29 @@ static void test_write_basic_structures(void) {
     {
         const char prefix[] = "\xdf\x00\x01\x00\x00";
         TEST_WRITER_DESTROY_NOERROR(&writer);
-        TEST_TRUE(memcmp(prefix, buf, sizeof(prefix)-1) == 0, "map prefix is incorrect");
+        TEST_TRUE(memcmp(prefix, out, sizeof(prefix)-1) == 0, "map prefix is incorrect");
         TEST_TRUE(size == (MPACK_UINT16_MAX+1)*2 + sizeof(prefix)-1);
     }
-    if (buf)
-        MPACK_FREE(buf);
+    if (out)
+        MPACK_FREE(out);
 }
 
 static void test_write_small_structure_trees(void) {
-    char* buf;
+    char* out;
     size_t size;
     mpack_writer_t writer;
     int i;
 
     // [[]]
-    mpack_writer_init_growable(&writer, &buf, &size);
+    mpack_writer_init_growable(&writer, &out, &size);
     mpack_start_array(&writer, 1);
         mpack_start_array(&writer, 0);
         mpack_finish_array(&writer);
     mpack_finish_array(&writer);
-    TEST_DESTROY_MATCH("\x91\x90");
+    TEST_DESTROY_MATCH(out, "\x91\x90");
 
     // [[], [0], [1, 2]]
-    mpack_writer_init_growable(&writer, &buf, &size);
+    mpack_writer_init_growable(&writer, &out, &size);
     mpack_start_array(&writer, 3);
         mpack_start_array(&writer, 0);
         mpack_finish_array(&writer);
@@ -595,10 +595,10 @@ static void test_write_small_structure_trees(void) {
             mpack_write_int(&writer, 2);
         mpack_finish_array(&writer);
     mpack_finish_array(&writer);
-    TEST_DESTROY_MATCH("\x93\x90\x91\x00\x92\x01\x02");
+    TEST_DESTROY_MATCH(out, "\x93\x90\x91\x00\x92\x01\x02");
 
     // miscellaneous tree of arrays of various small sizes
-    mpack_writer_init_growable(&writer, &buf, &size);
+    mpack_writer_init_growable(&writer, &out, &size);
     mpack_start_array(&writer, 5);
 
         mpack_start_array(&writer, 0);
@@ -628,7 +628,7 @@ static void test_write_small_structure_trees(void) {
 
     mpack_finish_array(&writer);
 
-    TEST_DESTROY_MATCH(
+    TEST_DESTROY_MATCH(out,
         "\x95\x90\x91\xc0\x92\x90\x91\xc0\x9f\x00\x01\x02\x03\x04\x05\x06"
         "\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\xdc\x00\x10\x00\x01\x02\x03\x04"
         "\x05\x06\x07\x08\x09\x0a\x0b\x0c\x0d\x0e\x0f"
@@ -636,7 +636,7 @@ static void test_write_small_structure_trees(void) {
 
 
     // miscellaneous tree of maps of various small sizes
-    mpack_writer_init_growable(&writer, &buf, &size);
+    mpack_writer_init_growable(&writer, &out, &size);
     mpack_start_map(&writer, 5);
 
         mpack_write_int(&writer, 0);
@@ -679,7 +679,7 @@ static void test_write_small_structure_trees(void) {
 
     mpack_finish_map(&writer);
 
-    TEST_DESTROY_MATCH(
+    TEST_DESTROY_MATCH(out,
         "\x85\x00\x80\x01\x81\x00\xc0\x02\x82\x00\x80\x01\x81\xc0\xc0\x03"
         "\x8f\x00\x00\x01\x01\x02\x02\x03\x03\x04\x04\x05\x05\x06\x06\x07"
         "\x07\x08\x08\x09\x09\x0a\x0a\x0b\x0b\x0c\x0c\x0d\x0d\x0e\x0e\x04"
@@ -690,7 +690,7 @@ static void test_write_small_structure_trees(void) {
 
 
     // miscellaneous mix of maps and arrays of various small sizes
-    mpack_writer_init_growable(&writer, &buf, &size);
+    mpack_writer_init_growable(&writer, &out, &size);
     mpack_start_map(&writer, 5);
 
         mpack_write_int(&writer, -47);
@@ -728,7 +728,7 @@ static void test_write_small_structure_trees(void) {
 
     mpack_finish_map(&writer);
 
-    TEST_DESTROY_MATCH(
+    TEST_DESTROY_MATCH(out,
         "\x85\xd0\xd1\x91\xc0\x90\x81\xc0\x00\xc0\x82\xc0\x90\x04\x05\xa5"
         "\x68\x65\x6c\x6c\x6f\x93\xa7\x62\x6f\x6e\x6a\x6f\x75\x72\xc0\xff"
         "\x91\x5c\xcd\x01\x5e"
@@ -743,7 +743,7 @@ static bool test_write_deep_growth(void) {
     // stack grow properly. we allow mpack_error_memory as an
     // error (since it will be simulated by the failure system.)
 
-    char* buf;
+    char* out;
     size_t size;
     mpack_writer_t writer;
 
@@ -752,15 +752,15 @@ static bool test_write_deep_growth(void) {
             TEST_TRUE(test_write_error == mpack_error_memory, "writer error handler was not called?"); \
             test_write_error = mpack_ok; \
             mpack_writer_destroy(&writer); \
-            TEST_TRUE(buf == NULL); \
+            TEST_TRUE(out == NULL); \
             return false; \
         } \
     } while (0)
 
-    mpack_writer_init_growable(&writer, &buf, &size);
+    mpack_writer_init_growable(&writer, &out, &size);
     if (mpack_writer_error(&writer) == mpack_error_memory) {
         mpack_writer_destroy(&writer);
-        TEST_TRUE(buf == NULL);
+        TEST_TRUE(out == NULL);
         return false;
     }
 
@@ -794,11 +794,11 @@ static bool test_write_deep_growth(void) {
 
     mpack_error_t error = mpack_writer_destroy(&writer);
     if (error == mpack_ok) {
-        MPACK_FREE(buf);
+        MPACK_FREE(out);
         return true;
     }
     if (error == mpack_error_memory) {
-        TEST_TRUE(buf == NULL);
+        TEST_TRUE(out == NULL);
         return false;
     }
     TEST_TRUE(false, "unexpected error state %i (%s)", (int)error, mpack_error_to_string(error));
@@ -809,7 +809,6 @@ static bool test_write_deep_growth(void) {
 
 #if MPACK_WRITE_TRACKING
 static void test_write_tracking(void) {
-    char buf[4096];
     mpack_writer_t writer;
 
     // cancel
@@ -870,7 +869,7 @@ static void test_write_tracking(void) {
 
 #if MPACK_HAS_GENERIC
 static void test_write_generic(void) {
-    char buf[4096];
+    mpack_writer_t writer;
 
     // int8
     TEST_SIMPLE_WRITE("\x7f", mpack_write(&writer, (int8_t)MPACK_INT8_MAX));
@@ -966,9 +965,9 @@ static void test_write_generic(void) {
 }
 
 static void test_write_generic_kv(void) {
+    mpack_writer_t writer;
     char key[] = "foo";
     char value[] = "bar";
-    char buf[4096];
 
     // int8, int16, int32, int64
     TEST_SIMPLE_WRITE("\xa3""foo""\x7f", mpack_write_kv(&writer, key, (int8_t)MPACK_INT8_MAX));
@@ -1001,7 +1000,7 @@ static void test_write_generic_kv(void) {
 #endif
 
 static void test_write_utf8(void) {
-    char buf[4096];
+    mpack_writer_t writer;
 
     // these test strings are mostly duplicated from test-expect.c, but
     // without the MessagePack header
@@ -1090,8 +1089,7 @@ static void test_write_flush_callback(mpack_writer_t* writer, const char* buffer
 }
 
 static void test_write_flush_message(void) {
-    char out[4096];
-    test_write_flush_t flush = {out, sizeof(out), 0};
+    test_write_flush_t flush = {buf, sizeof(buf), 0};
 
     mpack_writer_t writer;
     mpack_writer_init_stack(&writer);
@@ -1171,7 +1169,6 @@ static void test_misc(void) {
 
 #if MPACK_COMPATIBILITY
 static void test_write_compatibility(void) {
-    char buf[4096];
     mpack_writer_t writer;
 
     // test str and bin behavior under all versions

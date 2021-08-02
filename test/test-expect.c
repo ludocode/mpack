@@ -49,6 +49,7 @@ static void test_expect_example_read(void) {
    */
 
 static void test_expect_uint_fixnum(void) {
+    mpack_reader_t reader;
 
     // positive fixnums with u8
     TEST_SIMPLE_READ("\x00", 0 == mpack_expect_u8(&reader));
@@ -85,6 +86,7 @@ static void test_expect_uint_fixnum(void) {
 }
 
 static void test_expect_uint_signed_fixnum(void) {
+    mpack_reader_t reader;
 
     // positive fixnums with i8
     TEST_SIMPLE_READ("\x00", 0 == mpack_expect_i8(&reader));
@@ -121,6 +123,7 @@ static void test_expect_uint_signed_fixnum(void) {
 }
 
 static void test_expect_negative_fixnum(void) {
+    mpack_reader_t reader;
 
     // negative fixnums with i8
     TEST_SIMPLE_READ("\xff", -1 == mpack_expect_i8(&reader));
@@ -149,6 +152,7 @@ static void test_expect_negative_fixnum(void) {
 }
 
 static void test_expect_uint(void) {
+    mpack_reader_t reader;
 
     // positive signed into u8
     TEST_SIMPLE_READ("\xd0\x7f", 0x7f == mpack_expect_u8(&reader));
@@ -203,6 +207,7 @@ static void test_expect_uint(void) {
 }
 
 static void test_expect_uint_signed(void) {
+    mpack_reader_t reader;
 
     TEST_SIMPLE_READ("\xcc\x80", 0x80 == mpack_expect_i16(&reader));
     TEST_SIMPLE_READ("\xcc\x80", 0x80 == mpack_expect_i32(&reader));
@@ -239,6 +244,7 @@ static void test_expect_uint_signed(void) {
 }
 
 static void test_expect_int(void) {
+    mpack_reader_t reader;
 
     TEST_SIMPLE_READ("\xd0\xdf", -33 == mpack_expect_i8(&reader));
     TEST_SIMPLE_READ("\xd0\xdf", -33 == mpack_expect_i16(&reader));
@@ -279,6 +285,7 @@ static void test_expect_int(void) {
 }
 
 static void test_expect_ints_dynamic_int(void) {
+    mpack_reader_t reader;
 
     // we don't bother to test with different signed/unsigned value
     // functions; they are tested for equality in test-value.c
@@ -322,6 +329,7 @@ static void test_expect_ints_dynamic_int(void) {
 }
 
 static void test_expect_int_bounds(void) {
+    mpack_reader_t reader;
 
     TEST_SIMPLE_READ_ERROR("\xd1\xff\x7f", 0 == mpack_expect_i8(&reader), mpack_error_type); 
     TEST_SIMPLE_READ_ERROR("\xd1\x80\x00", 0 == mpack_expect_i8(&reader), mpack_error_type);
@@ -343,6 +351,7 @@ static void test_expect_int_bounds(void) {
 }
 
 static void test_expect_uint_bounds(void) {
+    mpack_reader_t reader;
 
     TEST_SIMPLE_READ_ERROR("\xcd\x01\x00", 0 == mpack_expect_u8(&reader), mpack_error_type);
     TEST_SIMPLE_READ_ERROR("\xcd\xff\xff", 0 == mpack_expect_u8(&reader), mpack_error_type);
@@ -385,6 +394,8 @@ static void test_expect_uint_bounds(void) {
     TEST_SIMPLE_READ_ASSERT("\x00", mpack_expect_##name##_range(reader, 1, -1));
 
 static void test_expect_int_range(void) {
+    mpack_reader_t reader;
+
     // these currently don't test anything involving the limits of
     // each data type; there doesn't seem to be much point in doing
     // so, since they all wrap the normal expect functions.
@@ -401,6 +412,8 @@ static void test_expect_int_range(void) {
 }
 
 static void test_expect_int_match(void) {
+    mpack_reader_t reader;
+
     TEST_SIMPLE_READ("\x00", (mpack_expect_uint_match(&reader, 0), true));
     TEST_SIMPLE_READ("\x01", (mpack_expect_uint_match(&reader, 1), true));
     TEST_SIMPLE_READ("\xcc\x80", (mpack_expect_uint_match(&reader, 0x80), true));
@@ -432,6 +445,8 @@ static void test_expect_int_match(void) {
 }
 
 static void test_expect_misc(void) {
+    mpack_reader_t reader;
+
     TEST_SIMPLE_READ("\xc0", (mpack_expect_nil(&reader), true));
     TEST_SIMPLE_READ("\xc0", (mpack_expect_tag(&reader, mpack_tag_nil()), true));
     TEST_SIMPLE_READ_ERROR("\x90", (mpack_expect_tag(&reader, mpack_tag_nil()), true), mpack_error_type);
@@ -524,6 +539,9 @@ static void test_expect_tracking(void) {
 #endif
 
 static void test_expect_reals(void) {
+    mpack_reader_t reader;
+    (void)reader;
+
     // these are some very simple floats that don't really test IEEE 742 conformance;
     // this section could use some improvement
 
@@ -580,6 +598,9 @@ static void test_expect_reals(void) {
 }
 
 static void test_expect_reals_range(void) {
+    mpack_reader_t reader;
+    (void)reader;
+
     #if MPACK_FLOAT
     TEST_SIMPLE_READ("\x00", 0.0f == mpack_expect_float_range(&reader, 0.0f, 0.0f));
     TEST_SIMPLE_READ("\x00", 0.0f == mpack_expect_float_range(&reader, 0.0f, 1.0f));
@@ -598,6 +619,8 @@ static void test_expect_reals_range(void) {
 }
 
 static void test_expect_bad_type(void) {
+    mpack_reader_t reader;
+
     // test that all reader functions correctly handle badly typed data
     TEST_SIMPLE_READ_ERROR("\xc2", (mpack_expect_nil(&reader), true), mpack_error_type);
     TEST_SIMPLE_READ_ERROR("\xc0", false == mpack_expect_bool(&reader), mpack_error_type);
@@ -620,6 +643,8 @@ static void test_expect_bad_type(void) {
 }
 
 static void test_expect_pre_error(void) {
+    mpack_reader_t reader;
+
     // test that all reader functinvalidns correctly handle pre-existing errors
     TEST_SIMPLE_READ_ERROR("", (mpack_expect_nil(&reader), true), mpack_error_invalid);
     TEST_SIMPLE_READ_ERROR("", false == mpack_expect_bool(&reader), mpack_error_invalid);
@@ -642,6 +667,7 @@ static void test_expect_pre_error(void) {
 }
 
 static void test_expect_str(void) {
+    mpack_reader_t reader;
     char buf[256];
     #ifdef MPACK_MALLOC
     char* test = NULL;
@@ -821,6 +847,7 @@ static void test_expect_str(void) {
 }
 
 static void test_expect_bin(void) {
+    mpack_reader_t reader;
     char buf[256];
 
     TEST_SIMPLE_READ_CANCEL("\xc4\x80", 128 == mpack_expect_bin(&reader));
@@ -876,6 +903,7 @@ static void test_expect_bin(void) {
 }
 
 static void test_expect_bin_size_buf(void) {
+    mpack_reader_t reader;
     char buf[256];
     TEST_SIMPLE_READ("\xc4\x00", (mpack_expect_bin_size_buf(&reader, buf, 0), true));
     TEST_SIMPLE_READ("\xc4\x05hello", (mpack_expect_bin_size_buf(&reader, buf, 5), 0 == memcmp(buf, "hello", 5)));
@@ -884,6 +912,7 @@ static void test_expect_bin_size_buf(void) {
 
 #if MPACK_EXTENSIONS
 static void test_expect_ext(void) {
+    mpack_reader_t reader;
     char buf[256];
     int8_t type;
 
@@ -983,6 +1012,7 @@ static void test_expect_ext(void) {
 #endif
 
 static void test_expect_arrays(void) {
+    mpack_reader_t reader;
     uint32_t count;
 
     // arrays
@@ -1077,6 +1107,7 @@ static void test_expect_arrays(void) {
 }
 
 static void test_expect_maps(void) {
+    mpack_reader_t reader;
     uint32_t count;
 
     // maps
@@ -1291,6 +1322,7 @@ static bool test_timestamp_match(int64_t seconds, uint32_t nanoseconds, mpack_ti
 }
 
 static void test_expect_timestamp(void) {
+    mpack_reader_t reader;
     TEST_SIMPLE_READ("\xd6\xff\x00\x00\x00\x00", 0 == mpack_expect_timestamp_truncate(&reader));
     TEST_SIMPLE_READ("\xd6\xff\x00\x00\x01\x00", test_timestamp_match(256, 0, mpack_expect_timestamp(&reader)));
     TEST_SIMPLE_READ("\xd6\xff\xfe\xdc\xba\x98", 4275878552u == mpack_expect_timestamp_truncate(&reader));
