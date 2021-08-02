@@ -96,7 +96,7 @@ static void test_write_simple_auto_int(void) {
     TEST_SIMPLE_WRITE("\xd2\x80\x00\x00\x00", mpack_write_int(&writer, INT64_C(-2147483648)));
 
     TEST_SIMPLE_WRITE("\xd3\xff\xff\xff\xff\x7f\xff\xff\xff", mpack_write_int(&writer, INT64_C(-2147483649)));
-    TEST_SIMPLE_WRITE("\xd3\x80\x00\x00\x00\x00\x00\x00\x00", mpack_write_int(&writer, INT64_MIN));
+    TEST_SIMPLE_WRITE("\xd3\x80\x00\x00\x00\x00\x00\x00\x00", mpack_write_int(&writer, MPACK_INT64_MIN));
 
 }
 
@@ -247,7 +247,7 @@ static void test_write_simple_size_int(void) {
     TEST_SIMPLE_WRITE("\xd1\x80\x00", mpack_write_i64(&writer, -32768));
     TEST_SIMPLE_WRITE("\xd2\xff\xff\x7f\xff", mpack_write_i64(&writer, -32769));
     TEST_SIMPLE_WRITE("\xd3\xff\xff\xff\xff\x7f\xff\xff\xff", mpack_write_i64(&writer, INT64_C(-2147483649)));
-    TEST_SIMPLE_WRITE("\xd3\x80\x00\x00\x00\x00\x00\x00\x00", mpack_write_i64(&writer, INT64_MIN));
+    TEST_SIMPLE_WRITE("\xd3\x80\x00\x00\x00\x00\x00\x00\x00", mpack_write_i64(&writer, MPACK_INT64_MIN));
 
 }
 
@@ -309,7 +309,7 @@ static void test_write_simple_tag_int(void) {
     TEST_SIMPLE_WRITE("\xd2\x80\x00\x00\x00", mpack_write_tag(&writer, mpack_tag_int(INT64_C(-2147483648))));
 
     TEST_SIMPLE_WRITE("\xd3\xff\xff\xff\xff\x7f\xff\xff\xff", mpack_write_tag(&writer, mpack_tag_int(INT64_C(-2147483649))));
-    TEST_SIMPLE_WRITE("\xd3\x80\x00\x00\x00\x00\x00\x00\x00", mpack_write_tag(&writer, mpack_tag_int(INT64_MIN)));
+    TEST_SIMPLE_WRITE("\xd3\x80\x00\x00\x00\x00\x00\x00\x00", mpack_write_tag(&writer, mpack_tag_int(MPACK_INT64_MIN)));
 
 }
 
@@ -368,7 +368,7 @@ static void test_write_timestamp(void) {
     TEST_SIMPLE_WRITE("\xd6\xff\x00\x00\x00\x00", mpack_write_timestamp_seconds(&writer, 0));
     TEST_SIMPLE_WRITE("\xd6\xff\x00\x00\x01\x00", mpack_write_timestamp(&writer, 256, 0));
     TEST_SIMPLE_WRITE("\xd6\xff\xfe\xdc\xba\x98", mpack_write_timestamp_seconds(&writer, 4275878552u));
-    TEST_SIMPLE_WRITE("\xd6\xff\xff\xff\xff\xff", mpack_write_timestamp(&writer, UINT32_MAX, 0));
+    TEST_SIMPLE_WRITE("\xd6\xff\xff\xff\xff\xff", mpack_write_timestamp(&writer, MPACK_UINT32_MAX, 0));
 
     TEST_SIMPLE_WRITE("\xd7\xff\x00\x00\x00\x03\x00\x00\x00\x00",
             mpack_write_timestamp_seconds(&writer, INT64_C(12884901888)));
@@ -379,16 +379,16 @@ static void test_write_timestamp(void) {
 
     TEST_SIMPLE_WRITE("\xc7\x0c\xff\x00\x00\x00\x01\xff\xff\xff\xff\xff\xff\xff\xff",
             mpack_write_timestamp(&writer, -1, 1));
-    mpack_timestamp_t timestamp = {INT64_MAX, MPACK_TIMESTAMP_NANOSECONDS_MAX};
+    mpack_timestamp_t timestamp = {MPACK_INT64_MAX, MPACK_TIMESTAMP_NANOSECONDS_MAX};
     TEST_SIMPLE_WRITE("\xc7\x0c\xff\x3b\x9a\xc9\xff\x7f\xff\xff\xff\xff\xff\xff\xff",
             mpack_write_timestamp_struct(&writer, timestamp));
     TEST_SIMPLE_WRITE("\xc7\x0c\xff\x3b\x9a\xc9\xff\x80\x00\x00\x00\x00\x00\x00\x00",
-            mpack_write_timestamp(&writer, INT64_MIN, MPACK_TIMESTAMP_NANOSECONDS_MAX));
+            mpack_write_timestamp(&writer, MPACK_INT64_MIN, MPACK_TIMESTAMP_NANOSECONDS_MAX));
 
     mpack_writer_t writer;
     mpack_writer_init(&writer, buf, sizeof(buf));
     TEST_BREAK((mpack_write_timestamp(&writer, 0, 1000000000), true));
-    TEST_BREAK((mpack_write_timestamp(&writer, 0, UINT32_MAX), true));
+    TEST_BREAK((mpack_write_timestamp(&writer, 0, MPACK_UINT32_MAX), true));
     TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_bug);
 }
 #endif
@@ -460,32 +460,32 @@ static void test_write_basic_structures(void) {
         "\x0d\x0e\x0f"
         );
 
-    // UINT16_MAX nils
+    // MPACK_UINT16_MAX nils
     mpack_writer_init_growable(&writer, &buf, &size);
-    mpack_start_array(&writer, UINT16_MAX);
-        for (i = 0; i < UINT16_MAX; ++i)
+    mpack_start_array(&writer, MPACK_UINT16_MAX);
+        for (i = 0; i < MPACK_UINT16_MAX; ++i)
             mpack_write_nil(&writer);
     mpack_finish_array(&writer);
     {
         const char prefix[] = "\xdc\xff\xff";
         TEST_WRITER_DESTROY_NOERROR(&writer);
         TEST_TRUE(memcmp(prefix, buf, sizeof(prefix)-1) == 0, "array prefix is incorrect");
-        TEST_TRUE(size == UINT16_MAX + sizeof(prefix)-1);
+        TEST_TRUE(size == MPACK_UINT16_MAX + sizeof(prefix)-1);
     }
     if (buf)
         MPACK_FREE(buf);
 
-    // UINT16_MAX+1 nils (largest category)
+    // MPACK_UINT16_MAX+1 nils (largest category)
     mpack_writer_init_growable(&writer, &buf, &size);
-    mpack_start_array(&writer, UINT16_MAX+1);
-        for (i = 0; i < UINT16_MAX+1; ++i)
+    mpack_start_array(&writer, MPACK_UINT16_MAX+1);
+        for (i = 0; i < MPACK_UINT16_MAX+1; ++i)
             mpack_write_nil(&writer);
     mpack_finish_array(&writer);
     {
         const char prefix[] = "\xdd\x00\x01\x00\x00";
         TEST_WRITER_DESTROY_NOERROR(&writer);
         TEST_TRUE(memcmp(prefix, buf, sizeof(prefix)-1) == 0, "array prefix is incorrect");
-        TEST_TRUE(size == UINT16_MAX+1 + sizeof(prefix)-1);
+        TEST_TRUE(size == MPACK_UINT16_MAX+1 + sizeof(prefix)-1);
     }
     if (buf)
         MPACK_FREE(buf);
@@ -537,32 +537,32 @@ static void test_write_basic_structures(void) {
         "\x1d\x1e\x1f"
         );
 
-    // UINT16_MAX nil:nils
+    // MPACK_UINT16_MAX nil:nils
     mpack_writer_init_growable(&writer, &buf, &size);
-    mpack_start_map(&writer, UINT16_MAX);
-        for (i = 0; i < UINT16_MAX*2; ++i)
+    mpack_start_map(&writer, MPACK_UINT16_MAX);
+        for (i = 0; i < MPACK_UINT16_MAX*2; ++i)
             mpack_write_nil(&writer);
     mpack_finish_map(&writer);
     {
         const char prefix[] = "\xde\xff\xff";
         TEST_WRITER_DESTROY_NOERROR(&writer);
         TEST_TRUE(memcmp(prefix, buf, sizeof(prefix)-1) == 0, "map prefix is incorrect");
-        TEST_TRUE(size == UINT16_MAX*2 + sizeof(prefix)-1);
+        TEST_TRUE(size == MPACK_UINT16_MAX*2 + sizeof(prefix)-1);
     }
     if (buf)
         MPACK_FREE(buf);
 
-    // UINT16_MAX+1 nil:nils (largest category)
+    // MPACK_UINT16_MAX+1 nil:nils (largest category)
     mpack_writer_init_growable(&writer, &buf, &size);
-    mpack_start_map(&writer, UINT16_MAX+1);
-        for (i = 0; i < (UINT16_MAX+1)*2; ++i)
+    mpack_start_map(&writer, MPACK_UINT16_MAX+1);
+        for (i = 0; i < (MPACK_UINT16_MAX+1)*2; ++i)
             mpack_write_nil(&writer);
     mpack_finish_map(&writer);
     {
         const char prefix[] = "\xdf\x00\x01\x00\x00";
         TEST_WRITER_DESTROY_NOERROR(&writer);
         TEST_TRUE(memcmp(prefix, buf, sizeof(prefix)-1) == 0, "map prefix is incorrect");
-        TEST_TRUE(size == (UINT16_MAX+1)*2 + sizeof(prefix)-1);
+        TEST_TRUE(size == (MPACK_UINT16_MAX+1)*2 + sizeof(prefix)-1);
     }
     if (buf)
         MPACK_FREE(buf);
@@ -779,7 +779,7 @@ static bool test_write_deep_growth(void) {
     mpack_start_array(&writer, (uint32_t)nums);
     TEST_POSSIBLE_FAILURE();
     for (i = 0; i < nums; ++i) {
-        mpack_write_u64(&writer, UINT64_MAX);
+        mpack_write_u64(&writer, MPACK_UINT64_MAX);
         TEST_POSSIBLE_FAILURE();
     }
     mpack_finish_array(&writer);
@@ -873,63 +873,63 @@ static void test_write_generic(void) {
     char buf[4096];
 
     // int8
-    TEST_SIMPLE_WRITE("\x7f", mpack_write(&writer, (int8_t)INT8_MAX));
+    TEST_SIMPLE_WRITE("\x7f", mpack_write(&writer, (int8_t)MPACK_INT8_MAX));
     TEST_SIMPLE_WRITE("\x01", mpack_write(&writer, (int8_t)1));
     TEST_SIMPLE_WRITE("\x00", mpack_write(&writer, (int8_t)0));
-    TEST_SIMPLE_WRITE("\xd0\x80", mpack_write(&writer, (int8_t)INT8_MIN));
+    TEST_SIMPLE_WRITE("\xd0\x80", mpack_write(&writer, (int8_t)MPACK_INT8_MIN));
 
     // int16
-    TEST_SIMPLE_WRITE("\xcd\x7f\xff", mpack_write(&writer, (int16_t)INT16_MAX));
-    TEST_SIMPLE_WRITE("\x7f", mpack_write(&writer, (int16_t)INT8_MAX));
+    TEST_SIMPLE_WRITE("\xcd\x7f\xff", mpack_write(&writer, (int16_t)MPACK_INT16_MAX));
+    TEST_SIMPLE_WRITE("\x7f", mpack_write(&writer, (int16_t)MPACK_INT8_MAX));
     TEST_SIMPLE_WRITE("\x00", mpack_write(&writer, (int16_t)0));
-    TEST_SIMPLE_WRITE("\xd0\x80", mpack_write(&writer, (int16_t)INT8_MIN));
-    TEST_SIMPLE_WRITE("\xd1\x80\x00", mpack_write(&writer, (int16_t)INT16_MIN));
+    TEST_SIMPLE_WRITE("\xd0\x80", mpack_write(&writer, (int16_t)MPACK_INT8_MIN));
+    TEST_SIMPLE_WRITE("\xd1\x80\x00", mpack_write(&writer, (int16_t)MPACK_INT16_MIN));
 
     // int32
-    TEST_SIMPLE_WRITE("\xce\x7f\xff\xff\xff", mpack_write(&writer, (int32_t)INT32_MAX));
-    TEST_SIMPLE_WRITE("\xcd\x7f\xff", mpack_write(&writer, (int32_t)INT16_MAX));
-    TEST_SIMPLE_WRITE("\x7f", mpack_write(&writer, (int32_t)INT8_MAX));
+    TEST_SIMPLE_WRITE("\xce\x7f\xff\xff\xff", mpack_write(&writer, (int32_t)MPACK_INT32_MAX));
+    TEST_SIMPLE_WRITE("\xcd\x7f\xff", mpack_write(&writer, (int32_t)MPACK_INT16_MAX));
+    TEST_SIMPLE_WRITE("\x7f", mpack_write(&writer, (int32_t)MPACK_INT8_MAX));
     TEST_SIMPLE_WRITE("\x00", mpack_write(&writer, (int32_t)0));
-    TEST_SIMPLE_WRITE("\xd0\x80", mpack_write(&writer, (int32_t)INT8_MIN));
-    TEST_SIMPLE_WRITE("\xd1\x80\x00", mpack_write(&writer, (int32_t)INT16_MIN));
-    TEST_SIMPLE_WRITE("\xd2\x80\x00\x00\x00", mpack_write(&writer, (int32_t)INT32_MIN));
+    TEST_SIMPLE_WRITE("\xd0\x80", mpack_write(&writer, (int32_t)MPACK_INT8_MIN));
+    TEST_SIMPLE_WRITE("\xd1\x80\x00", mpack_write(&writer, (int32_t)MPACK_INT16_MIN));
+    TEST_SIMPLE_WRITE("\xd2\x80\x00\x00\x00", mpack_write(&writer, (int32_t)MPACK_INT32_MIN));
 
     // int64
-    TEST_SIMPLE_WRITE("\xcf\x7f\xff\xff\xff\xff\xff\xff\xff", mpack_write(&writer, (int64_t)INT64_MAX));
-    TEST_SIMPLE_WRITE("\xce\x7f\xff\xff\xff", mpack_write(&writer, (int64_t)INT32_MAX));
-    TEST_SIMPLE_WRITE("\xcd\x7f\xff", mpack_write(&writer, (int64_t)INT16_MAX));
-    TEST_SIMPLE_WRITE("\x7f", mpack_write(&writer, (int64_t)INT8_MAX));
+    TEST_SIMPLE_WRITE("\xcf\x7f\xff\xff\xff\xff\xff\xff\xff", mpack_write(&writer, (int64_t)MPACK_INT64_MAX));
+    TEST_SIMPLE_WRITE("\xce\x7f\xff\xff\xff", mpack_write(&writer, (int64_t)MPACK_INT32_MAX));
+    TEST_SIMPLE_WRITE("\xcd\x7f\xff", mpack_write(&writer, (int64_t)MPACK_INT16_MAX));
+    TEST_SIMPLE_WRITE("\x7f", mpack_write(&writer, (int64_t)MPACK_INT8_MAX));
     TEST_SIMPLE_WRITE("\x00", mpack_write(&writer, (int64_t)0));
-    TEST_SIMPLE_WRITE("\xd0\x80", mpack_write(&writer, (int64_t)INT8_MIN));
-    TEST_SIMPLE_WRITE("\xd1\x80\x00", mpack_write(&writer, (int64_t)INT16_MIN));
-    TEST_SIMPLE_WRITE("\xd2\x80\x00\x00\x00", mpack_write(&writer, (int64_t)INT32_MIN));
-    TEST_SIMPLE_WRITE("\xd3\x80\x00\x00\x00\x00\x00\x00\x00", mpack_write(&writer, (int64_t)INT64_MIN));
+    TEST_SIMPLE_WRITE("\xd0\x80", mpack_write(&writer, (int64_t)MPACK_INT8_MIN));
+    TEST_SIMPLE_WRITE("\xd1\x80\x00", mpack_write(&writer, (int64_t)MPACK_INT16_MIN));
+    TEST_SIMPLE_WRITE("\xd2\x80\x00\x00\x00", mpack_write(&writer, (int64_t)MPACK_INT32_MIN));
+    TEST_SIMPLE_WRITE("\xd3\x80\x00\x00\x00\x00\x00\x00\x00", mpack_write(&writer, (int64_t)MPACK_INT64_MIN));
 
     // uint8
     TEST_SIMPLE_WRITE("\x00", mpack_write(&writer, (uint8_t)0));
     TEST_SIMPLE_WRITE("\x7f", mpack_write(&writer, (uint8_t)127));
-    TEST_SIMPLE_WRITE("\xcc\xff", mpack_write(&writer, (uint8_t)UINT8_MAX));
+    TEST_SIMPLE_WRITE("\xcc\xff", mpack_write(&writer, (uint8_t)MPACK_UINT8_MAX));
 
     // uint16
     TEST_SIMPLE_WRITE("\x00", mpack_write(&writer, (uint16_t)0));
     TEST_SIMPLE_WRITE("\x7f", mpack_write(&writer, (uint16_t)127));
-    TEST_SIMPLE_WRITE("\xcc\xff", mpack_write(&writer, (uint16_t)UINT8_MAX));
-    TEST_SIMPLE_WRITE("\xcd\xff\xff", mpack_write(&writer, (uint16_t)UINT16_MAX));
+    TEST_SIMPLE_WRITE("\xcc\xff", mpack_write(&writer, (uint16_t)MPACK_UINT8_MAX));
+    TEST_SIMPLE_WRITE("\xcd\xff\xff", mpack_write(&writer, (uint16_t)MPACK_UINT16_MAX));
 
     // uint32
     TEST_SIMPLE_WRITE("\x00", mpack_write(&writer, (uint32_t)0));
     TEST_SIMPLE_WRITE("\x7f", mpack_write(&writer, (uint32_t)127));
-    TEST_SIMPLE_WRITE("\xcc\xff", mpack_write(&writer, (uint32_t)UINT8_MAX));
-    TEST_SIMPLE_WRITE("\xcd\xff\xff", mpack_write(&writer, (uint32_t)UINT16_MAX));
-    TEST_SIMPLE_WRITE("\xce\xff\xff\xff\xff", mpack_write(&writer, (uint32_t)UINT32_MAX));
+    TEST_SIMPLE_WRITE("\xcc\xff", mpack_write(&writer, (uint32_t)MPACK_UINT8_MAX));
+    TEST_SIMPLE_WRITE("\xcd\xff\xff", mpack_write(&writer, (uint32_t)MPACK_UINT16_MAX));
+    TEST_SIMPLE_WRITE("\xce\xff\xff\xff\xff", mpack_write(&writer, (uint32_t)MPACK_UINT32_MAX));
 
     // uint64
     TEST_SIMPLE_WRITE("\x00", mpack_write(&writer, (uint64_t)0));
     TEST_SIMPLE_WRITE("\x7f", mpack_write(&writer, (uint64_t)127));
-    TEST_SIMPLE_WRITE("\xcc\xff", mpack_write(&writer, (uint64_t)UINT8_MAX));
-    TEST_SIMPLE_WRITE("\xcd\xff\xff", mpack_write(&writer, (uint64_t)UINT16_MAX));
-    TEST_SIMPLE_WRITE("\xce\xff\xff\xff\xff", mpack_write(&writer, (uint64_t)UINT32_MAX));
-    TEST_SIMPLE_WRITE("\xcf\xff\xff\xff\xff\xff\xff\xff\xff", mpack_write(&writer, (uint64_t)UINT64_MAX));
+    TEST_SIMPLE_WRITE("\xcc\xff", mpack_write(&writer, (uint64_t)MPACK_UINT8_MAX));
+    TEST_SIMPLE_WRITE("\xcd\xff\xff", mpack_write(&writer, (uint64_t)MPACK_UINT16_MAX));
+    TEST_SIMPLE_WRITE("\xce\xff\xff\xff\xff", mpack_write(&writer, (uint64_t)MPACK_UINT32_MAX));
+    TEST_SIMPLE_WRITE("\xcf\xff\xff\xff\xff\xff\xff\xff\xff", mpack_write(&writer, (uint64_t)MPACK_UINT64_MAX));
 
     // float and double
     // TODO: we just test a few floats for now. this could certainly be extended to
@@ -971,16 +971,16 @@ static void test_write_generic_kv(void) {
     char buf[4096];
 
     // int8, int16, int32, int64
-    TEST_SIMPLE_WRITE("\xa3""foo""\x7f", mpack_write_kv(&writer, key, (int8_t)INT8_MAX));
-    TEST_SIMPLE_WRITE("\xa3""foo""\xcd\x7f\xff", mpack_write_kv(&writer, key, (int16_t)INT16_MAX));
-    TEST_SIMPLE_WRITE("\xa3""foo""\xce\x7f\xff\xff\xff", mpack_write_kv(&writer, key, (int32_t)INT32_MAX));
-    TEST_SIMPLE_WRITE("\xa3""foo""\xcf\x7f\xff\xff\xff\xff\xff\xff\xff", mpack_write_kv(&writer, key, (int64_t)INT64_MAX));
+    TEST_SIMPLE_WRITE("\xa3""foo""\x7f", mpack_write_kv(&writer, key, (int8_t)MPACK_INT8_MAX));
+    TEST_SIMPLE_WRITE("\xa3""foo""\xcd\x7f\xff", mpack_write_kv(&writer, key, (int16_t)MPACK_INT16_MAX));
+    TEST_SIMPLE_WRITE("\xa3""foo""\xce\x7f\xff\xff\xff", mpack_write_kv(&writer, key, (int32_t)MPACK_INT32_MAX));
+    TEST_SIMPLE_WRITE("\xa3""foo""\xcf\x7f\xff\xff\xff\xff\xff\xff\xff", mpack_write_kv(&writer, key, (int64_t)MPACK_INT64_MAX));
 
     // uint8, uint16, uint32, uint64
-    TEST_SIMPLE_WRITE("\xa3""foo""\xcc\xff", mpack_write_kv(&writer, key, (uint8_t)UINT8_MAX));
-    TEST_SIMPLE_WRITE("\xa3""foo""\xcd\xff\xff", mpack_write_kv(&writer, key, (uint16_t)UINT16_MAX));
-    TEST_SIMPLE_WRITE("\xa3""foo""\xce\xff\xff\xff\xff", mpack_write_kv(&writer, key, (uint64_t)UINT32_MAX));
-    TEST_SIMPLE_WRITE("\xa3""foo""\xcf\xff\xff\xff\xff\xff\xff\xff\xff", mpack_write_kv(&writer, key, (uint64_t)UINT64_MAX));
+    TEST_SIMPLE_WRITE("\xa3""foo""\xcc\xff", mpack_write_kv(&writer, key, (uint8_t)MPACK_UINT8_MAX));
+    TEST_SIMPLE_WRITE("\xa3""foo""\xcd\xff\xff", mpack_write_kv(&writer, key, (uint16_t)MPACK_UINT16_MAX));
+    TEST_SIMPLE_WRITE("\xa3""foo""\xce\xff\xff\xff\xff", mpack_write_kv(&writer, key, (uint64_t)MPACK_UINT32_MAX));
+    TEST_SIMPLE_WRITE("\xa3""foo""\xcf\xff\xff\xff\xff\xff\xff\xff\xff", mpack_write_kv(&writer, key, (uint64_t)MPACK_UINT64_MAX));
 
     // float, double and bool
     #if MPACK_FLOAT
@@ -1152,11 +1152,11 @@ static void test_misc(void) {
 
     #if MPACK_STDLIB
     // writing strings larger than 32 bits should fail
-    if (UINT32_MAX < SIZE_MAX) {
+    if (MPACK_UINT32_MAX < SIZE_MAX) {
         char single[1];
 
         mpack_writer_init(&writer, single, SIZE_MAX);
-        test_system_mock_strlen((size_t)((uint64_t)UINT32_MAX + UINT64_C(1)));
+        test_system_mock_strlen((size_t)((uint64_t)MPACK_UINT32_MAX + UINT64_C(1)));
         mpack_write_cstr(&writer, quick_brown_fox);
         TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_invalid);
 

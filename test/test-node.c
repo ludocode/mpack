@@ -279,35 +279,35 @@ static void test_node_read_int(void) {
     TEST_SIMPLE_TREE_READ("\xd0\xdf", -33 == mpack_node_i64(node));
     TEST_SIMPLE_TREE_READ("\xd0\xdf", -33 == mpack_node_int(node));
 
-    TEST_SIMPLE_TREE_READ("\xd0\x80", INT8_MIN == mpack_node_i8(node));
-    TEST_SIMPLE_TREE_READ("\xd0\x80", INT8_MIN == mpack_node_i16(node));
-    TEST_SIMPLE_TREE_READ("\xd0\x80", INT8_MIN == mpack_node_i32(node));
-    TEST_SIMPLE_TREE_READ("\xd0\x80", INT8_MIN == mpack_node_i64(node));
-    TEST_SIMPLE_TREE_READ("\xd0\x80", INT8_MIN == mpack_node_int(node));
+    TEST_SIMPLE_TREE_READ("\xd0\x80", MPACK_INT8_MIN == mpack_node_i8(node));
+    TEST_SIMPLE_TREE_READ("\xd0\x80", MPACK_INT8_MIN == mpack_node_i16(node));
+    TEST_SIMPLE_TREE_READ("\xd0\x80", MPACK_INT8_MIN == mpack_node_i32(node));
+    TEST_SIMPLE_TREE_READ("\xd0\x80", MPACK_INT8_MIN == mpack_node_i64(node));
+    TEST_SIMPLE_TREE_READ("\xd0\x80", MPACK_INT8_MIN == mpack_node_int(node));
 
-    TEST_SIMPLE_TREE_READ("\xd1\xff\x7f", INT8_MIN - 1 == mpack_node_i16(node));
-    TEST_SIMPLE_TREE_READ("\xd1\xff\x7f", INT8_MIN - 1 == mpack_node_i32(node));
-    TEST_SIMPLE_TREE_READ("\xd1\xff\x7f", INT8_MIN - 1 == mpack_node_i64(node));
-    TEST_SIMPLE_TREE_READ("\xd1\xff\x7f", INT8_MIN - 1 == mpack_node_int(node));
+    TEST_SIMPLE_TREE_READ("\xd1\xff\x7f", MPACK_INT8_MIN - 1 == mpack_node_i16(node));
+    TEST_SIMPLE_TREE_READ("\xd1\xff\x7f", MPACK_INT8_MIN - 1 == mpack_node_i32(node));
+    TEST_SIMPLE_TREE_READ("\xd1\xff\x7f", MPACK_INT8_MIN - 1 == mpack_node_i64(node));
+    TEST_SIMPLE_TREE_READ("\xd1\xff\x7f", MPACK_INT8_MIN - 1 == mpack_node_int(node));
 
-    TEST_SIMPLE_TREE_READ("\xd1\x80\x00", INT16_MIN == mpack_node_i16(node));
-    TEST_SIMPLE_TREE_READ("\xd1\x80\x00", INT16_MIN == mpack_node_i32(node));
-    TEST_SIMPLE_TREE_READ("\xd1\x80\x00", INT16_MIN == mpack_node_i64(node));
-    TEST_SIMPLE_TREE_READ("\xd1\x80\x00", INT16_MIN == mpack_node_int(node));
+    TEST_SIMPLE_TREE_READ("\xd1\x80\x00", MPACK_INT16_MIN == mpack_node_i16(node));
+    TEST_SIMPLE_TREE_READ("\xd1\x80\x00", MPACK_INT16_MIN == mpack_node_i32(node));
+    TEST_SIMPLE_TREE_READ("\xd1\x80\x00", MPACK_INT16_MIN == mpack_node_i64(node));
+    TEST_SIMPLE_TREE_READ("\xd1\x80\x00", MPACK_INT16_MIN == mpack_node_int(node));
 
-    TEST_SIMPLE_TREE_READ("\xd2\xff\xff\x7f\xff", (int32_t)INT16_MIN - 1 == mpack_node_i32(node));
-    TEST_SIMPLE_TREE_READ("\xd2\xff\xff\x7f\xff", (int32_t)INT16_MIN - 1 == mpack_node_i64(node));
+    TEST_SIMPLE_TREE_READ("\xd2\xff\xff\x7f\xff", (int32_t)MPACK_INT16_MIN - 1 == mpack_node_i32(node));
+    TEST_SIMPLE_TREE_READ("\xd2\xff\xff\x7f\xff", (int32_t)MPACK_INT16_MIN - 1 == mpack_node_i64(node));
     if (sizeof(int) >= 4)
-        TEST_SIMPLE_TREE_READ("\xd2\xff\xff\x7f\xff", (int32_t)INT16_MIN - 1 == mpack_node_int(node));
+        TEST_SIMPLE_TREE_READ("\xd2\xff\xff\x7f\xff", (int32_t)MPACK_INT16_MIN - 1 == mpack_node_int(node));
 
-    TEST_SIMPLE_TREE_READ("\xd2\x80\x00\x00\x00", INT32_MIN == mpack_node_i32(node));
-    TEST_SIMPLE_TREE_READ("\xd2\x80\x00\x00\x00", INT32_MIN == mpack_node_i64(node));
+    TEST_SIMPLE_TREE_READ("\xd2\x80\x00\x00\x00", MPACK_INT32_MIN == mpack_node_i32(node));
+    TEST_SIMPLE_TREE_READ("\xd2\x80\x00\x00\x00", MPACK_INT32_MIN == mpack_node_i64(node));
     if (sizeof(int) >= 4)
-        TEST_SIMPLE_TREE_READ("\xd2\x80\x00\x00\x00", INT32_MIN == mpack_node_int(node));
+        TEST_SIMPLE_TREE_READ("\xd2\x80\x00\x00\x00", MPACK_INT32_MIN == mpack_node_int(node));
 
-    TEST_SIMPLE_TREE_READ("\xd3\xff\xff\xff\xff\x7f\xff\xff\xff", (int64_t)INT32_MIN - 1 == mpack_node_i64(node));
+    TEST_SIMPLE_TREE_READ("\xd3\xff\xff\xff\xff\x7f\xff\xff\xff", (int64_t)MPACK_INT32_MIN - 1 == mpack_node_i64(node));
 
-    TEST_SIMPLE_TREE_READ("\xd3\x80\x00\x00\x00\x00\x00\x00\x00", INT64_MIN == mpack_node_i64(node));
+    TEST_SIMPLE_TREE_READ("\xd3\x80\x00\x00\x00\x00\x00\x00\x00", MPACK_INT64_MIN == mpack_node_i64(node));
 
 }
 
@@ -343,15 +343,15 @@ static void test_node_read_ints_dynamic_int(void) {
 
     // ints
     TEST_SIMPLE_TREE_READ("\xd0\xdf", mpack_tag_equal(mpack_tag_int(-33), mpack_node_tag(node)));
-    TEST_SIMPLE_TREE_READ("\xd0\x80", mpack_tag_equal(mpack_tag_int(INT8_MIN), mpack_node_tag(node)));
-    TEST_SIMPLE_TREE_READ("\xd1\xff\x7f", mpack_tag_equal(mpack_tag_int(INT8_MIN - 1), mpack_node_tag(node)));
-    TEST_SIMPLE_TREE_READ("\xd1\x80\x00", mpack_tag_equal(mpack_tag_int(INT16_MIN), mpack_node_tag(node)));
-    TEST_SIMPLE_TREE_READ("\xd2\xff\xff\x7f\xff", mpack_tag_equal(mpack_tag_int((int32_t)INT16_MIN - 1), mpack_node_tag(node)));
+    TEST_SIMPLE_TREE_READ("\xd0\x80", mpack_tag_equal(mpack_tag_int(MPACK_INT8_MIN), mpack_node_tag(node)));
+    TEST_SIMPLE_TREE_READ("\xd1\xff\x7f", mpack_tag_equal(mpack_tag_int(MPACK_INT8_MIN - 1), mpack_node_tag(node)));
+    TEST_SIMPLE_TREE_READ("\xd1\x80\x00", mpack_tag_equal(mpack_tag_int(MPACK_INT16_MIN), mpack_node_tag(node)));
+    TEST_SIMPLE_TREE_READ("\xd2\xff\xff\x7f\xff", mpack_tag_equal(mpack_tag_int((int32_t)MPACK_INT16_MIN - 1), mpack_node_tag(node)));
 
-    TEST_SIMPLE_TREE_READ("\xd2\x80\x00\x00\x00", mpack_tag_equal(mpack_tag_int(INT32_MIN), mpack_node_tag(node)));
-    TEST_SIMPLE_TREE_READ("\xd3\xff\xff\xff\xff\x7f\xff\xff\xff", mpack_tag_equal(mpack_tag_int((int64_t)INT32_MIN - 1), mpack_node_tag(node)));
+    TEST_SIMPLE_TREE_READ("\xd2\x80\x00\x00\x00", mpack_tag_equal(mpack_tag_int(MPACK_INT32_MIN), mpack_node_tag(node)));
+    TEST_SIMPLE_TREE_READ("\xd3\xff\xff\xff\xff\x7f\xff\xff\xff", mpack_tag_equal(mpack_tag_int((int64_t)MPACK_INT32_MIN - 1), mpack_node_tag(node)));
 
-    TEST_SIMPLE_TREE_READ("\xd3\x80\x00\x00\x00\x00\x00\x00\x00", mpack_tag_equal(mpack_tag_int(INT64_MIN), mpack_node_tag(node)));
+    TEST_SIMPLE_TREE_READ("\xd3\x80\x00\x00\x00\x00\x00\x00\x00", mpack_tag_equal(mpack_tag_int(MPACK_INT64_MIN), mpack_node_tag(node)));
 
 }
 
@@ -829,7 +829,7 @@ static void test_node_read_timestamp(void) {
             4275878552u == mpack_node_timestamp_seconds(node) &&
             0 == mpack_node_timestamp_nanoseconds(node));
     TEST_SIMPLE_TREE_READ("\xd6\xff\xff\xff\xff\xff",
-            UINT32_MAX == mpack_node_timestamp_seconds(node) &&
+            MPACK_UINT32_MAX == mpack_node_timestamp_seconds(node) &&
             0 == mpack_node_timestamp_nanoseconds(node));
 
     TEST_SIMPLE_TREE_READ("\xd7\xff\x00\x00\x00\x03\x00\x00\x00\x00",
@@ -855,10 +855,10 @@ static void test_node_read_timestamp(void) {
             -1 == mpack_node_timestamp_seconds(node) &&
             1 == mpack_node_timestamp_nanoseconds(node));
     TEST_SIMPLE_TREE_READ("\xc7\x0c\xff\x3b\x9a\xc9\xff\x7f\xff\xff\xff\xff\xff\xff\xff",
-            INT64_MAX == mpack_node_timestamp_seconds(node) &&
+            MPACK_INT64_MAX == mpack_node_timestamp_seconds(node) &&
             MPACK_TIMESTAMP_NANOSECONDS_MAX == mpack_node_timestamp_nanoseconds(node));
     TEST_SIMPLE_TREE_READ("\xc7\x0c\xff\x3b\x9a\xc9\xff\x80\x00\x00\x00\x00\x00\x00\x00",
-            INT64_MIN == mpack_node_timestamp_seconds(node) &&
+            MPACK_INT64_MIN == mpack_node_timestamp_seconds(node) &&
             MPACK_TIMESTAMP_NANOSECONDS_MAX == mpack_node_timestamp_nanoseconds(node));
 
     // invalid timestamps should not flag errors...
@@ -1138,7 +1138,7 @@ static void test_node_multiple_simple(void) {
     TEST_TRUE(mpack_tree_error(&tree) == mpack_ok);
 
     mpack_tree_parse(&tree);
-    TEST_TRUE(INT16_MIN == mpack_node_i16(mpack_tree_root(&tree)));
+    TEST_TRUE(MPACK_INT16_MIN == mpack_node_i16(mpack_tree_root(&tree)));
     TEST_TRUE(mpack_tree_error(&tree) == mpack_ok);
 
     mpack_tree_parse(&tree);

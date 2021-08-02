@@ -113,18 +113,18 @@ static void test_file_write_contents(mpack_writer_t* writer) {
     // test compound types of various sizes
     mpack_start_array(writer, 5);
     test_file_write_bytes(writer, mpack_tag_str(0));
-    test_file_write_bytes(writer, mpack_tag_str(INT8_MAX));
-    test_file_write_bytes(writer, mpack_tag_str(UINT8_MAX));
-    test_file_write_bytes(writer, mpack_tag_str(UINT8_MAX + 1));
-    test_file_write_bytes(writer, mpack_tag_str(UINT16_MAX + 1));
+    test_file_write_bytes(writer, mpack_tag_str(MPACK_INT8_MAX));
+    test_file_write_bytes(writer, mpack_tag_str(MPACK_UINT8_MAX));
+    test_file_write_bytes(writer, mpack_tag_str(MPACK_UINT8_MAX + 1));
+    test_file_write_bytes(writer, mpack_tag_str(MPACK_UINT16_MAX + 1));
     mpack_finish_array(writer);
 
     mpack_start_array(writer, 5);
     test_file_write_bytes(writer, mpack_tag_bin(0));
-    test_file_write_bytes(writer, mpack_tag_bin(INT8_MAX));
-    test_file_write_bytes(writer, mpack_tag_bin(UINT8_MAX));
-    test_file_write_bytes(writer, mpack_tag_bin(UINT8_MAX + 1));
-    test_file_write_bytes(writer, mpack_tag_bin(UINT16_MAX + 1));
+    test_file_write_bytes(writer, mpack_tag_bin(MPACK_INT8_MAX));
+    test_file_write_bytes(writer, mpack_tag_bin(MPACK_UINT8_MAX));
+    test_file_write_bytes(writer, mpack_tag_bin(MPACK_UINT8_MAX + 1));
+    test_file_write_bytes(writer, mpack_tag_bin(MPACK_UINT16_MAX + 1));
     mpack_finish_array(writer);
 
     #if MPACK_EXTENSIONS
@@ -135,10 +135,10 @@ static void test_file_write_contents(mpack_writer_t* writer) {
     test_file_write_bytes(writer, mpack_tag_ext(1, 4));
     test_file_write_bytes(writer, mpack_tag_ext(1, 8));
     test_file_write_bytes(writer, mpack_tag_ext(1, 16));
-    test_file_write_bytes(writer, mpack_tag_ext(2, INT8_MAX));
-    test_file_write_bytes(writer, mpack_tag_ext(3, UINT8_MAX));
-    test_file_write_bytes(writer, mpack_tag_ext(4, UINT8_MAX + 1));
-    test_file_write_bytes(writer, mpack_tag_ext(5, UINT16_MAX + 1));
+    test_file_write_bytes(writer, mpack_tag_ext(2, MPACK_INT8_MAX));
+    test_file_write_bytes(writer, mpack_tag_ext(3, MPACK_UINT8_MAX));
+    test_file_write_bytes(writer, mpack_tag_ext(4, MPACK_UINT8_MAX + 1));
+    test_file_write_bytes(writer, mpack_tag_ext(5, MPACK_UINT16_MAX + 1));
     mpack_finish_array(writer);
     #else
     mpack_write_nil(writer);
@@ -146,18 +146,18 @@ static void test_file_write_contents(mpack_writer_t* writer) {
 
     mpack_start_array(writer, 5);
     test_file_write_elements(writer, mpack_tag_array(0));
-    test_file_write_elements(writer, mpack_tag_array(INT8_MAX));
-    test_file_write_elements(writer, mpack_tag_array(UINT8_MAX));
-    test_file_write_elements(writer, mpack_tag_array(UINT8_MAX + 1));
-    test_file_write_elements(writer, mpack_tag_array(UINT16_MAX + 1));
+    test_file_write_elements(writer, mpack_tag_array(MPACK_INT8_MAX));
+    test_file_write_elements(writer, mpack_tag_array(MPACK_UINT8_MAX));
+    test_file_write_elements(writer, mpack_tag_array(MPACK_UINT8_MAX + 1));
+    test_file_write_elements(writer, mpack_tag_array(MPACK_UINT16_MAX + 1));
     mpack_finish_array(writer);
 
     mpack_start_array(writer, 5);
     test_file_write_elements(writer, mpack_tag_map(0));
-    test_file_write_elements(writer, mpack_tag_map(INT8_MAX));
-    test_file_write_elements(writer, mpack_tag_map(UINT8_MAX));
-    test_file_write_elements(writer, mpack_tag_map(UINT8_MAX + 1));
-    test_file_write_elements(writer, mpack_tag_map(UINT16_MAX + 1));
+    test_file_write_elements(writer, mpack_tag_map(MPACK_INT8_MAX));
+    test_file_write_elements(writer, mpack_tag_map(MPACK_UINT8_MAX));
+    test_file_write_elements(writer, mpack_tag_map(MPACK_UINT8_MAX + 1));
+    test_file_write_elements(writer, mpack_tag_map(MPACK_UINT16_MAX + 1));
     mpack_finish_array(writer);
 
     // test deep nesting
@@ -187,7 +187,7 @@ static void test_file_write_failures(void) {
     mpack_write_cstr(&writer, quick_brown_fox);
     TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_io);
 
-    int count = UINT16_MAX / 20;
+    int count = MPACK_UINT16_MAX / 20;
     mpack_writer_init_filename(&writer, "/dev/full");
     mpack_start_array(&writer, (uint32_t)count);
     int i;
@@ -415,18 +415,18 @@ static void test_file_read_contents(mpack_reader_t* reader) {
 
     TEST_TRUE(5 == mpack_expect_array(reader));
     test_file_expect_bytes(reader, mpack_tag_str(0));
-    test_file_expect_bytes(reader, mpack_tag_str(INT8_MAX));
-    test_file_expect_bytes(reader, mpack_tag_str(UINT8_MAX));
-    test_file_expect_bytes(reader, mpack_tag_str(UINT8_MAX + 1));
-    test_file_expect_bytes(reader, mpack_tag_str(UINT16_MAX + 1));
+    test_file_expect_bytes(reader, mpack_tag_str(MPACK_INT8_MAX));
+    test_file_expect_bytes(reader, mpack_tag_str(MPACK_UINT8_MAX));
+    test_file_expect_bytes(reader, mpack_tag_str(MPACK_UINT8_MAX + 1));
+    test_file_expect_bytes(reader, mpack_tag_str(MPACK_UINT16_MAX + 1));
     mpack_done_array(reader);
 
     TEST_TRUE(5 == mpack_expect_array(reader));
     test_file_expect_bytes(reader, mpack_tag_bin(0));
-    test_file_expect_bytes(reader, mpack_tag_bin(INT8_MAX));
-    test_file_expect_bytes(reader, mpack_tag_bin(UINT8_MAX));
-    test_file_expect_bytes(reader, mpack_tag_bin(UINT8_MAX + 1));
-    test_file_expect_bytes(reader, mpack_tag_bin(UINT16_MAX + 1));
+    test_file_expect_bytes(reader, mpack_tag_bin(MPACK_INT8_MAX));
+    test_file_expect_bytes(reader, mpack_tag_bin(MPACK_UINT8_MAX));
+    test_file_expect_bytes(reader, mpack_tag_bin(MPACK_UINT8_MAX + 1));
+    test_file_expect_bytes(reader, mpack_tag_bin(MPACK_UINT16_MAX + 1));
     mpack_done_array(reader);
 
     #if MPACK_EXTENSIONS
@@ -437,10 +437,10 @@ static void test_file_read_contents(mpack_reader_t* reader) {
     test_file_expect_bytes(reader, mpack_tag_ext(1, 4));
     test_file_expect_bytes(reader, mpack_tag_ext(1, 8));
     test_file_expect_bytes(reader, mpack_tag_ext(1, 16));
-    test_file_expect_bytes(reader, mpack_tag_ext(2, INT8_MAX));
-    test_file_expect_bytes(reader, mpack_tag_ext(3, UINT8_MAX));
-    test_file_expect_bytes(reader, mpack_tag_ext(4, UINT8_MAX + 1));
-    test_file_expect_bytes(reader, mpack_tag_ext(5, UINT16_MAX + 1));
+    test_file_expect_bytes(reader, mpack_tag_ext(2, MPACK_INT8_MAX));
+    test_file_expect_bytes(reader, mpack_tag_ext(3, MPACK_UINT8_MAX));
+    test_file_expect_bytes(reader, mpack_tag_ext(4, MPACK_UINT8_MAX + 1));
+    test_file_expect_bytes(reader, mpack_tag_ext(5, MPACK_UINT16_MAX + 1));
     mpack_done_array(reader);
     #else
     mpack_expect_nil(reader);
@@ -448,18 +448,18 @@ static void test_file_read_contents(mpack_reader_t* reader) {
 
     TEST_TRUE(5 == mpack_expect_array(reader));
     test_file_expect_elements(reader, mpack_tag_array(0));
-    test_file_expect_elements(reader, mpack_tag_array(INT8_MAX));
-    test_file_expect_elements(reader, mpack_tag_array(UINT8_MAX));
-    test_file_expect_elements(reader, mpack_tag_array(UINT8_MAX + 1));
-    test_file_expect_elements(reader, mpack_tag_array(UINT16_MAX + 1));
+    test_file_expect_elements(reader, mpack_tag_array(MPACK_INT8_MAX));
+    test_file_expect_elements(reader, mpack_tag_array(MPACK_UINT8_MAX));
+    test_file_expect_elements(reader, mpack_tag_array(MPACK_UINT8_MAX + 1));
+    test_file_expect_elements(reader, mpack_tag_array(MPACK_UINT16_MAX + 1));
     mpack_done_array(reader);
 
     TEST_TRUE(5 == mpack_expect_array(reader));
     test_file_expect_elements(reader, mpack_tag_map(0));
-    test_file_expect_elements(reader, mpack_tag_map(INT8_MAX));
-    test_file_expect_elements(reader, mpack_tag_map(UINT8_MAX));
-    test_file_expect_elements(reader, mpack_tag_map(UINT8_MAX + 1));
-    test_file_expect_elements(reader, mpack_tag_map(UINT16_MAX + 1));
+    test_file_expect_elements(reader, mpack_tag_map(MPACK_INT8_MAX));
+    test_file_expect_elements(reader, mpack_tag_map(MPACK_UINT8_MAX));
+    test_file_expect_elements(reader, mpack_tag_map(MPACK_UINT8_MAX + 1));
+    test_file_expect_elements(reader, mpack_tag_map(MPACK_UINT16_MAX + 1));
     mpack_done_array(reader);
 
     int i;
@@ -689,18 +689,18 @@ static void test_file_node_contents(mpack_node_t root) {
     mpack_node_t node = mpack_node_array_at(root, 1);
     TEST_TRUE(mpack_node_array_length(node) == 5);
     test_file_node_bytes(mpack_node_array_at(node, 0), mpack_tag_str(0));
-    test_file_node_bytes(mpack_node_array_at(node, 1), mpack_tag_str(INT8_MAX));
-    test_file_node_bytes(mpack_node_array_at(node, 2), mpack_tag_str(UINT8_MAX));
-    test_file_node_bytes(mpack_node_array_at(node, 3), mpack_tag_str(UINT8_MAX + 1));
-    test_file_node_bytes(mpack_node_array_at(node, 4), mpack_tag_str(UINT16_MAX + 1));
+    test_file_node_bytes(mpack_node_array_at(node, 1), mpack_tag_str(MPACK_INT8_MAX));
+    test_file_node_bytes(mpack_node_array_at(node, 2), mpack_tag_str(MPACK_UINT8_MAX));
+    test_file_node_bytes(mpack_node_array_at(node, 3), mpack_tag_str(MPACK_UINT8_MAX + 1));
+    test_file_node_bytes(mpack_node_array_at(node, 4), mpack_tag_str(MPACK_UINT16_MAX + 1));
 
     node = mpack_node_array_at(root, 2);
     TEST_TRUE(5 == mpack_node_array_length(node));
     test_file_node_bytes(mpack_node_array_at(node, 0), mpack_tag_bin(0));
-    test_file_node_bytes(mpack_node_array_at(node, 1), mpack_tag_bin(INT8_MAX));
-    test_file_node_bytes(mpack_node_array_at(node, 2), mpack_tag_bin(UINT8_MAX));
-    test_file_node_bytes(mpack_node_array_at(node, 3), mpack_tag_bin(UINT8_MAX + 1));
-    test_file_node_bytes(mpack_node_array_at(node, 4), mpack_tag_bin(UINT16_MAX + 1));
+    test_file_node_bytes(mpack_node_array_at(node, 1), mpack_tag_bin(MPACK_INT8_MAX));
+    test_file_node_bytes(mpack_node_array_at(node, 2), mpack_tag_bin(MPACK_UINT8_MAX));
+    test_file_node_bytes(mpack_node_array_at(node, 3), mpack_tag_bin(MPACK_UINT8_MAX + 1));
+    test_file_node_bytes(mpack_node_array_at(node, 4), mpack_tag_bin(MPACK_UINT16_MAX + 1));
 
     node = mpack_node_array_at(root, 3);
     #if MPACK_EXTENSIONS
@@ -711,10 +711,10 @@ static void test_file_node_contents(mpack_node_t root) {
     test_file_node_bytes(mpack_node_array_at(node, 3), mpack_tag_ext(1, 4));
     test_file_node_bytes(mpack_node_array_at(node, 4), mpack_tag_ext(1, 8));
     test_file_node_bytes(mpack_node_array_at(node, 5), mpack_tag_ext(1, 16));
-    test_file_node_bytes(mpack_node_array_at(node, 6), mpack_tag_ext(2, INT8_MAX));
-    test_file_node_bytes(mpack_node_array_at(node, 7), mpack_tag_ext(3, UINT8_MAX));
-    test_file_node_bytes(mpack_node_array_at(node, 8), mpack_tag_ext(4, UINT8_MAX + 1));
-    test_file_node_bytes(mpack_node_array_at(node, 9), mpack_tag_ext(5, UINT16_MAX + 1));
+    test_file_node_bytes(mpack_node_array_at(node, 6), mpack_tag_ext(2, MPACK_INT8_MAX));
+    test_file_node_bytes(mpack_node_array_at(node, 7), mpack_tag_ext(3, MPACK_UINT8_MAX));
+    test_file_node_bytes(mpack_node_array_at(node, 8), mpack_tag_ext(4, MPACK_UINT8_MAX + 1));
+    test_file_node_bytes(mpack_node_array_at(node, 9), mpack_tag_ext(5, MPACK_UINT16_MAX + 1));
     #else
     mpack_node_nil(node);
     #endif
@@ -722,18 +722,18 @@ static void test_file_node_contents(mpack_node_t root) {
     node = mpack_node_array_at(root, 4);
     TEST_TRUE(5 == mpack_node_array_length(node));
     test_file_node_elements(mpack_node_array_at(node, 0), mpack_tag_array(0));
-    test_file_node_elements(mpack_node_array_at(node, 1), mpack_tag_array(INT8_MAX));
-    test_file_node_elements(mpack_node_array_at(node, 2), mpack_tag_array(UINT8_MAX));
-    test_file_node_elements(mpack_node_array_at(node, 3), mpack_tag_array(UINT8_MAX + 1));
-    test_file_node_elements(mpack_node_array_at(node, 4), mpack_tag_array(UINT16_MAX + 1));
+    test_file_node_elements(mpack_node_array_at(node, 1), mpack_tag_array(MPACK_INT8_MAX));
+    test_file_node_elements(mpack_node_array_at(node, 2), mpack_tag_array(MPACK_UINT8_MAX));
+    test_file_node_elements(mpack_node_array_at(node, 3), mpack_tag_array(MPACK_UINT8_MAX + 1));
+    test_file_node_elements(mpack_node_array_at(node, 4), mpack_tag_array(MPACK_UINT16_MAX + 1));
 
     node = mpack_node_array_at(root, 5);
     TEST_TRUE(5 == mpack_node_array_length(node));
     test_file_node_elements(mpack_node_array_at(node, 0), mpack_tag_map(0));
-    test_file_node_elements(mpack_node_array_at(node, 1), mpack_tag_map(INT8_MAX));
-    test_file_node_elements(mpack_node_array_at(node, 2), mpack_tag_map(UINT8_MAX));
-    test_file_node_elements(mpack_node_array_at(node, 3), mpack_tag_map(UINT8_MAX + 1));
-    test_file_node_elements(mpack_node_array_at(node, 4), mpack_tag_map(UINT16_MAX + 1));
+    test_file_node_elements(mpack_node_array_at(node, 1), mpack_tag_map(MPACK_INT8_MAX));
+    test_file_node_elements(mpack_node_array_at(node, 2), mpack_tag_map(MPACK_UINT8_MAX));
+    test_file_node_elements(mpack_node_array_at(node, 3), mpack_tag_map(MPACK_UINT8_MAX + 1));
+    test_file_node_elements(mpack_node_array_at(node, 4), mpack_tag_map(MPACK_UINT16_MAX + 1));
 
     node = mpack_node_array_at(root, 6);
     int i;

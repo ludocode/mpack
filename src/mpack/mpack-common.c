@@ -533,7 +533,7 @@ mpack_error_t mpack_track_bytes(mpack_track_t* track, bool read, size_t count) {
     MPACK_UNUSED(read);
     mpack_assert(track->elements, "null track elements!");
 
-    if (count > UINT32_MAX) {
+    if (count > MPACK_UINT32_MAX) {
         mpack_break("%s more bytes than could possibly fit in a str/bin/ext!",
                 read ? "reading" : "writing");
         return mpack_error_bug;

@@ -184,7 +184,7 @@ MPACK_STATIC_INLINE bool mpack_tree_reserve_bytes(mpack_tree_t* tree, size_t ext
     mpack_assert(tree->parser.state == mpack_tree_parse_state_in_progress);
 
     // We guard against overflow here. A compound type could declare more than
-    // UINT32_MAX contents which overflows SIZE_MAX on 32-bit platforms. We
+    // MPACK_UINT32_MAX contents which overflows SIZE_MAX on 32-bit platforms. We
     // flag mpack_error_invalid instead of mpack_error_too_big since it's far
     // more likely that the message is corrupt than that the data is valid but
     // not parseable on this architecture (see test_read_node_possible() in
@@ -1993,10 +1993,10 @@ uint8_t mpack_node_u8(mpack_node_t node) {
         return 0;
 
     if (node.data->type == mpack_type_uint) {
-        if (node.data->value.u <= UINT8_MAX)
+        if (node.data->value.u <= MPACK_UINT8_MAX)
             return (uint8_t)node.data->value.u;
     } else if (node.data->type == mpack_type_int) {
-        if (node.data->value.i >= 0 && node.data->value.i <= UINT8_MAX)
+        if (node.data->value.i >= 0 && node.data->value.i <= MPACK_UINT8_MAX)
             return (uint8_t)node.data->value.i;
     }
 
@@ -2009,10 +2009,10 @@ int8_t mpack_node_i8(mpack_node_t node) {
         return 0;
 
     if (node.data->type == mpack_type_uint) {
-        if (node.data->value.u <= INT8_MAX)
+        if (node.data->value.u <= MPACK_INT8_MAX)
             return (int8_t)node.data->value.u;
     } else if (node.data->type == mpack_type_int) {
-        if (node.data->value.i >= INT8_MIN && node.data->value.i <= INT8_MAX)
+        if (node.data->value.i >= MPACK_INT8_MIN && node.data->value.i <= MPACK_INT8_MAX)
             return (int8_t)node.data->value.i;
     }
 
@@ -2025,10 +2025,10 @@ uint16_t mpack_node_u16(mpack_node_t node) {
         return 0;
 
     if (node.data->type == mpack_type_uint) {
-        if (node.data->value.u <= UINT16_MAX)
+        if (node.data->value.u <= MPACK_UINT16_MAX)
             return (uint16_t)node.data->value.u;
     } else if (node.data->type == mpack_type_int) {
-        if (node.data->value.i >= 0 && node.data->value.i <= UINT16_MAX)
+        if (node.data->value.i >= 0 && node.data->value.i <= MPACK_UINT16_MAX)
             return (uint16_t)node.data->value.i;
     }
 
@@ -2041,10 +2041,10 @@ int16_t mpack_node_i16(mpack_node_t node) {
         return 0;
 
     if (node.data->type == mpack_type_uint) {
-        if (node.data->value.u <= INT16_MAX)
+        if (node.data->value.u <= MPACK_INT16_MAX)
             return (int16_t)node.data->value.u;
     } else if (node.data->type == mpack_type_int) {
-        if (node.data->value.i >= INT16_MIN && node.data->value.i <= INT16_MAX)
+        if (node.data->value.i >= MPACK_INT16_MIN && node.data->value.i <= MPACK_INT16_MAX)
             return (int16_t)node.data->value.i;
     }
 
@@ -2057,10 +2057,10 @@ uint32_t mpack_node_u32(mpack_node_t node) {
         return 0;
 
     if (node.data->type == mpack_type_uint) {
-        if (node.data->value.u <= UINT32_MAX)
+        if (node.data->value.u <= MPACK_UINT32_MAX)
             return (uint32_t)node.data->value.u;
     } else if (node.data->type == mpack_type_int) {
-        if (node.data->value.i >= 0 && node.data->value.i <= UINT32_MAX)
+        if (node.data->value.i >= 0 && node.data->value.i <= MPACK_UINT32_MAX)
             return (uint32_t)node.data->value.i;
     }
 
@@ -2073,10 +2073,10 @@ int32_t mpack_node_i32(mpack_node_t node) {
         return 0;
 
     if (node.data->type == mpack_type_uint) {
-        if (node.data->value.u <= INT32_MAX)
+        if (node.data->value.u <= MPACK_INT32_MAX)
             return (int32_t)node.data->value.u;
     } else if (node.data->type == mpack_type_int) {
-        if (node.data->value.i >= INT32_MIN && node.data->value.i <= INT32_MAX)
+        if (node.data->value.i >= MPACK_INT32_MIN && node.data->value.i <= MPACK_INT32_MAX)
             return (int32_t)node.data->value.i;
     }
 
@@ -2104,7 +2104,7 @@ int64_t mpack_node_i64(mpack_node_t node) {
         return 0;
 
     if (node.data->type == mpack_type_uint) {
-        if (node.data->value.u <= (uint64_t)INT64_MAX)
+        if (node.data->value.u <= (uint64_t)MPACK_INT64_MAX)
             return (int64_t)node.data->value.u;
     } else if (node.data->type == mpack_type_int) {
         return node.data->value.i;
@@ -2122,7 +2122,7 @@ unsigned int mpack_node_uint(mpack_node_t node) {
 
     // Otherwise we use u64 and check the range.
     uint64_t val = mpack_node_u64(node);
-    if (val <= UINT_MAX)
+    if (val <= MPACK_UINT_MAX)
         return (unsigned int)val;
 
     mpack_node_flag_error(node, mpack_error_type);
@@ -2137,7 +2137,7 @@ int mpack_node_int(mpack_node_t node) {
 
     // Otherwise we use i64 and check the range.
     int64_t val = mpack_node_i64(node);
-    if (val >= INT_MIN && val <= INT_MAX)
+    if (val >= MPACK_INT_MIN && val <= MPACK_INT_MAX)
         return (int)val;
 
     mpack_node_flag_error(node, mpack_error_type);

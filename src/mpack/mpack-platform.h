@@ -142,6 +142,28 @@
 
 
 /*
+ * Limits
+ */
+
+#define MPACK_INT8_MIN INT8_MIN
+#define MPACK_INT16_MIN INT16_MIN
+#define MPACK_INT32_MIN INT32_MIN
+#define MPACK_INT64_MIN INT64_MIN
+#define MPACK_INT_MIN INT_MIN
+#define MPACK_INT8_MAX INT8_MAX
+#define MPACK_INT16_MAX INT16_MAX
+#define MPACK_INT32_MAX INT32_MAX
+#define MPACK_INT64_MAX INT64_MAX
+#define MPACK_INT_MAX INT_MAX
+#define MPACK_UINT8_MAX UINT8_MAX
+#define MPACK_UINT16_MAX UINT16_MAX
+#define MPACK_UINT32_MAX UINT32_MAX
+#define MPACK_UINT64_MAX UINT64_MAX
+#define MPACK_UINT_MAX UINT_MAX
+
+
+
+/*
  * Floating point support
  */
 
@@ -235,7 +257,7 @@
 #endif
 
 // On platforms with small size_t (e.g. AVR) we get type limits warnings where
-// we compare a size_t to e.g. UINT32_MAX.
+// we compare a size_t to e.g. MPACK_UINT32_MAX.
 #ifdef __AVR__
     #define MPACK_SILENCE_WARNINGS_TYPE_LIMITS \
         _Pragma ("GCC diagnostic ignored \"-Wtype-limits\"")

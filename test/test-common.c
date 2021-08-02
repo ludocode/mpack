@@ -59,8 +59,8 @@ static void test_tags_simple(void) {
     // uints
     TEST_TRUE(mpack_tag_uint(0).v.u == 0);
     TEST_TRUE(mpack_tag_uint(1).v.u == 1);
-    TEST_TRUE(mpack_tag_uint(INT32_MAX).v.u == INT32_MAX);
-    TEST_TRUE(mpack_tag_uint(INT64_MAX).v.u == INT64_MAX);
+    TEST_TRUE(mpack_tag_uint(MPACK_INT32_MAX).v.u == MPACK_INT32_MAX);
+    TEST_TRUE(mpack_tag_uint(MPACK_INT64_MAX).v.u == MPACK_INT64_MAX);
 
     // ints
     TEST_TRUE(mpack_tag_int(0).v.i == 0);
@@ -68,7 +68,7 @@ static void test_tags_simple(void) {
     // when using INT32_C() and compiling the test suite as c++, gcc complains:
     // error: this decimal constant is unsigned only in ISO C90 [-Werror]
     TEST_TRUE(mpack_tag_int(INT64_C(-2147483648)).v.i == INT64_C(-2147483648));
-    TEST_TRUE(mpack_tag_int(INT64_MIN).v.i == INT64_MIN);
+    TEST_TRUE(mpack_tag_int(MPACK_INT64_MIN).v.i == MPACK_INT64_MIN);
 
     // bools
     TEST_TRUE(mpack_tag_bool(true).v.b == true);

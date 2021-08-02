@@ -513,7 +513,7 @@ MPACK_INLINE unsigned int mpack_expect_uint(mpack_reader_t* reader) {
         return (unsigned int)mpack_expect_u32(reader);
 
     // Otherwise we wrap the max function to ensure it fits.
-    return (unsigned int)mpack_expect_u64_max(reader, UINT_MAX);
+    return (unsigned int)mpack_expect_u64_max(reader, MPACK_UINT_MAX);
 
 }
 
@@ -532,7 +532,7 @@ MPACK_INLINE int mpack_expect_int(mpack_reader_t* reader) {
         return (int)mpack_expect_i32(reader);
 
     // Otherwise we wrap the range function to ensure it fits.
-    return (int)mpack_expect_i64_range(reader, INT_MIN, INT_MAX);
+    return (int)mpack_expect_i64_range(reader, MPACK_INT_MIN, MPACK_INT_MAX);
 
 }
 

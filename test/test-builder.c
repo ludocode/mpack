@@ -334,7 +334,7 @@ static void test_builder_content(void) {
 static void test_builder_add_expected_str(char* expected, size_t* pos, const char* str, uint32_t length) {
     if (length <= 31) {
         expected[(*pos)++] = (char)((uint32_t)'\xa0' + length);
-    } else if (length <= UINT8_MAX) {
+    } else if (length <= MPACK_UINT8_MAX) {
         expected[(*pos)++] = '\xd9';
         expected[(*pos)++] = (char)(uint8_t)length;
     } else {
