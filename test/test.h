@@ -77,7 +77,8 @@ MPACK_SILENCE_WARNINGS_BEGIN
     #elif defined(_MSC_VER)
         #define TEST_MPACK_SILENCE_SHADOW_BEGIN \
             MPACK_SILENCE_WARNINGS_PUSH \
-            __pragma(warning(disable:4456))
+            __pragma(warning(disable:4456)) \
+            __pragma(warning(disable:4459))
         #define TEST_MPACK_SILENCE_SHADOW_END \
             MPACK_SILENCE_WARNINGS_POP
     #endif
