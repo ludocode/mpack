@@ -1447,7 +1447,7 @@ mpack_timestamp_t mpack_node_timestamp(mpack_node_t node) {
         case 8: {
             uint64_t value = mpack_load_u64(p);
             timestamp.nanoseconds = (uint32_t)(value >> 34);
-            timestamp.seconds = value & ((UINT64_C(1) << 34) - 1);
+            timestamp.seconds = value & ((MPACK_UINT64_C(1) << 34) - 1);
             break;
         }
 

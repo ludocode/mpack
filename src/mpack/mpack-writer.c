@@ -1070,7 +1070,7 @@ void mpack_write_timestamp(mpack_writer_t* writer, int64_t seconds, uint32_t nan
 
     mpack_writer_track_element(writer);
 
-    if (seconds < 0 || seconds >= (INT64_C(1) << 34)) {
+    if (seconds < 0 || seconds >= (MPACK_INT64_C(1) << 34)) {
         MPACK_WRITE_ENCODED(mpack_encode_timestamp_12, MPACK_EXT_SIZE_TIMESTAMP12, seconds, nanoseconds);
     } else if (seconds > MPACK_UINT32_MAX || nanoseconds > 0) {
         MPACK_WRITE_ENCODED(mpack_encode_timestamp_8, MPACK_EXT_SIZE_TIMESTAMP8, seconds, nanoseconds);

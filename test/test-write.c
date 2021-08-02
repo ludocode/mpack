@@ -71,8 +71,8 @@ static void test_write_simple_auto_int(void) {
     TEST_SIMPLE_WRITE("\xcd\xff\xff", mpack_write_uint(&writer, 0xffff));
     TEST_SIMPLE_WRITE("\xce\x00\x01\x00\x00", mpack_write_uint(&writer, 0x10000));
     TEST_SIMPLE_WRITE("\xce\xff\xff\xff\xff", mpack_write_uint(&writer, 0xffffffff));
-    TEST_SIMPLE_WRITE("\xcf\x00\x00\x00\x01\x00\x00\x00\x00", mpack_write_uint(&writer, UINT64_C(0x100000000)));
-    TEST_SIMPLE_WRITE("\xcf\xff\xff\xff\xff\xff\xff\xff\xff", mpack_write_uint(&writer, UINT64_C(0xffffffffffffffff)));
+    TEST_SIMPLE_WRITE("\xcf\x00\x00\x00\x01\x00\x00\x00\x00", mpack_write_uint(&writer, MPACK_UINT64_C(0x100000000)));
+    TEST_SIMPLE_WRITE("\xcf\xff\xff\xff\xff\xff\xff\xff\xff", mpack_write_uint(&writer, MPACK_UINT64_C(0xffffffffffffffff)));
 
     // positive ints with signed value
     TEST_SIMPLE_WRITE("\xcc\x80", mpack_write_int(&writer, 0x80));
@@ -80,9 +80,9 @@ static void test_write_simple_auto_int(void) {
     TEST_SIMPLE_WRITE("\xcd\x01\x00", mpack_write_int(&writer, 0x100));
     TEST_SIMPLE_WRITE("\xcd\xff\xff", mpack_write_int(&writer, 0xffff));
     TEST_SIMPLE_WRITE("\xce\x00\x01\x00\x00", mpack_write_int(&writer, 0x10000));
-    TEST_SIMPLE_WRITE("\xce\xff\xff\xff\xff", mpack_write_int(&writer, INT64_C(0xffffffff)));
-    TEST_SIMPLE_WRITE("\xcf\x00\x00\x00\x01\x00\x00\x00\x00", mpack_write_int(&writer, INT64_C(0x100000000)));
-    TEST_SIMPLE_WRITE("\xcf\x7f\xff\xff\xff\xff\xff\xff\xff", mpack_write_int(&writer, INT64_C(0x7fffffffffffffff)));
+    TEST_SIMPLE_WRITE("\xce\xff\xff\xff\xff", mpack_write_int(&writer, MPACK_INT64_C(0xffffffff)));
+    TEST_SIMPLE_WRITE("\xcf\x00\x00\x00\x01\x00\x00\x00\x00", mpack_write_int(&writer, MPACK_INT64_C(0x100000000)));
+    TEST_SIMPLE_WRITE("\xcf\x7f\xff\xff\xff\xff\xff\xff\xff", mpack_write_int(&writer, MPACK_INT64_C(0x7fffffffffffffff)));
 
     // ints
     TEST_SIMPLE_WRITE("\xd0\xdf", mpack_write_int(&writer, -33));
@@ -93,9 +93,9 @@ static void test_write_simple_auto_int(void) {
 
     // when using INT32_C() and compiling the test suite as c++, gcc complains:
     // error: this decimal constant is unsigned only in ISO C90 [-Werror]
-    TEST_SIMPLE_WRITE("\xd2\x80\x00\x00\x00", mpack_write_int(&writer, INT64_C(-2147483648)));
+    TEST_SIMPLE_WRITE("\xd2\x80\x00\x00\x00", mpack_write_int(&writer, MPACK_INT64_C(-2147483648)));
 
-    TEST_SIMPLE_WRITE("\xd3\xff\xff\xff\xff\x7f\xff\xff\xff", mpack_write_int(&writer, INT64_C(-2147483649)));
+    TEST_SIMPLE_WRITE("\xd3\xff\xff\xff\xff\x7f\xff\xff\xff", mpack_write_int(&writer, MPACK_INT64_C(-2147483649)));
     TEST_SIMPLE_WRITE("\xd3\x80\x00\x00\x00\x00\x00\x00\x00", mpack_write_int(&writer, MPACK_INT64_MIN));
 
 }
@@ -197,8 +197,8 @@ static void test_write_simple_size_int(void) {
     TEST_SIMPLE_WRITE("\xcd\xff\xff", mpack_write_u64(&writer, 0xffff));
     TEST_SIMPLE_WRITE("\xce\x00\x01\x00\x00", mpack_write_u64(&writer, 0x10000));
     TEST_SIMPLE_WRITE("\xce\xff\xff\xff\xff", mpack_write_u64(&writer, 0xffffffff));
-    TEST_SIMPLE_WRITE("\xcf\x00\x00\x00\x01\x00\x00\x00\x00", mpack_write_u64(&writer, UINT64_C(0x100000000)));
-    TEST_SIMPLE_WRITE("\xcf\xff\xff\xff\xff\xff\xff\xff\xff", mpack_write_u64(&writer, UINT64_C(0xffffffffffffffff)));
+    TEST_SIMPLE_WRITE("\xcf\x00\x00\x00\x01\x00\x00\x00\x00", mpack_write_u64(&writer, MPACK_UINT64_C(0x100000000)));
+    TEST_SIMPLE_WRITE("\xcf\xff\xff\xff\xff\xff\xff\xff\xff", mpack_write_u64(&writer, MPACK_UINT64_C(0xffffffffffffffff)));
 
     // positive ints with signed value
     TEST_SIMPLE_WRITE("\xcc\x80", mpack_write_i16(&writer, 0x80));
@@ -219,9 +219,9 @@ static void test_write_simple_size_int(void) {
     TEST_SIMPLE_WRITE("\xcd\xff\xff", mpack_write_i64(&writer, 0xffff));
     TEST_SIMPLE_WRITE("\xce\x00\x01\x00\x00", mpack_write_i64(&writer, 0x10000));
     TEST_SIMPLE_WRITE("\xce\x7f\xff\xff\xff", mpack_write_i64(&writer, 0x7fffffff));
-    TEST_SIMPLE_WRITE("\xce\xff\xff\xff\xff", mpack_write_i64(&writer, INT64_C(0xffffffff)));
-    TEST_SIMPLE_WRITE("\xcf\x00\x00\x00\x01\x00\x00\x00\x00", mpack_write_i64(&writer, UINT64_C(0x100000000)));
-    TEST_SIMPLE_WRITE("\xcf\x7f\xff\xff\xff\xff\xff\xff\xff", mpack_write_i64(&writer, UINT64_C(0x7fffffffffffffff)));
+    TEST_SIMPLE_WRITE("\xce\xff\xff\xff\xff", mpack_write_i64(&writer, MPACK_INT64_C(0xffffffff)));
+    TEST_SIMPLE_WRITE("\xcf\x00\x00\x00\x01\x00\x00\x00\x00", mpack_write_i64(&writer, MPACK_UINT64_C(0x100000000)));
+    TEST_SIMPLE_WRITE("\xcf\x7f\xff\xff\xff\xff\xff\xff\xff", mpack_write_i64(&writer, MPACK_UINT64_C(0x7fffffffffffffff)));
 
     // negative ints
     TEST_SIMPLE_WRITE("\xd0\xdf", mpack_write_i8(&writer, -33));
@@ -238,15 +238,15 @@ static void test_write_simple_size_int(void) {
 
     // when using INT32_C() and compiling the test suite as c++, gcc complains:
     // error: this decimal constant is unsigned only in ISO C90 [-Werror]
-    TEST_SIMPLE_WRITE("\xd2\x80\x00\x00\x00", mpack_write_i32(&writer, INT64_C(-2147483648)));
-    TEST_SIMPLE_WRITE("\xd2\x80\x00\x00\x00", mpack_write_i64(&writer, INT64_C(-2147483648)));
+    TEST_SIMPLE_WRITE("\xd2\x80\x00\x00\x00", mpack_write_i32(&writer, MPACK_INT64_C(-2147483648)));
+    TEST_SIMPLE_WRITE("\xd2\x80\x00\x00\x00", mpack_write_i64(&writer, MPACK_INT64_C(-2147483648)));
 
     TEST_SIMPLE_WRITE("\xd0\xdf", mpack_write_i64(&writer, -33));
     TEST_SIMPLE_WRITE("\xd0\x80", mpack_write_i64(&writer, -128));
     TEST_SIMPLE_WRITE("\xd1\xff\x7f", mpack_write_i64(&writer, -129));
     TEST_SIMPLE_WRITE("\xd1\x80\x00", mpack_write_i64(&writer, -32768));
     TEST_SIMPLE_WRITE("\xd2\xff\xff\x7f\xff", mpack_write_i64(&writer, -32769));
-    TEST_SIMPLE_WRITE("\xd3\xff\xff\xff\xff\x7f\xff\xff\xff", mpack_write_i64(&writer, INT64_C(-2147483649)));
+    TEST_SIMPLE_WRITE("\xd3\xff\xff\xff\xff\x7f\xff\xff\xff", mpack_write_i64(&writer, MPACK_INT64_C(-2147483649)));
     TEST_SIMPLE_WRITE("\xd3\x80\x00\x00\x00\x00\x00\x00\x00", mpack_write_i64(&writer, MPACK_INT64_MIN));
 
 }
@@ -284,8 +284,8 @@ static void test_write_simple_tag_int(void) {
     TEST_SIMPLE_WRITE("\xcd\xff\xff", mpack_write_tag(&writer, mpack_tag_uint(0xffff)));
     TEST_SIMPLE_WRITE("\xce\x00\x01\x00\x00", mpack_write_tag(&writer, mpack_tag_uint(0x10000)));
     TEST_SIMPLE_WRITE("\xce\xff\xff\xff\xff", mpack_write_tag(&writer, mpack_tag_uint(0xffffffff)));
-    TEST_SIMPLE_WRITE("\xcf\x00\x00\x00\x01\x00\x00\x00\x00", mpack_write_tag(&writer, mpack_tag_uint(UINT64_C(0x100000000))));
-    TEST_SIMPLE_WRITE("\xcf\xff\xff\xff\xff\xff\xff\xff\xff", mpack_write_tag(&writer, mpack_tag_uint(UINT64_C(0xffffffffffffffff))));
+    TEST_SIMPLE_WRITE("\xcf\x00\x00\x00\x01\x00\x00\x00\x00", mpack_write_tag(&writer, mpack_tag_uint(MPACK_UINT64_C(0x100000000))));
+    TEST_SIMPLE_WRITE("\xcf\xff\xff\xff\xff\xff\xff\xff\xff", mpack_write_tag(&writer, mpack_tag_uint(MPACK_UINT64_C(0xffffffffffffffff))));
 
     // positive ints with signed value
     TEST_SIMPLE_WRITE("\xcc\x80", mpack_write_tag(&writer, mpack_tag_int(0x80)));
@@ -293,9 +293,9 @@ static void test_write_simple_tag_int(void) {
     TEST_SIMPLE_WRITE("\xcd\x01\x00", mpack_write_tag(&writer, mpack_tag_int(0x100)));
     TEST_SIMPLE_WRITE("\xcd\xff\xff", mpack_write_tag(&writer, mpack_tag_int(0xffff)));
     TEST_SIMPLE_WRITE("\xce\x00\x01\x00\x00", mpack_write_tag(&writer, mpack_tag_int(0x10000)));
-    TEST_SIMPLE_WRITE("\xce\xff\xff\xff\xff", mpack_write_tag(&writer, mpack_tag_int(INT64_C(0xffffffff))));
-    TEST_SIMPLE_WRITE("\xcf\x00\x00\x00\x01\x00\x00\x00\x00", mpack_write_tag(&writer, mpack_tag_int(INT64_C(0x100000000))));
-    TEST_SIMPLE_WRITE("\xcf\x7f\xff\xff\xff\xff\xff\xff\xff", mpack_write_tag(&writer, mpack_tag_int(INT64_C(0x7fffffffffffffff))));
+    TEST_SIMPLE_WRITE("\xce\xff\xff\xff\xff", mpack_write_tag(&writer, mpack_tag_int(MPACK_INT64_C(0xffffffff))));
+    TEST_SIMPLE_WRITE("\xcf\x00\x00\x00\x01\x00\x00\x00\x00", mpack_write_tag(&writer, mpack_tag_int(MPACK_INT64_C(0x100000000))));
+    TEST_SIMPLE_WRITE("\xcf\x7f\xff\xff\xff\xff\xff\xff\xff", mpack_write_tag(&writer, mpack_tag_int(MPACK_INT64_C(0x7fffffffffffffff))));
 
     // ints
     TEST_SIMPLE_WRITE("\xd0\xdf", mpack_write_tag(&writer, mpack_tag_int(-33)));
@@ -306,9 +306,9 @@ static void test_write_simple_tag_int(void) {
 
     // when using INT32_C() and compiling the test suite as c++, gcc complains:
     // error: this decimal constant is unsigned only in ISO C90 [-Werror]
-    TEST_SIMPLE_WRITE("\xd2\x80\x00\x00\x00", mpack_write_tag(&writer, mpack_tag_int(INT64_C(-2147483648))));
+    TEST_SIMPLE_WRITE("\xd2\x80\x00\x00\x00", mpack_write_tag(&writer, mpack_tag_int(MPACK_INT64_C(-2147483648))));
 
-    TEST_SIMPLE_WRITE("\xd3\xff\xff\xff\xff\x7f\xff\xff\xff", mpack_write_tag(&writer, mpack_tag_int(INT64_C(-2147483649))));
+    TEST_SIMPLE_WRITE("\xd3\xff\xff\xff\xff\x7f\xff\xff\xff", mpack_write_tag(&writer, mpack_tag_int(MPACK_INT64_C(-2147483649))));
     TEST_SIMPLE_WRITE("\xd3\x80\x00\x00\x00\x00\x00\x00\x00", mpack_write_tag(&writer, mpack_tag_int(MPACK_INT64_MIN)));
 
 }
@@ -371,11 +371,11 @@ static void test_write_timestamp(void) {
     TEST_SIMPLE_WRITE("\xd6\xff\xff\xff\xff\xff", mpack_write_timestamp(&writer, MPACK_UINT32_MAX, 0));
 
     TEST_SIMPLE_WRITE("\xd7\xff\x00\x00\x00\x03\x00\x00\x00\x00",
-            mpack_write_timestamp_seconds(&writer, INT64_C(12884901888)));
+            mpack_write_timestamp_seconds(&writer, MPACK_INT64_C(12884901888)));
     TEST_SIMPLE_WRITE("\xd7\xff\xee\x6b\x27\xfc\x00\x00\x00\x00",
             mpack_write_timestamp(&writer, 0, MPACK_TIMESTAMP_NANOSECONDS_MAX));
     TEST_SIMPLE_WRITE("\xd7\xff\xee\x6b\x27\xff\xff\xff\xff\xff",
-            mpack_write_timestamp(&writer, INT64_C(17179869183), MPACK_TIMESTAMP_NANOSECONDS_MAX));
+            mpack_write_timestamp(&writer, MPACK_INT64_C(17179869183), MPACK_TIMESTAMP_NANOSECONDS_MAX));
 
     TEST_SIMPLE_WRITE("\xc7\x0c\xff\x00\x00\x00\x01\xff\xff\xff\xff\xff\xff\xff\xff",
             mpack_write_timestamp(&writer, -1, 1));
@@ -1156,7 +1156,7 @@ static void test_misc(void) {
         char single[1];
 
         mpack_writer_init(&writer, single, SIZE_MAX);
-        test_system_mock_strlen((size_t)((uint64_t)MPACK_UINT32_MAX + UINT64_C(1)));
+        test_system_mock_strlen((size_t)((uint64_t)MPACK_UINT32_MAX + MPACK_UINT64_C(1)));
         mpack_write_cstr(&writer, quick_brown_fox);
         TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_invalid);
 

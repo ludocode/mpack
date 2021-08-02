@@ -304,8 +304,8 @@ static void test_expect_ints_dynamic_int(void) {
     TEST_SIMPLE_READ("\xcd\xff\xff", mpack_tag_equal(mpack_tag_uint(0xffff), mpack_read_tag(&reader)));
     TEST_SIMPLE_READ("\xce\x00\x01\x00\x00", mpack_tag_equal(mpack_tag_uint(0x10000), mpack_read_tag(&reader)));
     TEST_SIMPLE_READ("\xce\xff\xff\xff\xff", mpack_tag_equal(mpack_tag_uint(0xffffffff), mpack_read_tag(&reader)));
-    TEST_SIMPLE_READ("\xcf\x00\x00\x00\x01\x00\x00\x00\x00", mpack_tag_equal(mpack_tag_uint(UINT64_C(0x100000000)), mpack_read_tag(&reader)));
-    TEST_SIMPLE_READ("\xcf\xff\xff\xff\xff\xff\xff\xff\xff", mpack_tag_equal(mpack_tag_uint(UINT64_C(0xffffffffffffffff)), mpack_read_tag(&reader)));
+    TEST_SIMPLE_READ("\xcf\x00\x00\x00\x01\x00\x00\x00\x00", mpack_tag_equal(mpack_tag_uint(MPACK_UINT64_C(0x100000000)), mpack_read_tag(&reader)));
+    TEST_SIMPLE_READ("\xcf\xff\xff\xff\xff\xff\xff\xff\xff", mpack_tag_equal(mpack_tag_uint(MPACK_UINT64_C(0xffffffffffffffff)), mpack_read_tag(&reader)));
 
     // ints
     TEST_SIMPLE_READ("\xd0\xdf", mpack_tag_equal(mpack_tag_int(-33), mpack_read_tag(&reader)));
@@ -717,7 +717,7 @@ static void test_expect_str(void) {
     #if MPACK_STDLIB
     // str/cstr match larger than 32 bits
     if (MPACK_UINT32_MAX < SIZE_MAX) {
-        test_system_mock_strlen((size_t)((uint64_t)MPACK_UINT32_MAX + UINT64_C(1)));
+        test_system_mock_strlen((size_t)((uint64_t)MPACK_UINT32_MAX + MPACK_UINT64_C(1)));
         TEST_SIMPLE_READ_ERROR("\xa3""abc", (mpack_expect_cstr_match(&reader, "abc"), true), mpack_error_type);
         test_system_mock_strlen(SIZE_MAX);
         TEST_SIMPLE_READ_ERROR("\xa3""abc", (mpack_expect_cstr_match(&reader, "abc"), true), mpack_error_type);
@@ -1297,13 +1297,13 @@ static void test_expect_timestamp(void) {
     TEST_SIMPLE_READ("\xd6\xff\xff\xff\xff\xff", MPACK_UINT32_MAX == mpack_expect_timestamp_truncate(&reader));
 
     TEST_SIMPLE_READ("\xd7\xff\x00\x00\x00\x03\x00\x00\x00\x00",
-            INT64_C(12884901888) == mpack_expect_timestamp_truncate(&reader));
+            MPACK_INT64_C(12884901888) == mpack_expect_timestamp_truncate(&reader));
     TEST_SIMPLE_READ("\xd7\xff\x00\x00\x00\x00\x00\x00\x00\x00",
             test_timestamp_match(0, 0, mpack_expect_timestamp(&reader)));
     TEST_SIMPLE_READ("\xd7\xff\xee\x6b\x27\xfc\x00\x00\x00\x00",
             test_timestamp_match(0, MPACK_TIMESTAMP_NANOSECONDS_MAX, mpack_expect_timestamp(&reader)));
     TEST_SIMPLE_READ("\xd7\xff\xee\x6b\x27\xff\xff\xff\xff\xff",
-            test_timestamp_match(INT64_C(17179869183), MPACK_TIMESTAMP_NANOSECONDS_MAX, mpack_expect_timestamp(&reader)));
+            test_timestamp_match(MPACK_INT64_C(17179869183), MPACK_TIMESTAMP_NANOSECONDS_MAX, mpack_expect_timestamp(&reader)));
 
     TEST_SIMPLE_READ("\xc7\x0c\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01",
             1 == mpack_expect_timestamp_truncate(&reader));

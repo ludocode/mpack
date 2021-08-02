@@ -338,8 +338,8 @@ static void test_node_read_ints_dynamic_int(void) {
     TEST_SIMPLE_TREE_READ("\xcd\xff\xff", mpack_tag_equal(mpack_tag_uint(0xffff), mpack_node_tag(node)));
     TEST_SIMPLE_TREE_READ("\xce\x00\x01\x00\x00", mpack_tag_equal(mpack_tag_uint(0x10000), mpack_node_tag(node)));
     TEST_SIMPLE_TREE_READ("\xce\xff\xff\xff\xff", mpack_tag_equal(mpack_tag_uint(0xffffffff), mpack_node_tag(node)));
-    TEST_SIMPLE_TREE_READ("\xcf\x00\x00\x00\x01\x00\x00\x00\x00", mpack_tag_equal(mpack_tag_uint(UINT64_C(0x100000000)), mpack_node_tag(node)));
-    TEST_SIMPLE_TREE_READ("\xcf\xff\xff\xff\xff\xff\xff\xff\xff", mpack_tag_equal(mpack_tag_uint(UINT64_C(0xffffffffffffffff)), mpack_node_tag(node)));
+    TEST_SIMPLE_TREE_READ("\xcf\x00\x00\x00\x01\x00\x00\x00\x00", mpack_tag_equal(mpack_tag_uint(MPACK_UINT64_C(0x100000000)), mpack_node_tag(node)));
+    TEST_SIMPLE_TREE_READ("\xcf\xff\xff\xff\xff\xff\xff\xff\xff", mpack_tag_equal(mpack_tag_uint(MPACK_UINT64_C(0xffffffffffffffff)), mpack_node_tag(node)));
 
     // ints
     TEST_SIMPLE_TREE_READ("\xd0\xdf", mpack_tag_equal(mpack_tag_int(-33), mpack_node_tag(node)));
@@ -833,7 +833,7 @@ static void test_node_read_timestamp(void) {
             0 == mpack_node_timestamp_nanoseconds(node));
 
     TEST_SIMPLE_TREE_READ("\xd7\xff\x00\x00\x00\x03\x00\x00\x00\x00",
-            INT64_C(12884901888) == mpack_node_timestamp_seconds(node) &&
+            MPACK_INT64_C(12884901888) == mpack_node_timestamp_seconds(node) &&
             0 == mpack_node_timestamp_nanoseconds(node));
     TEST_SIMPLE_TREE_READ("\xd7\xff\x00\x00\x00\x00\x00\x00\x00\x00",
             0 == mpack_node_timestamp_seconds(node) &&
@@ -842,7 +842,7 @@ static void test_node_read_timestamp(void) {
             0 == mpack_node_timestamp_seconds(node) &&
             MPACK_TIMESTAMP_NANOSECONDS_MAX == mpack_node_timestamp_nanoseconds(node));
     TEST_SIMPLE_TREE_READ("\xd7\xff\xee\x6b\x27\xff\xff\xff\xff\xff",
-            INT64_C(17179869183) == mpack_node_timestamp_seconds(node) &&
+            MPACK_INT64_C(17179869183) == mpack_node_timestamp_seconds(node) &&
             MPACK_TIMESTAMP_NANOSECONDS_MAX == mpack_node_timestamp_nanoseconds(node));
 
     TEST_SIMPLE_TREE_READ("\xc7\x0c\xff\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01",

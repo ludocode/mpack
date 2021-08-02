@@ -179,18 +179,18 @@ static void test_expect_buffer_values(mpack_reader_t* reader) {
 
     // when using UINT32_C() and compiling the test suite as c++, gcc complains:
     // error: this decimal constant is unsigned only in ISO C90 [-Werror]
-    TEST_READ_NOERROR(reader, UINT64_C(2386122103) == mpack_expect_u32(reader));
-    TEST_READ_NOERROR(reader, UINT64_C(2863333399) == mpack_expect_u32(reader));
-    TEST_READ_NOERROR(reader, UINT64_C(3340544681) == mpack_expect_u32(reader));
+    TEST_READ_NOERROR(reader, MPACK_UINT64_C(2386122103) == mpack_expect_u32(reader));
+    TEST_READ_NOERROR(reader, MPACK_UINT64_C(2863333399) == mpack_expect_u32(reader));
+    TEST_READ_NOERROR(reader, MPACK_UINT64_C(3340544681) == mpack_expect_u32(reader));
 
-    TEST_READ_NOERROR(reader, UINT64_C(4294967311) == mpack_expect_u64(reader));
-    TEST_READ_NOERROR(reader, UINT64_C(1941762537917555303) == mpack_expect_u64(reader));
-    TEST_READ_NOERROR(reader, UINT64_C(3883525071540143119) == mpack_expect_u64(reader));
-    TEST_READ_NOERROR(reader, UINT64_C(5825287605162730577) == mpack_expect_u64(reader));
-    TEST_READ_NOERROR(reader, UINT64_C(7767050138785318961) == mpack_expect_u64(reader));
-    TEST_READ_NOERROR(reader, UINT64_C(9708812672407906367) == mpack_expect_u64(reader));
-    TEST_READ_NOERROR(reader, UINT64_C(11650575206030493713) == mpack_expect_u64(reader));
-    TEST_READ_NOERROR(reader, UINT64_C(13592337739653081091) == mpack_expect_u64(reader));
+    TEST_READ_NOERROR(reader, MPACK_UINT64_C(4294967311) == mpack_expect_u64(reader));
+    TEST_READ_NOERROR(reader, MPACK_UINT64_C(1941762537917555303) == mpack_expect_u64(reader));
+    TEST_READ_NOERROR(reader, MPACK_UINT64_C(3883525071540143119) == mpack_expect_u64(reader));
+    TEST_READ_NOERROR(reader, MPACK_UINT64_C(5825287605162730577) == mpack_expect_u64(reader));
+    TEST_READ_NOERROR(reader, MPACK_UINT64_C(7767050138785318961) == mpack_expect_u64(reader));
+    TEST_READ_NOERROR(reader, MPACK_UINT64_C(9708812672407906367) == mpack_expect_u64(reader));
+    TEST_READ_NOERROR(reader, MPACK_UINT64_C(11650575206030493713) == mpack_expect_u64(reader));
+    TEST_READ_NOERROR(reader, MPACK_UINT64_C(13592337739653081091) == mpack_expect_u64(reader));
 }
 #endif
 
@@ -231,18 +231,18 @@ static void test_write_buffer_values(mpack_writer_t* writer) {
 
     // when using UINT32_C() and compiling the test suite as c++, gcc complains:
     // error: this decimal constant is unsigned only in ISO C90 [-Werror]
-    TEST_WRITE_NOERROR(writer, mpack_write_u32(writer, UINT64_C(2386122103)));
-    TEST_WRITE_NOERROR(writer, mpack_write_u32(writer, UINT64_C(2863333399)));
-    TEST_WRITE_NOERROR(writer, mpack_write_u32(writer, UINT64_C(3340544681)));
+    TEST_WRITE_NOERROR(writer, mpack_write_u32(writer, MPACK_UINT64_C(2386122103)));
+    TEST_WRITE_NOERROR(writer, mpack_write_u32(writer, MPACK_UINT64_C(2863333399)));
+    TEST_WRITE_NOERROR(writer, mpack_write_u32(writer, MPACK_UINT64_C(3340544681)));
 
-    TEST_WRITE_NOERROR(writer, mpack_write_u64(writer, UINT64_C(4294967311)));
-    TEST_WRITE_NOERROR(writer, mpack_write_u64(writer, UINT64_C(1941762537917555303)));
-    TEST_WRITE_NOERROR(writer, mpack_write_u64(writer, UINT64_C(3883525071540143119)));
-    TEST_WRITE_NOERROR(writer, mpack_write_u64(writer, UINT64_C(5825287605162730577)));
-    TEST_WRITE_NOERROR(writer, mpack_write_u64(writer, UINT64_C(7767050138785318961)));
-    TEST_WRITE_NOERROR(writer, mpack_write_u64(writer, UINT64_C(9708812672407906367)));
-    TEST_WRITE_NOERROR(writer, mpack_write_u64(writer, UINT64_C(11650575206030493713)));
-    TEST_WRITE_NOERROR(writer, mpack_write_u64(writer, UINT64_C(13592337739653081091)));
+    TEST_WRITE_NOERROR(writer, mpack_write_u64(writer, MPACK_UINT64_C(4294967311)));
+    TEST_WRITE_NOERROR(writer, mpack_write_u64(writer, MPACK_UINT64_C(1941762537917555303)));
+    TEST_WRITE_NOERROR(writer, mpack_write_u64(writer, MPACK_UINT64_C(3883525071540143119)));
+    TEST_WRITE_NOERROR(writer, mpack_write_u64(writer, MPACK_UINT64_C(5825287605162730577)));
+    TEST_WRITE_NOERROR(writer, mpack_write_u64(writer, MPACK_UINT64_C(7767050138785318961)));
+    TEST_WRITE_NOERROR(writer, mpack_write_u64(writer, MPACK_UINT64_C(9708812672407906367)));
+    TEST_WRITE_NOERROR(writer, mpack_write_u64(writer, MPACK_UINT64_C(11650575206030493713)));
+    TEST_WRITE_NOERROR(writer, mpack_write_u64(writer, MPACK_UINT64_C(13592337739653081091)));
 }
 #endif
 

@@ -1053,7 +1053,7 @@ mpack_timestamp_t mpack_read_timestamp(mpack_reader_t* reader, size_t size) {
 
         case 8: {
             uint64_t packed = mpack_load_u64(buf);
-            timestamp.seconds = (int64_t)(packed & ((UINT64_C(1) << 34) - 1));
+            timestamp.seconds = (int64_t)(packed & ((MPACK_UINT64_C(1) << 34) - 1));
             timestamp.nanoseconds = (uint32_t)(packed >> 34);
             break;
         }

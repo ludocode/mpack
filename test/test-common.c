@@ -67,7 +67,7 @@ static void test_tags_simple(void) {
     TEST_TRUE(mpack_tag_int(1).v.i == 1);
     // when using INT32_C() and compiling the test suite as c++, gcc complains:
     // error: this decimal constant is unsigned only in ISO C90 [-Werror]
-    TEST_TRUE(mpack_tag_int(INT64_C(-2147483648)).v.i == INT64_C(-2147483648));
+    TEST_TRUE(mpack_tag_int(MPACK_INT64_C(-2147483648)).v.i == MPACK_INT64_C(-2147483648));
     TEST_TRUE(mpack_tag_int(MPACK_INT64_MIN).v.i == MPACK_INT64_MIN);
 
     // bools
