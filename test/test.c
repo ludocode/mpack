@@ -21,9 +21,6 @@
 
 #include "test.h"
 
-#include <string.h>
-#include <stdarg.h>
-
 #include "test-reader.h"
 #include "test-expect.h"
 #include "test-write.h"

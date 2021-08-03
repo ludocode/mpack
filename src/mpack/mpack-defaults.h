@@ -132,13 +132,32 @@
 // This goes in your project settings.
 
 /**
+ * @def MPACK_CONFORMING
+ *
+ * Enables inclusion of the headers required for conforming implementations of
+ * C99 even in freestanding, in particular <stdint.h>, <stdbool.h> and
+ * <limits.h>, as well <inttypes.h>. You can disable this if these headers are
+ * unavailable or if they do not define the standard types and macros (for
+ * example inside the Linux kernel.)
+ */
+#ifndef MPACK_CONFORMING
+    #define MPACK_CONFORMING 1
+#endif
+
+/**
  * @def MPACK_STDLIB
  *
  * Enables the use of C stdlib. This allows the library to use malloc
  * for debugging and in allocation helpers.
  */
 #ifndef MPACK_STDLIB
-#define MPACK_STDLIB 1
+    #if !MPACK_CONFORMING
+        // If we don't even have a proper <limits.h> we assume we won't have
+        // malloc() either.
+        #define MPACK_STDLIB 0
+    #else
+        #define MPACK_STDLIB 1
+    #endif
 #endif
 
 /**
@@ -148,7 +167,7 @@
  * reading/writing C files and makes debugging easier.
  */
 #ifndef MPACK_STDIO
-    #ifdef __AVR__
+    #if !MPACK_STDLIB || defined(__AVR__)
         #define MPACK_STDIO 0
     #else
         #define MPACK_STDIO 1
@@ -451,12 +470,7 @@
  * perform manual float parsing yourself.
  */
 #ifndef MPACK_FLOAT
-    #ifdef __KERNEL__
-        // No floating point support in the Linux kernel.
-        #define MPACK_FLOAT 0
-    #else
-        #define MPACK_FLOAT 1
-    #endif
+    #define MPACK_FLOAT 1
 #endif
 
 /**

@@ -29,18 +29,32 @@
 #define _CRT_SECURE_NO_WARNINGS 1
 #endif
 
-// mpack poisons double when MPACK_DOUBLE is disabled so we give ourselves a
-// macro to use it manually in tests
+// mpack poisons float and double when disabled so we give ourselves macros to
+// use them manually in tests
+#define TEST_FLOAT float
 #define TEST_DOUBLE double
 
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
-#include <setjmp.h>
+// In the special case where we have float but not double, we have to include
+// <math.h> first since MPack poisons double in the unit test suite to make
+// sure it isn't used.
+#if defined(MPACK_DOUBLE) && !defined(MPACK_FLOAT)
+    #if !MPACK_DOUBLE
+        #include <math.h>
+    #endif
+#endif
 
 #include "mpack/mpack.h"
 
-#include <stdio.h>
+#if MPACK_CONFORMING
+    #include <string.h>
+    #include <stdlib.h>
+    #include <setjmp.h>
+    #include <stdio.h>
+    #include <stdarg.h>
+    #if MPACK_FLOAT
+        #include <math.h>
+    #endif
+#endif
 
 #if MPACK_STDIO
     #ifdef WIN32
@@ -52,8 +66,6 @@
         #include <sys/types.h>
     #endif
 #endif
-
-#include "mpack/mpack.h"
 
 // We silence the same warnings as MPack across the entire unit test suite.
 // There's no MPACK_SILENCE_WARNINGS_END to match this.
@@ -96,6 +108,8 @@ MPACK_SILENCE_WARNINGS_BEGIN
  * MSVC is ridiculous with warnings when it comes to infinity. All of this
  * wraps various infinities to avoid constant arithmetic overflow warnings.
  */
+
+#if MPACK_FLOAT
 
 #ifdef __cplusplus
 #include <limits>
@@ -150,6 +164,8 @@ MPACK_SILENCE_WARNINGS_BEGIN
     #ifndef MPACK_DOUBLE_NEGATIVE_INFINITY
         #define MPACK_DOUBLE_NEGATIVE_INFINITY (-MPACK_DOUBLE_POSITIVE_INFINITY)
     #endif
+#endif
+
 #endif
 
 

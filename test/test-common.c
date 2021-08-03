@@ -19,9 +19,6 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-// include math first since mpack poisons floats
-#include <math.h>
-
 // we need internal to access the utf-8 check functions
 #define MPACK_INTERNAL 1
 

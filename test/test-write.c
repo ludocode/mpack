@@ -1092,7 +1092,7 @@ static void test_write_flush_message(void) {
     test_write_flush_t flush = {buf, sizeof(buf), 0};
 
     mpack_writer_t writer;
-    mpack_writer_init_stack(&writer);
+    mpack_writer_init(&writer, buf, sizeof(buf));
     mpack_writer_set_context(&writer, &flush);
     mpack_writer_set_flush(&writer, &test_write_flush_callback);
 
@@ -1115,7 +1115,7 @@ static void test_write_flush_message(void) {
     TEST_WRITER_DESTROY_NOERROR(&writer);
 
     // test break due to open message (if tracking is enabled)
-    mpack_writer_init_stack(&writer);
+    mpack_writer_init(&writer, buf, sizeof(buf));
     mpack_writer_set_context(&writer, &flush);
     mpack_writer_set_flush(&writer, &test_write_flush_callback);
     mpack_start_map(&writer, 5);
@@ -1130,7 +1130,7 @@ static void test_write_flush_message(void) {
     #endif
 
     // test break due to lack of flush
-    mpack_writer_init_stack(&writer);
+    mpack_writer_init(&writer, buf, sizeof(buf));
     mpack_write_cstr(&writer, "hello world!");
     TEST_BREAK((mpack_writer_flush_message(&writer), true));
     TEST_TRUE(mpack_writer_error(&writer) == mpack_error_bug);

@@ -1,4 +1,3 @@
-
 #ifndef MPACK_CONFIG_H
 #define MPACK_CONFIG_H 1
 
@@ -128,4 +127,3 @@
 #endif
 
 #endif
-

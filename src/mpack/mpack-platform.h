@@ -124,14 +124,17 @@
 #endif
 
 #include <stddef.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <inttypes.h>
-#include <limits.h>
+
+#if MPACK_CONFORMING
+    #include <stdint.h>
+    #include <stdbool.h>
+    #include <inttypes.h>
+    #include <limits.h>
+#endif
 
 #if MPACK_STDLIB
-#include <string.h>
-#include <stdlib.h>
+    #include <string.h>
+    #include <stdlib.h>
 #endif
 
 #if MPACK_STDIO
@@ -145,23 +148,51 @@
  * Integer Constants and Limits
  */
 
-#define MPACK_INT8_MIN INT8_MIN
-#define MPACK_INT16_MIN INT16_MIN
-#define MPACK_INT32_MIN INT32_MIN
-#define MPACK_INT64_MIN INT64_MIN
-#define MPACK_INT_MIN INT_MIN
-#define MPACK_INT8_MAX INT8_MAX
-#define MPACK_INT16_MAX INT16_MAX
-#define MPACK_INT32_MAX INT32_MAX
-#define MPACK_INT64_MAX INT64_MAX
-#define MPACK_INT64_C INT64_C
-#define MPACK_INT_MAX INT_MAX
-#define MPACK_UINT8_MAX UINT8_MAX
-#define MPACK_UINT16_MAX UINT16_MAX
-#define MPACK_UINT32_MAX UINT32_MAX
-#define MPACK_UINT64_MAX UINT64_MAX
-#define MPACK_UINT64_C UINT64_C
-#define MPACK_UINT_MAX UINT_MAX
+#if MPACK_CONFORMING
+    #define MPACK_INT64_C INT64_C
+    #define MPACK_UINT64_C UINT64_C
+
+    #define MPACK_INT8_MIN INT8_MIN
+    #define MPACK_INT16_MIN INT16_MIN
+    #define MPACK_INT32_MIN INT32_MIN
+    #define MPACK_INT64_MIN INT64_MIN
+    #define MPACK_INT_MIN INT_MIN
+
+    #define MPACK_INT8_MAX INT8_MAX
+    #define MPACK_INT16_MAX INT16_MAX
+    #define MPACK_INT32_MAX INT32_MAX
+    #define MPACK_INT64_MAX INT64_MAX
+    #define MPACK_INT_MAX INT_MAX
+
+    #define MPACK_UINT8_MAX UINT8_MAX
+    #define MPACK_UINT16_MAX UINT16_MAX
+    #define MPACK_UINT32_MAX UINT32_MAX
+    #define MPACK_UINT64_MAX UINT64_MAX
+    #define MPACK_UINT_MAX UINT_MAX
+#else
+    // For a non-conforming implementation we assume int is 32 bits.
+
+    #define MPACK_INT64_C(x) ((int64_t)(x##LL))
+    #define MPACK_UINT64_C(x) ((uint64_t)(x##LLU))
+
+    #define MPACK_INT8_MIN ((int8_t)(0x80))
+    #define MPACK_INT16_MIN ((int16_t)(0x8000))
+    #define MPACK_INT32_MIN ((int32_t)(0x80000000))
+    #define MPACK_INT64_MIN MPACK_INT64_C(0x8000000000000000)
+    #define MPACK_INT_MIN MPACK_INT32_MIN
+
+    #define MPACK_INT8_MAX ((int8_t)(0x7f))
+    #define MPACK_INT16_MAX ((int16_t)(0x7fff))
+    #define MPACK_INT32_MAX ((int32_t)(0x7fffffff))
+    #define MPACK_INT64_MAX MPACK_INT64_C(0x7fffffffffffffff)
+    #define MPACK_INT_MAX MPACK_INT32_MAX
+
+    #define MPACK_UINT8_MAX ((uint8_t)(0xffu))
+    #define MPACK_UINT16_MAX ((uint16_t)(0xffffu))
+    #define MPACK_UINT32_MAX ((uint32_t)(0xffffffffu))
+    #define MPACK_UINT64_MAX MPACK_UINT64_C(0xffffffffffffffff)
+    #define MPACK_UINT_MAX MPACK_UINT32_MAX
+#endif
 
 
 
@@ -431,7 +462,7 @@ MPACK_EXTERN_C_BEGIN
     #if defined(_MSC_VER)
         #define MPACK_NOINLINE __declspec(noinline)
     #elif defined(__GNUC__) || defined(__clang__)
-        #define MPACK_NOINLINE __attribute__((noinline))
+        #define MPACK_NOINLINE __attribute__((__noinline__))
     #endif
 #endif
 #ifndef MPACK_NOINLINE
@@ -482,7 +513,7 @@ MPACK_EXTERN_C_BEGIN
 #if !MPACK_NO_BUILTINS
     #if defined(__GNUC__) || defined(__clang__)
         #define MPACK_UNREACHABLE __builtin_unreachable()
-        #define MPACK_NORETURN(fn) fn __attribute__((noreturn))
+        #define MPACK_NORETURN(fn) fn __attribute__((__noreturn__))
     #elif defined(_MSC_VER)
         #define MPACK_UNREACHABLE __assume(0)
         #define MPACK_NORETURN(fn) __declspec(noreturn) fn
@@ -866,8 +897,8 @@ MPACK_EXTERN_C_BEGIN
     //
     // This adds two unused arguments to the format argument list when a
     // format string is provided, so this would complicate the use of
-    // -Wformat and __attribute__((format)) on mpack_assert_fail_format() if we
-    // ever bothered to implement it.
+    // -Wformat and __attribute__((__format__)) on mpack_assert_fail_format()
+    // if we ever bothered to implement it.
     #define mpack_assert(...) \
             MPACK_EXPAND(((!(MPACK_EXTRACT_ARG0(__VA_ARGS__))) ? \
                 mpack_assert_fail_pos(__LINE__, __FILE__, MPACK_STRINGIFY_ARG0(__VA_ARGS__) , __VA_ARGS__ , "", NULL) : \
@@ -897,10 +928,18 @@ MPACK_EXTERN_C_BEGIN
 /* Wrap some needed libc functions */
 
 #if MPACK_STDLIB
-    #define mpack_memcmp memcmp
-    #define mpack_memcpy memcpy
-    #define mpack_memmove memmove
-    #define mpack_memset memset
+    #ifndef mpack_memcmp
+        #define mpack_memcmp memcmp
+    #endif
+    #ifndef mpack_memcpy
+        #define mpack_memcpy memcpy
+    #endif
+    #ifndef mpack_memmove
+        #define mpack_memmove memmove
+    #endif
+    #ifndef mpack_memset
+        #define mpack_memset memset
+    #endif
     #ifndef mpack_strlen
         #define mpack_strlen strlen
     #endif
@@ -924,28 +963,46 @@ MPACK_EXTERN_C_BEGIN
     #endif
 
 #elif defined(__GNUC__) && !MPACK_NO_BUILTINS
+    #ifndef mpack_memcmp
+        #define mpack_memcmp __builtin_memcmp
+    #endif
+    #ifndef mpack_memcpy
+        #define mpack_memcpy __builtin_memcpy
+    #endif
     // there's not always a builtin memmove for GCC,
     // and we don't have a way to test for it
-    #define mpack_memcmp __builtin_memcmp
-    #define mpack_memcpy __builtin_memcpy
-    #define mpack_memset __builtin_memset
-    #define mpack_strlen __builtin_strlen
+    #ifndef mpack_memset
+        #define mpack_memset __builtin_memset
+    #endif
+    #ifndef mpack_strlen
+        #define mpack_strlen __builtin_strlen
+    #endif
 
 #elif defined(__clang__) && defined(__has_builtin) && !MPACK_NO_BUILTINS
-    #if __has_builtin(__builtin_memcmp)
-    #define mpack_memcmp __builtin_memcmp
+    #ifndef mpack_memcmp
+        #if __has_builtin(__builtin_memcmp)
+            #define mpack_memcmp __builtin_memcmp
+        #endif
     #endif
-    #if __has_builtin(__builtin_memcpy)
-    #define mpack_memcpy __builtin_memcpy
+    #ifndef mpack_memcpy
+        #if __has_builtin(__builtin_memcpy)
+            #define mpack_memcpy __builtin_memcpy
+        #endif
     #endif
-    #if __has_builtin(__builtin_memmove)
-    #define mpack_memmove __builtin_memmove
+    #ifndef mpack_memmove
+        #if __has_builtin(__builtin_memmove)
+            #define mpack_memmove __builtin_memmove
+        #endif
     #endif
-    #if __has_builtin(__builtin_memset)
-    #define mpack_memset __builtin_memset
+    #ifndef mpack_memset
+        #if __has_builtin(__builtin_memset)
+            #define mpack_memset __builtin_memset
+        #endif
     #endif
-    #if __has_builtin(__builtin_strlen)
-    #define mpack_strlen __builtin_strlen
+    #ifndef mpack_strlen
+        #if __has_builtin(__builtin_strlen)
+            #define mpack_strlen __builtin_strlen
+        #endif
     #endif
 #endif
 

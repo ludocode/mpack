@@ -9,7 +9,9 @@ New Platforms:
 
 - Compiling as gnu89 is now supported. (See #68, #69)
 
-- Compiling for AVR (e.g. Arduino) and other microcontrollers is now supported. MPack should now compile cleanly on platforms with 16-bit `int` and `size_t`. (See #74, #79)
+- Compiling in the Linux kernel is now possible using a [standalone configuration file](https://github.com/ludocode/mpack-linux-kernel). (See #80)
+
+- Compiling for AVR (e.g. Arduino) and other microcontrollers is now supported. MPack now compiles cleanly on platforms with 16-bit `int` and `size_t`. (See #74, #79)
 
 - `float` and/or `double` can now be disabled individually on platforms with limited floating point support. AVR and the Linux kernel are detected automatically. If `float` is supported but not `double`, MessagePack doubles can be converted to `float`. (See #74, #79)
 
