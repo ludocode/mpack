@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2018 Nicholas Fraser
+ * Copyright (c) 2015-2021 Nicholas Fraser and the MPack authors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -170,7 +170,7 @@ static void test_expect_uint(void) {
     TEST_SIMPLE_READ("\xd3\x7f\xff\xff\xff\xff\xff\xff\xff", 0x7fffffffffffffff == mpack_expect_u64(&reader));
 
     // positive unsigned into u8
-    
+
     TEST_SIMPLE_READ("\xcc\x80", 0x80 == mpack_expect_u8(&reader));
     TEST_SIMPLE_READ("\xcc\x80", 0x80 == mpack_expect_u16(&reader));
     TEST_SIMPLE_READ("\xcc\x80", 0x80 == mpack_expect_u32(&reader));
@@ -331,7 +331,7 @@ static void test_expect_ints_dynamic_int(void) {
 static void test_expect_int_bounds(void) {
     mpack_reader_t reader;
 
-    TEST_SIMPLE_READ_ERROR("\xd1\xff\x7f", 0 == mpack_expect_i8(&reader), mpack_error_type); 
+    TEST_SIMPLE_READ_ERROR("\xd1\xff\x7f", 0 == mpack_expect_i8(&reader), mpack_error_type);
     TEST_SIMPLE_READ_ERROR("\xd1\x80\x00", 0 == mpack_expect_i8(&reader), mpack_error_type);
 
     TEST_SIMPLE_READ_ERROR("\xd2\xff\xff\x7f\xff", 0 == mpack_expect_i8(&reader), mpack_error_type);

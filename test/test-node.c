@@ -1,16 +1,16 @@
 /*
- * Copyright (c) 2015-2018 Nicholas Fraser
- * 
+ * Copyright (c) 2015-2021 Nicholas Fraser and the MPack authors
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
  * the Software without restriction, including without limitation the rights to
  * use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
  * the Software, and to permit persons to whom the Software is furnished to do so,
  * subject to the following conditions:
- * 
+ *
  * The above copyright notice and this permission notice shall be included in all
  * copies or substantial portions of the Software.
- * 
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
  * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
@@ -198,7 +198,7 @@ static void test_node_read_uint(void) {
     TEST_SIMPLE_TREE_READ("\xd3\x7f\xff\xff\xff\xff\xff\xff\xff", 0x7fffffffffffffff == mpack_node_u64(node));
 
     // positive unsigned into u8
-    
+
     TEST_SIMPLE_TREE_READ("\xcc\x80", 0x80 == mpack_node_u8(node));
     TEST_SIMPLE_TREE_READ("\xcc\x80", 0x80 == mpack_node_u16(node));
     TEST_SIMPLE_TREE_READ("\xcc\x80", 0x80 == mpack_node_u32(node));
@@ -359,7 +359,7 @@ static void test_node_read_ints_dynamic_int(void) {
 static void test_node_read_int_bounds(void) {
     mpack_tree_t tree;
 
-    TEST_SIMPLE_TREE_READ_ERROR("\xd1\xff\x7f", 0 == mpack_node_i8(node), mpack_error_type); 
+    TEST_SIMPLE_TREE_READ_ERROR("\xd1\xff\x7f", 0 == mpack_node_i8(node), mpack_error_type);
     TEST_SIMPLE_TREE_READ_ERROR("\xd1\x80\x00", 0 == mpack_node_i8(node), mpack_error_type);
 
     TEST_SIMPLE_TREE_READ_ERROR("\xd2\xff\xff\x7f\xff", 0 == mpack_node_i8(node), mpack_error_type);
