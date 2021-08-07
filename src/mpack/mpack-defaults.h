@@ -217,10 +217,14 @@
  * set and @ref MPACK_REALLOC is not, @ref MPACK_MALLOC is used with a simple copy
  * to grow buffers.
  */
-#if defined(MPACK_STDLIB) && MPACK_STDLIB && !defined(MPACK_MALLOC)
-#define MPACK_MALLOC malloc
-#define MPACK_REALLOC realloc
-#define MPACK_FREE free
+#if defined(MPACK_STDLIB)
+    #if MPACK_STDLIB
+        #if !defined(MPACK_MALLOC)
+            #define MPACK_MALLOC malloc
+            #define MPACK_REALLOC realloc
+            #define MPACK_FREE free
+        #endif
+    #endif
 #endif
 
 /**

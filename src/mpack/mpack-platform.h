@@ -123,9 +123,8 @@
 #define __STDC_CONSTANT_MACROS 1
 #endif
 
-#include <stddef.h>
-
 #if MPACK_CONFORMING
+    #include <stddef.h>
     #include <stdint.h>
     #include <stdbool.h>
     #include <inttypes.h>
@@ -138,8 +137,8 @@
 #endif
 
 #if MPACK_STDIO
-#include <stdio.h>
-#include <errno.h>
+    #include <stdio.h>
+    #include <errno.h>
 #endif
 
 
@@ -927,100 +926,163 @@ MPACK_EXTERN_C_BEGIN
 
 /* Wrap some needed libc functions */
 
+// These were briefly configurable in lowercase in an unreleased version. Just
+// to make sure no one is doing this, we make sure these aren't already defined.
+#ifdef mpack_memcmp
+    #error "Define MPACK_MEMCMP, not mpack_memcmp."
+#endif
+#ifdef mpack_memcpy
+    #error "Define MPACK_MEMCPY, not mpack_memcpy."
+#endif
+#ifdef mpack_memmove
+    #error "Define MPACK_MEMMOVE, not mpack_memmove."
+#endif
+#ifdef mpack_memset
+    #error "Define MPACK_MEMSET, not mpack_memset."
+#endif
+#ifdef mpack_strlen
+    #error "Define MPACK_STRLEN, not mpack_strlen."
+#endif
+
+// These were never configurable in lowercase but we check anyway.
+#ifdef mpack_malloc
+    #error "Define MPACK_MALLOC, not mpack_malloc."
+#endif
+#ifdef mpack_realloc
+    #error "Define MPACK_REALLOC, not mpack_realloc."
+#endif
+#ifdef mpack_free
+    #error "Define MPACK_FREE, not mpack_free."
+#endif
+
+// We don't use calloc() at all.
+#ifdef MPACK_CALLOC
+    #error "Don't define MPACK_CALLOC. MPack does not use calloc()."
+#endif
+#ifdef mpack_calloc
+    #error "Don't define mpack_calloc. MPack does not use calloc()."
+#endif
+
+
+// If the standard library is available, we prefer to use its functions.
 #if MPACK_STDLIB
-    #ifndef mpack_memcmp
-        #define mpack_memcmp memcmp
+    #ifndef MPACK_MEMCMP
+        #define MPACK_MEMCMP memcmp
     #endif
-    #ifndef mpack_memcpy
-        #define mpack_memcpy memcpy
+    #ifndef MPACK_MEMCPY
+        #define MPACK_MEMCPY memcpy
     #endif
-    #ifndef mpack_memmove
-        #define mpack_memmove memmove
+    #ifndef MPACK_MEMMOVE
+        #define MPACK_MEMMOVE memmove
     #endif
-    #ifndef mpack_memset
-        #define mpack_memset memset
+    #ifndef MPACK_MEMSET
+        #define MPACK_MEMSET memset
     #endif
-    #ifndef mpack_strlen
-        #define mpack_strlen strlen
+    #ifndef MPACK_STRLEN
+        #define MPACK_STRLEN strlen
     #endif
+#endif
 
-    #if defined(MPACK_UNIT_TESTS) && MPACK_INTERNAL && defined(__GNUC__)
-        // make sure we don't use the stdlib directly during development
-        #undef memcmp
-        #undef memcpy
-        #undef memmove
-        #undef memset
-        #undef strlen
-        #undef malloc
-        #undef free
-        #pragma GCC poison memcmp
-        #pragma GCC poison memcpy
-        #pragma GCC poison memmove
-        #pragma GCC poison memset
-        #pragma GCC poison strlen
-        #pragma GCC poison malloc
-        #pragma GCC poison free
-    #endif
-
-#elif defined(__GNUC__) && !MPACK_NO_BUILTINS
-    #ifndef mpack_memcmp
-        #define mpack_memcmp __builtin_memcmp
-    #endif
-    #ifndef mpack_memcpy
-        #define mpack_memcpy __builtin_memcpy
-    #endif
-    // there's not always a builtin memmove for GCC,
-    // and we don't have a way to test for it
-    #ifndef mpack_memset
-        #define mpack_memset __builtin_memset
-    #endif
-    #ifndef mpack_strlen
-        #define mpack_strlen __builtin_strlen
-    #endif
-
-#elif defined(__clang__) && defined(__has_builtin) && !MPACK_NO_BUILTINS
-    #ifndef mpack_memcmp
-        #if __has_builtin(__builtin_memcmp)
-            #define mpack_memcmp __builtin_memcmp
+#if !MPACK_NO_BUILTINS
+    #ifdef __has_builtin
+        #if !defined(MPACK_MEMCMP) && __has_builtin(__builtin_memcmp)
+            #define MPACK_MEMCMP __builtin_memcmp
         #endif
-    #endif
-    #ifndef mpack_memcpy
-        #if __has_builtin(__builtin_memcpy)
-            #define mpack_memcpy __builtin_memcpy
+        #if !defined(MPACK_MEMCPY) && __has_builtin(__builtin_memcpy)
+            #define MPACK_MEMCPY __builtin_memcpy
         #endif
-    #endif
-    #ifndef mpack_memmove
-        #if __has_builtin(__builtin_memmove)
-            #define mpack_memmove __builtin_memmove
+        #if !defined(MPACK_MEMMOVE) && __has_builtin(__builtin_memmove)
+            #define MPACK_MEMMOVE __builtin_memmove
         #endif
-    #endif
-    #ifndef mpack_memset
-        #if __has_builtin(__builtin_memset)
-            #define mpack_memset __builtin_memset
+        #if !defined(MPACK_MEMSET) && __has_builtin(__builtin_memset)
+            #define MPACK_MEMSET __builtin_memset
         #endif
-    #endif
-    #ifndef mpack_strlen
-        #if __has_builtin(__builtin_strlen)
-            #define mpack_strlen __builtin_strlen
+        #if !defined(MPACK_STRLEN) && __has_builtin(__builtin_strlen)
+            #define MPACK_STRLEN __builtin_strlen
+        #endif
+    #elif defined(__GNUC__)
+        #ifndef MPACK_MEMCMP
+            #define MPACK_MEMCMP __builtin_memcmp
+        #endif
+        #ifndef MPACK_MEMCPY
+            #define MPACK_MEMCPY __builtin_memcpy
+        #endif
+        // There's not always a builtin memmove for GCC. If we can't test for
+        // it with __has_builtin above, we don't use it. It's been around for
+        // much longer under clang, but then so has __has_builtin, so we let
+        // the block above handle it.
+        #ifndef MPACK_MEMSET
+            #define MPACK_MEMSET __builtin_memset
+        #endif
+        #ifndef MPACK_STRLEN
+            #define MPACK_STRLEN __builtin_strlen
         #endif
     #endif
 #endif
 
-#ifndef mpack_memcmp
-int mpack_memcmp(const void* s1, const void* s2, size_t n);
+// The above completes the auto-configuration. If a definition for each
+// function was found, we make a lowercase macro to wrap it; otherwise we
+// define our own implementations for some functions in lowercase.
+
+#ifdef MPACK_MEMCMP
+    #define mpack_memcmp MPACK_MEMCMP
+#else
+    int mpack_memcmp(const void* s1, const void* s2, size_t n);
 #endif
-#ifndef mpack_memcpy
-void* mpack_memcpy(void* MPACK_RESTRICT s1, const void* MPACK_RESTRICT s2, size_t n);
+
+#ifdef MPACK_MEMCPY
+    #define mpack_memcpy MPACK_MEMCPY
+#else
+    void* mpack_memcpy(void* MPACK_RESTRICT s1, const void* MPACK_RESTRICT s2, size_t n);
 #endif
-#ifndef mpack_memmove
-void* mpack_memmove(void* s1, const void* s2, size_t n);
+
+#ifdef MPACK_MEMMOVE
+    #define mpack_memmove MPACK_MEMMOVE
+#else
+    void* mpack_memmove(void* s1, const void* s2, size_t n);
 #endif
-#ifndef mpack_memset
-void* mpack_memset(void* s, int c, size_t n);
+
+#ifdef MPACK_MEMSET
+    #define mpack_memset MPACK_MEMSET
+#else
+    void* mpack_memset(void* s, int c, size_t n);
 #endif
-#ifndef mpack_strlen
-size_t mpack_strlen(const char* s);
+
+#ifdef MPACK_STRLEN
+    #define mpack_strlen MPACK_STRLEN
+#else
+    size_t mpack_strlen(const char* s);
 #endif
+
+
+// make sure we don't use the stdlib directly during development
+#if MPACK_STDLIB && defined(MPACK_UNIT_TESTS) && MPACK_INTERNAL && defined(__GNUC__)
+    #undef memcmp
+    #undef memcpy
+    #undef memmove
+    #undef memset
+    #undef strlen
+    #undef malloc
+    #undef calloc
+    #undef realloc
+    #undef free
+    #pragma GCC poison memcmp
+    #pragma GCC poison memcpy
+    #pragma GCC poison memmove
+    #pragma GCC poison memset
+    #pragma GCC poison strlen
+    #pragma GCC poison malloc
+    #pragma GCC poison calloc
+    #pragma GCC poison realloc
+    #pragma GCC poison free
+#endif
+
+
+
+
+
+
+
 
 #if MPACK_STDIO
     #if defined(WIN32)
@@ -1091,4 +1153,3 @@ MPACK_EXTERN_C_END
 MPACK_SILENCE_WARNINGS_END
 
 #endif
-

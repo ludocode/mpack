@@ -80,7 +80,7 @@
 // We replace strlen to simulate extremely large c-strings (only on stdlib
 // builds, so that non-stdlib builds test the mpack implementations)
 #if MPACK_STDLIB
-#define mpack_strlen test_strlen
+    #define MPACK_STRLEN test_strlen
 #endif
 
 // Tracking matches the default config, except the test suite
