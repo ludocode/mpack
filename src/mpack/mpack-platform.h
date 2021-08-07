@@ -588,42 +588,6 @@
     #endif
 #endif
 
-// The above completes the auto-configuration. If a definition for each
-// function was found, we make a lowercase macro to wrap it; otherwise we
-// define our own implementations for some functions in lowercase.
-
-/** @cond */
-#ifdef MPACK_MEMCMP
-    #define mpack_memcmp MPACK_MEMCMP
-#else
-    int mpack_memcmp(const void* s1, const void* s2, size_t n);
-#endif
-
-#ifdef MPACK_MEMCPY
-    #define mpack_memcpy MPACK_MEMCPY
-#else
-    void* mpack_memcpy(void* MPACK_RESTRICT s1, const void* MPACK_RESTRICT s2, size_t n);
-#endif
-
-#ifdef MPACK_MEMMOVE
-    #define mpack_memmove MPACK_MEMMOVE
-#else
-    void* mpack_memmove(void* s1, const void* s2, size_t n);
-#endif
-
-#ifdef MPACK_MEMSET
-    #define mpack_memset MPACK_MEMSET
-#else
-    void* mpack_memset(void* s, int c, size_t n);
-#endif
-
-#ifdef MPACK_STRLEN
-    #define mpack_strlen MPACK_STRLEN
-#else
-    size_t mpack_strlen(const char* s);
-#endif
-/** @endcond */
-
 /**
  * @}
  */
@@ -1750,8 +1714,38 @@ MPACK_EXTERN_C_BEGIN
 
 
 
+// If we don't have these stdlib functions, we need to define them ourselves.
+// Either way we give them a lowercase name to make the code a bit nicer.
 
+#ifdef MPACK_MEMCMP
+    #define mpack_memcmp MPACK_MEMCMP
+#else
+    int mpack_memcmp(const void* s1, const void* s2, size_t n);
+#endif
 
+#ifdef MPACK_MEMCPY
+    #define mpack_memcpy MPACK_MEMCPY
+#else
+    void* mpack_memcpy(void* MPACK_RESTRICT s1, const void* MPACK_RESTRICT s2, size_t n);
+#endif
+
+#ifdef MPACK_MEMMOVE
+    #define mpack_memmove MPACK_MEMMOVE
+#else
+    void* mpack_memmove(void* s1, const void* s2, size_t n);
+#endif
+
+#ifdef MPACK_MEMSET
+    #define mpack_memset MPACK_MEMSET
+#else
+    void* mpack_memset(void* s, int c, size_t n);
+#endif
+
+#ifdef MPACK_STRLEN
+    #define mpack_strlen MPACK_STRLEN
+#else
+    size_t mpack_strlen(const char* s);
+#endif
 
 
 
