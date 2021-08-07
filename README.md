@@ -8,11 +8,11 @@ MPack is a C implementation of an encoder and decoder for the [MessagePack](http
  * [Extensively documented](http://ludocode.github.io/mpack/)
  * [Extremely fast](https://github.com/ludocode/schemaless-benchmarks#speed---desktop-pc)
 
-The core of MPack contains a buffered reader and writer, and a tree-style parser that decodes into a tree of dynamically typed nodes. Helper functions can be enabled to read values of expected type, to work with files, to allocate strings automatically, to check UTF-8 encoding, and more.
+The core of MPack contains a buffered reader and writer, and a tree-style parser that decodes into a tree of dynamically typed nodes. Helper functions can be enabled to read values of expected type, to work with files, to grow buffers or allocate strings automatically, to check UTF-8 encoding, and more.
 
 The MPack code is small enough to be embedded directly into your codebase. Simply download the [amalgamation package](https://github.com/ludocode/mpack/releases) and add `mpack.h` and `mpack.c` to your project.
 
-The MPack featureset can be customized at compile-time to set which features, components and debug checks are compiled, and what dependencies are available.
+MPack supports all modern compilers, all desktop and smartphone OSes, WebAssembly, [inside the Linux kernel](https://github.com/ludocode/mpack-linux-kernel), and even 8-bit microcontrollers such as Arduino. The MPack featureset can be customized at compile-time to set which features, components and debug checks are compiled, and what dependencies are available.
 
 ## Build Status
 
@@ -43,7 +43,7 @@ if (mpack_tree_destroy(&tree) != mpack_ok) {
 
 Note that no additional error handling is needed in the above code. If the file is missing or corrupt, if map keys are missing or if nodes are not in the expected types, special "nil" nodes and false/zero values are returned and the tree is placed in an error state. An error check is only needed before using the data.
 
-The above example decodes into allocated pages of nodes. A fixed node pool can be provided to the parser instead in memory-constrained environments. For maximum performance and minimal memory usage, the [Expect API](docs/expect.md) can be used to parse data of a predefined schema.
+The above example allocates nodes automatically. A fixed node pool can be provided to the parser instead in memory-constrained environments. For maximum performance and minimal memory usage, the [Expect API](docs/expect.md) can be used to parse data of a predefined schema.
 
 ## The Write API
 
@@ -57,12 +57,12 @@ mpack_writer_t writer;
 mpack_writer_init_growable(&writer, &data, &size);
 
 // write the example on the msgpack homepage
-mpack_start_map(&writer, 2);
+mpack_build_map(&writer);
 mpack_write_cstr(&writer, "compact");
 mpack_write_bool(&writer, true);
 mpack_write_cstr(&writer, "schema");
 mpack_write_uint(&writer, 0);
-mpack_finish_map(&writer);
+mpack_complete_map(&writer);
 
 // finish writing
 if (mpack_writer_destroy(&writer) != mpack_ok) {
@@ -75,11 +75,11 @@ do_something_with_data(data, size);
 free(data);
 ```
 
-In the above example, we encode to a growable memory buffer. The writer can instead write to a pre-allocated or stack-allocated buffer, avoiding the need for memory allocation. The writer can also be provided with a flush function (such as a file or socket write function) to call when the buffer is full or when writing is done.
+In the above example, we encode to a growable memory buffer. The writer can instead write to a pre-allocated or stack-allocated buffer (with up-front sizes for compound types), avoiding the need for memory allocation. The writer can also be provided with a flush function (such as a file or socket write function) to call when the buffer is full or when writing is done.
 
-If any error occurs, the writer is placed in an error state. The writer will flag an error if too much data is written, if the wrong number of elements are written, if the data could not be flushed, etc. No additional error handling is needed in the above code; any subsequent writes are ignored when the writer is in an error state, so you don't need to check every write for errors.
+If any error occurs, the writer is placed in an error state. The writer will flag an error if too much data is written, if the wrong number of elements are written, if an allocation failure occurs, if the data could not be flushed, etc. No additional error handling is needed in the above code; any subsequent writes are ignored when the writer is in an error state, so you don't need to check every write for errors.
 
-Note in particular that in debug mode, the `mpack_finish_map()` call above ensures that two key/value pairs were actually written as claimed, something that other MessagePack C/C++ libraries may not do.
+The above example uses `mpack_build_map()` to automatically determine the number of key-value pairs contained. If you know up-front the number of elements needed, you can pass it to `mpack_start_map()` instead. In that case the corresponding `mpack_finish_map()` will assert in debug mode that the expected number of elements were actually written, which is something that other MessagePack C/C++ libraries may not do.
 
 ## Comparison With Other Parsers
 
@@ -99,7 +99,7 @@ MPack is rich in features while maintaining very high performance and a small co
 | Incremental parser                  | ✓   |     | ✓   | ✓   |
 | Tree stream parser                  | ✓   | ✓   |     |     |
 | Compound size tracking              | ✓   |     |     |     |
-| Automatic compound size             |     |     |     |     |
+| Automatic compound size             | ✓   |     |     |     |
 
 A larger feature comparison table is available [here](docs/features.md) which includes descriptions of the various entries in the table.
 

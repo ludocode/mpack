@@ -22,9 +22,16 @@
 /**
  * @file
  *
- * Abstracts all platform-specific code from MPack. This contains
- * implementations of standard C functions when libc is not available,
- * as well as wrappers to library functions.
+ * Abstracts all platform-specific code from MPack and handles configuration
+ * options.
+ *
+ * This verifies the configuration and sets defaults based on the platform,
+ * contains implementations of standard C functions when libc is not available,
+ * and provides wrappers to all library functions.
+ *
+ * Documentation for configuration options is available here:
+ *
+ *     https://ludocode.github.io/mpack/group__config.html
  */
 
 #ifndef MPACK_PLATFORM_H
@@ -32,23 +39,177 @@
 
 
 
-/* Pre-include checks */
+/**
+ * @defgroup config Configuration Options
+ *
+ * Defines the MPack configuration options.
+ *
+ * Custom configuration of MPack is not usually necessary. In almost all
+ * cases you can ignore this and use the defaults.
+ *
+ * If you do want to configure MPack, you can define the below options as part
+ * of your build system or project settings. This will override the below
+ * defaults.
+ *
+ * If you'd like to use a file for configuration instead, define
+ * @ref MPACK_HAS_CONFIG to 1 in your build system or project settings.
+ * This will cause MPack to include a file you create called @c mpack-config.h
+ * in which you can define your configuration. This is useful if you need to
+ * include specific headers (such as a custom allocator) in order to configure
+ * MPack to use it.
+ *
+ * @warning The value of all configuration options must be the same in
+ * all translation units of your project, as well as in the mpack source
+ * itself. These configuration options affect the layout of structs, among
+ * other things, which cannot be different in source files that are linked
+ * together.
+ *
+ * @note MPack does not contain defaults for building inside the Linux kernel.
+ * There is a <a href="https://github.com/ludocode/mpack-linux-kernel">
+ * configuration file for the Linux kernel</a> that can be used instead.
+ *
+ * @{
+ */
 
-#if defined(_MSC_VER) && _MSC_VER < 1800 && !defined(__cplusplus)
-#error "In Visual Studio 2012 and earlier, MPack must be compiled as C++. Enable the /Tp compiler flag."
-#endif
 
-#if defined(_WIN32) && defined(MPACK_INTERNAL)
-    #if MPACK_INTERNAL
-        #define _CRT_SECURE_NO_WARNINGS 1
+
+/**
+ * @name File Configuration
+ * @{
+ */
+
+/**
+ * @def MPACK_HAS_CONFIG
+ *
+ * Causes MPack to include a file you create called @c mpack-config.h .
+ *
+ * The file is included before MPack sets any defaults for undefined
+ * configuration options. You can use it to configure MPack.
+ *
+ * This is off by default.
+ */
+#if defined(MPACK_HAS_CONFIG)
+    #if MPACK_HAS_CONFIG
+        #include "mpack-config.h"
     #endif
+#else
+    #define MPACK_HAS_CONFIG 0
 #endif
 
+/**
+ * @}
+ */
+
+// this needs to come first since some stuff depends on it
+/** @cond */
+#ifndef MPACK_NO_BUILTINS
+    #define MPACK_NO_BUILTINS 0
+#endif
+/** @endcond */
 
 
-/* Doxygen preprocs */
+
+/**
+ * @name Features
+ * @{
+ */
+
+/**
+ * @def MPACK_READER
+ *
+ * Enables compilation of the base Tag Reader.
+ */
+#ifndef MPACK_READER
+#define MPACK_READER 1
+#endif
+
+/**
+ * @def MPACK_EXPECT
+ *
+ * Enables compilation of the static Expect API.
+ */
+#ifndef MPACK_EXPECT
+#define MPACK_EXPECT 1
+#endif
+
+/**
+ * @def MPACK_NODE
+ *
+ * Enables compilation of the dynamic Node API.
+ */
+#ifndef MPACK_NODE
+#define MPACK_NODE 1
+#endif
+
+/**
+ * @def MPACK_WRITER
+ *
+ * Enables compilation of the Writer.
+ */
+#ifndef MPACK_WRITER
+#define MPACK_WRITER 1
+#endif
+
+/**
+ * @def MPACK_BUILDER
+ *
+ * Enables compilation of the Builder.
+ *
+ * The Builder API provides additional functions to the Writer for
+ * automatically determining the element count of compound elements so you do
+ * not have to specify them up-front.
+ *
+ * This requires a @c malloc(). It is enabled by default if MPACK_WRITER is
+ * enabled and MPACK_MALLOC is defined.
+ *
+ * @see mpack_build_map()
+ * @see mpack_build_array()
+ * @see mpack_complete_map()
+ * @see mpack_complete_array()
+ */
+// This is defined furthur below after we've resolved whether we have malloc().
+
+/**
+ * @def MPACK_COMPATIBILITY
+ *
+ * Enables compatibility features for reading and writing older
+ * versions of MessagePack.
+ *
+ * This is disabled by default. When disabled, the behaviour is equivalent to
+ * using the default version, @ref mpack_version_current.
+ *
+ * Enable this if you need to interoperate with applications or data that do
+ * not support the new (v5) MessagePack spec. See the section on v4
+ * compatibility in @ref docs/protocol.md for more information.
+ */
+#ifndef MPACK_COMPATIBILITY
+#define MPACK_COMPATIBILITY 0
+#endif
+
+/**
+ * @def MPACK_EXTENSIONS
+ *
+ * Enables the use of extension types.
+ *
+ * This is disabled by default. Define it to 1 to enable it. If disabled,
+ * functions to read and write extensions will not exist, and any occurrence of
+ * extension types in parsed messages will flag @ref mpack_error_invalid.
+ *
+ * MPack discourages the use of extension types. See the section on extension
+ * types in @ref docs/protocol.md for more information.
+ */
+#ifndef MPACK_EXTENSIONS
+#define MPACK_EXTENSIONS 0
+#endif
+
+/**
+ * @}
+ */
+
+
+
+// workarounds for Doxygen
 #if defined(MPACK_DOXYGEN) && MPACK_DOXYGEN
-#define MPACK_HAS_CONFIG 0
 // We give these their default values of 0 here even though they are defined to
 // 1 in the doxyfile. Doxygen will show this as the value in the docs, even
 // though it ignores it when parsing the rest of the source. This is what we
@@ -60,38 +221,671 @@
 
 
 
-/* Include the custom config file if enabled */
+/**
+ * @name Dependencies
+ * @{
+ */
 
-#if defined(MPACK_HAS_CONFIG) && MPACK_HAS_CONFIG
-#include "mpack-config.h"
+/**
+ * @def MPACK_CONFORMING
+ *
+ * Enables the inclusion of basic C headers to define standard types and
+ * macros.
+ *
+ * This causes MPack to include headers required for conforming implementations
+ * of C99 even in freestanding, in particular <stddef.h>, <stdint.h>,
+ * <stdbool.h> and <limits.h>. It also includes <inttypes.h>; this is
+ * technically not required for freestanding but MPack needs it to detect
+ * integer limits.
+ *
+ * You can disable this if these headers are unavailable or if they do not
+ * define the standard types and macros (for example inside the Linux kernel.)
+ * If this is disabled, MPack will include no headers and will assume a 32-bit
+ * int. You will probably also want to define @ref MPACK_HAS_CONFIG to 1 and
+ * include your own headers in the config file. You must provide definitions
+ * for standard types such as @c size_t, @c bool, @c int32_t and so on.
+ *
+ * @see <a href="https://en.cppreference.com/w/c/language/conformance">
+ * cppreference.com documentation on Conformance</a>
+ */
+#ifndef MPACK_CONFORMING
+    #define MPACK_CONFORMING 1
 #endif
 
-/*
- * Now that the optional config is included, we define the defaults
- * for any of the configuration options and other switches that aren't
- * yet defined.
+/**
+ * @def MPACK_STDLIB
+ *
+ * Enables the use of the C stdlib.
+ *
+ * This allows the library to use basic functions like @c memcmp() and @c
+ * strlen(), as well as @c malloc() for debugging and in allocation helpers.
+ *
+ * If this is disabled, allocation helper functions will not be defined, and
+ * MPack will attempt to detect compiler intrinsics for functions like @c
+ * memcmp() (assuming @ref MPACK_NO_BUILTINS is not set.) It will fallback to
+ * its own (slow) implementations if it cannot use builtins. You may want to
+ * define @ref MPACK_MEMCMP and friends if you disable this.
+ *
+ * @see MPACK_MEMCMP
+ * @see MPACK_MEMCPY
+ * @see MPACK_MEMMOVE
+ * @see MPACK_MEMSET
+ * @see MPACK_STRLEN
+ * @see MPACK_MALLOC
+ * @see MPACK_REALLOC
+ * @see MPACK_FREE
  */
-#if defined(MPACK_DOXYGEN) && MPACK_DOXYGEN
-#include "mpack-defaults-doxygen.h"
+#ifndef MPACK_STDLIB
+    #if !MPACK_CONFORMING
+        // If we don't even have a proper <limits.h> we assume we won't have
+        // malloc() either.
+        #define MPACK_STDLIB 0
+    #else
+        #define MPACK_STDLIB 1
+    #endif
+#endif
+
+/**
+ * @def MPACK_STDIO
+ *
+ * Enables the use of C stdio. This adds helpers for easily
+ * reading/writing C files and makes debugging easier.
+ */
+#ifndef MPACK_STDIO
+    #if !MPACK_STDLIB || defined(__AVR__)
+        #define MPACK_STDIO 0
+    #else
+        #define MPACK_STDIO 1
+    #endif
+#endif
+
+/**
+ * Whether the 'float' type and floating point operations are supported.
+ *
+ * If @ref MPACK_FLOAT is disabled, floats are read and written as @c uint32_t
+ * instead. This way messages with floats do not result in errors and you can
+ * still perform manual float parsing yourself.
+ */
+#ifndef MPACK_FLOAT
+    #define MPACK_FLOAT 1
+#endif
+
+/**
+ * Whether the 'double' type is supported. This requires support for 'float'.
+ *
+ * If @ref MPACK_DOUBLE is disabled, doubles are read and written as @c
+ * uint32_t instead. This way messages with doubles do not result in errors and
+ * you can still perform manual doubles parsing yourself.
+ *
+ * If @ref MPACK_FLOAT is enabled but @ref MPACK_DOUBLE is not, doubles can be
+ * read as floats using the shortening conversion functions, e.g. @ref
+ * mpack_expect_float() or @ref mpack_node_float().
+ */
+#ifndef MPACK_DOUBLE
+    #if !MPACK_FLOAT || defined(__AVR__)
+        // AVR supports only float, not double.
+        #define MPACK_DOUBLE 0
+    #else
+        #define MPACK_DOUBLE 1
+    #endif
+#endif
+
+/**
+ * @}
+ */
+
+
+
+/**
+ * @name Allocation Functions
+ * @{
+ */
+
+/**
+ * @def MPACK_MALLOC
+ *
+ * Defines the memory allocation function used by MPack. This is used by
+ * helpers for automatically allocating data the correct size, and for
+ * debugging functions. If this macro is undefined, the allocation helpers
+ * will not be compiled.
+ *
+ * Set this to use a custom @c malloc() function. Your function must have the
+ * signature:
+ *
+ * @code
+ * void* malloc(size_t size);
+ * @endcode
+ *
+ * The default is @c malloc() if @ref MPACK_STDLIB is enabled.
+ */
+/**
+ * @def MPACK_FREE
+ *
+ * Defines the memory free function used by MPack. This is used by helpers
+ * for automatically allocating data the correct size. If this macro is
+ * undefined, the allocation helpers will not be compiled.
+ *
+ * Set this to use a custom @c free() function. Your function must have the
+ * signature:
+ *
+ * @code
+ * void free(void* p);
+ * @endcode
+ *
+ * The default is @c free() if @ref MPACK_MALLOC has not been customized and
+ * @ref MPACK_STDLIB is enabled.
+ */
+/**
+ * @def MPACK_REALLOC
+ *
+ * Defines the realloc function used by MPack. It is used by growable
+ * buffers to resize more efficiently.
+ *
+ * The default is @c realloc() if @ref MPACK_MALLOC has not been customized and
+ * @ref MPACK_STDLIB is enabled.
+ *
+ * Set this to use a custom @c realloc() function. Your function must have the
+ * signature:
+ *
+ * @code
+ * void* realloc(void* p, size_t new_size);
+ * @endcode
+ *
+ * This is optional, even when @ref MPACK_MALLOC is used. If @ref MPACK_MALLOC is
+ * set and @ref MPACK_REALLOC is not, @ref MPACK_MALLOC is used with a simple copy
+ * to grow buffers.
+ */
+
+#if defined(MPACK_MALLOC) && !defined(MPACK_FREE)
+    #error "MPACK_MALLOC requires MPACK_FREE."
+#endif
+#if !defined(MPACK_MALLOC) && defined(MPACK_FREE)
+    #error "MPACK_FREE requires MPACK_MALLOC."
+#endif
+
+// These were never configurable in lowercase but we check anyway.
+#ifdef mpack_malloc
+    #error "Define MPACK_MALLOC, not mpack_malloc."
+#endif
+#ifdef mpack_realloc
+    #error "Define MPACK_REALLOC, not mpack_realloc."
+#endif
+#ifdef mpack_free
+    #error "Define MPACK_FREE, not mpack_free."
+#endif
+
+// We don't use calloc() at all.
+#ifdef MPACK_CALLOC
+    #error "Don't define MPACK_CALLOC. MPack does not use calloc()."
+#endif
+#ifdef mpack_calloc
+    #error "Don't define mpack_calloc. MPack does not use calloc()."
+#endif
+
+// Use defaults in stdlib if we have them. Without it we don't use malloc.
+#if defined(MPACK_STDLIB)
+    #if MPACK_STDLIB && !defined(MPACK_MALLOC)
+        #define MPACK_MALLOC malloc
+        #define MPACK_REALLOC realloc
+        #define MPACK_FREE free
+    #endif
+#endif
+
+/**
+ * @}
+ */
+
+
+
+// This needs to be defined after we've decided whether we have malloc().
+#ifndef MPACK_BUILDER
+    #if defined(MPACK_MALLOC) && MPACK_WRITER
+        #define MPACK_BUILDER 1
+    #else
+        #define MPACK_BUILDER 0
+    #endif
+#endif
+
+
+
+/**
+ * @name System Functions
+ * @{
+ */
+
+/**
+ * @def MPACK_MEMCMP
+ *
+ * The function MPack will use to provide @c memcmp().
+ *
+ * Set this to use a custom @c memcmp() function. Your function must have the
+ * signature:
+ *
+ * @code
+ * int memcmp(const void* left, const void* right, size_t count);
+ * @endcode
+ */
+/**
+ * @def MPACK_MEMCPY
+ *
+ * The function MPack will use to provide @c memcpy().
+ *
+ * Set this to use a custom @c memcpy() function. Your function must have the
+ * signature:
+ *
+ * @code
+ * void* memcpy(void* restrict dest, const void* restrict src, size_t count);
+ * @endcode
+ */
+/**
+ * @def MPACK_MEMMOVE
+ *
+ * The function MPack will use to provide @c memmove().
+ *
+ * Set this to use a custom @c memmove() function. Your function must have the
+ * signature:
+ *
+ * @code
+ * void* memmove(void* dest, const void* src, size_t count);
+ * @endcode
+ */
+/**
+ * @def MPACK_MEMSET
+ *
+ * The function MPack will use to provide @c memset().
+ *
+ * Set this to use a custom @c memset() function. Your function must have the
+ * signature:
+ *
+ * @code
+ * void* memset(void* p, int c, size_t count);
+ * @endcode
+ */
+/**
+ * @def MPACK_STRLEN
+ *
+ * The function MPack will use to provide @c strlen().
+ *
+ * Set this to use a custom @c strlen() function. Your function must have the
+ * signature:
+ *
+ * @code
+ * size_t strlen(const char* str);
+ * @endcode
+ */
+
+// These were briefly configurable in lowercase in an unreleased version. Just
+// to make sure no one is doing this, we make sure these aren't already defined.
+#ifdef mpack_memcmp
+    #error "Define MPACK_MEMCMP, not mpack_memcmp."
+#endif
+#ifdef mpack_memcpy
+    #error "Define MPACK_MEMCPY, not mpack_memcpy."
+#endif
+#ifdef mpack_memmove
+    #error "Define MPACK_MEMMOVE, not mpack_memmove."
+#endif
+#ifdef mpack_memset
+    #error "Define MPACK_MEMSET, not mpack_memset."
+#endif
+#ifdef mpack_strlen
+    #error "Define MPACK_STRLEN, not mpack_strlen."
+#endif
+
+// If the standard library is available, we prefer to use its functions.
+#if MPACK_STDLIB
+    #ifndef MPACK_MEMCMP
+        #define MPACK_MEMCMP memcmp
+    #endif
+    #ifndef MPACK_MEMCPY
+        #define MPACK_MEMCPY memcpy
+    #endif
+    #ifndef MPACK_MEMMOVE
+        #define MPACK_MEMMOVE memmove
+    #endif
+    #ifndef MPACK_MEMSET
+        #define MPACK_MEMSET memset
+    #endif
+    #ifndef MPACK_STRLEN
+        #define MPACK_STRLEN strlen
+    #endif
+#endif
+
+#if !MPACK_NO_BUILTINS
+    #ifdef __has_builtin
+        #if !defined(MPACK_MEMCMP) && __has_builtin(__builtin_memcmp)
+            #define MPACK_MEMCMP __builtin_memcmp
+        #endif
+        #if !defined(MPACK_MEMCPY) && __has_builtin(__builtin_memcpy)
+            #define MPACK_MEMCPY __builtin_memcpy
+        #endif
+        #if !defined(MPACK_MEMMOVE) && __has_builtin(__builtin_memmove)
+            #define MPACK_MEMMOVE __builtin_memmove
+        #endif
+        #if !defined(MPACK_MEMSET) && __has_builtin(__builtin_memset)
+            #define MPACK_MEMSET __builtin_memset
+        #endif
+        #if !defined(MPACK_STRLEN) && __has_builtin(__builtin_strlen)
+            #define MPACK_STRLEN __builtin_strlen
+        #endif
+    #elif defined(__GNUC__)
+        #ifndef MPACK_MEMCMP
+            #define MPACK_MEMCMP __builtin_memcmp
+        #endif
+        #ifndef MPACK_MEMCPY
+            #define MPACK_MEMCPY __builtin_memcpy
+        #endif
+        // There's not always a builtin memmove for GCC. If we can't test for
+        // it with __has_builtin above, we don't use it. It's been around for
+        // much longer under clang, but then so has __has_builtin, so we let
+        // the block above handle it.
+        #ifndef MPACK_MEMSET
+            #define MPACK_MEMSET __builtin_memset
+        #endif
+        #ifndef MPACK_STRLEN
+            #define MPACK_STRLEN __builtin_strlen
+        #endif
+    #endif
+#endif
+
+// The above completes the auto-configuration. If a definition for each
+// function was found, we make a lowercase macro to wrap it; otherwise we
+// define our own implementations for some functions in lowercase.
+
+/** @cond */
+#ifdef MPACK_MEMCMP
+    #define mpack_memcmp MPACK_MEMCMP
 #else
-#include "mpack-defaults.h"
+    int mpack_memcmp(const void* s1, const void* s2, size_t n);
 #endif
 
-/*
- * All remaining configuration options that have not yet been set must
- * be defined here in order to support -Wundef.
- */
-#ifndef MPACK_DEBUG
-#define MPACK_DEBUG 0
+#ifdef MPACK_MEMCPY
+    #define mpack_memcpy MPACK_MEMCPY
+#else
+    void* mpack_memcpy(void* MPACK_RESTRICT s1, const void* MPACK_RESTRICT s2, size_t n);
 #endif
+
+#ifdef MPACK_MEMMOVE
+    #define mpack_memmove MPACK_MEMMOVE
+#else
+    void* mpack_memmove(void* s1, const void* s2, size_t n);
+#endif
+
+#ifdef MPACK_MEMSET
+    #define mpack_memset MPACK_MEMSET
+#else
+    void* mpack_memset(void* s, int c, size_t n);
+#endif
+
+#ifdef MPACK_STRLEN
+    #define mpack_strlen MPACK_STRLEN
+#else
+    size_t mpack_strlen(const char* s);
+#endif
+/** @endcond */
+
+/**
+ * @}
+ */
+
+
+
+/**
+ * @name Debugging Options
+ */
+
+/**
+ * @def MPACK_DEBUG
+ *
+ * Enables debug features. You may want to wrap this around your
+ * own debug preprocs. By default, this is enabled if @c DEBUG or @c _DEBUG
+ * are defined. (@c NDEBUG is not used since it is allowed to have
+ * different values in different translation units.)
+ */
+#if !defined(MPACK_DEBUG)
+    #if defined(DEBUG) || defined(_DEBUG)
+        #define MPACK_DEBUG 1
+    #else
+        #define MPACK_DEBUG 0
+    #endif
+#endif
+
+/**
+ * @def MPACK_STRINGS
+ *
+ * Enables descriptive error and type strings.
+ *
+ * This can be turned off (by defining it to 0) to maximize space savings
+ * on embedded devices. If this is disabled, string functions such as
+ * mpack_error_to_string() and mpack_type_to_string() return an empty string.
+ */
+#ifndef MPACK_STRINGS
+    #ifdef __AVR__
+        #define MPACK_STRINGS 0
+    #else
+        #define MPACK_STRINGS 1
+    #endif
+#endif
+
+/**
+ * Set this to 1 to implement a custom @ref mpack_assert_fail() function.
+ * See the documentation on @ref mpack_assert_fail() for details.
+ *
+ * Asserts are only used when @ref MPACK_DEBUG is enabled, and can be
+ * triggered by bugs in MPack or bugs due to incorrect usage of MPack.
+ */
+#ifndef MPACK_CUSTOM_ASSERT
+#define MPACK_CUSTOM_ASSERT 0
+#endif
+
+/**
+ * @def MPACK_READ_TRACKING
+ *
+ * Enables compound type size tracking for readers. This ensures that the
+ * correct number of elements or bytes are read from a compound type.
+ *
+ * This is enabled by default in debug builds (provided a @c malloc() is
+ * available.)
+ */
+#if !defined(MPACK_READ_TRACKING)
+    #if MPACK_DEBUG && MPACK_READER && defined(MPACK_MALLOC)
+        #define MPACK_READ_TRACKING 1
+    #else
+        #define MPACK_READ_TRACKING 0
+    #endif
+#endif
+#if MPACK_READ_TRACKING && !MPACK_READER
+    #error "MPACK_READ_TRACKING requires MPACK_READER."
+#endif
+
+/**
+ * @def MPACK_WRITE_TRACKING
+ *
+ * Enables compound type size tracking for writers. This ensures that the
+ * correct number of elements or bytes are written in a compound type.
+ *
+ * Note that without write tracking enabled, it is possible for buggy code
+ * to emit invalid MessagePack without flagging an error by writing the wrong
+ * number of elements or bytes in a compound type. With tracking enabled,
+ * MPack will catch such errors and break on the offending line of code.
+ *
+ * This is enabled by default in debug builds (provided a @c malloc() is
+ * available.)
+ */
+#if !defined(MPACK_WRITE_TRACKING)
+    #if MPACK_DEBUG && MPACK_WRITER && defined(MPACK_MALLOC)
+        #define MPACK_WRITE_TRACKING 1
+    #else
+        #define MPACK_WRITE_TRACKING 0
+    #endif
+#endif
+#if MPACK_WRITE_TRACKING && !MPACK_WRITER
+    #error "MPACK_WRITE_TRACKING requires MPACK_WRITER."
+#endif
+
+/**
+ * @}
+ */
+
+
+
+
+/**
+ * @name Miscellaneous Options
+ * @{
+ */
+
+/**
+ * Whether to optimize for size or speed.
+ *
+ * Optimizing for size simplifies some parsing and encoding algorithms
+ * at the expense of speed and saves a few kilobytes of space in the
+ * resulting executable.
+ *
+ * This automatically detects -Os with GCC/Clang. Unfortunately there
+ * doesn't seem to be a macro defined for /Os under MSVC.
+ */
+#ifndef MPACK_OPTIMIZE_FOR_SIZE
+    #ifdef __OPTIMIZE_SIZE__
+        #define MPACK_OPTIMIZE_FOR_SIZE 1
+    #else
+        #define MPACK_OPTIMIZE_FOR_SIZE 0
+    #endif
+#endif
+
+/**
+ * Stack space in bytes to use when initializing a reader or writer
+ * with a stack-allocated buffer.
+ *
+ * @warning Make sure you have sufficient stack space. Some libc use relatively
+ * small stacks even on desktop platforms, e.g. musl.
+ */
+#ifndef MPACK_STACK_SIZE
+#define MPACK_STACK_SIZE 4096
+#endif
+
+/**
+ * Buffer size to use for allocated buffers (such as for a file writer.)
+ *
+ * Starting with a single page and growing as needed seems to
+ * provide the best performance with minimal memory waste.
+ * Increasing this does not improve performance even when writing
+ * huge messages.
+ */
+#ifndef MPACK_BUFFER_SIZE
+#define MPACK_BUFFER_SIZE 4096
+#endif
+
+/**
+ * Minimum size for paged allocations in bytes.
+ *
+ * This is the value used by default for MPACK_NODE_PAGE_SIZE and
+ * MPACK_BUILDER_PAGE_SIZE.
+ */
+#ifndef MPACK_PAGE_SIZE
+#define MPACK_PAGE_SIZE 4096
+#endif
+
+/**
+ * Minimum size of an allocated node page in bytes.
+ *
+ * The children for a given compound element must be contiguous, so
+ * larger pages than this may be allocated as needed. (Safety checks
+ * exist to prevent malicious data from causing too large allocations.)
+ *
+ * See @ref mpack_node_data_t for the size of nodes.
+ *
+ * Using as many nodes fit in one memory page seems to provide the
+ * best performance, and has very little waste when parsing small
+ * messages.
+ */
+#ifndef MPACK_NODE_PAGE_SIZE
+#define MPACK_NODE_PAGE_SIZE MPACK_PAGE_SIZE
+#endif
+
+/**
+ * Minimum size of an allocated builder page in bytes.
+ *
+ * Builder writes are deferred to the allocated builder buffer which is
+ * composed of a list of buffer pages. This defines the size of those pages.
+ */
+#ifndef MPACK_BUILDER_PAGE_SIZE
+#define MPACK_BUILDER_PAGE_SIZE MPACK_PAGE_SIZE
+#endif
+
+/**
+ * @def MPACK_BUILDER_INTERNAL_STORAGE
+ *
+ * Enables a small amount of internal storage within the writer to avoid some
+ * allocations when using builders.
+ *
+ * This is disabled by default. Enable it to potentially improve performance at
+ * the expense of a larger writer.
+ *
+ * @see MPACK_BUILDER_INTERNAL_STORAGE_SIZE to configure its size.
+ */
+#ifndef MPACK_BUILDER_INTERNAL_STORAGE
+#define MPACK_BUILDER_INTERNAL_STORAGE 0
+#endif
+
+/**
+ * Amount of space reserved inside @ref mpack_writer_t for the Builders. This
+ * can allow small messages to be built with the Builder API without incurring
+ * an allocation.
+ *
+ * Builder metadata is placed in this space in addition to the literal
+ * MessagePack data. It needs to be big enough to be useful, but not so big as
+ * to overflow the stack. If more space is needed, pages are allocated.
+ *
+ * This is only used if MPACK_BUILDER_INTERNAL_STORAGE is enabled.
+ *
+ * @see MPACK_BUILDER_PAGE_SIZE
+ * @see MPACK_BUILDER_INTERNAL_STORAGE
+ *
+ * @warning Writers are typically placed on the stack so make sure you have
+ * sufficient stack space. Some libc use relatively small stacks even on
+ * desktop platforms, e.g. musl.
+ */
+#ifndef MPACK_BUILDER_INTERNAL_STORAGE_SIZE
+#define MPACK_BUILDER_INTERNAL_STORAGE_SIZE 256
+#endif
+
+/**
+ * The initial depth for the node parser. When MPACK_MALLOC is available,
+ * the node parser has no practical depth limit, and it is not recursive
+ * so there is no risk of overflowing the call stack.
+ */
+#ifndef MPACK_NODE_INITIAL_DEPTH
+#define MPACK_NODE_INITIAL_DEPTH 8
+#endif
+
+/**
+ * The maximum depth for the node parser if @ref MPACK_MALLOC is not available.
+ */
+#ifndef MPACK_NODE_MAX_DEPTH_WITHOUT_MALLOC
+#define MPACK_NODE_MAX_DEPTH_WITHOUT_MALLOC 32
+#endif
+
+/**
+ * @}
+ */
+
+
+
+// The rest of this file shouldn't show up in Doxygen docs.
+/** @cond */
+
+
+
+/*
+ * All remaining pseudo-configuration options that have not yet been set must
+ * be defined here in order to support -Wundef.
+ *
+ * These aren't real configuration options; they are implementation details of
+ * MPack.
+ */
 #ifndef MPACK_CUSTOM_BREAK
 #define MPACK_CUSTOM_BREAK 0
-#endif
-#ifndef MPACK_READ_TRACKING
-#define MPACK_READ_TRACKING 0
-#endif
-#ifndef MPACK_WRITE_TRACKING
-#define MPACK_WRITE_TRACKING 0
 #endif
 #ifndef MPACK_EMIT_INLINE_DEFS
 #define MPACK_EMIT_INLINE_DEFS 0
@@ -105,8 +899,19 @@
 #ifndef MPACK_INTERNAL
 #define MPACK_INTERNAL 0
 #endif
-#ifndef MPACK_NO_BUILTINS
-#define MPACK_NO_BUILTINS 0
+
+
+
+/* Pre-include checks */
+
+#if defined(_MSC_VER) && _MSC_VER < 1800 && !defined(__cplusplus)
+#error "In Visual Studio 2012 and earlier, MPack must be compiled as C++. Enable the /Tp compiler flag."
+#endif
+
+#if defined(_WIN32) && defined(MPACK_INTERNAL)
+    #if MPACK_INTERNAL
+        #define _CRT_SECURE_NO_WARNINGS 1
+    #endif
 #endif
 
 
@@ -868,9 +1673,6 @@ MPACK_EXTERN_C_BEGIN
     /**
      * @}
      */
-    /**
-     * @}
-     */
 
     MPACK_NORETURN(void mpack_assert_fail_wrapper(const char* message));
     #if MPACK_STDIO
@@ -924,137 +1726,6 @@ MPACK_EXTERN_C_BEGIN
 
 
 
-/* Wrap some needed libc functions */
-
-// These were briefly configurable in lowercase in an unreleased version. Just
-// to make sure no one is doing this, we make sure these aren't already defined.
-#ifdef mpack_memcmp
-    #error "Define MPACK_MEMCMP, not mpack_memcmp."
-#endif
-#ifdef mpack_memcpy
-    #error "Define MPACK_MEMCPY, not mpack_memcpy."
-#endif
-#ifdef mpack_memmove
-    #error "Define MPACK_MEMMOVE, not mpack_memmove."
-#endif
-#ifdef mpack_memset
-    #error "Define MPACK_MEMSET, not mpack_memset."
-#endif
-#ifdef mpack_strlen
-    #error "Define MPACK_STRLEN, not mpack_strlen."
-#endif
-
-// These were never configurable in lowercase but we check anyway.
-#ifdef mpack_malloc
-    #error "Define MPACK_MALLOC, not mpack_malloc."
-#endif
-#ifdef mpack_realloc
-    #error "Define MPACK_REALLOC, not mpack_realloc."
-#endif
-#ifdef mpack_free
-    #error "Define MPACK_FREE, not mpack_free."
-#endif
-
-// We don't use calloc() at all.
-#ifdef MPACK_CALLOC
-    #error "Don't define MPACK_CALLOC. MPack does not use calloc()."
-#endif
-#ifdef mpack_calloc
-    #error "Don't define mpack_calloc. MPack does not use calloc()."
-#endif
-
-
-// If the standard library is available, we prefer to use its functions.
-#if MPACK_STDLIB
-    #ifndef MPACK_MEMCMP
-        #define MPACK_MEMCMP memcmp
-    #endif
-    #ifndef MPACK_MEMCPY
-        #define MPACK_MEMCPY memcpy
-    #endif
-    #ifndef MPACK_MEMMOVE
-        #define MPACK_MEMMOVE memmove
-    #endif
-    #ifndef MPACK_MEMSET
-        #define MPACK_MEMSET memset
-    #endif
-    #ifndef MPACK_STRLEN
-        #define MPACK_STRLEN strlen
-    #endif
-#endif
-
-#if !MPACK_NO_BUILTINS
-    #ifdef __has_builtin
-        #if !defined(MPACK_MEMCMP) && __has_builtin(__builtin_memcmp)
-            #define MPACK_MEMCMP __builtin_memcmp
-        #endif
-        #if !defined(MPACK_MEMCPY) && __has_builtin(__builtin_memcpy)
-            #define MPACK_MEMCPY __builtin_memcpy
-        #endif
-        #if !defined(MPACK_MEMMOVE) && __has_builtin(__builtin_memmove)
-            #define MPACK_MEMMOVE __builtin_memmove
-        #endif
-        #if !defined(MPACK_MEMSET) && __has_builtin(__builtin_memset)
-            #define MPACK_MEMSET __builtin_memset
-        #endif
-        #if !defined(MPACK_STRLEN) && __has_builtin(__builtin_strlen)
-            #define MPACK_STRLEN __builtin_strlen
-        #endif
-    #elif defined(__GNUC__)
-        #ifndef MPACK_MEMCMP
-            #define MPACK_MEMCMP __builtin_memcmp
-        #endif
-        #ifndef MPACK_MEMCPY
-            #define MPACK_MEMCPY __builtin_memcpy
-        #endif
-        // There's not always a builtin memmove for GCC. If we can't test for
-        // it with __has_builtin above, we don't use it. It's been around for
-        // much longer under clang, but then so has __has_builtin, so we let
-        // the block above handle it.
-        #ifndef MPACK_MEMSET
-            #define MPACK_MEMSET __builtin_memset
-        #endif
-        #ifndef MPACK_STRLEN
-            #define MPACK_STRLEN __builtin_strlen
-        #endif
-    #endif
-#endif
-
-// The above completes the auto-configuration. If a definition for each
-// function was found, we make a lowercase macro to wrap it; otherwise we
-// define our own implementations for some functions in lowercase.
-
-#ifdef MPACK_MEMCMP
-    #define mpack_memcmp MPACK_MEMCMP
-#else
-    int mpack_memcmp(const void* s1, const void* s2, size_t n);
-#endif
-
-#ifdef MPACK_MEMCPY
-    #define mpack_memcpy MPACK_MEMCPY
-#else
-    void* mpack_memcpy(void* MPACK_RESTRICT s1, const void* MPACK_RESTRICT s2, size_t n);
-#endif
-
-#ifdef MPACK_MEMMOVE
-    #define mpack_memmove MPACK_MEMMOVE
-#else
-    void* mpack_memmove(void* s1, const void* s2, size_t n);
-#endif
-
-#ifdef MPACK_MEMSET
-    #define mpack_memset MPACK_MEMSET
-#else
-    void* mpack_memset(void* s, int c, size_t n);
-#endif
-
-#ifdef MPACK_STRLEN
-    #define mpack_strlen MPACK_STRLEN
-#else
-    size_t mpack_strlen(const char* s);
-#endif
-
-
 // make sure we don't use the stdlib directly during development
 #if MPACK_STDLIB && defined(MPACK_UNIT_TESTS) && MPACK_INTERNAL && defined(__GNUC__)
     #undef memcmp
@@ -1105,18 +1776,6 @@ MPACK_EXTERN_C_BEGIN
 
 
 /* Make sure our configuration makes sense */
-#if defined(MPACK_MALLOC) && !defined(MPACK_FREE)
-    #error "MPACK_MALLOC requires MPACK_FREE."
-#endif
-#if !defined(MPACK_MALLOC) && defined(MPACK_FREE)
-    #error "MPACK_FREE requires MPACK_MALLOC."
-#endif
-#if MPACK_READ_TRACKING && !defined(MPACK_READER)
-    #error "MPACK_READ_TRACKING requires MPACK_READER."
-#endif
-#if MPACK_WRITE_TRACKING && !defined(MPACK_WRITER)
-    #error "MPACK_WRITE_TRACKING requires MPACK_WRITER."
-#endif
 #ifndef MPACK_MALLOC
     #if MPACK_STDIO
         #error "MPACK_STDIO requires preprocessor definitions for MPACK_MALLOC and MPACK_FREE."
@@ -1145,6 +1804,7 @@ MPACK_EXTERN_C_BEGIN
 
 
 
+/** @endcond */
 /**
  * @}
  */

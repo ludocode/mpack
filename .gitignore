@@ -1,5 +1,6 @@
 
 # build files
+/.build/
 test/.build/
 coverage/
 *.swp

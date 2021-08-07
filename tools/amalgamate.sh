@@ -6,7 +6,6 @@
 . "`dirname $0`"/getversion.sh
 
 HEADERS="\
-    mpack/mpack-defaults.h \
     mpack/mpack-platform.h \
     mpack/mpack-common.h \
     mpack/mpack-writer.h \
@@ -82,7 +81,6 @@ done
 
 # assemble package contents
 cp -ar $FILES build/amalgamation
-cp src/mpack/mpack-defaults.h build/amalgamation/
 mkdir -p build/amalgamation/tools
 cp $TOOLS build/amalgamation/tools
 
