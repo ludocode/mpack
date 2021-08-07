@@ -23,10 +23,6 @@
 
 #include "mpack-common.h"
 
-#if MPACK_DEBUG && MPACK_STDIO
-#include <stdarg.h>
-#endif
-
 MPACK_SILENCE_WARNINGS_BEGIN
 
 const char* mpack_error_to_string(mpack_error_t error) {

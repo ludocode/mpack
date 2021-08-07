@@ -73,6 +73,33 @@
 
 
 
+/*
+ * Pre-include checks
+ *
+ * These need to come before the user's mpack-config.h because they might be
+ * including headers in it.
+ */
+
+#if defined(_MSC_VER) && _MSC_VER < 1800 && !defined(__cplusplus)
+    #error "In Visual Studio 2012 and earlier, MPack must be compiled as C++. Enable the /Tp compiler flag."
+#endif
+
+#if defined(_WIN32) && MPACK_INTERNAL
+    #define _CRT_SECURE_NO_WARNINGS 1
+#endif
+
+#ifndef __STDC_LIMIT_MACROS
+    #define __STDC_LIMIT_MACROS 1
+#endif
+#ifndef __STDC_FORMAT_MACROS
+    #define __STDC_FORMAT_MACROS 1
+#endif
+#ifndef __STDC_CONSTANT_MACROS
+    #define __STDC_CONSTANT_MACROS 1
+#endif
+
+
+
 /**
  * @name File Configuration
  * @{
@@ -866,31 +893,7 @@
 
 
 
-/* Pre-include checks */
-
-#if defined(_MSC_VER) && _MSC_VER < 1800 && !defined(__cplusplus)
-#error "In Visual Studio 2012 and earlier, MPack must be compiled as C++. Enable the /Tp compiler flag."
-#endif
-
-#if defined(_WIN32) && defined(MPACK_INTERNAL)
-    #if MPACK_INTERNAL
-        #define _CRT_SECURE_NO_WARNINGS 1
-    #endif
-#endif
-
-
-
 /* System headers (based on configuration) */
-
-#ifndef __STDC_LIMIT_MACROS
-#define __STDC_LIMIT_MACROS 1
-#endif
-#ifndef __STDC_FORMAT_MACROS
-#define __STDC_FORMAT_MACROS 1
-#endif
-#ifndef __STDC_CONSTANT_MACROS
-#define __STDC_CONSTANT_MACROS 1
-#endif
 
 #if MPACK_CONFORMING
     #include <stddef.h>
@@ -908,6 +911,9 @@
 #if MPACK_STDIO
     #include <stdio.h>
     #include <errno.h>
+    #if MPACK_DEBUG
+        #include <stdarg.h>
+    #endif
 #endif
 
 

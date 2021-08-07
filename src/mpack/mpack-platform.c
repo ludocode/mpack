@@ -29,13 +29,6 @@
 #include "mpack-platform.h"
 #include "mpack.h"
 
-
-#if MPACK_DEBUG && MPACK_STDIO
-#include <stdarg.h>
-#endif
-
-
-
 MPACK_SILENCE_WARNINGS_BEGIN
 
 #if MPACK_DEBUG
