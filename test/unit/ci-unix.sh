@@ -23,7 +23,7 @@ if [[ "$CC" == "scan-build" ]]; then
     exit 1
 
     scan-build -o analysis --use-cc=`which clang` --status-bugs test/unit/configure.py
-    ninja -f build/unit/build.ninja
+    ninja -f .build/unit/build.ninja
     exit $?
 fi
 

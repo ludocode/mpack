@@ -24,5 +24,5 @@ python test\unit\configure.py
 if %errorlevel% neq 0 exit /b %errorlevel%
 
 REM Run unit tests
-ninja -f test\.build\build.ninja %*
+ninja -f .build\unit\build.ninja %*
 if %errorlevel% neq 0 exit /b %errorlevel%

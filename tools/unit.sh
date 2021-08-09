@@ -7,4 +7,4 @@
 set -e
 cd "$(dirname $0)/.."
 test/unit/configure.py
-ninja -f test/.build/build.ninja $@
+ninja -f .build/unit/build.ninja $@

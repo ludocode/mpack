@@ -2,27 +2,27 @@
 # american fuzzy lop. Don't use this directly; use tools/afl.sh to fuzz MPack.
 
 ifeq (Makefile, $(firstword $(MAKEFILE_LIST)))
-$(error The current directory should be the root of the repository. Try "cd .." and then "make -f test/Makefile")
+$(error The current directory should be the root of the repository. Try "cd ../.." and then "make -f test/fuzz/Makefile")
 endif
 
 CC=afl-gcc
 
 CPPFLAGS := $(CPPFLAGS) \
-	-include test/fuzz-config.h \
+	-include test/fuzz/fuzz-config.h \
 	-Isrc \
 	-O0 -DDEBUG -g \
 	-MMD -MP \
 
-BUILD := build/fuzz
+BUILD := .build/fuzz
 PROG := mpack-fuzz
 
 SRCS := \
 	$(shell find src/ -type f -name '*.c') \
-	test/fuzz.c
+	test/fuzz/fuzz.c
 
 OBJS := $(patsubst %, $(BUILD)/%.o, $(SRCS))
 
-GLOBAL_DEPENDENCIES := test/Makefile
+GLOBAL_DEPENDENCIES := test/fuzz/Makefile
 
 .PHONY: all
 all: $(PROG)

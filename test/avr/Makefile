@@ -9,14 +9,14 @@
 # disabled) since avr-libc has stdint.h and friends.
 
 ifeq (Makefile, $(firstword $(MAKEFILE_LIST)))
-$(error The current directory should be the root of the repository. Try "cd ../.." and then "make -f test/avr-gcc/Makefile")
+$(error The current directory should be the root of the repository. Try "cd ../.." and then "make -f test/avr/Makefile")
 endif
 
 CC=avr-gcc
-BUILD := test/.build/avr
+BUILD := .build/avr
 PROG := mpack-avr
 
-CPPFLAGS := -Isrc -Itest -DMPACK_HAS_CONFIG=1
+CPPFLAGS := -Isrc -Itest/unit/src -DMPACK_HAS_CONFIG=1
 CFLAGS := \
 		-Os -DNDEBUG \
 		-Wall -Wextra -Wpedantic -Werror \

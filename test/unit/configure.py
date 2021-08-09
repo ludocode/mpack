@@ -31,7 +31,7 @@
 import shutil, os, sys, subprocess
 from os import path
 
-globalbuild = path.join("test", ".build")
+globalbuild = path.join(".build", "unit")
 os.makedirs(globalbuild, exist_ok=True)
 
 
@@ -200,7 +200,7 @@ else:
     ]
 
 global_cppflags += [
-    "-Isrc", "-Itest",
+    "-Isrc", "-Itest/unit/src",
     "-DMPACK_VARIANT_BUILDS=1",
     "-DMPACK_HAS_CONFIG=1",
 ]
@@ -476,13 +476,9 @@ elif compiler != "TinyCC":
 
 srcs = []
 
-for paths in [path.join("src", "mpack"), "test"]:
+for paths in [path.join("src", "mpack"), path.join("test", "unit", "src")]:
     for root, dirs, files in os.walk(paths):
-        if ".build" in root:
-            continue
         for name in files:
-            if name == "fuzz.c":
-                continue
             if name.endswith(".c"):
                 srcs.append(os.path.join(root, name))
 
@@ -525,7 +521,7 @@ with open(ninja, "w") as out:
     out.write("\n")
 
     out.write("rule help\n")
-    out.write(" command = cat test/.build/help\n")
+    out.write(" command = cat .build/help\n")
     out.write("build help: help\n")
     out.write("\n")
 
