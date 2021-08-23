@@ -564,6 +564,10 @@ void mpack_expect_uint_match(mpack_reader_t* reader, uint64_t value);
 void mpack_expect_int_match(mpack_reader_t* reader, int64_t value);
 
 /**
+ * @}
+ */
+
+/**
  * @name Other Basic Types
  * @{
  */

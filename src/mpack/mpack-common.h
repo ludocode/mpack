@@ -1187,10 +1187,6 @@ bool mpack_str_check_no_null(const char* str, size_t bytes);
  * @}
  */
 
-/**
- * @}
- */
-
 MPACK_EXTERN_C_END
 MPACK_SILENCE_WARNINGS_END
 

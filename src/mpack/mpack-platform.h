@@ -80,6 +80,7 @@
  * including headers in it.
  */
 
+/** @cond */
 #if defined(_MSC_VER) && _MSC_VER < 1800 && !defined(__cplusplus)
     #error "In Visual Studio 2012 and earlier, MPack must be compiled as C++. Enable the /Tp compiler flag."
 #endif
@@ -97,6 +98,7 @@
 #ifndef __STDC_CONSTANT_MACROS
     #define __STDC_CONSTANT_MACROS 1
 #endif
+/** @endcond */
 
 
 
@@ -236,7 +238,8 @@
 
 
 // workarounds for Doxygen
-#if defined(MPACK_DOXYGEN) && MPACK_DOXYGEN
+#if defined(MPACK_DOXYGEN)
+#if MPACK_DOXYGEN
 // We give these their default values of 0 here even though they are defined to
 // 1 in the doxyfile. Doxygen will show this as the value in the docs, even
 // though it ignores it when parsing the rest of the source. This is what we
@@ -244,6 +247,7 @@
 // generate documentation for the functions they add when they're on.
 #define MPACK_COMPATIBILITY 0
 #define MPACK_EXTENSIONS 0
+#endif
 #endif
 
 
@@ -623,6 +627,7 @@
 
 /**
  * @name Debugging Options
+ * @{
  */
 
 /**
@@ -858,8 +863,48 @@
 #endif
 
 /**
+ * @def MPACK_NO_BUILTINS
+ *
+ * Whether to disable compiler intrinsics and other built-in functions.
+ *
+ * If this is enabled, MPack won't use `__attribute__`, `__declspec`, any
+ * function starting with `__builtin`, or pretty much anything else that isn't
+ * standard C.
+ */
+#if defined(MPACK_DOXYGEN)
+#if MPACK_DOXYGEN
+    #define MPACK_NO_BUILTINS 0
+#endif
+#endif
+
+/**
  * @}
  */
+
+
+
+#if MPACK_DEBUG
+/**
+ * @name Debug Functions
+ * @{
+ */
+/**
+ * Implement this and define @ref MPACK_CUSTOM_ASSERT to use a custom
+ * assertion function.
+ *
+ * This function should not return. If it does, MPack will @c abort().
+ *
+ * If you use C++, make sure you include @c mpack.h where you define
+ * this to get the correct linkage (or define it <code>extern "C"</code>.)
+ *
+ * Asserts are only used when @ref MPACK_DEBUG is enabled, and can be
+ * triggered by bugs in MPack or bugs due to incorrect usage of MPack.
+ */
+void mpack_assert_fail(const char* message);
+/**
+ * @}
+ */
+#endif
 
 
 
@@ -1620,31 +1665,6 @@ MPACK_EXTERN_C_BEGIN
  */
 
 #if MPACK_DEBUG
-
-    /**
-     * @addtogroup config
-     * @{
-     */
-    /**
-     * @name Debug Functions
-     */
-    /**
-     * Implement this and define @ref MPACK_CUSTOM_ASSERT to use a custom
-     * assertion function.
-     *
-     * This function should not return. If it does, MPack will @c abort().
-     *
-     * If you use C++, make sure you include @c mpack.h where you define
-     * this to get the correct linkage (or define it <code>extern "C"</code>.)
-     *
-     * Asserts are only used when @ref MPACK_DEBUG is enabled, and can be
-     * triggered by bugs in MPack or bugs due to incorrect usage of MPack.
-     */
-    void mpack_assert_fail(const char* message);
-    /**
-     * @}
-     */
-
     MPACK_NORETURN(void mpack_assert_fail_wrapper(const char* message));
     #if MPACK_STDIO
         MPACK_NORETURN(void mpack_assert_fail_format(const char* format, ...));
