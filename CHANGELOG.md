@@ -13,11 +13,13 @@ New Platforms:
 
 - Compiling for AVR (e.g. Arduino) and other microcontrollers is now supported. MPack now compiles cleanly on platforms with 16-bit `int` and `size_t`. (See #74, #79)
 
-- `float` and/or `double` can now be disabled individually on platforms with limited floating point support. AVR and the Linux kernel are detected automatically. If `float` is supported but not `double`, MessagePack doubles can be converted to `float`. (See #74, #79)
+- `float` and/or `double` can now be disabled individually on platforms with limited floating point support. If `float` is supported but not `double`, MessagePack doubles can be converted to `float`. (See #74, #79)
 
 - MPack now builds cleanly under /W4 with Visual Studio 2015, 2017 and 2019 build tools.
 
 Bug Fixes and Other Changes:
+
+- An `mpack-defaults.h` sample configuration is no longer provided.
 
 - Replaced SCons unit test buildsystem and XCode/VS projects with Python+Ninja.
 

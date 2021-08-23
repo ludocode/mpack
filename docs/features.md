@@ -11,14 +11,14 @@ Feedback is welcome! Please let me know if any entries in the table are incorrec
 [cmp]: https://github.com/camgunz/cmp
 [cwpack]: https://github.com/clwi/CWPack
 
-|    | [MPack][mpack]<br>(v1.1 beta) | [msgpack-c][msgpack-c]<br>(v3.1.1) | [CMP][cmp]<br>(v18) | [CWPack][cwpack]<br>(v1.1) |
+|    | [MPack][mpack]<br>(v1.1) | [msgpack-c][msgpack-c]<br>(v3.3.0) | [CMP][cmp]<br>(v19) | [CWPack][cwpack]<br>(v1.3.1) |
 |:------------------------------------|:---:|:---:|:---:|:---:|
 | No libc requirement                 | ✓   |     | ✓   | ✓   |
 | No allocator requirement            | ✓   |     | ✓   | ✓   |
-| Growable memory writer              | ✓   | ✓   |     | ✓\* |
-| File I/O helpers                    | ✓   | ✓   |     | ✓\* |
+| Growable memory writer              | ✓   | ✓   |     | ✓   |
+| File I/O helpers                    | ✓   | ✓   |     | ✓   |
 | Tree parser                         | ✓   | ✓   |     |     |
-| Propagating errors                  | ✓   |     | ✓   |     |
+| Stateful error handling             | ✓   |     | ✓   | ✓   |
 | Descriptive error information       |     |     |     |     |
 | Compound size tracking              | ✓   |     |     |     |
 | Automatic compound size             | ✓   |     |     |     |
@@ -37,15 +37,13 @@ Feedback is welcome! Please let me know if any entries in the table are incorrec
 
 Most of the features above are optional when supported and can be configured in all libraries. In particular, UTF-8 verification is optional with MPack; compound size tracking is optional and disabled in release by default with MPack; and 1.0 (v4) spec compatibility is optional in all libraries (v5/2.0 is the recommended and default usage.)
 
-\*CWPack's [goodies](https://github.com/clwi/CWPack/tree/master/goodies) are included in the above table.
-
 ## Glossary
 
 *Tree parsing* means parsing a MessagePack object into a DOM-style tree of dynamically-typed elements supporting random access.
 
 *Incremental parsing* means being able to parse one basic MessagePack element at a time (either imperatively or with a SAX-style callback) with no per-element memory usage.
 
-*Propagating errors* means a parse error or type error on one element places the whole parser, encoder or tree in an error state. This means you can check for errors only at certain key points rather than at every interaction with the library, and you get a final error state indicating whether any error occurred at any point during parsing or encoding.
+*Stateful error handling* means a parse error or type error on one element places the whole parser, encoder or tree in an error state. This means you can check for errors only at certain key points rather than at every interaction with the library, and you get a final error state indicating whether any error occurred at any point during parsing or encoding.
 
 *Descriptive error information* means being able to get additional information when an error occurs, such as the tree position and byte position in the message where the error occurred.
 

@@ -90,12 +90,12 @@ MPack is rich in features while maintaining very high performance and a small co
 [cmp]: https://github.com/camgunz/cmp
 [cwpack]: https://github.com/clwi/CWPack
 
-|    | [MPack][mpack]<br>(v1.1) | [msgpack-c][msgpack-c]<br>(v3.2.0) | [CMP][cmp]<br>(v18) | [CWPack][cwpack]<br>(v1.1) |
+|    | [MPack][mpack]<br>(v1.1) | [msgpack-c][msgpack-c]<br>(v3.3.0) | [CMP][cmp]<br>(v19) | [CWPack][cwpack]<br>(v1.3.1) |
 |:------------------------------------|:---:|:---:|:---:|:---:|
 | No libc requirement                 | ✓   |     | ✓   | ✓   |
 | Growable memory writer              | ✓   | ✓   |     | ✓\* |
 | File I/O helpers                    | ✓   | ✓   |     | ✓\* |
-| Propagating errors                  | ✓   |     | ✓   |     |
+| Stateful error handling             | ✓   |     | ✓   |     |
 | Incremental parser                  | ✓   |     | ✓   | ✓   |
 | Tree stream parser                  | ✓   | ✓   |     |     |
 | Compound size tracking              | ✓   |     |     |     |
