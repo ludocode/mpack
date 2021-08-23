@@ -1027,6 +1027,7 @@
     // These are a bunch of mostly useless warnings emitted under MSVC /W4,
     // some as a result of the expansion of macros.
     #define MPACK_SILENCE_WARNINGS_MSVC_W4 \
+            __pragma(warning(disable:4996)) /* _CRT_SECURE_NO_WARNINGS */ \
             __pragma(warning(disable:4127)) /* comparison is constant */ \
             __pragma(warning(disable:4702)) /* unreachable code */ \
             __pragma(warning(disable:4310)) /* cast truncates constant value */

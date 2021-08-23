@@ -1,7 +1,7 @@
 #!/bin/bash
 # This script amalgamates the MPack code into a single pair of
 # source files, mpack.h and mpack.c. The resulting amalgamation
-# is in build/amalgamation/ (without documentation.)
+# is in .build/amalgamation/ (without documentation.)
 
 . "`dirname $0`"/getversion.sh
 
@@ -26,8 +26,10 @@ SOURCES="\
 TOOLS="\
     tools/afl.sh \
     tools/clean.sh \
-    tools/gcov.sh \
+    tools/coverage.sh \
     tools/scan-build.sh \
+    tools/unit.bat \
+    tools/unit.sh \
     tools/valgrind-suppressions \
     "
 
@@ -40,10 +42,10 @@ FILES="\
     "
 
 # add top license and comment
-rm -rf build/amalgamation
-mkdir -p build/amalgamation/src/mpack
-HEADER=build/amalgamation/src/mpack/mpack.h
-SOURCE=build/amalgamation/src/mpack/mpack.c
+rm -rf .build/amalgamation
+mkdir -p .build/amalgamation/src/mpack
+HEADER=.build/amalgamation/src/mpack/mpack.h
+SOURCE=.build/amalgamation/src/mpack/mpack.c
 echo '/**' > $HEADER
 sed 's/^/ * /' LICENSE >> $HEADER
 cat - >> $HEADER <<EOF
@@ -80,9 +82,9 @@ for f in $SOURCES; do
 done
 
 # assemble package contents
-cp -ar $FILES build/amalgamation
-mkdir -p build/amalgamation/tools
-cp $TOOLS build/amalgamation/tools
+cp -a $FILES .build/amalgamation
+mkdir -p .build/amalgamation/tools
+cp -a $TOOLS .build/amalgamation/tools
 
 # done!
-echo "Done. MPack amalgamation is in build/amalgamation/"
+echo "Done. MPack amalgamation is in .build/amalgamation/"

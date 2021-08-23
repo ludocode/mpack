@@ -3,71 +3,163 @@ name: Unit Tests
 on: [push, pull_request]
 
 jobs:
-  build:
-    strategy:
-      matrix:
-        os: [macos-latest, windows-latest, ubuntu-20.04]
 
-        # workaround for matrix keys not allowed to be empty. we want
-        # to manually specify the compilers for each platform.
-        cc: [nocc]
-        exclude:
-          - cc: nocc
 
-        include:
-          - os: macos-latest
-            cc: clang
-          - os: ubuntu-20.04
-            cc: gcc
-          - os: ubuntu-20.04
-            cc: tcc
-          - os: windows-latest
-            cc: cl
-
-    runs-on: ${{ matrix.os }}
-
+  macos-clang-amalgamated:
+    name: "macOS Clang (amalgamated)"
+    runs-on: macos-latest
+    env:
+      AMALGAMATED: 1
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - name: Install Ninja (Ubuntu)
-      if: contains(matrix.os, 'ubuntu')
-          # sudo apt-get update -y &&
-      run: sudo apt-get install -y ninja-build
+      - name: Install Dependencies
+        run: brew install ninja
 
-    - name: Install Ninja (macOS)
-      if: contains(matrix.os, 'macos')
-      run: brew install ninja
+      - name: Run ci-unix
+        run: test/unit/ci-unix.sh
 
-    - name: Install TinyCC (Ubuntu+tcc)
-      if: contains(matrix.cc, 'tcc')
-      run: sudo apt-get install -y tcc
 
-    - name: Install lcov (Ubuntu+gcc)
-      if: contains(matrix.cc, 'gcc')
-      run: |
-        curl -LO https://github.com/linux-test-project/lcov/releases/download/v1.15/lcov-1.15.tar.gz
-        tar xzf lcov-1.15.tar.gz
-        cd lcov-1.15
-        sudo make install
 
-    - name: Run ci-unix (Ubuntu, macOS)
-      if: ${{ !contains(matrix.os, 'windows') }}
-      run: test/unit/ci-unix.sh
-      env:
-        CC: ${{ matrix.cc }}
+  ubuntu-scan-build:
+    name: "Clang Static Analysis (source)"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
 
-    - name: Run ci-windows (Windows)
-      if: contains(matrix.os, 'windows')
-      shell: cmd
-      run: test\\unit\\ci-windows.bat
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build clang-tools
 
-    - name: Submit coverage to Coveralls
-      id: coverage
-      if: contains(matrix.cc, 'gcc')
-      uses: coverallsapp/github-action@1.1.3
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run scan-build
+        run: tools/scan-build.sh
 
-    - name: Print Coveralls submission result
-      if: contains(matrix.cc, 'gcc')
-      run: echo ${{ steps.coverage.outputs['coveralls-api-result'] }}
+
+
+  ubuntu-tcc:
+    name: "TinyCC (source)"
+    runs-on: ubuntu-latest
+    env:
+      CC: tcc
+      CXX: /bin/false
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build tcc
+
+      - name: Run ci-unix
+        run: test/unit/ci-unix.sh
+
+
+
+  ubuntu-gcc-9:
+    name: "Ubuntu 20.04 GCC 9 (source)"
+    runs-on: ubuntu-20.04
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Ninja
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build
+
+      - name: Install lcov
+        run: |
+          curl -LO https://github.com/linux-test-project/lcov/releases/download/v1.15/lcov-1.15.tar.gz
+          tar xzf lcov-1.15.tar.gz
+          cd lcov-1.15
+          sudo make install
+
+      - name: Run ci-unix
+        run: test/unit/ci-unix.sh
+
+      - name: Collect coverage
+        run: tools/coverage.sh
+
+      - name: Submit coverage to Coveralls
+        id: coverage
+        uses: coverallsapp/github-action@1.1.3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Print Coveralls submission result
+        run: echo ${{ steps.coverage.outputs['coveralls-api-result'] }}
+
+
+
+  ubuntu-gcc-7:
+    name: "Ubuntu 20.04 GCC 7 (amalgamated)"
+    runs-on: ubuntu-20.04
+    env:
+      CC: gcc-7
+      CXX: g++-7
+      AMALGAMATED: 1
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build gcc-7
+
+      - name: Run ci-unix
+        run: test/unit/ci-unix.sh
+
+
+
+  ubuntu-gcc-5:
+    name: "Ubuntu 18.04 GCC 5 (amalgamated)"
+    runs-on: ubuntu-18.04
+    env:
+      CC: gcc-5
+      CXX: g++-5
+      AMALGAMATED: 1
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install Dependencies
+        # https://askubuntu.com/a/1087368
+        # note for when 18.04 is EOL: https://askubuntu.com/a/1313032
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build gcc-5
+
+      - name: Run ci-unix
+        run: test/unit/ci-unix.sh
+
+
+
+  windows-cl-2019-x64:
+    name: "Windows VS2019 amd64 (source)"
+    runs-on: windows-latest
+    env:
+      COMPILER: cl-2019-x64
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Run ci-windows (Windows)
+        shell: cmd
+        run: test\\unit\\ci-windows.bat
+
+
+
+  windows-cl-2015-x86:
+    name: "Windows VS2015 x86 (amalgamated)"
+    runs-on: windows-latest
+    env:
+      COMPILER: cl-2015-x86
+      AMALGAMATED: 1
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Amalgamate
+        shell: bash
+        run: tools\\amalgamate.sh
+
+      - name: Run ci-windows (Windows)
+        shell: cmd
+        run: test\\unit\\ci-windows.bat
