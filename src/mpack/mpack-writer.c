@@ -535,6 +535,46 @@ mpack_error_t mpack_writer_destroy(mpack_writer_t* writer) {
     mpack_track_destroy(&writer->track, writer->error != mpack_ok);
     #endif
 
+    #if MPACK_BUILDER
+    mpack_builder_t* builder = &writer->builder;
+    if (builder->current_build != NULL) {
+        // A builder is open!
+
+        // Flag an error, if there's not already an error. You can only skip
+        // closing any open compound types if a write error occurred. If there
+        // wasn't already an error, it's a bug, which will assert in debug.
+        if (mpack_writer_error(writer) == mpack_ok) {
+            mpack_break("writer cannot be destroyed with an incomplete builder unless "
+                    "an error was flagged!");
+            mpack_writer_flag_error(writer, mpack_error_bug);
+        }
+
+        // Free any remaining builder pages
+        mpack_builder_page_t* page = builder->pages;
+        #if MPACK_BUILDER_INTERNAL_STORAGE
+        mpack_assert(page == (mpack_builder_page_t*)builder->internal);
+        page = page->next;
+        #endif
+        while (page != NULL) {
+            mpack_builder_page_t* next = page->next;
+            MPACK_FREE(page);
+            page = next;
+        }
+
+        // Restore the stashed pointers. The teardown function may need to free
+        // them (e.g. mpack_growable_writer_teardown().)
+        writer->buffer = builder->stash_buffer;
+        writer->position = builder->stash_position;
+        writer->end = builder->stash_end;
+
+        // Note: It's not necessary to clean up the current_build or other
+        // pointers at this point because we're guaranteed to be in an error
+        // state already so a user error callback can't longjmp out. This
+        // destroy function will complete no matter what so it doesn't matter
+        // what junk is left in the writer.
+    }
+    #endif
+
     // flush any outstanding data
     if (mpack_writer_error(writer) == mpack_ok && mpack_writer_buffer_used(writer) != 0 && writer->flush != NULL) {
         writer->flush(writer, writer->buffer, mpack_writer_buffer_used(writer));
