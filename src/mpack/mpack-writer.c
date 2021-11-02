@@ -1638,6 +1638,16 @@ MPACK_NOINLINE
 static void mpack_builder_resolve(mpack_writer_t* writer) {
     mpack_builder_t* builder = &writer->builder;
 
+    // We should not have gotten here if we are in an error state. If an error
+    // occurs with an open builder, the writer will free the open builder pages
+    // when destroyed.
+    mpack_assert(mpack_writer_error(writer) == mpack_ok, "can't resolve in error state!");
+
+    // We don't want the user to longjmp out of any I/O errors while we are
+    // walking the page list, so defer error callbacks to after we're done.
+    mpack_writer_error_t error_fn = writer->error_fn;
+    writer->error_fn = NULL;
+
     // The starting page is the internal storage (if we have it), otherwise
     // it's the first page in the array
     mpack_builder_page_t* page =
@@ -1670,9 +1680,9 @@ static void mpack_builder_resolve(mpack_writer_t* writer) {
 
     // Walk the list of builds, writing everything out in the buffer. Note that
     // we don't check for errors anywhere. The lower-level write functions will
-    // all check for errors. We need to walk all pages anyway to free them, so
-    // there's not much point in optimizing an error path at the expense of the
-    // normal path.
+    // all check for errors and do nothing after an error occurs. We need to
+    // walk all pages anyway to free them, so there's not much point in
+    // optimizing an error path at the expense of the normal path.
     while (true) {
 
         // write out the container tag
@@ -1752,13 +1762,18 @@ static void mpack_builder_resolve(mpack_writer_t* writer) {
     }
 
     mpack_log("done resolve.\n");
+
+    // We can now restore the error handler and call it if an error occurred.
+    writer->error_fn = error_fn;
+    if (mpack_writer_error(writer) != mpack_ok)
+        writer->error_fn(writer, writer->error);
 }
 
 static void mpack_builder_complete(mpack_writer_t* writer, mpack_type_t type) {
+    mpack_writer_track_pop_builder(writer, type);
     if (mpack_writer_error(writer) != mpack_ok)
         return;
 
-    mpack_writer_track_pop_builder(writer, type);
     mpack_builder_t* builder = &writer->builder;
     mpack_assert(builder->current_build != NULL, "no build in progress!");
     mpack_assert(builder->latest_build != NULL, "missing latest build!");
