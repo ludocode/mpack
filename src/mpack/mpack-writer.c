@@ -1736,7 +1736,7 @@ static void mpack_builder_resolve(mpack_writer_t* writer) {
 
         // now see if we can find another build.
         offset = mpack_builder_align_build(offset);
-        if (offset + sizeof(mpack_build_t) >= mpack_builder_page_size(writer, page)) {
+        if (offset + sizeof(mpack_build_t) > mpack_builder_page_size(writer, page)) {
             mpack_log("not enough room in this page for another build\n");
             mpack_builder_page_t* next_page = page->next;
             mpack_builder_free_page(writer, page);
