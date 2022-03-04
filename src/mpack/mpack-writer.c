@@ -1246,7 +1246,7 @@ void mpack_start_ext(mpack_writer_t* writer, int8_t exttype, uint32_t count) {
  */
 
 void mpack_write_str(mpack_writer_t* writer, const char* data, uint32_t count) {
-    mpack_assert(data != NULL, "data for string of length %i is NULL", (int)count);
+    mpack_assert(count == 0 || data != NULL, "data for string of length %i is NULL", (int)count);
 
     #if MPACK_OPTIMIZE_FOR_SIZE
     mpack_writer_track_element(writer);
@@ -1301,7 +1301,7 @@ void mpack_write_str(mpack_writer_t* writer, const char* data, uint32_t count) {
 }
 
 void mpack_write_bin(mpack_writer_t* writer, const char* data, uint32_t count) {
-    mpack_assert(data != NULL, "data pointer for bin of %i bytes is NULL", (int)count);
+    mpack_assert(count == 0 || data != NULL, "data pointer for bin of %i bytes is NULL", (int)count);
     mpack_start_bin(writer, count);
     mpack_write_bytes(writer, data, count);
     mpack_finish_bin(writer);
@@ -1317,16 +1317,18 @@ void mpack_write_ext(mpack_writer_t* writer, int8_t exttype, const char* data, u
 #endif
 
 void mpack_write_bytes(mpack_writer_t* writer, const char* data, size_t count) {
-    mpack_assert(data != NULL, "data pointer for %i bytes is NULL", (int)count);
+    mpack_assert(count == 0 || data != NULL, "data pointer for %i bytes is NULL", (int)count);
     mpack_writer_track_bytes(writer, count);
     mpack_write_native(writer, data, count);
 }
 
 void mpack_write_cstr(mpack_writer_t* writer, const char* cstr) {
-    mpack_assert(cstr != NULL, "cstr pointer is NULL");
-    size_t length = mpack_strlen(cstr);
-    if (length > MPACK_UINT32_MAX)
-        mpack_writer_flag_error(writer, mpack_error_invalid);
+    size_t length = 0;
+    if (cstr) {
+        length = mpack_strlen(cstr);
+        if (length > MPACK_UINT32_MAX)
+            mpack_writer_flag_error(writer, mpack_error_invalid);
+    }
     mpack_write_str(writer, cstr, (uint32_t)length);
 }
 
@@ -1338,7 +1340,7 @@ void mpack_write_cstr_or_nil(mpack_writer_t* writer, const char* cstr) {
 }
 
 void mpack_write_utf8(mpack_writer_t* writer, const char* str, uint32_t length) {
-    mpack_assert(str != NULL, "data for string of length %i is NULL", (int)length);
+    mpack_assert(length == 0 || str != NULL, "data for string of length %i is NULL", (int)length);
     if (!mpack_utf8_check(str, length)) {
         mpack_writer_flag_error(writer, mpack_error_invalid);
         return;
@@ -1347,11 +1349,13 @@ void mpack_write_utf8(mpack_writer_t* writer, const char* str, uint32_t length) 
 }
 
 void mpack_write_utf8_cstr(mpack_writer_t* writer, const char* cstr) {
-    mpack_assert(cstr != NULL, "cstr pointer is NULL");
-    size_t length = mpack_strlen(cstr);
-    if (length > MPACK_UINT32_MAX) {
-        mpack_writer_flag_error(writer, mpack_error_invalid);
-        return;
+    size_t length = 0;
+    if (cstr) {
+        length = mpack_strlen(cstr);
+        if (length > MPACK_UINT32_MAX) {
+            mpack_writer_flag_error(writer, mpack_error_invalid);
+            return;
+        }
     }
     mpack_write_utf8(writer, cstr, (uint32_t)length);
 }
