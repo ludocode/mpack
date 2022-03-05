@@ -985,7 +985,7 @@ size_t mpack_node_bin_size(mpack_node_t node);
  *
  * This returns zero if the tree is in an error state.
  *
- * If this node is not a str, bin or map, @ref mpack_error_type is raised and zero
+ * If this node is not a str, bin or ext, @ref mpack_error_type is raised and zero
  * is returned.
  */
 uint32_t mpack_node_data_len(mpack_node_t node);
@@ -1025,7 +1025,7 @@ const char* mpack_node_str(mpack_node_t node);
  *
  * The pointer is valid as long as the data backing the tree is valid.
  *
- * If this node is not of a str, bin or map, @ref mpack_error_type is raised, and
+ * If this node is not of a str, bin or ext, @ref mpack_error_type is raised, and
  * @c NULL is returned.
  *
  * @see mpack_node_copy_cstr()
