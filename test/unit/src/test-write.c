@@ -1005,6 +1005,7 @@ static void test_write_utf8(void) {
     // these test strings are mostly duplicated from test-expect.c, but
     // without the MessagePack header
 
+    const char empty_string[]         = "";
     const char utf8_null[]            = "hello\x00world";
     const char utf8_valid[]           = " \xCF\x80 \xe4\xb8\xad \xf0\xa0\x80\xb6";
     const char utf8_trimmed[]         = "\xf0\xa0\x80\xb6";
@@ -1016,6 +1017,11 @@ static void test_write_utf8(void) {
     const char utf8_cesu8[]           = " \xED\xA0\x81\xED\xB0\x80 ";
     const char utf8_wobbly[]          = " \xED\xA0\x81 ";
 
+    // An empty string should be written successfully
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_null, 0));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, NULL, 0));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, empty_string, 0));
+
     // all non-UTF-8 writers should write these strings without error
     TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_null, (uint32_t)sizeof(utf8_null)-1));
     TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_valid, (uint32_t)sizeof(utf8_valid)-1));
@@ -1026,6 +1032,9 @@ static void test_write_utf8(void) {
     TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_modified, (uint32_t)sizeof(utf8_modified)-1));
     TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_cesu8, (uint32_t)sizeof(utf8_cesu8)-1));
     TEST_SIMPLE_WRITE_NOERROR(mpack_write_str(&writer, utf8_wobbly, (uint32_t)sizeof(utf8_wobbly)-1));
+
+    // A c-string with 0 length should be accepted
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_cstr(&writer, empty_string));
 
     // as should the non-UTF-8 cstr writers
     // (the utf8_null test here is writing up to the null-terminator which
@@ -1041,6 +1050,11 @@ static void test_write_utf8(void) {
     TEST_SIMPLE_WRITE_NOERROR(mpack_write_cstr(&writer, utf8_cesu8));
     TEST_SIMPLE_WRITE_NOERROR(mpack_write_cstr(&writer, utf8_wobbly));
 
+    // A NULL string or string with 0 length should be accepted
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_utf8(&writer, utf8_null, 0));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_utf8(&writer, NULL, 0));
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_utf8(&writer, empty_string, 0));
+
     // test UTF-8 cstr writers
     // NUL is valid in UTF-8, so we allow it by the non-cstr API. (If you're
     // using it to write, you should also using some non-cstr API to
@@ -1054,6 +1068,9 @@ static void test_write_utf8(void) {
     TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8(&writer, utf8_modified, (uint32_t)sizeof(utf8_modified)-1), mpack_error_invalid);
     TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8(&writer, utf8_cesu8, (uint32_t)sizeof(utf8_cesu8)-1), mpack_error_invalid);
     TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8(&writer, utf8_wobbly, (uint32_t)sizeof(utf8_wobbly)-1), mpack_error_invalid);
+
+    // A c-string with 0 length should be accepted
+    TEST_SIMPLE_WRITE_NOERROR(mpack_write_utf8_cstr(&writer, empty_string));
 
     // test UTF-8 cstr writers
     TEST_SIMPLE_WRITE_NOERROR(mpack_write_utf8_cstr(&writer, utf8_null)); // again, up to null-terminator, which is valid...
@@ -1069,6 +1086,7 @@ static void test_write_utf8(void) {
     // some basic tests for utf8_cstr_or_nil
     TEST_SIMPLE_WRITE("\xa5hello", mpack_write_utf8_cstr_or_nil(&writer, "hello"));
     TEST_SIMPLE_WRITE("\xc0", mpack_write_utf8_cstr_or_nil(&writer, NULL));
+    TEST_SIMPLE_WRITE("\xa0", mpack_write_utf8_cstr_or_nil(&writer, empty_string));
     TEST_SIMPLE_WRITE_ERROR(mpack_write_utf8_cstr_or_nil(&writer, utf8_invalid), mpack_error_invalid);
 }
 
