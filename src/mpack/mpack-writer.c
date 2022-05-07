@@ -1765,7 +1765,7 @@ static void mpack_builder_resolve(mpack_writer_t* writer) {
 
     // We can now restore the error handler and call it if an error occurred.
     writer->error_fn = error_fn;
-    if (mpack_writer_error(writer) != mpack_ok)
+    if (writer->error_fn && mpack_writer_error(writer) != mpack_ok)
         writer->error_fn(writer, writer->error);
 }
 

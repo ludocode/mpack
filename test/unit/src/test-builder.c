@@ -409,6 +409,16 @@ static void test_builder_strings(void) {
     test_builder_strings_length(457);
 }
 
+static void test_builder_resolve_error(void) {
+    static char buf[5];
+    mpack_writer_t writer;
+    mpack_writer_init(&writer, buf, sizeof(buf));
+    mpack_build_array(&writer);
+    mpack_write_cstr(&writer, "Hello world!");
+    mpack_complete_array(&writer);
+    TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_too_big);
+}
+
 void test_builder(void) {
     test_builder_basic();
     test_builder_repeat();
@@ -417,5 +427,6 @@ void test_builder(void) {
     test_builder_large();
     test_builder_content();
     test_builder_strings();
+    test_builder_resolve_error();
 }
 #endif
