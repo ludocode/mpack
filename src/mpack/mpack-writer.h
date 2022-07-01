@@ -763,7 +763,7 @@ MPACK_INLINE void mpack_finish_map(mpack_writer_t* writer) {
 /**
  * Starts building an array.
  *
- * Elements must follow, and mpack_complete_map() must be called when done. The
+ * Elements must follow, and mpack_complete_array() must be called when done. The
  * number of elements is determined automatically.
  *
  * If you know ahead of time the number of elements in the array, it is more
