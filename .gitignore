@@ -17,3 +17,4 @@ mpack-test-blank-file
 # other junk
 .directory
 /tags
+/examples/sax-example

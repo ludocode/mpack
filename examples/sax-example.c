@@ -82,8 +82,9 @@ static void parse_element(mpack_reader_t* reader, int depth,
         }
 
         default:
-            mpack_reader_flag_error(reader, mpack_error_unsupported);
-            break;
+            fprintf(stderr, "Error: type %s not implemented by this example SAX parser.\n",
+                    mpack_type_to_string(mpack_tag_type(&tag)));
+            exit(1);
     }
 }
 
@@ -135,7 +136,7 @@ static void bin_element(void* context, int depth,
     indent(depth);
     printf("bin: \"");
     for (i = 0; i < length; ++i) {
-	    printf("%02.2x", data[i] & 0xff);
+	    printf("%2.2x", data[i] & 0xff);
     }
     printf("\"\n");
 }
@@ -175,13 +176,17 @@ static sax_callbacks_t callbacks = {
 
 
 int main(int argc, char** argv) {
+    if (argc != 2) {
+        fprintf(stderr, "First argument must be path to MessagePack file.");
+        exit(1);
+    }
     struct stat stat;
     int fd = open(argv[1], O_RDONLY);
     fstat(fd, &stat);
     const char* p = (const char*) mmap(0, stat.st_size, PROT_READ, MAP_SHARED, fd, 0);
     bool ok = parse_messagepack(p, stat.st_size, &callbacks, NULL);
     if (!ok)
-        printf("error!\n");
+        fprintf(stderr, "Parse failed!\n");
     return ok ? EXIT_SUCCESS : EXIT_FAILURE;
 }
 #endif
