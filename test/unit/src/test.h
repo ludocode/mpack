@@ -138,7 +138,7 @@ MPACK_SILENCE_WARNINGS_BEGIN
     #endif
 
     #ifndef MPACK_DOUBLE_POSITIVE_INFINITY
-        MPACK_STATIC_INLINE float mpack_double_positive_infinity() {
+        MPACK_STATIC_INLINE double mpack_double_positive_infinity() {
             return (double)(INFINITY);
         }
         #define MPACK_DOUBLE_POSITIVE_INFINITY (mpack_double_positive_infinity())
