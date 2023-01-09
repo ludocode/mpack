@@ -203,7 +203,7 @@ static void mpack_tag_debug_pseudo_json_bin(mpack_tag_t tag, char* buffer, size_
         const char* prefix, size_t prefix_size)
 {
     mpack_assert(mpack_tag_type(&tag) == mpack_type_bin);
-    size_t length = (size_t)mpack_snprintf(buffer, buffer_size, "<binary data of length %u", tag.v.l);
+    size_t length = (size_t)mpack_snprintf(buffer, buffer_size, "<binary data of length %" PRIu32 "", tag.v.l);
     mpack_tag_debug_complete_bin_ext(tag, length, buffer, buffer_size, prefix, prefix_size);
 }
 
@@ -212,7 +212,7 @@ static void mpack_tag_debug_pseudo_json_ext(mpack_tag_t tag, char* buffer, size_
         const char* prefix, size_t prefix_size)
 {
     mpack_assert(mpack_tag_type(&tag) == mpack_type_ext);
-    size_t length = (size_t)mpack_snprintf(buffer, buffer_size, "<ext data of type %i and length %u",
+    size_t length = (size_t)mpack_snprintf(buffer, buffer_size, "<ext data of type %i and length %" PRIu32 "",
             mpack_tag_ext_exttype(&tag), mpack_tag_ext_length(&tag));
     mpack_tag_debug_complete_bin_ext(tag, length, buffer, buffer_size, prefix, prefix_size);
 }
@@ -253,7 +253,7 @@ static void mpack_tag_debug_pseudo_json_impl(mpack_tag_t tag, char* buffer, size
             return;
 
         case mpack_type_str:
-            mpack_snprintf(buffer, buffer_size, "<string of %u bytes>", tag.v.l);
+            mpack_snprintf(buffer, buffer_size, "<string of %" PRIu32 " bytes>", tag.v.l);
             return;
         case mpack_type_bin:
             mpack_tag_debug_pseudo_json_bin(tag, buffer, buffer_size, prefix, prefix_size);
@@ -265,10 +265,10 @@ static void mpack_tag_debug_pseudo_json_impl(mpack_tag_t tag, char* buffer, size
         #endif
 
         case mpack_type_array:
-            mpack_snprintf(buffer, buffer_size, "<array of %u elements>", tag.v.n);
+            mpack_snprintf(buffer, buffer_size, "<array of %" PRIu32 " elements>", tag.v.n);
             return;
         case mpack_type_map:
-            mpack_snprintf(buffer, buffer_size, "<map of %u key-value pairs>", tag.v.n);
+            mpack_snprintf(buffer, buffer_size, "<map of %" PRIu32 " key-value pairs>", tag.v.n);
             return;
     }
 
@@ -320,22 +320,22 @@ static void mpack_tag_debug_describe_impl(mpack_tag_t tag, char* buffer, size_t 
             #endif
             return;
         case mpack_type_str:
-            mpack_snprintf(buffer, buffer_size, "str of %u bytes", tag.v.l);
+            mpack_snprintf(buffer, buffer_size, "str of %" PRIu32 " bytes", tag.v.l);
             return;
         case mpack_type_bin:
-            mpack_snprintf(buffer, buffer_size, "bin of %u bytes", tag.v.l);
+            mpack_snprintf(buffer, buffer_size, "bin of %" PRIu32 " bytes", tag.v.l);
             return;
         #if MPACK_EXTENSIONS
         case mpack_type_ext:
-            mpack_snprintf(buffer, buffer_size, "ext of type %i, %u bytes",
+            mpack_snprintf(buffer, buffer_size, "ext of type %i, %" PRIu32 " bytes",
                     mpack_tag_ext_exttype(&tag), mpack_tag_ext_length(&tag));
             return;
         #endif
         case mpack_type_array:
-            mpack_snprintf(buffer, buffer_size, "array of %u elements", tag.v.n);
+            mpack_snprintf(buffer, buffer_size, "array of %" PRIu32 " elements", tag.v.n);
             return;
         case mpack_type_map:
-            mpack_snprintf(buffer, buffer_size, "map of %u key-value pairs", tag.v.n);
+            mpack_snprintf(buffer, buffer_size, "map of %" PRIu32 " key-value pairs", tag.v.n);
             return;
     }
 

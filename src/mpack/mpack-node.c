@@ -157,7 +157,7 @@ static bool mpack_tree_reserve_fill(mpack_tree_t* tree) {
             return false;
         }
 
-        mpack_log("read %u more bytes\n", (uint32_t)read);
+        mpack_log("read %" PRIu32 " more bytes\n", (uint32_t)read);
         tree->data_length += read;
         tree->parser.possible_nodes_left += read;
     } while (tree->parser.possible_nodes_left < bytes);

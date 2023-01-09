@@ -402,7 +402,7 @@ void mpack_skip_bytes(mpack_reader_t* reader, size_t count) {
     // check if we have enough in the buffer already
     size_t left = (size_t)(reader->end - reader->data);
     if (left >= count) {
-        mpack_log("skipping %u bytes still in buffer\n", (uint32_t)count);
+        mpack_log("skipping %" PRIu32 " bytes still in buffer\n", (uint32_t)count);
         reader->data += count;
         return;
     }

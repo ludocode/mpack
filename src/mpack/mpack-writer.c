@@ -80,7 +80,7 @@ static inline void mpack_writer_track_element(mpack_writer_t* writer) {
         if (build->nested_compound_elements == 0) {
             if (build->type != mpack_type_map) {
                 ++build->count;
-                mpack_log("adding element to build %p, now %u elements\n", (void*)build, build->count);
+                mpack_log("adding element to build %p, now %" PRIu32 " elements\n", (void*)build, build->count);
             } else if (build->key_needs_value) {
                 build->key_needs_value = false;
                 ++build->count;
@@ -1103,7 +1103,7 @@ void mpack_write_timestamp(mpack_writer_t* writer, int64_t seconds, uint32_t nan
     #endif
 
     if (nanoseconds > MPACK_TIMESTAMP_NANOSECONDS_MAX) {
-        mpack_break("timestamp nanoseconds out of bounds: %u", nanoseconds);
+        mpack_break("timestamp nanoseconds out of bounds: %" PRIu32 , nanoseconds);
         mpack_writer_flag_error(writer, mpack_error_bug);
         return;
     }
@@ -1686,7 +1686,7 @@ static void mpack_builder_resolve(mpack_writer_t* writer) {
     while (true) {
 
         // write out the container tag
-        mpack_log("writing out an %s with count %u followed by %zi bytes\n",
+        mpack_log("writing out an %s with count %" PRIu32 " followed by %zi bytes\n",
                 mpack_type_to_string(build->type), build->count, build->bytes);
         switch (build->type) {
             case mpack_type_map:
