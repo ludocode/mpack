@@ -63,7 +63,7 @@ void parse_stream(stream_t* stream) {
 
     while (true) {
         mpack_tree_parse(&tree);
-        if (mpack_tree_error(&tree) != mpack_error_ok))
+        if (mpack_tree_error(&tree) != mpack_error_ok)
             break;
 
         received_message(mpack_tree_root(&tree));
