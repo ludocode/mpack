@@ -85,8 +85,10 @@
     #error "In Visual Studio 2012 and earlier, MPack must be compiled as C++. Enable the /Tp compiler flag."
 #endif
 
+#if defined MPACK_INTERNAL
 #if defined(_WIN32) && MPACK_INTERNAL
     #define _CRT_SECURE_NO_WARNINGS 1
+#endif
 #endif
 
 #ifndef __STDC_LIMIT_MACROS
