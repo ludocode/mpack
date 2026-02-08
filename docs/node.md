@@ -55,6 +55,7 @@ static size_t read_stream(mpack_tree_t* tree, char* buffer, size_t count) {
     ssize_t step = read(stream->fd, buffer, count);
     if (step <= 0)
         mpack_tree_flag_error(tree, mpack_error_io);
+    return step;
 }
 
 void parse_stream(stream_t* stream) {
