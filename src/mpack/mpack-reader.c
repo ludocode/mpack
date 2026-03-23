@@ -55,7 +55,7 @@ void mpack_reader_init_error(mpack_reader_t* reader, mpack_error_t error) {
 }
 
 void mpack_reader_init_data(mpack_reader_t* reader, const char* data, size_t count) {
-    mpack_assert(data != NULL, "data is NULL");
+    mpack_assert(count == 0 || data != NULL, "data is NULL for %u bytes", count);
 
     mpack_memset(reader, 0, sizeof(*reader));
     reader->data = data;
