@@ -91,8 +91,7 @@ static bool mpack_tree_reserve_fill(mpack_tree_t* tree) {
 
     // if the necessary bytes would put us over the maximum tree
     // size, fail right away.
-    // TODO: check for overflow?
-    if (tree->data_length + bytes > tree->max_size) {
+    if (tree->data_length > tree->max_size || bytes > tree->max_size - tree->data_length) {
         mpack_tree_flag_error(tree, mpack_error_too_big);
         return false;
     }
@@ -107,12 +106,17 @@ static bool mpack_tree_reserve_fill(mpack_tree_t* tree) {
     }
 
     // expand the buffer if needed
-    if (tree->data_length + bytes > tree->buffer_capacity) {
+    if (tree->data_length > tree->buffer_capacity || bytes > tree->buffer_capacity - tree->data_length) {
 
-        // TODO: check for overflow?
+        size_t needed = tree->data_length + bytes;
         size_t new_capacity = (tree->buffer_capacity == 0) ? MPACK_BUFFER_SIZE : tree->buffer_capacity;
-        while (new_capacity < tree->data_length + bytes)
+        while (new_capacity < needed) {
+            if (new_capacity > SIZE_MAX / 2) {
+                new_capacity = SIZE_MAX;
+                break;
+            }
             new_capacity *= 2;
+        }
         if (new_capacity > tree->max_size)
             new_capacity = tree->max_size;
 
@@ -282,12 +286,12 @@ static bool mpack_tree_parse_children(mpack_tree_t* tree, mpack_node_data_t* nod
         total *= 2;
     }
 
-    // Make sure we are under our total node limit (TODO can this overflow?)
-    tree->node_count += total;
-    if (tree->node_count > tree->max_nodes) {
+    // Make sure we are under our total node limit.
+    if (tree->node_count > tree->max_nodes || total > tree->max_nodes - tree->node_count) {
         mpack_tree_flag_error(tree, mpack_error_too_big);
         return false;
     }
+    tree->node_count += total;
 
     // Each node is at least one byte. Count these bytes now to make
     // sure there is enough data left.
@@ -322,9 +326,13 @@ static bool mpack_tree_parse_children(mpack_tree_t* tree, mpack_node_data_t* nod
         mpack_tree_page_t* page;
 
         if (total > MPACK_NODES_PER_PAGE || parser->nodes_left > MPACK_NODES_PER_PAGE / 8) {
-            // TODO: this should check for overflow
-            page = (mpack_tree_page_t*)MPACK_MALLOC(
-                    sizeof(mpack_tree_page_t) + sizeof(mpack_node_data_t) * (total - 1));
+            size_t page_size;
+            if (total - 1 > (SIZE_MAX - sizeof(mpack_tree_page_t)) / sizeof(mpack_node_data_t)) {
+                mpack_tree_flag_error(tree, mpack_error_memory);
+                return false;
+            }
+            page_size = sizeof(mpack_tree_page_t) + sizeof(mpack_node_data_t) * (total - 1);
+            page = (mpack_tree_page_t*)MPACK_MALLOC(page_size);
             if (page == NULL) {
                 mpack_tree_flag_error(tree, mpack_error_memory);
                 return false;
