@@ -1191,8 +1191,11 @@ static void mpack_tree_init_stdfile_noclose(mpack_tree_t* tree, FILE* stdfile, s
 }
 
 void mpack_tree_init_stdfile(mpack_tree_t* tree, FILE* stdfile, size_t max_bytes, bool close_when_done) {
-    if (!mpack_tree_file_check_max_bytes(tree, max_bytes))
+    if (!mpack_tree_file_check_max_bytes(tree, max_bytes)) {
+        if (close_when_done)
+            fclose(stdfile);
         return;
+    }
 
     mpack_tree_init_stdfile_noclose(tree, stdfile, max_bytes);
 
