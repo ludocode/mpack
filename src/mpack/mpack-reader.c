@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021 Nicholas Fraser and the MPack authors
+ * Copyright (c) 2015-2026 Nicholas Fraser and the MPack authors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -55,7 +55,7 @@ void mpack_reader_init_error(mpack_reader_t* reader, mpack_error_t error) {
 }
 
 void mpack_reader_init_data(mpack_reader_t* reader, const char* data, size_t count) {
-    mpack_assert(data != NULL, "data is NULL");
+    mpack_assert(count == 0 || data != NULL, "data is NULL for %zu bytes", count);
 
     mpack_memset(reader, 0, sizeof(*reader));
     reader->data = data;
