@@ -988,7 +988,11 @@ mpack_tag_t mpack_peek_tag(mpack_reader_t* reader) {
     return tag;
 }
 
-void mpack_discard(mpack_reader_t* reader) {
+static void mpack_discard_depth(mpack_reader_t* reader, uint32_t depth) {
+    if (depth > 256) {
+        mpack_reader_flag_error(reader, mpack_error_too_big);
+        return;
+    }
     mpack_tag_t var = mpack_read_tag(reader);
     if (mpack_reader_error(reader))
         return;
@@ -1009,7 +1013,7 @@ void mpack_discard(mpack_reader_t* reader) {
         #endif
         case mpack_type_array: {
             for (; var.v.n > 0; --var.v.n) {
-                mpack_discard(reader);
+                mpack_discard_depth(reader, depth + 1);
                 if (mpack_reader_error(reader))
                     break;
             }
@@ -1018,8 +1022,8 @@ void mpack_discard(mpack_reader_t* reader) {
         }
         case mpack_type_map: {
             for (; var.v.n > 0; --var.v.n) {
-                mpack_discard(reader);
-                mpack_discard(reader);
+                mpack_discard_depth(reader, depth + 1);
+                mpack_discard_depth(reader, depth + 1);
                 if (mpack_reader_error(reader))
                     break;
             }
@@ -1030,6 +1034,11 @@ void mpack_discard(mpack_reader_t* reader) {
             break;
     }
 }
+
+void mpack_discard(mpack_reader_t* reader) {
+    mpack_discard_depth(reader, 0);
+}
+
 
 #if MPACK_EXTENSIONS
 mpack_timestamp_t mpack_read_timestamp(mpack_reader_t* reader, size_t size) {
