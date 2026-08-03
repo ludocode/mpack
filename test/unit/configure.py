@@ -521,7 +521,7 @@ with open(ninja, "w") as out:
     out.write("\n")
 
     out.write("rule help\n")
-    out.write(" command = cat .build/help\n")
+    out.write(" command = cat .build/unit/help\n")
     out.write("build help: help\n")
     out.write("\n")
 
