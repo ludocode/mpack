@@ -1244,7 +1244,7 @@ static void test_write_compatibility(void) {
 }
 #endif
 
-void test_writes() {
+void test_writes(void) {
     /*
     const char c[] =
         "\x85\xd0\xd1\x91\xc0\x90\x81\xc0\x00\xc0\x82\xc0\x90\x04\x05\xa5"

@@ -218,6 +218,10 @@ FILE* test_fopen(const char* path, const char* mode) {
 
 int test_fclose(FILE* stream) {
     TEST_TRUE(stream != NULL);
+    if (!stream) {
+        errno = EBADF;
+        return EOF;
+    }
 
     --test_files_active;
 
@@ -235,6 +239,10 @@ int test_fclose(FILE* stream) {
 
 size_t test_fread(void* ptr, size_t size, size_t nmemb, FILE* stream) {
     TEST_TRUE(stream != NULL);
+    if (!stream) {
+        errno = EBADF;
+        return 0;
+    }
 
     if (test_system_should_fail()) {
         errno = EACCES;
@@ -246,6 +254,10 @@ size_t test_fread(void* ptr, size_t size, size_t nmemb, FILE* stream) {
 
 size_t test_fwrite(const void* ptr, size_t size, size_t nmemb, FILE* stream) {
     TEST_TRUE(stream != NULL);
+    if (!stream) {
+        errno = EBADF;
+        return 0;
+    }
 
     if (test_system_should_fail()) {
         errno = EACCES;
@@ -257,6 +269,10 @@ size_t test_fwrite(const void* ptr, size_t size, size_t nmemb, FILE* stream) {
 
 int test_fseek(FILE* stream, long offset, int whence) {
     TEST_TRUE(stream != NULL);
+    if (!stream) {
+        errno = EBADF;
+        return -1;
+    }
 
     if (test_system_should_fail()) {
         errno = EACCES;
@@ -268,6 +284,10 @@ int test_fseek(FILE* stream, long offset, int whence) {
 
 long test_ftell(FILE* stream) {
     TEST_TRUE(stream != NULL);
+    if (!stream) {
+        errno = EBADF;
+        return -1;
+    }
 
     if (test_system_should_fail()) {
         errno = EACCES;
@@ -279,6 +299,10 @@ long test_ftell(FILE* stream) {
 
 int test_ferror(FILE * stream) {
     TEST_TRUE(stream != NULL);
+    if (!stream) {
+        errno = EBADF;
+        return -1;
+    }
 
     if (test_system_should_fail()) {
         errno = EACCES;

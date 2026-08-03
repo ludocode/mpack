@@ -159,7 +159,7 @@ static void test_count_messages(void) {
     TEST_TRUE(!count_messages(test2, sizeof(test2)-1, &message_count));
 }
 
-void test_reader() {
+void test_reader(void) {
     #if MPACK_DEBUG && MPACK_STDIO
     test_print_buffer();
     test_print_buffer_bounds();

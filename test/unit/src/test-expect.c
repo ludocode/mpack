@@ -1359,7 +1359,7 @@ static void test_expect_timestamp(void) {
 }
 #endif
 
-void test_expect() {
+void test_expect(void) {
     test_expect_example_read();
 
     // int/uint

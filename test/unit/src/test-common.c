@@ -491,7 +491,7 @@ static void test_shorten_raw_double_to_float(void) {
     #endif
 }
 
-void test_common() {
+void test_common(void) {
     test_tags_special();
     test_tags_simple();
     test_tags_reals();
