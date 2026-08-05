@@ -5,13 +5,14 @@ on: [push, pull_request]
 jobs:
 
 
+
   macos-clang-amalgamated:
     name: "macOS Clang (amalgamated)"
     runs-on: macos-latest
     env:
       AMALGAMATED: 1
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
 
       - name: Install Dependencies
         run: brew install ninja
@@ -25,7 +26,7 @@ jobs:
     name: "Clang Static Analysis (source)"
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
 
       - name: Install Dependencies
         run: |
@@ -44,7 +45,7 @@ jobs:
       CC: tcc
       CXX: /bin/false
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
 
       - name: Install Dependencies
         run: |
@@ -56,23 +57,16 @@ jobs:
 
 
 
-  ubuntu-gcc-9:
-    name: "Ubuntu 20.04 GCC 9 (source)"
-    runs-on: ubuntu-20.04
+  ubuntu-26-gcc:
+    name: "Ubuntu 26.04 GCC (source)"
+    runs-on: ubuntu-26.04
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
 
-      - name: Install Ninja
+      - name: Install Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y ninja-build
-
-      - name: Install lcov
-        run: |
-          curl -LO https://github.com/linux-test-project/lcov/releases/download/v1.15/lcov-1.15.tar.gz
-          tar xzf lcov-1.15.tar.gz
-          cd lcov-1.15
-          sudo make install
+          sudo apt-get install -y ninja-build lcov
 
       - name: Run ci-unix
         run: test/unit/ci-unix.sh
@@ -82,54 +76,12 @@ jobs:
 
       - name: Submit coverage to Coveralls
         id: coverage
-        uses: coverallsapp/github-action@1.1.3
+        uses: coverallsapp/github-action@v2
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Print Coveralls submission result
         run: echo ${{ steps.coverage.outputs['coveralls-api-result'] }}
-
-
-
-  ubuntu-gcc-7:
-    name: "Ubuntu 20.04 GCC 7 (amalgamated)"
-    runs-on: ubuntu-20.04
-    env:
-      CC: gcc-7
-      CXX: g++-7
-      AMALGAMATED: 1
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Install Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ninja-build gcc-7
-
-      - name: Run ci-unix
-        run: test/unit/ci-unix.sh
-
-
-
-  ubuntu-gcc-5:
-    name: "Ubuntu 18.04 GCC 5 (amalgamated)"
-    runs-on: ubuntu-18.04
-    env:
-      CC: gcc-5
-      CXX: g++-5
-      AMALGAMATED: 1
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Install Dependencies
-        # https://askubuntu.com/a/1087368
-        # note for when 18.04 is EOL: https://askubuntu.com/a/1313032
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ninja-build gcc-5
-
-      - name: Run ci-unix
-        run: test/unit/ci-unix.sh
 
 
 
@@ -139,7 +91,7 @@ jobs:
     env:
       COMPILER: cl-2019-x64
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
 
       - name: Run ci-windows (Windows)
         shell: cmd
@@ -154,7 +106,7 @@ jobs:
       COMPILER: cl-2015-x86
       AMALGAMATED: 1
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v7
 
       - name: Amalgamate
         shell: bash
