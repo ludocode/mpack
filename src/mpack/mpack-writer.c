@@ -1603,6 +1603,9 @@ static void mpack_builder_build(mpack_writer_t* writer, mpack_type_t type) {
         mpack_log("not enough space for a build. %zi bytes used of %zi in this page\n",
                 builder->current_page->bytes_used, mpack_builder_page_size(writer, builder->current_page));
         mpack_builder_add_page(writer);
+        if (mpack_writer_error(writer) != mpack_ok) {
+            return;
+        }
         // there is always enough space in a fresh page.
         offset = mpack_builder_align_build(builder->current_page->bytes_used);
     }
