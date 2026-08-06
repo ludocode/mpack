@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Copyright (c) 2015-2021 Nicholas Fraser and the MPack authors
+# Copyright (c) 2015-2026 Nicholas Fraser and the MPack authors
 #
 # Permission is hereby granted, free of charge, to any person obtaining a copy of
 # this software and associated documentation files (the "Software"), to deal in
@@ -250,8 +250,9 @@ if msvc:
 else:
     cflags = [
         checkFlags("-std=c11") and "-std=c11" or "-std=c99",
-        "-Wc++-compat"
     ]
+    if checkFlags("-Wc++-compat"):
+        cflags.append("-Wc++-compat")
     cxxflags = [
         "-x", "c++",
         "-Wmissing-declarations",

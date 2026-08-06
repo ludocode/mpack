@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021 Nicholas Fraser and the MPack authors
+ * Copyright (c) 2015-2026 Nicholas Fraser and the MPack authors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -1109,13 +1109,40 @@ void mpack_assert_fail(const char* message);
     #define MPACK_SILENCE_WARNINGS_SHADOW /*nothing*/
 #endif
 
-// On platforms with small size_t (e.g. AVR) we get type limits warnings where
-// we compare a size_t to e.g. MPACK_UINT32_MAX.
-#ifdef __AVR__
-    #define MPACK_SILENCE_WARNINGS_TYPE_LIMITS \
-        _Pragma ("GCC diagnostic ignored \"-Wtype-limits\"")
-#else
-    #define MPACK_SILENCE_WARNINGS_TYPE_LIMITS /*nothing*/
+// We sometimes compare values against limit constants even if it could never
+// be true on platforms where size_t is too large or too small. For example:
+//
+// - On 64-bit platforms, a comparison of a uint32_t value against SIZE_MAX is
+//   always false.
+// - On AVR with a 16-bit size_t, a comparison of a size_t value against
+//   UINT32_MAX is always false.
+//
+// These checks are necessary for overflow detection on platforms where the
+// comparison is not always false, but compilers warn if the check is always
+// false on the current platform even if it's a platform-dependent macro. We
+// have to silence the check. It would be better if we could limit this to each
+// individual check but it's not practical to do so.
+#ifndef MPACK_SILENCE_WARNINGS_ALWAYS_FALSE
+    #ifdef __has_warning
+        // Clang calls this -Wtautological-constant-out-of-range-compare
+        #if __has_warning("-Wtautological-constant-out-of-range-compare")
+            #define MPACK_SILENCE_WARNINGS_ALWAYS_FALSE \
+                _Pragma ("GCC diagnostic ignored \"-Wtautological-constant-out-of-range-compare\"")
+        // GCC includes this under -Wtype-limits
+        #elif __has_warning("-Wtype-limits")
+            #define MPACK_SILENCE_WARNINGS_ALWAYS_FALSE \
+                _Pragma ("GCC diagnostic ignored \"-Wtype-limits\"")
+        #endif
+    #endif
+#endif
+#ifndef MPACK_SILENCE_WARNINGS_ALWAYS_FALSE
+    #if defined(__GNUC__)
+        #define MPACK_SILENCE_WARNINGS_ALWAYS_FALSE \
+            _Pragma ("GCC diagnostic ignored \"-Wtype-limits\"")
+    #endif
+#endif
+#ifndef MPACK_SILENCE_WARNINGS_ALWAYS_FALSE
+    #define MPACK_SILENCE_WARNINGS_ALWAYS_FALSE /*nothing*/
 #endif
 
 // MPack uses declarations after statements. This silences warnings about it
@@ -1138,7 +1165,7 @@ void mpack_assert_fail(const char* message);
         MPACK_SILENCE_WARNINGS_MSVC_W4 \
         MPACK_SILENCE_WARNINGS_MISSING_PROTOTYPES \
         MPACK_SILENCE_WARNINGS_SHADOW \
-        MPACK_SILENCE_WARNINGS_TYPE_LIMITS \
+        MPACK_SILENCE_WARNINGS_ALWAYS_FALSE \
         MPACK_SILENCE_WARNINGS_DECLARATION_AFTER_STATEMENT
 
     #define MPACK_SILENCE_WARNINGS_END \
@@ -1821,6 +1848,118 @@ MPACK_EXTERN_C_BEGIN
     #else
         void* mpack_realloc(void* old_ptr, size_t used_size, size_t new_size);
     #endif
+#endif
+
+
+
+/*
+ * Checked arithmetic
+ *
+ * These are functions that wrap arithmetic with overflow detection. They are
+ * modelled after the C23 ckd_add() and ckd_mul() functions. They output to the
+ * first argument (unlike GCC's extensions), they are explicitly typed (unlike
+ * the C23 standard and unlike GCC's extensions), and they return true if
+ * overflow occurred.
+ */
+
+// check if we have C23 <stdckdint.h>
+// (We really don't want a false positive here. We require C23 mode and we
+// require __has_include since the libc may not have the header even if the
+// compiler supports C23.)
+#ifndef MPACK_HAS_STDCKDINT
+    #ifdef __STDC_VERSION__
+        #if __STDC_VERSION__ >= 202311L
+            #ifdef __has_include
+                #if __has_include(<stdckdint.h>)
+                    #include <stdckdint.h>
+                    #ifdef __STDC_VERSION_STDCKDINT_H__
+                        #if __STDC_VERSION_STDCKDINT_H__ >= 202311L
+                            #define MPACK_HAS_STDCKDINT 1
+                        #endif
+                    #endif
+                #endif
+            #endif
+        #endif
+    #endif
+#endif
+#ifndef MPACK_HAS_STDCKDINT
+    #define MPACK_HAS_STDCKDINT 0
+#endif
+
+// check if we have __builtin_*_overflow()
+#ifndef MPACK_HAS_OVERFLOW_BUILTINS
+    #if MPACK_NO_BUILTINS
+        #define MPACK_HAS_OVERFLOW_BUILTINS 0
+    #endif
+#endif
+#ifndef MPACK_HAS_OVERFLOW_BUILTINS
+    #ifdef __has_builtin
+        #if __has_builtin(__builtin_add_overflow) && __has_builtin(__builtin_mul_overflow)
+            #define MPACK_HAS_OVERFLOW_BUILTINS 1
+        #else
+            #define MPACK_HAS_OVERFLOW_BUILTINS 0
+        #endif
+    #endif
+#endif
+#ifndef MPACK_HAS_OVERFLOW_BUILTINS
+    #ifdef __GNUC__
+        #if __GNUC__ >= 5
+            #define MPACK_HAS_OVERFLOW_BUILTINS 1
+        #endif
+    #endif
+#endif
+#ifndef MPACK_HAS_OVERFLOW_BUILTINS
+    #define MPACK_HAS_OVERFLOW_BUILTINS 0
+#endif
+
+// We prefer builtins to C23 functions because the compiler is more likely to
+// optimize them properly.
+#if MPACK_HAS_OVERFLOW_BUILTINS
+    #define mpack_checked_add_z(out, a, b) __builtin_add_overflow((size_t)(a), (size_t)(b), out)
+    #define mpack_checked_add_u32(out, a, b) __builtin_add_overflow((uint32_t)(a), (uint32_t)(b), out)
+    #define mpack_checked_add_u64(out, a, b) __builtin_add_overflow((uint64_t)(a), (uint64_t)(b), out)
+    #define mpack_checked_mul_z(out, a, b) __builtin_mul_overflow((size_t)(a), (size_t)(b), out)
+    #define mpack_checked_mul_u32(out, a, b) __builtin_mul_overflow((uint32_t)(a), (uint32_t)(b), out)
+    #define mpack_checked_mul_u64(out, a, b) __builtin_mul_overflow((uint64_t)(a), (uint64_t)(b), out)
+#elif MPACK_HAS_STDCKDINT
+    #define mpack_checked_add_z(out, a, b) ckd_add(out, (size_t)(a), (size_t)(b))
+    #define mpack_checked_add_u32(out, a, b) ckd_add(out, (uint32_t)(a), (uint32_t)(b))
+    #define mpack_checked_add_u64(out, a, b) ckd_add(out, (uint64_t)(a), (uint64_t)(b))
+    #define mpack_checked_mul_z(out, a, b) ckd_mul(out, (size_t)(a), (size_t)(b))
+    #define mpack_checked_mul_u32(out, a, b) ckd_mul(out, (uint32_t)(a), (uint32_t)(b))
+    #define mpack_checked_mul_u64(out, a, b) ckd_mul(out, (uint64_t)(a), (uint64_t)(b))
+#else
+    // TODO these should probably be always_inline.
+    MPACK_INLINE bool mpack_checked_add_z(size_t* out, size_t a, size_t b) {
+        size_t result = a + b;
+        *out = result;
+        return result < a;
+    }
+    MPACK_INLINE bool mpack_checked_add_u32(uint32_t* out, uint32_t a, uint32_t b) {
+        uint32_t result = a + b;
+        *out = result;
+        return result < a;
+    }
+    MPACK_INLINE bool mpack_checked_add_u64(uint64_t* out, uint64_t a, uint64_t b) {
+        uint64_t result = a + b;
+        *out = result;
+        return result < a;
+    }
+    MPACK_INLINE bool mpack_checked_mul_z(size_t* out, size_t a, size_t b) {
+        size_t large = (size_t)1 << (sizeof(size_t) * 4);
+        *out = a * b;
+        return (a >= large || b >= large) && a != 0 && *out / a != b;
+    }
+    MPACK_INLINE bool mpack_checked_mul_u32(uint32_t* out, uint32_t a, uint32_t b) {
+        uint32_t large = (uint32_t)1 << (sizeof(uint32_t) * 4);
+        *out = a * b;
+        return (a >= large || b >= large) && a != 0 && *out / a != b;
+    }
+    MPACK_INLINE bool mpack_checked_mul_u64(uint64_t* out, uint64_t a, uint64_t b) {
+        uint64_t large = (uint64_t)1 << (sizeof(uint64_t) * 4);
+        *out = a * b;
+        return (a >= large || b >= large) && a != 0 && *out / a != b;
+    }
 #endif
 
 

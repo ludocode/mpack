@@ -516,8 +516,15 @@ char* mpack_read_bytes_alloc_impl(mpack_reader_t* reader, size_t count, bool nul
     if (count == 0 && null_terminated == false)
         return NULL;
 
+    // calculate size to allocate
+    size_t size = count;
+    if (null_terminated && mpack_checked_add_z(&size, size, 1)) {
+        mpack_reader_flag_error(reader, mpack_error_memory);
+        return NULL;
+    }
+
     // allocate data
-    char* data = (char*)MPACK_MALLOC(count + (null_terminated ? 1 : 0)); // TODO: can this overflow?
+    char* data = (char*)MPACK_MALLOC(size);
     if (data == NULL) {
         mpack_reader_flag_error(reader, mpack_error_memory);
         return NULL;

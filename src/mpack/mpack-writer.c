@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021 Nicholas Fraser and the MPack authors
+ * Copyright (c) 2015-2026 Nicholas Fraser and the MPack authors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -190,9 +190,10 @@ static void mpack_growable_writer_flush(mpack_writer_t* writer, const char* data
 
     if (data == writer->buffer) {
 
-        // teardown, do nothing
-        if (mpack_writer_buffer_used(writer) == count)
+        if (mpack_writer_buffer_used(writer) == count) {
+            // teardown, do nothing
             return;
+        }
 
         // otherwise leave the data in the buffer and just grow
         writer->position = writer->buffer + count;
@@ -209,11 +210,20 @@ static void mpack_growable_writer_flush(mpack_writer_t* writer, const char* data
             "extra flush for %i but there is %i space left in the buffer! (%i/%i)",
             (int)count, (int)mpack_writer_buffer_left(writer), (int)used, (int)size);
 
+    size_t needed;
+    if (mpack_checked_add_z(&needed, used, count)) {
+        mpack_writer_flag_error(writer, mpack_error_memory);
+        return;
+    }
+
     // grow to fit the data
-    // TODO: this really needs to correctly test for overflow
-    size_t new_size = size * 2;
-    while (new_size < used + count)
-        new_size *= 2;
+    size_t new_size = size;
+    do {
+        if (mpack_checked_mul_z(&new_size, new_size, 2)) {
+            mpack_writer_flag_error(writer, mpack_error_memory);
+            return;
+        }
+    } while (new_size < needed);
 
     mpack_log("flush growing buffer size from %i to %i\n", (int)size, (int)new_size);
 

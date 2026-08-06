@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021 Nicholas Fraser and the MPack authors
+ * Copyright (c) 2015-2026 Nicholas Fraser and the MPack authors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -91,8 +91,8 @@ static bool mpack_tree_reserve_fill(mpack_tree_t* tree) {
 
     // if the necessary bytes would put us over the maximum tree
     // size, fail right away.
-    // TODO: check for overflow?
-    if (tree->data_length + bytes > tree->max_size) {
+    size_t length;
+    if (mpack_checked_add_z(&length, tree->data_length, bytes) || length > tree->max_size) {
         mpack_tree_flag_error(tree, mpack_error_too_big);
         return false;
     }
@@ -107,14 +107,17 @@ static bool mpack_tree_reserve_fill(mpack_tree_t* tree) {
     }
 
     // expand the buffer if needed
-    if (tree->data_length + bytes > tree->buffer_capacity) {
-
-        // TODO: check for overflow?
+    if (length > tree->buffer_capacity) {
         size_t new_capacity = (tree->buffer_capacity == 0) ? MPACK_BUFFER_SIZE : tree->buffer_capacity;
-        while (new_capacity < tree->data_length + bytes)
-            new_capacity *= 2;
-        if (new_capacity > tree->max_size)
+        while (new_capacity < tree->data_length + bytes) {
+            if (mpack_checked_mul_z(&new_capacity, new_capacity, 2)) {
+                mpack_tree_flag_error(tree, mpack_error_too_big);
+                return false;
+            }
+        }
+        if (new_capacity > tree->max_size) {
             new_capacity = tree->max_size;
+        }
 
         mpack_log("expanding buffer from %i to %i\n", (int)tree->buffer_capacity, (int)new_capacity);
 
@@ -184,17 +187,13 @@ MPACK_STATIC_INLINE bool mpack_tree_reserve_bytes(mpack_tree_t* tree, size_t ext
     mpack_assert(tree->parser.state == mpack_tree_parse_state_in_progress);
 
     // We guard against overflow here. A compound type could declare more than
-    // MPACK_UINT32_MAX contents which overflows SIZE_MAX on 32-bit platforms. We
-    // flag mpack_error_invalid instead of mpack_error_too_big since it's far
-    // more likely that the message is corrupt than that the data is valid but
-    // not parseable on this architecture (see test_read_node_possible() in
-    // test-node.c .)
-    if ((uint64_t)tree->parser.current_node_reserved + (uint64_t)extra_bytes > SIZE_MAX) {
-        mpack_tree_flag_error(tree, mpack_error_invalid);
+    // MPACK_UINT32_MAX contents which overflows SIZE_MAX on 32-bit platforms.
+    size_t total_bytes;
+    if (mpack_checked_add_z(&total_bytes, tree->parser.current_node_reserved, extra_bytes)) {
+        mpack_tree_flag_error(tree, mpack_error_too_big);
         return false;
     }
-
-    tree->parser.current_node_reserved += extra_bytes;
+    tree->parser.current_node_reserved = total_bytes;
 
     // Note that possible_nodes_left already accounts for reserved bytes for
     // children of previous compound nodes. So even if there are hundreds of
@@ -282,9 +281,10 @@ static bool mpack_tree_parse_children(mpack_tree_t* tree, mpack_node_data_t* nod
         total *= 2;
     }
 
-    // Make sure we are under our total node limit (TODO can this overflow?)
-    tree->node_count += total;
-    if (tree->node_count > tree->max_nodes) {
+    // Make sure we are under our total node limit
+    if (mpack_checked_add_z(&tree->node_count, tree->node_count, total)
+            || tree->node_count > tree->max_nodes)
+    {
         mpack_tree_flag_error(tree, mpack_error_too_big);
         return false;
     }
@@ -322,9 +322,14 @@ static bool mpack_tree_parse_children(mpack_tree_t* tree, mpack_node_data_t* nod
         mpack_tree_page_t* page;
 
         if (total > MPACK_NODES_PER_PAGE || parser->nodes_left > MPACK_NODES_PER_PAGE / 8) {
-            // TODO: this should check for overflow
-            page = (mpack_tree_page_t*)MPACK_MALLOC(
-                    sizeof(mpack_tree_page_t) + sizeof(mpack_node_data_t) * (total - 1));
+            size_t page_size;
+            if (mpack_checked_mul_z(&page_size, sizeof(mpack_node_data_t), (total - 1))
+                    || mpack_checked_add_z(&page_size, page_size, sizeof(mpack_tree_page_t)))
+            {
+                mpack_tree_flag_error(tree, mpack_error_too_big);
+                return false;
+            }
+            page = (mpack_tree_page_t*)MPACK_MALLOC(page_size);
             if (page == NULL) {
                 mpack_tree_flag_error(tree, mpack_error_memory);
                 return false;
@@ -1670,7 +1675,7 @@ char* mpack_node_cstr_alloc(mpack_node_t node, size_t maxlen) {
         return NULL;
     }
 
-    if (node.data->len > maxlen - 1) {
+    if (node.data->len > maxlen - 1 || node.data->len == SIZE_MAX) {
         mpack_node_flag_error(node, mpack_error_too_big);
         return NULL;
     }
@@ -1680,7 +1685,7 @@ char* mpack_node_cstr_alloc(mpack_node_t node, size_t maxlen) {
         return NULL;
     }
 
-    char* ret = (char*) MPACK_MALLOC((size_t)(node.data->len + 1));
+    char* ret = (char*) MPACK_MALLOC((size_t)node.data->len + 1);
     if (ret == NULL) {
         mpack_node_flag_error(node, mpack_error_memory);
         return NULL;
@@ -1707,7 +1712,7 @@ char* mpack_node_utf8_cstr_alloc(mpack_node_t node, size_t maxlen) {
         return NULL;
     }
 
-    if (node.data->len > maxlen - 1) {
+    if (node.data->len > maxlen - 1 || node.data->len == SIZE_MAX) {
         mpack_node_flag_error(node, mpack_error_too_big);
         return NULL;
     }
@@ -1717,7 +1722,7 @@ char* mpack_node_utf8_cstr_alloc(mpack_node_t node, size_t maxlen) {
         return NULL;
     }
 
-    char* ret = (char*) MPACK_MALLOC((size_t)(node.data->len + 1));
+    char* ret = (char*) MPACK_MALLOC((size_t)node.data->len + 1);
     if (ret == NULL) {
         mpack_node_flag_error(node, mpack_error_memory);
         return NULL;
