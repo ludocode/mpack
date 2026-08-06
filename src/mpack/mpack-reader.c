@@ -996,46 +996,89 @@ mpack_tag_t mpack_peek_tag(mpack_reader_t* reader) {
 }
 
 void mpack_discard(mpack_reader_t* reader) {
-    mpack_tag_t var = mpack_read_tag(reader);
-    if (mpack_reader_error(reader))
-        return;
-    switch (var.type) {
-        case mpack_type_str:
-            mpack_skip_bytes(reader, var.v.l);
-            mpack_done_str(reader);
-            break;
-        case mpack_type_bin:
-            mpack_skip_bytes(reader, var.v.l);
-            mpack_done_bin(reader);
-            break;
-        #if MPACK_EXTENSIONS
-        case mpack_type_ext:
-            mpack_skip_bytes(reader, var.v.l);
-            mpack_done_ext(reader);
-            break;
+    #if MPACK_READ_TRACKING
+    size_t depth = 0;
+    #endif
+
+    size_t remaining = 1;
+    while (remaining > 0) {
+        --remaining;
+        mpack_tag_t var = mpack_read_tag(reader);
+        if (mpack_reader_error(reader) != mpack_ok)
+            return;
+
+        switch (var.type) {
+            case mpack_type_str:
+                mpack_skip_bytes(reader, var.v.l);
+                mpack_done_str(reader);
+                if (mpack_reader_error(reader) != mpack_ok)
+                    return;
+                break;
+            case mpack_type_bin:
+                mpack_skip_bytes(reader, var.v.l);
+                mpack_done_bin(reader);
+                if (mpack_reader_error(reader) != mpack_ok)
+                    return;
+                break;
+
+            #if MPACK_EXTENSIONS
+            case mpack_type_ext:
+                mpack_skip_bytes(reader, var.v.l);
+                mpack_done_ext(reader);
+                if (mpack_reader_error(reader) != mpack_ok)
+                    return;
+                break;
+            #endif
+            case mpack_type_array:
+                if (var.v.n > SIZE_MAX
+                        || mpack_checked_add_z(&remaining, remaining, var.v.n))
+                {
+                    mpack_reader_flag_error(reader, mpack_error_too_big);
+                    return;
+                }
+                #if MPACK_READ_TRACKING
+                ++depth;
+                #endif
+                break;
+            case mpack_type_map: {
+                size_t elements;
+                if (var.v.n > SIZE_MAX
+                        || mpack_checked_mul_z(&elements, var.v.n, 2)
+                        || mpack_checked_add_z(&remaining, remaining, elements))
+                {
+                    mpack_reader_flag_error(reader, mpack_error_too_big);
+                    return;
+                }
+                #if MPACK_READ_TRACKING
+                ++depth;
+                #endif
+                break;
+            }
+            default:
+                break;
+        }
+
+        #if MPACK_READ_TRACKING
+        // pop any completed arrays and maps
+        while (depth > 0) {
+            mpack_track_t* track = &reader->track;
+            mpack_assert(track->count != 0, "discard depth with no track?");
+            mpack_track_element_t* element = &track->elements[track->count - 1];
+            if (element->left != 0) {
+                break;
+            }
+            --depth;
+            mpack_done_type(reader, element->type);
+        }
         #endif
-        case mpack_type_array: {
-            for (; var.v.n > 0; --var.v.n) {
-                mpack_discard(reader);
-                if (mpack_reader_error(reader))
-                    break;
-            }
-            mpack_done_array(reader);
-            break;
-        }
-        case mpack_type_map: {
-            for (; var.v.n > 0; --var.v.n) {
-                mpack_discard(reader);
-                mpack_discard(reader);
-                if (mpack_reader_error(reader))
-                    break;
-            }
-            mpack_done_map(reader);
-            break;
-        }
-        default:
-            break;
     }
+
+    // We early return on any error, so this is only reachable if no error
+    // occurred.
+    mpack_assert(mpack_reader_error(reader) == mpack_ok, "discard ending in error");
+    #if MPACK_READ_TRACKING
+    mpack_assert(depth == 0, "discard final depth not zero");
+    #endif
 }
 
 #if MPACK_EXTENSIONS

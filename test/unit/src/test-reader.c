@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015-2021 Nicholas Fraser and the MPack authors
+ * Copyright (c) 2015-2026 Nicholas Fraser and the MPack authors
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of
  * this software and associated documentation files (the "Software"), to deal in
@@ -81,6 +81,19 @@ static void test_reader_miscellaneous(void) {
     // truncated discard errors
     TEST_SIMPLE_READ_ERROR("\x91", (mpack_discard(&reader), true), mpack_error_invalid); // array
     TEST_SIMPLE_READ_ERROR("\x81", (mpack_discard(&reader), true), mpack_error_invalid); // map
+}
+
+static void test_reader_discard(void) {
+    // test for stack overflow. mpack_discard() used to be recursive.
+    size_t size = 1024*1024;
+    char* message = (char*)malloc(size);
+    memset(message, '\x91', size - 1);
+    message[size - 1] = '\xc0';
+    mpack_reader_t reader;
+    mpack_reader_init_data(&reader, message, size);
+    mpack_discard(&reader);
+    TEST_TRUE(mpack_ok == mpack_reader_destroy(&reader));
+    free(message);
 }
 
 #if MPACK_DEBUG && MPACK_STDIO
@@ -166,6 +179,7 @@ void test_reader(void) {
     test_print_buffer_hexdump();
     test_print_buffer_no_hexdump();
     #endif
+    test_reader_discard();
     test_reader_should_inplace();
     test_reader_miscellaneous();
     test_count_messages();
