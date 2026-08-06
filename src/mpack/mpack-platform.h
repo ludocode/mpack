@@ -1423,7 +1423,7 @@ MPACK_EXTERN_C_BEGIN
 #endif
 
 #ifndef MPACK_ALIGNOF
-    #if defined(__GNUC__) && !defined(MPACK_NO_BUILTINS)
+    #if defined(__GNUC__) && !MPACK_NO_BUILTINS
         #if defined(__clang__) || __GNUC__ >= 4
             #define MPACK_ALIGNOF(T) (__alignof__(T))
         #endif

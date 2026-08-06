@@ -120,7 +120,7 @@ void mpack_break_hit(const char* message) {
     fprintf(stderr, "%s\n", message);
     #endif
 
-    #if defined(__GNUC__) || defined(__clang__) && !MPACK_NO_BUILTINS
+    #if (defined(__GNUC__) || defined(__clang__)) && !MPACK_NO_BUILTINS
     __builtin_trap();
     #elif defined(WIN32) && !MPACK_NO_BUILTINS
     __debugbreak();
