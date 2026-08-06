@@ -118,14 +118,14 @@ int main(int argc, char** argv) {
 }
 """)
 
-def checkFlags(flags):
+def checkFlags(flags, printLog=True):
     if isinstance(flags, str):
         flags = [flags,]
 
     configArg = "|".join(flags)
     if configArg in config["flags"]:
         return config["flags"][configArg]
-    print("Testing flag(s): " + " ".join(flags) + " ... ", end="")
+    if printLog: print("Testing flag(s): " + " ".join(flags) + " ... ", end="")
     sys.stdout.flush()
 
     if msvc:
@@ -136,10 +136,10 @@ def checkFlags(flags):
             stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
 
     if ret.returncode == 0:
-        print("Supported.")
+        if printLog: print("Supported.")
         supported = True
     else:
-        print("Not supported.")
+        if printLog: print("Not supported.")
         supported = False
     config["flags"][configArg] = supported
     return supported
@@ -167,12 +167,17 @@ else:
     if ret.returncode != 0:
         print("Not supported.")
     else:
+        isGCC = False
         for line in ret.stdout.splitlines():
             if line.startswith("gcc version"):
-                hasOg = True
+                isGCC = True
                 break
-        if hasOg:
-            print("Supported.")
+        if isGCC:
+            hasOg = checkFlags("-Og", printLog=False)
+            if hasOg:
+                print("Supported.")
+            else:
+                print("Not supported.")
         else:
             print("May be supported, but we won't use it.")
 
