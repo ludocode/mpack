@@ -641,12 +641,12 @@ static char* mpack_expect_cstr_alloc_unchecked(mpack_reader_t* reader, size_t ma
         return NULL;
     }
 
-    if (SIZE_MAX < MPACK_UINT32_MAX) {
-        if (maxsize > SIZE_MAX)
-            maxsize = SIZE_MAX;
-    } else {
-        if (maxsize > (size_t)MPACK_UINT32_MAX)
-            maxsize = (size_t)MPACK_UINT32_MAX;
+    // mpack_expect_str_max() takes a maxsize argument as uint32_t instead of
+    // size_t. Unfortunately the API is not very consistent here and it
+    // probably can't safely be changed. It's possible SIZE_MAX is smaller than
+    // UINT32_MAX, for example on AVR with a 16-bit size_t.
+    if (MPACK_UINT32_MAX < SIZE_MAX && maxsize > MPACK_UINT32_MAX) {
+        maxsize = (size_t)MPACK_UINT32_MAX;
     }
 
     size_t length = mpack_expect_str_max(reader, (uint32_t)maxsize - 1);
@@ -718,12 +718,10 @@ char* mpack_expect_bin_alloc(mpack_reader_t* reader, size_t maxsize, size_t* siz
     mpack_assert(size != NULL, "size cannot be NULL");
     *size = 0;
 
-    if (SIZE_MAX < MPACK_UINT32_MAX) {
-        if (maxsize > SIZE_MAX)
-            maxsize = SIZE_MAX;
-    } else {
-        if (maxsize > (size_t)MPACK_UINT32_MAX)
-            maxsize = (size_t)MPACK_UINT32_MAX;
+    // mpack_expect_bin_max() takes uint32_t. See comment in
+    // mpack_expect_cstr_alloc_unchecked()
+    if (MPACK_UINT32_MAX < SIZE_MAX && maxsize > MPACK_UINT32_MAX) {
+        maxsize = (size_t)MPACK_UINT32_MAX;
     }
 
     size_t length = mpack_expect_bin_max(reader, (uint32_t)maxsize);
@@ -744,12 +742,10 @@ char* mpack_expect_ext_alloc(mpack_reader_t* reader, int8_t* type, size_t maxsiz
     mpack_assert(size != NULL, "size cannot be NULL");
     *size = 0;
 
-    if (SIZE_MAX < MPACK_UINT32_MAX) {
-        if (maxsize > SIZE_MAX)
-            maxsize = SIZE_MAX;
-    } else {
-        if (maxsize > (size_t)MPACK_UINT32_MAX)
-            maxsize = (size_t)MPACK_UINT32_MAX;
+    // mpack_expect_ext_max() takes uint32_t. See comment in
+    // mpack_expect_cstr_alloc_unchecked()
+    if (MPACK_UINT32_MAX < SIZE_MAX && maxsize > MPACK_UINT32_MAX) {
+        maxsize = (size_t)MPACK_UINT32_MAX;
     }
 
     size_t length = mpack_expect_ext_max(reader, type, (uint32_t)maxsize);
