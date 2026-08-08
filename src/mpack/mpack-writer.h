@@ -1218,13 +1218,17 @@ MPACK_INLINE void mpack_write(mpack_writer_t* writer, bool value) {
     mpack_write_bool(writer, value);
 }
 
+#if MPACK_FLOAT
 MPACK_INLINE void mpack_write(mpack_writer_t* writer, float value) {
     mpack_write_float(writer, value);
 }
+#endif
 
+#if MPACK_DOUBLE
 MPACK_INLINE void mpack_write(mpack_writer_t* writer, double value) {
     mpack_write_double(writer, value);
 }
+#endif
 
 MPACK_INLINE void mpack_write(mpack_writer_t* writer, char *value) {
     mpack_write_cstr_or_nil(writer, value);
@@ -1281,15 +1285,19 @@ MPACK_INLINE void mpack_write_kv(mpack_writer_t* writer, const char *key, bool v
     mpack_write_bool(writer, value);
 }
 
+#if MPACK_FLOAT
 MPACK_INLINE void mpack_write_kv(mpack_writer_t* writer, const char *key, float value) {
     mpack_write_cstr(writer, key);
     mpack_write_float(writer, value);
 }
+#endif
 
+#if MPACK_DOUBLE
 MPACK_INLINE void mpack_write_kv(mpack_writer_t* writer, const char *key, double value) {
     mpack_write_cstr(writer, key);
     mpack_write_double(writer, value);
 }
+#endif
 
 MPACK_INLINE void mpack_write_kv(mpack_writer_t* writer, const char *key, char *value) {
     mpack_write_cstr(writer, key);

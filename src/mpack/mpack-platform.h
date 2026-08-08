@@ -347,7 +347,7 @@
  * Whether the 'double' type is supported. This requires support for 'float'.
  *
  * If @ref MPACK_DOUBLE is disabled, doubles are read and written as @c
- * uint32_t instead. This way messages with doubles do not result in errors and
+ * uint64_t instead. This way messages with doubles do not result in errors and
  * you can still perform manual doubles parsing yourself.
  *
  * If @ref MPACK_FLOAT is enabled but @ref MPACK_DOUBLE is not, doubles can be

@@ -393,10 +393,12 @@ elif compiler != "TinyCC":
         if checkFlags(flags):
             addDebugReleaseBuilds(version, allfeatures + allconfigs + flags, cxxlinkflags)
 
-    # Make sure C++11 compiles with disabled features (see #66)
     cxx11flags = cxxflags + ["-std=c++11"]
     if checkFlags(cxx11flags):
+        # Make sure C++11 compiles with disabled features (see #66)
         addDebugReleaseBuilds('c++11-empty', allconfigs + cxx11flags, cxxlinkflags)
+        # Make sure C++ compiles without float support
+        addDebugReleaseBuilds('c++11-no-float', allfeatures + allconfigs + cxx11flags + ["-DMPACK_FLOAT=0"])
 
     # We disable pedantic in C++98 due to our use of variadic macros, trailing
     # commas, ll format specifiers, and probably more. We technically only support
