@@ -419,6 +419,73 @@ static void test_builder_resolve_error(void) {
     TEST_WRITER_DESTROY_ERROR(&writer, mpack_error_too_big);
 }
 
+// Opening a build can allocate memory in more than one place: the builder
+// grows its own linked list of pages on demand, and (in debug builds) the
+// write tracker grows its stack to record the newly opened container. Either
+// one can fail independently of the other. This runs a wide and deeply
+// nested builder session under the malloc failure simulator so that a
+// failure at any single allocation, in either subsystem, is exercised. We
+// allow mpack_error_memory as an error here since it's simulated by the
+// failure system; anything else (including a crash or an assertion) means
+// there's a bug.
+static bool test_builder_page_alloc_failure(void) {
+    static char buf[16*1024];
+    mpack_writer_t writer;
+    mpack_writer_init(&writer, buf, sizeof(buf));
+
+    // mpack_writer_init() can itself fail here (before we have a chance to
+    // attach an error handler below) since it allocates the initial write
+    // tracking storage.
+    if (mpack_writer_error(&writer) == mpack_error_memory) {
+        mpack_writer_destroy(&writer);
+        return false;
+    }
+
+    TEST_TRUE(test_write_error == mpack_ok);
+    mpack_writer_set_error_handler(&writer, test_write_error_handler);
+
+    #define TEST_POSSIBLE_FAILURE() do { \
+        if (mpack_writer_error(&writer) == mpack_error_memory) { \
+            TEST_TRUE(test_write_error == mpack_error_memory, "writer error handler was not called?"); \
+            test_write_error = mpack_ok; \
+            mpack_writer_destroy(&writer); \
+            return false; \
+        } \
+    } while (0)
+
+    const int depth = 8;
+    const int width = 6;
+
+    int i, j;
+    for (i = 0; i < depth; ++i) {
+        mpack_build_map(&writer);
+        TEST_POSSIBLE_FAILURE();
+        for (j = 0; j < width; ++j) {
+            mpack_write_cstr(&writer, "key");
+            TEST_POSSIBLE_FAILURE();
+            mpack_write_int(&writer, i * width + j);
+            TEST_POSSIBLE_FAILURE();
+        }
+        // every map but the innermost nests the next map as the value of one
+        // more key, so each level stays a properly balanced set of pairs
+        if (i + 1 < depth) {
+            mpack_write_cstr(&writer, "nested");
+            TEST_POSSIBLE_FAILURE();
+        }
+    }
+
+    for (i = 0; i < depth; ++i) {
+        mpack_complete_map(&writer);
+        TEST_POSSIBLE_FAILURE();
+    }
+
+    #undef TEST_POSSIBLE_FAILURE
+
+    TEST_WRITER_DESTROY_NOERROR(&writer);
+    TEST_TRUE(test_write_error == mpack_ok);
+    return true;
+}
+
 void test_builder(void) {
     test_builder_basic();
     test_builder_repeat();
@@ -428,5 +495,6 @@ void test_builder(void) {
     test_builder_content();
     test_builder_strings();
     test_builder_resolve_error();
+    test_system_fail_until_ok(&test_builder_page_alloc_failure);
 }
 #endif
