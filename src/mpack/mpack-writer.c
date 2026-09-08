@@ -1584,6 +1584,11 @@ static void mpack_builder_build(mpack_writer_t* writer, mpack_type_t type) {
 
     mpack_writer_track_element(writer);
     mpack_writer_track_push_builder(writer, type);
+    // Tracking can grow its own storage on demand, which can fail. We need to
+    // check for this here rather than falling through, otherwise we'd call
+    // mpack_builder_begin() or mpack_builder_apply_writes() in an error state.
+    if (mpack_writer_error(writer) != mpack_ok)
+        return;
 
     mpack_builder_t* builder = &writer->builder;
 
