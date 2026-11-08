@@ -1,12 +1,8 @@
 ## Introduction
 
-MPack is a C implementation of an encoder and decoder for the [MessagePack](http://msgpack.org/) serialization format. It is:
+MPack is a C implementation of an encoder and decoder for the [MessagePack](http://msgpack.org/) serialization format.
 
- * Simple and easy to use
- * Secure against untrusted data
- * Lightweight, suitable for embedded
- * [Extensively documented](http://ludocode.github.io/mpack/)
- * [Extremely fast](https://github.com/ludocode/schemaless-benchmarks#speed---desktop-pc)
+It is simple, feature-rich, lightweight, and very easy to use. It has [extensive documentation](http://ludocode.github.io/mpack/) and is [extremely fast](https://github.com/ludocode/schemaless-benchmarks#speed---desktop-pc).
 
 The core of MPack contains a buffered reader and writer, and a tree-style parser that decodes into a tree of dynamically typed nodes. Helper functions can be enabled to read values of expected type, to work with files, to grow buffers or allocate strings automatically, to check UTF-8 encoding, and more.
 
@@ -126,3 +122,7 @@ While the space inefficiencies of JSON can be partially mitigated through minifi
 The MPack build process does not build MPack into a library; it is used to build and run the unit tests. You do not need to build MPack or the unit testing suite to use MPack.
 
 See [test/README.md](test/README.md) for information on how to test MPack.
+
+## LLM Statement
+
+No.
