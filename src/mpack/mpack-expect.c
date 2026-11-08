@@ -451,7 +451,9 @@ bool mpack_expect_array_max_or_nil(mpack_reader_t* reader, uint32_t max_count, u
 }
 
 #ifdef MPACK_MALLOC
-void* mpack_expect_array_alloc_impl(mpack_reader_t* reader, size_t element_size, uint32_t max_count, uint32_t* out_count, bool allow_nil) {
+void* mpack_expect_array_alloc_impl(mpack_reader_t* reader, size_t element_size,
+        uint32_t max_count, uint32_t* out_count, bool allow_nil)
+{
     mpack_assert(out_count != NULL, "out_count cannot be NULL");
     *out_count = 0;
 
@@ -474,7 +476,12 @@ void* mpack_expect_array_alloc_impl(mpack_reader_t* reader, size_t element_size,
         return NULL;
     }
 
-    void* p = MPACK_MALLOC(element_size * count);
+    size_t total;
+    if (mpack_checked_mul_z(&total, element_size, count)) {
+        mpack_reader_flag_error(reader, mpack_error_too_big);
+        return NULL;
+    }
+    void* p = MPACK_MALLOC(total);
     if (p == NULL) {
         mpack_reader_flag_error(reader, mpack_error_memory);
         return NULL;

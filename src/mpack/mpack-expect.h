@@ -872,6 +872,9 @@ bool mpack_expect_array_max_or_nil(mpack_reader_t* reader, uint32_t max_count, u
  *
  * @throws mpack_error_type if the value is not an array or if its size is
  * greater than max_count.
+ * @throws mpack_error_memory if memory allocation failed.
+ * @throws mpack_error_too_big if the resulting array would be too large to
+ * fit in memory.
  */
 #define mpack_expect_array_alloc(reader, Type, max_count, out_count) \
     ((Type*)mpack_expect_array_alloc_impl(reader, sizeof(Type), max_count, out_count, false))
@@ -900,6 +903,9 @@ bool mpack_expect_array_max_or_nil(mpack_reader_t* reader, uint32_t max_count, u
  *
  * @throws mpack_error_type if the value is not an array or if its size is
  * greater than max_count.
+ * @throws mpack_error_memory if memory allocation failed.
+ * @throws mpack_error_too_big if the resulting array would be too large to
+ * fit in memory.
  */
 #define mpack_expect_array_or_nil_alloc(reader, Type, max_count, out_count) \
     ((Type*)mpack_expect_array_alloc_impl(reader, sizeof(Type), max_count, out_count, true))
